@@ -6,7 +6,7 @@
 Zurzeit kann man nicht direkt auf den Main-Branch branchen. Jemand muss vorher den Code reviewen und bestätigen. Das soll verhindern, dass auf eigene Faust etwas im Main gebrancht wird. 
 
 ## Organisation des Projektes mit SCRUM
-Oben auf der Leiste "Code, Issues, Pull-Requests, Pakete, Projekte, Releases, Wiki, Aktivität" findet man unter der Rubrik "Projekte" ein Projekt namens "MEP". Dort findet man ein SCRUM-Board.
+Oben auf der Leiste "Code Issues, Pull requests, Actions, Projects, Security and quality, Insights, Settings" findet man unter der Rubrik "Projects" ein Projekt namens "MEP". Dort findet man ein SCRUM-Board.
 Dieses SCRUM-Board wurde folgendermaßen strukturiert:
  - Product Backlog (alle geplanten Features)
  - Sprint Backlog (aktueller Sprint)

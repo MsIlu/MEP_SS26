@@ -19,6 +19,14 @@ Dieses SCRUM-Board wurde folgendermaßen strukturiert:
  - Scrum Master: Freddy, stellver. Talha
  - Development Team: Alle Teammitglieder
 
+## weitere Aufgabenverteilungen
+Tutor: Luca
+Discord-Mod: Eli
+Kanban-Mod: Ilu
+Dokumentation: Yuka, Eli, Ilu
+Diagramm-Mod: Müberra
+Kalendar-Mod: Müberra
+
 # Tools
  - GitHub (Versionskontrolle, SCRUM)
  - Jira, Confluence, Canva

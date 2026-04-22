@@ -1,4 +1,4 @@
-#VERHALTENSKODEX
+# VERHALTENSKODEX
 Wir, MedBitAid, haben beschlossen, folgende Punkte einzuhalten, um ein gutes Teamverhältnis zu entwickeln:
 1.	Respektvoller Umgang miteinander
 2.	Jeden aussprechen lassen

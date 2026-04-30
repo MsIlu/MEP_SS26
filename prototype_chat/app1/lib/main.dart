@@ -9,6 +9,10 @@ import 'features/chat/presentation/chat_screen.dart';
 /// Einstiegspunkt der App.
 ///
 /// Initialisiert Abhängigkeiten und startet die UI.
+/// 
+/// Zum Starten in der Konsole aus dem verzeichnis /app1
+/// flutter run 
+/// 
 void main() {
 
   final client = ApiClient(http.Client());

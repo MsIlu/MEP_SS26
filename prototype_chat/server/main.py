@@ -16,6 +16,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import ollama
+import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
 from medical_rules import detect_medical_red_flags
@@ -52,18 +53,12 @@ def chat(req: ChatRequest):
         session_id = req.session_id
 
         print(f"[{session_id}] User: {user_input}")
-
-        if not user_input:
-            return {"response": "⚠️ Leere Eingabe."}
-
-        # Session initialisieren
+        
         if session_id not in sessions:
-            sessions[session_id] = [
-                {
-                    "role": "system",
-                    "content": config.MASTER_PROMPT
-                }
-            ]
+            return {"response": "Fehler: Ungültige Session-ID"}
+        
+        if not user_input:
+            return {"response": "Fehler: Leere Eingabe."}
 
         messages = sessions[session_id]
 
@@ -144,3 +139,21 @@ def warmup():
         return {"status": "warmed up"}
     except Exception as e:
         return {"error": str(e)}
+    
+# Endpunkt zur Vergabe von Session IDs
+@app.post("/session")
+def create_session():
+    session_id = str(uuid.uuid4())
+
+    # Session initialisieren
+    sessions[session_id] = [
+        {
+            "role": "system",
+            "content": config.MASTER_PROMPT
+        }
+    ]
+
+    #Debug/Log
+    print("Created session: ", session_id)
+
+    return {"session_id": session_id}

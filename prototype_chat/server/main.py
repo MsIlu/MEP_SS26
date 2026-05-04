@@ -18,6 +18,7 @@ from pydantic import BaseModel
 import ollama
 from fastapi.middleware.cors import CORSMiddleware
 import config
+from medical_rules import detect_medical_red_flags
 
 app = FastAPI()
 
@@ -71,6 +72,18 @@ def chat(req: ChatRequest):
             "role": "user",
             "content": user_input
         })
+
+        # detect_medical_red_flags kommt aus medical_rules.py
+        result = detect_medical_red_flags(user_input)
+
+        # Falls result leer ist (z.B. None), 
+        # wird der Block nicht ausgeführt 
+        if result:
+            messages.append({
+                "role":"assistant",
+                "content":result
+            })
+            return {"response": result}
 
         # Ollama Anfrage
         response = client.chat(

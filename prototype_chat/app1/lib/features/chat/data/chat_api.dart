@@ -30,4 +30,12 @@ class ChatApi {
       await client.post("/warmup", {});
     } catch (_) {}
   }
+
+  Future<String> createSession() async {
+    final res = await client.post("/session", {});
+
+    final data = jsonDecode(res.body);
+
+    return data["session_id"];
+  }
 }

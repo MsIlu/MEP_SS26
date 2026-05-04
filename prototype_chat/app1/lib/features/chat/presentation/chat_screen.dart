@@ -35,8 +35,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final textController = TextEditingController();
   final scrollController = ScrollController();
 
-  final sessionId = UniqueKey().toString();
-
   /// Wird einmal beim Erstellen des Widgets aufgerufen.
   ///
   /// Initialisiert den Chat:
@@ -45,8 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    widget.controller.warmup();
-    widget.controller.addWelcomeMessage();
+    widget.controller.init();
   }
 
   /// Wird beim Entfernen des Widgets aufgerufen.
@@ -74,7 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     textController.clear();
 
-    widget.controller.sendMessage(text, sessionId);
+    widget.controller.sendMessage(text);
 
     // Auto-Scroll nach neuer Nachricht
     WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -36,7 +36,7 @@ sessions = {}
 #  Verbindung zum Hochschul-Ollama-Server 
 #  Das Gerät auf dem der Server läuft muss im Hochschulnetzwerk sein!!!
 client = ollama.Client(
-    host="http://141.19.141.150:11434"
+    host=config.OLLAMA_HOST
 )
 
 class ChatRequest(BaseModel):

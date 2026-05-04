@@ -17,6 +17,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import ollama
 from fastapi.middleware.cors import CORSMiddleware
+import config
 
 app = FastAPI()
 
@@ -31,12 +32,6 @@ app.add_middleware(
 
 # Session Speicher
 sessions = {}
-
-# gewähltes Modell
-selected_model = "llama3.2"
-
-# Master Prompt, unsichtbar über jedem Chat.
-master_prompt = "Du bist ein hilfreicher Assistent. Antworte kurz und verständlich auf Deutsch."
 
 #  Verbindung zum Hochschul-Ollama-Server 
 #  Das Gerät auf dem der Server läuft muss im Hochschulnetzwerk sein!!!
@@ -65,7 +60,7 @@ def chat(req: ChatRequest):
             sessions[session_id] = [
                 {
                     "role": "system",
-                    "content": master_prompt
+                    "content": config.MASTER_PROMPT
                 }
             ]
 
@@ -79,7 +74,7 @@ def chat(req: ChatRequest):
 
         # Ollama Anfrage
         response = client.chat(
-            model=selected_model,
+            model=config.SELECTED_MODEL,
             messages=messages,
             options={"keep_alive": "2m"}
         )
@@ -129,7 +124,7 @@ def get_models():
 def warmup():
     try:
         client.chat(
-            model=selected_model,
+            model=config.SELECTED_MODEL,
             messages=[{"role": "user", "content": "antworte mit ok"}],
             options={"keep_alive": "2m"}
         )

@@ -3,52 +3,62 @@ import 'package:app1/features/chat/data/chat_api.dart';
 import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
 
-/// Zentrale Logik für Chat State Management.
+/// Central state management for the chat feature.
 ///
-/// Steuert Nachrichtenfluss, API Kommunikation und UI Updates.
-/// 
+/// Responsible for:
+/// - Managing message state
+/// - Handling API communication
+/// - Maintaining session lifecycle
+/// - Updating UI via ValueNotifier
+///
 /// DEV NOTE:
-/// **ValueNotifier bei messages könnte problematico werden
-/// **Doppeltes State Handling
+/// ValueNotifier is used for simplicity.
 /// 
-/// ** lieber nicht anfassen wenn ihr euch nicht sicher seid
+/// ***Don't touch*** if you're not sure about it
+/// as it can lead to duplicated state logic in larger apps.
 class ChatController {
   final ChatApi chatApi;
 
   ChatController(this.chatApi);
 
+  /// Holds the current list of chat messages.
   final messages = ValueNotifier<List<Message>>([]);
 
   String? _sessionId;
 
+  /// Initializes the chat session and loads the welcome message.
   Future<void> init() async {
     _sessionId = await chatApi.createSession();
     chatApi.warmup();
-    addWelcomeMessage();
+    _addWelcomeMessage();
   }
 
+  /// Sends a message to the backend and updates the chat state.
   Future<void> sendMessage(String text) async {
   assert(_sessionId != null);
 
   if (_sessionId == null) {
-    throw Exception("Session not initialized");
+    throw Exception("Chat session wurde nicht initialisiert.");
   }
 
-  if (text.trim().isEmpty) return;
+  final trimmedText = text.trim();
+  if (trimmedText.isEmpty) return;
 
-  final current = [...messages.value];
-
-  current.add(Message(text: text, isUser: true));
-  messages.value = current;
+  // Add user message
+  final updatedMessages = [...messages.value];
+  updatedMessages.add(Message(text: trimmedText, isUser: true));
+  messages.value = updatedMessages;
 
   try {
-    final reply = await chatApi.sendMessage(text, _sessionId!);
+    final reply = await chatApi.sendMessage(trimmedText, _sessionId!);
 
+    // Add bot response
     messages.value = [
         ...messages.value,
         Message(text: reply, isUser: false),
       ];
   } catch (e) {
+    // Add error message to chat
     messages.value = [
         ...messages.value,
         Message(text: "Fehler: $e", isUser: false),
@@ -56,7 +66,8 @@ class ChatController {
     }
   }
 
-  void addWelcomeMessage() {
+  /// Adds the initial welcome message to the chat.
+  void _addWelcomeMessage() {
     messages.value = [
         Message(
           text: AppConfig.welcomeMessage,

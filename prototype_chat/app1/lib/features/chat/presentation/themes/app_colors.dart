@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Central class for all UI color definitions.
 ///
-/// Zentrale Klasse für alle UI Farbelemente
-/// 
+/// This helps keep color consistent across the app
+/// and makes future changes easier.
 class AppColors {
+  /// Background color of the top app bar
+  static const Color upperBarColor = Color(0xFF1565C0); // Blue[800]
 
-  static final Color upperBarColor = Colors.blue[800]!; //Farbe der Namensleiste oben
-  static final Color lowerBarColor = Colors.grey[300]!; //Farbe der Namensleiste oben
+  /// Background color of the bottom bar
+  static const Color lowerBarColor = Color(0xFFE0E0E0); // Grey[300]
   
 }

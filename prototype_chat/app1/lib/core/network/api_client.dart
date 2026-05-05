@@ -28,17 +28,17 @@ class ApiClient {
       String path,
       Map<String, dynamic> body,
       ) async {
-    // Build the full request URL (base URL + endpoint path)
+    /// Build the full request URL (base URL + endpoint path)
     final uri = Uri.parse("${AppConfig.baseUrl}$path");
 
-    // Execute HTTP POST request and wait for the response
+    /// Execute HTTP POST request and wait for the response
     final response = await _client.post(
       uri,
       headers: const {
-        // Indicates that the request body is JSON
+        /// Indicates that the request body is JSON
         "Content-Type": "application/json",
       },
-      // Convert Dart Map -> JSON string (required for most APIs)
+      /// Convert Dart Map -> JSON string (required for most APIs)
       body: jsonEncode(body),
     );
 

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'core/network/api_client.dart';
 import 'features/chat/data/chat_api.dart';
 import 'features/chat/presentation/chat_controller.dart';
-import 'features/chat/presentation/widgets/home_screen.dart';
+import 'features/chat/presentation/screens/home_screen.dart';
 
 /// Entry point of the application
 ///

@@ -19,31 +19,41 @@ class ChatController {
 
   final messages = ValueNotifier<List<Message>>([]);
 
-  Future<void> sendMessage(String text, String sessionId) async {
-    if (text.trim().isEmpty) return;
+  String? _sessionId;
 
-    final current = [...messages.value];
+  Future<void> init() async {
+    _sessionId = await chatApi.createSession();
+    chatApi.warmup();
+    addWelcomeMessage();
+  }
 
-    current.add(Message(text: text, isUser: true));
-    messages.value = current;
+  Future<void> sendMessage(String text) async {
+  assert(_sessionId != null);
 
-    try {
-      final reply = await chatApi.sendMessage(text, sessionId);
+  if (_sessionId == null) {
+    throw Exception("Session not initialized");
+  }
 
-      messages.value = [
+  if (text.trim().isEmpty) return;
+
+  final current = [...messages.value];
+
+  current.add(Message(text: text, isUser: true));
+  messages.value = current;
+
+  try {
+    final reply = await chatApi.sendMessage(text, _sessionId!);
+
+    messages.value = [
         ...messages.value,
         Message(text: reply, isUser: false),
       ];
-    } catch (e) {
-      messages.value = [
+  } catch (e) {
+    messages.value = [
         ...messages.value,
         Message(text: "Fehler: $e", isUser: false),
       ];
     }
-  }
-
-  Future<void> warmup() {
-    return chatApi.warmup();
   }
 
   void addWelcomeMessage() {
@@ -53,6 +63,6 @@ class ChatController {
           isUser: false,
         ),
     ];
-}
+  }
 
 }

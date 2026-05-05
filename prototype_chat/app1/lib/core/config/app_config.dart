@@ -1,27 +1,32 @@
 import 'package:flutter/foundation.dart';
 
-/// Zentrale Konfigurationsklasse
+/// Central configuration class
 ///
-/// Hier werden globale Konstanten und Umgebungswerte definiert,
-/// z. B. App-Name, Standardtexte, Farben oder Backend-URLs
+/// This class holds global constants and environment-specific values,
+/// such as the app name, default messages, colors oder backend URLs.
 ///
-/// Die Klasse ist bewusst statisch, damit keine Instanz
-/// erzeugt werden muss.
+/// It is intentionally designed with only static members
+/// so no instance needs to be created
 
 class AppConfig {
 
-  static const String appName = "MedBitAid v0.3"; // Anzeigename in der Leiste oben
-  static const String welcomeMessage = "Hallo! 👋 Wie kann ich dir helfen?"; // Begrüßung im Chat
+  static const String appName = "MedBitAid v0.3"; // Display name shown in the app bar
+  static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?"; // Default welcome message shown in the chat
 
-  /// Methode stellt entsprechend der Plattform den richtigen URL zum Backend zur Verfügung
+  /// Base URL for backend communication
+  ///
+  /// Returns the correct URL depending on the platform:
+  /// - Web: localhost
+  /// - Android Emulator: special loopback address (10.0.2.2)
   /// 
   /// DEV NOTE: 
-  /// Aktuell nur Unterscheidung zwischen Web und Android Emulator
+  /// Currently only distinguishes between Web and Android Emulator.
+  /// For a physical Android device, replace the URL with your machine's local IP.
   static String get baseUrl {
     return kIsWeb
-    ? "http://localhost:8000"   // Web Anwendung
+    ? "http://localhost:8000"   // Web
     : "http://10.0.2.2:8000"    // Android Emulator
-      //"PC/FastAPIServerIP"             // Android Gerät (physisch) (einkommentieren)
+      //"PC/FastAPIServerIP"             // Android device (physical) (no //)
     ;    
   }
 }

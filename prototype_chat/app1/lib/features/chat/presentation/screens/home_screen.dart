@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../chat_controller.dart';
 import 'package:app1/features/chat/presentation/chat_screen.dart';
+import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
   final ChatController controller;
@@ -10,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FA),
+      backgroundColor: AppColors.background,
 
       body: SafeArea(
         child: Padding(
@@ -19,39 +20,77 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              /// 👋 Header
-              const Text(
-                "Hallo 👋",
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
+              /// 👋 Moderner Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      Color(0xFF6C63FF),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    /// Avatar
+                    const CircleAvatar(
+                      radius: 26,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person, color: AppColors.primary),
+                    ),
 
-              const SizedBox(height: 6),
+                    const SizedBox(width: 12),
 
-              const Text(
-                "Wie kann ich dir helfen?",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                    /// Text
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Guten Tag 👋",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "Wie kann ich dir helfen?",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    /// Optional Icon
+                    const Icon(Icons.notifications_none, color: Colors.white),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 20),
 
               /// Fake Search Bar
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.search, color: Colors.grey),
+                    Icon(Icons.search, color: AppColors.textSecondary),
                     SizedBox(width: 10),
                     Text(
                       "Symptome oder Fragen suchen...",
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -72,7 +111,7 @@ class HomeScreen extends StatelessWidget {
                     _FeatureTile(
                       icon: Icons.chat_bubble_outline,
                       title: "Chat starten",
-                      color: Colors.blue,
+                      color: AppColors.primary,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -88,7 +127,7 @@ class HomeScreen extends StatelessWidget {
                     _FeatureTile(
                       icon: Icons.assignment,
                       title: "Ersteinschätzung",
-                      color: Colors.green,
+                      color: AppColors.accent,
                     ),
 
                     _FeatureTile(
@@ -125,6 +164,10 @@ class HomeScreen extends StatelessWidget {
       /// Bottom Navigation (optisch)
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        backgroundColor: AppColors.card,
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -165,7 +208,7 @@ class _FeatureTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(

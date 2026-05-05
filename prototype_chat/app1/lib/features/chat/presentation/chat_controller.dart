@@ -29,14 +29,18 @@ class ChatController {
 
   /// Initializes the chat session and loads the welcome message.
   Future<void> init() async {
+    messages.value = [];
+    _sessionId = null;
+
+    _sessionId = await chatApi.createSession();
+    await chatApi.warmup();
+
     _addMessage(
       Message(
         text: AppConfig.welcomeMessage,
         isUser: false,
       ),
     );
-    _sessionId = await chatApi.createSession();
-    await chatApi.warmup();
   }
 
   /// Sends a message to the backend and updates the chat state.

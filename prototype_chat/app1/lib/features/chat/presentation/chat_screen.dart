@@ -40,9 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     // Initialize chat session (API + welcome message)
-    widget.controller.init();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    widget.controller.init().then((_) {
       _scrollToBottom();
     });
   }

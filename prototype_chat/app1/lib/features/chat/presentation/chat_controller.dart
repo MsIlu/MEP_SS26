@@ -51,9 +51,13 @@ class ChatController {
   // Add user message
   _addMessage(Message(text: trimmedText, isUser:true));
 
+  _addMessage(
+    Message(text: "Ich denke nach...", isUser: false),
+  );
+
   try {
     final reply = await chatApi.sendMessage(trimmedText, _sessionId!);
-
+  _removeLastBotMessage();
     // Add bot response
     _addMessage(Message(text: reply, isUser: false));
   } catch (e) {
@@ -64,7 +68,20 @@ class ChatController {
             isUser: false,
         ),
     );
+  }
+  }
+
+  void _removeLastBotMessage() {
+    final updated = List<Message>.from(messages.value);
+
+    for (int i = updated.length - 1; i >= 0; i--) {
+      if (!updated[i].isUser) {
+        updated.removeAt(i);
+        break;
+      }
     }
+
+    messages.value = updated;
   }
 
   /// Adds the initial welcome message to the chat.

@@ -22,21 +22,25 @@ class ChatController {
   ChatController(this.chatApi);
 
   /// Holds the current list of chat messages.
-  final messages = ValueNotifier<List<Message>>([]);
+  final ValueNotifier<List<Message>> messages =
+  ValueNotifier<List<Message>>([]);
 
   String? _sessionId;
 
   /// Initializes the chat session and loads the welcome message.
   Future<void> init() async {
+    _addMessage(
+      Message(
+        text: AppConfig.welcomeMessage,
+        isUser: false,
+      ),
+    );
     _sessionId = await chatApi.createSession();
-    chatApi.warmup();
-    _addWelcomeMessage();
+    await chatApi.warmup();
   }
 
   /// Sends a message to the backend and updates the chat state.
   Future<void> sendMessage(String text) async {
-  assert(_sessionId != null);
-
   if (_sessionId == null) {
     throw Exception("Chat session wurde nicht initialisiert.");
   }
@@ -45,35 +49,28 @@ class ChatController {
   if (trimmedText.isEmpty) return;
 
   // Add user message
-  final updatedMessages = [...messages.value];
-  updatedMessages.add(Message(text: trimmedText, isUser: true));
-  messages.value = updatedMessages;
+  _addMessage(Message(text: trimmedText, isUser:true));
 
   try {
     final reply = await chatApi.sendMessage(trimmedText, _sessionId!);
 
     // Add bot response
-    messages.value = [
-        ...messages.value,
-        Message(text: reply, isUser: false),
-      ];
+    _addMessage(Message(text: reply, isUser: false));
   } catch (e) {
     // Add error message to chat
-    messages.value = [
-        ...messages.value,
-        Message(text: "Fehler: $e", isUser: false),
-      ];
+    _addMessage(
+        Message(
+            text: "Fehler: $e",
+            isUser: false,
+        ),
+    );
     }
   }
 
   /// Adds the initial welcome message to the chat.
-  void _addWelcomeMessage() {
-    messages.value = [
-        Message(
-          text: AppConfig.welcomeMessage,
-          isUser: false,
-        ),
-    ];
+  void _addMessage(Message message) {
+    final updated = List<Message>.from(messages.value);
+    updated.add(message);
+    messages.value = updated;
   }
-
 }

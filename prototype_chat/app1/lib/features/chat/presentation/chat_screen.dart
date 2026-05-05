@@ -4,9 +4,12 @@ import 'chat_controller.dart';
 import 'widgets/chat_bubble.dart';
 import '../../../../core/config/app_config.dart';
 
-/// Hauptscreen der Chat-Anwendung.
+/// Main UI screen of the chat feature.
 ///
-/// Verantwortlich für UI Darstellung und User Input Handling.
+/// Responsible for:
+/// - Rendering the chat interface
+/// - Handling user input
+/// - Connecting UI events to the ChatController
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
 
@@ -19,38 +22,31 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-/// Interner State des ChatScreen Widgets.
+/// Internal state of the ChatScreen widget.
 ///
-/// Diese Klasse verwaltet alle UI-spezifischen Ressourcen und Logik,
-/// die nicht im Controller liegen sollten.
-///
-/// Verantwortlichkeiten:
-/// - Verwaltung der Text-Eingabe (TextEditingController)
-/// - Scroll-Position der Chat-Liste (ScrollController)
+/// Handles UI-only concerns such as:
+/// - Text input management (TextEditingController)
+/// - Scroll behavior (ScrollController)
 /// - Session-ID für den Chat-Verlauf
-/// - Lebenszyklus-Management (initState / dispose)
+/// - Widget lifecycle (initState / dispose)
 /// - Triggern von Controller-Aktionen beim Start und beim Senden von Nachrichten
 
 class _ChatScreenState extends State<ChatScreen> {
-  final textController = TextEditingController();
-  final scrollController = ScrollController();
+  final TextEditingController textController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
-  /// Wird einmal beim Erstellen des Widgets aufgerufen.
-  ///
-  /// Initialisiert den Chat:
-  /// - führt einen Warmup-Call zum Backend aus
-  /// - fügt eine Begrüßungsnachricht hinzu
   @override
   void initState() {
     super.initState();
+
+    // Initialize chat session (API + welcome message)
     widget.controller.init();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
-  /// Wird beim Entfernen des Widgets aufgerufen.
-  ///
-  /// Gibt alle Ressourcen frei:
-  /// - TextController (verhindert Memory Leaks)
-  /// - ScrollController
   @override
   void dispose() {
     textController.dispose();
@@ -58,75 +54,60 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  /// Sendet eine Nachricht an den ChatController.
-  ///
-  /// Ablauf:
-  /// - liest Text aus dem Eingabefeld
-  /// - übergibt ihn an den Controller
-  /// - setzt Eingabefeld zurück
-
+  /// Sends a message to the controller and resets the input field.
+  /// Also triggers auto-scrol to the newest message.
   Future<void> send() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
 
     textController.clear();
 
-    widget.controller.sendMessage(text);
+    await widget.controller.sendMessage(text);
+    _scrollToBottom();
+  }
 
-    // Auto-Scroll nach neuer Nachricht
+  /// Scrolls the chat list to the latest message.
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (scrollController.hasClients) {
-        scrollController.jumpTo(
-          scrollController.position.maxScrollExtent,
-        );
-      }
+      if (!scrollController.hasClients) return;
+
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
     });
   }
 
-  /// Baut die Benutzeroberfläche des ChatScreens.
-  ///
-  /// Diese Methode beschreibt die komplette UI-Struktur der Chat-Anwendung:
-  ///
-  /// Aufbau:
-  /// - AppBar mit App-Titel
-  /// - Chatbereich (Liste der Nachrichten)
-  /// - Eingabebereich (Textfeld + Send-Button)
-  ///
-  /// Die Chatnachrichten werden über einen ValueListenableBuilder
-  /// reaktiv aus dem ChatController gelesen und automatisch neu gerendert,
-  /// sobald sich die Nachrichtenliste ändert.
-  ///
-  /// Die Nachrichten werden als Liste von ChatBubble Widgets dargestellt.
-  ///
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //  Namensleiste (obere Bar)
+      // Top App Bar
       appBar: AppBar(
         title: const Text(AppConfig.appName),
         backgroundColor: AppColors.upperBarColor,
       ),
       body: Column(
         children: [
-          /// Chatverlauf Bereich
+          /// Chat message list
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: widget.controller.messages,
               builder: (context, messages, _) {
                 return ListView.builder(
+                  reverse: true,
                   controller: scrollController,
                   itemCount: messages.length,
                   itemBuilder: (_, i) {
-                    return ChatBubble(
-                      message: messages[i],
-                    );
+                    final msg = messages[messages.length - 1 - i];
+                    return ChatBubble(message: msg);
                   },
                 );
               },
             ),
           ),
 
-          ///  Input Bereich (untere Bar)
+          /// Input area
           Container(
             color: AppColors.lowerBarColor,
             padding: const EdgeInsets.symmetric(

@@ -3,31 +3,17 @@ import 'package:app1/features/chat/data/chat_api.dart';
 import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
 
-/// Central state management for the chat feature.
-///
-/// Responsible for:
-/// - Managing message state
-/// - Handling API communication
-/// - Maintaining session lifecycle
-/// - Updating UI via ValueNotifier
-///
-/// DEV NOTE:
-/// ValueNotifier is used for simplicity.
-/// 
-/// ***Don't touch*** if you're not sure about it
-/// as it can lead to duplicated state logic in larger apps.
 class ChatController {
   final ChatApi chatApi;
 
   ChatController(this.chatApi);
 
-  /// Holds the current list of chat messages.
   final ValueNotifier<List<Message>> messages =
   ValueNotifier<List<Message>>([]);
 
   String? _sessionId;
 
-  /// Initializes the chat session and loads the welcome message.
+  /// 🔄 RESET + INIT SESSION
   Future<void> init() async {
     messages.value = [];
     _sessionId = null;
@@ -43,38 +29,74 @@ class ChatController {
     );
   }
 
-  /// Sends a message to the backend and updates the chat state.
+  /// 💬 SEND MESSAGE
   Future<void> sendMessage(String text) async {
-  if (_sessionId == null) {
-    throw Exception("Chat session wurde nicht initialisiert.");
+    if (_sessionId == null) {
+      throw Exception("Chat session wurde nicht initialisiert.");
+    }
+
+    final trimmedText = text.trim();
+    if (trimmedText.isEmpty) return;
+
+    // 👤 User Message
+    _addMessage(
+      Message(text: trimmedText, isUser: true),
+    );
+
+    // 🤖 Thinking Bubble
+    _addMessage(
+      Message(
+        text: "",
+        isUser: false,
+        isLoading: true,
+      ),
+    );
+
+    try {
+      final reply =
+      await chatApi.sendMessage(trimmedText, _sessionId!);
+
+      await _streamResponse(reply);
+    } catch (e) {
+      _removeLastBotMessage();
+
+      _addMessage(
+        Message(
+          text: "Fehler: $e",
+          isUser: false,
+        ),
+      );
+    }
   }
 
-  final trimmedText = text.trim();
-  if (trimmedText.isEmpty) return;
+  /// 🌊 STREAMING EFFECT (ChatGPT Style)
+  Future<void> _streamResponse(String fullText) async {
+    _removeLastBotMessage();
 
-  // Add user message
-  _addMessage(Message(text: trimmedText, isUser:true));
+    String current = "";
 
-  _addMessage(
-    Message(text: "Ich denke nach...", isUser: false),
-  );
+    for (final char in fullText.split('')) {
+      await Future.delayed(const Duration(milliseconds: 15));
 
-  try {
-    final reply = await chatApi.sendMessage(trimmedText, _sessionId!);
-  _removeLastBotMessage();
-    // Add bot response
-    _addMessage(Message(text: reply, isUser: false));
-  } catch (e) {
-    // Add error message to chat
-    _addMessage(
+      current += char;
+
+      messages.value = [
+        ...messages.value,
         Message(
-            text: "Fehler: $e",
-            isUser: false,
+          text: current,
+          isUser: false,
         ),
+      ];
+
+      messages.value = List.from(messages.value)..removeLast();
+    }
+
+    _addMessage(
+      Message(text: fullText, isUser: false),
     );
   }
-  }
 
+  /// 🧹 Remove last bot message (loading)
   void _removeLastBotMessage() {
     final updated = List<Message>.from(messages.value);
 
@@ -88,7 +110,7 @@ class ChatController {
     messages.value = updated;
   }
 
-  /// Adds the initial welcome message to the chat.
+  /// ➕ Add message helper
   void _addMessage(Message message) {
     final updated = List<Message>.from(messages.value);
     updated.add(message);

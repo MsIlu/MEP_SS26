@@ -4,31 +4,39 @@
 /// whether it was sent by the user or received from another source
 /// (e.g., a bot or system).
 class Message {
-  final String text; /// The textual content of the message.
-  final bool isUser; /// Indicates whether the message was sent by the user.
+  final String text;
+  final bool isUser;
 
-  /// Creates an immutable [Message] instance.
+  /// 🤖 Used for "Thinking..." / loading state bubbles
+  final bool isLoading;
+
+  /// ⏱ optional: useful later for ordering / persistence
+  final DateTime? timestamp;
+
   const Message({
     required this.text,
     required this.isUser,
+    this.isLoading = false,
+    this.timestamp,
   });
 
   /// Returns a copy of this message with optional updated values.
-  ///
-  /// Useful for modifying a message while keeping immutability.
   Message copyWith({
     String? text,
     bool? isUser,
+    bool? isLoading,
+    DateTime? timestamp,
   }) {
     return Message(
       text: text ?? this.text,
       isUser: isUser ?? this.isUser,
+      isLoading: isLoading ?? this.isLoading,
+      timestamp: timestamp ?? this.timestamp,
     );
   }
 
   @override
-  /// For debugging
   String toString() {
-    return 'Message(text: $text, isUser: $isUser)';
+    return 'Message(text: $text, isUser: $isUser, isLoading: $isLoading, timestamp: $timestamp)';
   }
 }

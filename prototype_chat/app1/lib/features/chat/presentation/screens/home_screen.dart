@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../chat_controller.dart';
-import 'package:app1/features/chat/presentation/chat_screen.dart';
+import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
 import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -150,7 +150,7 @@ class HomeScreen extends StatelessWidget {
 
                     _FeatureTile(
                       icon: Icons.local_hospital,
-                      title: "Triage",
+                      title: "Test",
                       color: Colors.teal,
                     ),
                   ],

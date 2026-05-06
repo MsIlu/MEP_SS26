@@ -3,6 +3,13 @@ import '../chat_controller.dart';
 import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
 import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 
+/// Home screen of the application.
+///
+/// This screen acts as the main entry point and provides:
+/// - A welcoming header section
+/// - Quick access feature tiles
+/// - Navigation into the chat feature
+/// - A bottom navigation bar for app-wide sections
 class HomeScreen extends StatelessWidget {
   final ChatController controller;
 
@@ -20,7 +27,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              /// 👋 Moderner Header
+              /// Header section with greeting and quick status UI
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -36,7 +43,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    /// Avatar
+                    /// User avatar placeholder
                     const CircleAvatar(
                       radius: 26,
                       backgroundColor: Colors.white,
@@ -45,13 +52,13 @@ class HomeScreen extends StatelessWidget {
 
                     const SizedBox(width: 12),
 
-                    /// Text
+                    /// Greeting text section
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            "Guten Tag 👋",
+                            "Good day 👋",
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white70,
@@ -59,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            "Wie kann ich dir helfen?",
+                            "How can I help you?",
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -70,13 +77,15 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
 
-                    /// Optional Icon
+                    /// Notification icon (optional UI element)
                     const Icon(Icons.notifications_none, color: Colors.white),
                   ],
                 ),
               ),
 
-              /// Fake Search Bar
+              const SizedBox(height: 12),
+
+              /// Search bar (UI placeholder / nonfunctional)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 height: 50,
@@ -89,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                     Icon(Icons.search, color: AppColors.textSecondary),
                     SizedBox(width: 10),
                     Text(
-                      "Symptome oder Fragen suchen...",
+                      "Search symptoms or questions...",
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
@@ -98,7 +107,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              /// Feature Grid
+              /// Feature grid providing quick navigation shortcuts
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 3,
@@ -107,10 +116,10 @@ class HomeScreen extends StatelessWidget {
                   childAspectRatio: 0.9,
                   children: [
 
-                    /// Chat (funktioniert)
+                    /// Chat feature entry point
                     _FeatureTile(
                       icon: Icons.chat_bubble_outline,
-                      title: "Chat starten",
+                      title: "Start Chat",
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.push(
@@ -123,28 +132,28 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    /// Dummy Features
+                    /// Placeholder feature tiles (future functionality)
                     _FeatureTile(
                       icon: Icons.assignment,
-                      title: "Ersteinschätzung",
+                      title: "Initial Assessment",
                       color: AppColors.accent,
                     ),
 
                     _FeatureTile(
                       icon: Icons.calendar_today,
-                      title: "Terminplanung",
+                      title: "Appointments",
                       color: Colors.orange,
                     ),
 
                     _FeatureTile(
                       icon: Icons.medical_services,
-                      title: "Rezepte",
+                      title: "Prescriptions",
                       color: Colors.red,
                     ),
 
                     _FeatureTile(
                       icon: Icons.health_and_safety,
-                      title: "Gesundheit",
+                      title: "Health",
                       color: Colors.purple,
                     ),
 
@@ -161,7 +170,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      /// Bottom Navigation (optisch)
+      /// Bottom navigation bar for primary app sections
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: AppColors.primary,
@@ -175,11 +184,11 @@ class HomeScreen extends StatelessWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: "Verlauf",
+            label: "History",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: "Profil",
+            label: "Profile",
           ),
         ],
       ),
@@ -187,7 +196,9 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-/// 🔲 Feature Tile Widget
+/// Individual feature tile used in the home screen grid.
+///
+/// Represents a clickable shortcut to a feature module.
 class _FeatureTile extends StatelessWidget {
   final IconData icon;
   final String title;

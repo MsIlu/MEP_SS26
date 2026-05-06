@@ -3,24 +3,32 @@ import 'package:app1/features/chat/data/chat_api.dart';
 import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
 
-
-/// Controls all chat-related logic.
+/// Controls all chat-related business logic.
 ///
-/// Responsibilities:
-/// - Managing chat session lifecycle
-/// - Handling message state
-/// - Communicating with backend API
-/// - Streaming bot responses
+/// This controller is responsible for:
+/// - Managing chat session life cycle
+/// - Maintaining message state
+/// - Communicating with the backend API
+/// - Handling simulated streaming responses
 class ChatController {
   final ChatApi chatApi;
 
   ChatController(this.chatApi);
 
+  /// Reactive message list used by the UI.
   final ValueNotifier<List<Message>> messages =
   ValueNotifier<List<Message>>([]);
 
+  /// Active chat session identifier.
   String? _sessionId;
 
+  /// Initializes the chat session and loads the welcome message.
+  ///
+  /// This method:
+  /// - Clears previous messages
+  /// - Adds the welcome message
+  /// - Creates a new backend session
+  /// - Triggers backend warmup
   Future<void> init() async {
     messages.value = [];
     _sessionId = null;
@@ -36,21 +44,27 @@ class ChatController {
     await chatApi.warmup();
   }
 
-  /// send message
+  /// Sends a user message and handles the full response flow.
+  ///
+  /// Steps:
+  /// 1. Adds user message to the chat
+  /// 2. Displays a loading (thinking) message
+  /// 3. Requests response from backend
+  /// 4. Streams the response into the UI
   Future<void> sendMessage(String text) async {
     if (_sessionId == null) {
-      throw Exception("Chat session wurde nicht initialisiert.");
+      throw Exception("Chat session has not been initialized.");
     }
 
     final trimmedText = text.trim();
     if (trimmedText.isEmpty) return;
 
-    // User Message
+    /// Add user message to the chat
     _addMessage(
       Message(text: trimmedText, isUser: true),
     );
 
-    //  Thinking Bubble
+    /// Add loading indicator (thinking bubble)
     _addMessage(
       Message(
         text: "",
@@ -69,17 +83,20 @@ class ChatController {
 
       _addMessage(
         Message(
-          text: "Fehler: $e",
+          text: "Error: $e",
           isUser: false,
         ),
       );
     }
   }
 
+  /// Simulates a streaming response by revealing text character by character.
+  ///
+  /// This creates a natural "typing" effect in the UI.
   Future<void> _streamResponse(String fullText) async {
     _removeLastBotMessage();
 
-    // Add empty bot message
+    /// Create an empty bot message that will be updated progressively
     final message = Message(
       text: "",
       isUser: false,
@@ -95,7 +112,7 @@ class ChatController {
 
       current += char;
 
-      // Update last message
+      /// Update the last message with the streamed content
       final list = List<Message>.from(messages.value);
       list[list.length - 1] = message.copyWith(text: current);
 
@@ -103,7 +120,7 @@ class ChatController {
     }
   }
 
-  ///  Remove last bot message (loading)
+  /// Removes the last bot message (typically the loading indicator).
   void _removeLastBotMessage() {
     final updated = List<Message>.from(messages.value);
 
@@ -117,7 +134,7 @@ class ChatController {
     messages.value = updated;
   }
 
-  ///  Add message helper
+  /// Adds a message to the chat history.
   void _addMessage(Message message) {
     final updated = List<Message>.from(messages.value);
     updated.add(message);

@@ -6,8 +6,9 @@ import '../../../../../core/config/app_config.dart';
 
 /// Main UI screen of the chat feature.
 ///
-/// Responsible for:
+/// This screen is responsible for:
 /// - Rendering the chat interface
+/// - Displaying messages from the controller
 /// - Handling user input
 /// - Connecting UI events to the ChatController
 class ChatScreen extends StatefulWidget {
@@ -24,13 +25,12 @@ class ChatScreen extends StatefulWidget {
 
 /// Internal state of the ChatScreen widget.
 ///
-/// Handles UI-only concerns such as:
-/// - Text input management (TextEditingController)
-/// - Scroll behavior (ScrollController)
-/// - Session-ID für den Chat-Verlauf
-/// - Widget lifecycle (initState / dispose)
-/// - Triggern von Controller-Aktionen beim Start und beim Senden von Nachrichten
-
+/// Handles UI-specific responsibilities such as:
+/// - Managing text input (TextEditingController)
+/// - Controlling scroll behavior (ScrollController)
+/// - Initializing the chat session on startup
+/// - Triggering controller actions (send message, init)
+/// - Managing widget life cycle (initState / dispose)
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
@@ -39,7 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
 
-    // Initialize chat session (API + welcome message)
+    // Initialize chat session and load initial state
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await widget.controller.init();
       _scrollToBottom();
@@ -53,8 +53,9 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  /// Sends a message to the controller and resets the input field.
-  /// Also triggers auto-scrol to the newest message.
+  /// Sends a message to the controller and clears the input field.
+  ///
+  /// Also ensures the chat view scrolls to the latest message.
   Future<void> send() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
@@ -65,7 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  /// Scrolls the chat list to the latest message.
+  /// Scrolls the chat list to the most recent message.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!scrollController.hasClients) return;
@@ -82,7 +83,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-      // Top App Bar
+
+      /// Top App Bar
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -96,6 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       body: Column(
         children: [
+          /// Chat message list
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: widget.controller.messages,
@@ -106,7 +109,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 return ListView.builder(
                   reverse: true,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   controller: scrollController,
                   itemCount: messages.length,
                   itemBuilder: (_, i) {
@@ -118,7 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          /// Input area
+          /// Message input area
           Container(
             color: AppColors.lowerBarColor,
             padding: const EdgeInsets.symmetric(
@@ -132,10 +138,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: textController,
                     onSubmitted: (_) => send(),
                     decoration: InputDecoration(
-                      hintText: "Nachricht eingeben...",
+                      hintText: "Enter a message...",
                       filled: true,
                       fillColor: AppColors.card,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide.none,
@@ -145,11 +152,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                backgroundColor: AppColors.primary,
-                child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.white),
-                onPressed: send,
-                ),
+                  backgroundColor: AppColors.primary,
+                  child: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    onPressed: send,
+                  ),
                 ),
               ],
             ),

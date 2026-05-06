@@ -6,23 +6,29 @@ import 'features/chat/data/chat_api.dart';
 import 'features/chat/presentation/chat_controller.dart';
 import 'features/chat/presentation/screens/home_screen.dart';
 
-/// Entry point of the application
+/// Entry point of the application.
 ///
-/// Responsible for:
-/// - Initializing dependencies
-/// - Wiring API -> Controller -> UI
-/// - Launching the Flutter app
-/// 
-/// Run with: (cd /app1)
-/// flutter run
+/// This file is responsible for:
+/// - Initializing core dependencies
+/// - Wiring API layer → Controller → UI
+/// - Launching the Flutter application
+///
+/// Run the app with:
+/// `flutter run` (from the /app1 directory)
 void main() {
-  // --- Dependency setup ---
+  /// -----------------------------
+  /// Dependency Initialization
+  /// -----------------------------
+
   final httpClient = http.Client();
   final apiClient = ApiClient(httpClient);
   final chatApi = ChatApi(apiClient);
   final chatController = ChatController(chatApi);
 
-  // --- Start app ---
+  /// -----------------------------
+  /// App Startup
+  /// -----------------------------
+
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,

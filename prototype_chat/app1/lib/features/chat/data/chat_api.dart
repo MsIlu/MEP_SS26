@@ -4,63 +4,64 @@ import '../../../core/network/api_client.dart';
 
 /// Handles all communication with the chat backend API.
 ///
-/// This layer is responsible for:
-/// - Sending messages to the server
-/// - Creating chat sessions
-/// - Triggering backend warmup requests
-/// - Decoding JSON responses
+/// This class is responsible for:
+/// - Sending user messages to the server
+/// - Creating and managing chat sessions
+/// - Triggering backend warm up requests
+/// - Decoding and validating JSON responses
 class ChatApi {
   final ApiClient client;
 
   ChatApi(this.client);
 
-  /// Sends a message to the backend and returns the AI response
+  /// Sends a message to the backend and returns the AI response.
   ///
-  /// [text] is the user's message.
+  /// [text] is the user's input message.
   /// [sessionId] identifies the current chat session.
   ///
   /// Returns the response text from the server.
   Future<String> sendMessage(
-    String text,
-    String sessionId,
-  ) async {
+      String text,
+      String sessionId,
+      ) async {
     final res = await client.post(
-        "/chat",
-        {
-          "message": text,
-          "session_id": sessionId,
-        },
+      "/chat",
+      {
+        "message": text,
+        "session_id": sessionId,
+      },
     );
 
     final Map<String, dynamic> data = jsonDecode(res.body);
     final response = data["response"];
 
-    /// Checks whether the API returned a valid String response.
-    /// This avoids runtime crashes caused by invalid JSON types
-    /// (e.g. int, bool, list instead of String).
+    /// Validates that the API response is a String.
+    /// This prevents runtime errors caused by unexpected JSON types
+    /// (e.g. int, bool, list, or null instead of String).
     if (response is String) {
       return response;
     }
-    /// Fallback value if the response is missing or not a String.
-    /// Ensures the app always has a safe return value.
-    return "Ungültige Antwort des Servers";
+
+    /// Fallback response if the server returns invalid or missing data.
+    /// Ensures the app always receives a safe and predictable output.
+    return "Invalid server response";
   }
 
-  /// Sends a warmup request to the backend.
+  /// Sends a warm up request to the backend.
   ///
-  /// This is typically used to "wake up" a serverless backend
-  /// before the first real request.
+  /// This is typically used to "wake up" a cold or serverless backend
+  /// before handling the first real user request.
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {});
     } catch (e) {
-      // Optional: log error if needed
+      // Optional: log error for debugging purposes
     }
   }
 
-  /// Creates a new chat session and returns the session ID.
+  /// Creates a new chat session and returns its session ID.
   ///
-  /// The session ID is required for subsequent chat requests.
+  /// The session ID is required for all subsequent chat requests.
   Future<String> createSession() async {
     final res = await client.post("/session", {});
     final Map<String, dynamic> data = jsonDecode(res.body);

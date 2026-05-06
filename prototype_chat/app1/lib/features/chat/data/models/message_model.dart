@@ -1,16 +1,17 @@
 /// Represents a single chat message.
 ///
-/// A message consists of the textual content and metadata indicating
+/// A message contains the textual content and metadata that describes
 /// whether it was sent by the user or received from another source
 /// (e.g., a bot or system).
 class Message {
   final String text;
   final bool isUser;
 
-  /// 🤖 Used for "Thinking..." / loading state bubbles
+  /// Indicates whether this message is currently in a loading state
+  /// (e.g., "Thinking…" or waiting for a response).
   final bool isLoading;
 
-  /// ⏱ optional: useful later for ordering / persistence
+  /// Optional timestamp used for ordering messages or future persistence.
   final DateTime? timestamp;
 
   const Message({
@@ -20,7 +21,8 @@ class Message {
     this.timestamp,
   });
 
-  /// Returns a copy of this message with optional updated values.
+  /// Creates a new instance of [Message] with updated values.
+  /// Unspecified fields retain their current values.
   Message copyWith({
     String? text,
     bool? isUser,

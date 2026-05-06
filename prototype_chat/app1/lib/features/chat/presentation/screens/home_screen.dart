@@ -135,7 +135,7 @@ class HomeScreen extends StatelessWidget {
                     /// Placeholder feature tiles (future functionality)
                     _FeatureTile(
                       icon: Icons.assignment,
-                      title: "Erste Einschätzung",
+                      title: "Ersteinschätzung",
                       color: AppColors.accent,
                     ),
 

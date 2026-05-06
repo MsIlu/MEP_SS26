@@ -4,6 +4,12 @@ import '../chat_controller.dart';
 import '../widgets/chat_bubble.dart';
 import '../../../../../core/config/app_config.dart';
 
+/// Main UI screen of the chat feature.
+///
+/// Responsible for:
+/// - Rendering the chat interface
+/// - Handling user input
+/// - Connecting UI events to the ChatController
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
 
@@ -16,23 +22,28 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
+/// Internal state of the ChatScreen widget.
+///
+/// Handles UI-only concerns such as:
+/// - Text input management (TextEditingController)
+/// - Scroll behavior (ScrollController)
+/// - Session-ID für den Chat-Verlauf
+/// - Widget lifecycle (initState / dispose)
+/// - Triggern von Controller-Aktionen beim Start und beim Senden von Nachrichten
+
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
-
-  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
 
-    if (!_initialized) {
-      _initialized = true;
-
-      widget.controller.init().then((_) {
-        _scrollToBottom();
-      });
-    }
+    // Initialize chat session (API + welcome message)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await widget.controller.init();
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -42,6 +53,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  /// Sends a message to the controller and resets the input field.
+  /// Also triggers auto-scrol to the newest message.
   Future<void> send() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
@@ -52,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
+  /// Scrolls the chat list to the latest message.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!scrollController.hasClients) return;
@@ -68,7 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-
+      // Top App Bar
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -82,7 +96,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
       body: Column(
         children: [
-          /// 💬 CHAT AREA
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: widget.controller.messages,
@@ -93,10 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 return ListView.builder(
                   reverse: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   controller: scrollController,
                   itemCount: messages.length,
                   itemBuilder: (_, i) {
@@ -108,58 +118,40 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          /// ⌨️ INPUT BAR (Premium Style)
-          SafeArea(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              child: Row(
-                children: [
-                  /// Textfield
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: TextField(
-                        controller: textController,
-                        onSubmitted: (_) => send(),
-                        decoration: const InputDecoration(
-                          hintText: "Nachricht eingeben...",
-                          border: InputBorder.none,
-                        ),
+          /// Input area
+          Container(
+            color: AppColors.lowerBarColor,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: textController,
+                    onSubmitted: (_) => send(),
+                    decoration: InputDecoration(
+                      hintText: "Nachricht eingeben...",
+                      filled: true,
+                      fillColor: AppColors.card,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-
-                  const SizedBox(width: 10),
-
-                  /// Send Button
-                  GestureDetector(
-                    onTap: send,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4F46E5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.send,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                backgroundColor: AppColors.primary,
+                child: IconButton(
+                icon: const Icon(Icons.send, color: Colors.white),
+                onPressed: send,
+                ),
+                ),
+              ],
             ),
           ),
         ],

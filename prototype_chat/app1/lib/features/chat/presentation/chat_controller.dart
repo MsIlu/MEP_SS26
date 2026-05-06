@@ -3,6 +3,14 @@ import 'package:app1/features/chat/data/chat_api.dart';
 import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
 
+
+/// Controls all chat-related logic.
+///
+/// Responsibilities:
+/// - Managing chat session lifecycle
+/// - Handling message state
+/// - Communicating with backend API
+/// - Streaming bot responses
 class ChatController {
   final ChatApi chatApi;
 
@@ -13,13 +21,9 @@ class ChatController {
 
   String? _sessionId;
 
-  /// 🔄 RESET + INIT SESSION
   Future<void> init() async {
     messages.value = [];
     _sessionId = null;
-
-    _sessionId = await chatApi.createSession();
-    await chatApi.warmup();
 
     _addMessage(
       Message(
@@ -27,9 +31,12 @@ class ChatController {
         isUser: false,
       ),
     );
+
+    _sessionId = await chatApi.createSession();
+    await chatApi.warmup();
   }
 
-  /// 💬 SEND MESSAGE
+  /// send message
   Future<void> sendMessage(String text) async {
     if (_sessionId == null) {
       throw Exception("Chat session wurde nicht initialisiert.");
@@ -38,12 +45,12 @@ class ChatController {
     final trimmedText = text.trim();
     if (trimmedText.isEmpty) return;
 
-    // 👤 User Message
+    // User Message
     _addMessage(
       Message(text: trimmedText, isUser: true),
     );
 
-    // 🤖 Thinking Bubble
+    //  Thinking Bubble
     _addMessage(
       Message(
         text: "",
@@ -69,9 +76,17 @@ class ChatController {
     }
   }
 
-  /// 🌊 STREAMING EFFECT (ChatGPT Style)
   Future<void> _streamResponse(String fullText) async {
     _removeLastBotMessage();
+
+    // Add empty bot message
+    final message = Message(
+      text: "",
+      isUser: false,
+    );
+
+    final updated = List<Message>.from(messages.value)..add(message);
+    messages.value = updated;
 
     String current = "";
 
@@ -80,23 +95,15 @@ class ChatController {
 
       current += char;
 
-      messages.value = [
-        ...messages.value,
-        Message(
-          text: current,
-          isUser: false,
-        ),
-      ];
+      // Update last message
+      final list = List<Message>.from(messages.value);
+      list[list.length - 1] = message.copyWith(text: current);
 
-      messages.value = List.from(messages.value)..removeLast();
+      messages.value = list;
     }
-
-    _addMessage(
-      Message(text: fullText, isUser: false),
-    );
   }
 
-  /// 🧹 Remove last bot message (loading)
+  ///  Remove last bot message (loading)
   void _removeLastBotMessage() {
     final updated = List<Message>.from(messages.value);
 
@@ -110,7 +117,7 @@ class ChatController {
     messages.value = updated;
   }
 
-  /// ➕ Add message helper
+  ///  Add message helper
   void _addMessage(Message message) {
     final updated = List<Message>.from(messages.value);
     updated.add(message);

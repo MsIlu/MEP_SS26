@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/message_model.dart';
+import 'thinking_bubble.dart';
 
 class ChatBubble extends StatelessWidget {
   final Message message;
@@ -8,31 +9,38 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isUser = message.isUser;
+
+    /// Thinking State
+    if (message.isLoading) {
+      return const ThinkingBubble();
+    }
+
     return Align(
-      alignment: message.isUser
-          ? Alignment.centerRight
-          : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          vertical: 4,
-          horizontal: 8,
-        ),
-        padding: const EdgeInsets.all(12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.7,
-        ),
+      alignment:
+      isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding:
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: const BoxConstraints(maxWidth: 300),
         decoration: BoxDecoration(
-          color: message.isUser
-              ? Colors.blue
-              : Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
+          color: isUser ? const Color(0xFF4F46E5) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
         child: Text(
           message.text,
           style: TextStyle(
-            color: message.isUser
-                ? Colors.white
-                : Colors.black,
+            color: isUser ? Colors.white : Colors.black87,
+            fontSize: 15,
           ),
         ),
       ),

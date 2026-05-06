@@ -57,7 +57,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 3),
               child: CircleAvatar(
-                radius: 4,
+                radius: 3,
                 backgroundColor: Colors.grey,
               ),
             ),
@@ -107,7 +107,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
 
               /// Status text shown while response is being generated
               const Text(
-                "Denke nach...",
+                "Careena schreibt...",
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey,

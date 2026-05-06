@@ -180,15 +180,15 @@ class HomeScreen extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: "Home",
+            label: "Start",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: "History",
+            label: "Verlauf",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: "Profile",
+            label: "Profil",
           ),
         ],
       ),

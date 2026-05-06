@@ -2,7 +2,7 @@ import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../chat_controller.dart';
 import '../widgets/chat_bubble.dart';
-import '../../../../../core/config/app_config.dart';
+import '../../utils/smart_replies.dart';
 
 /// Main UI screen of the chat feature.
 ///
@@ -35,6 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
+  List<String> smartReplies = [];
+
   @override
   void initState() {
     super.initState();
@@ -60,20 +62,70 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = textController.text.trim();
     if (text.isEmpty) return;
 
+    // remove old chips immediately
+    setState(() {
+      smartReplies = [];
+    });
+
     textController.clear();
 
     await widget.controller.sendMessage(text);
     _scrollToBottom();
+
+    // Wait for answer to be done
+    Future.delayed(const Duration(milliseconds: 400), () {
+      final messages = widget.controller.messages.value;
+
+      if (messages.isNotEmpty && !messages.last.isUser) {
+        setState(() {
+          smartReplies =
+              SmartReplies.generate(messages.last.text);
+        });
+      }
+    });
   }
 
   /// Scrolls the chat list to the most recent message.
   void _scrollToBottom() {
     if (!scrollController.hasClients) return;
 
+    final position = scrollController.position.maxScrollExtent;
+
     scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
+      position,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void sendQuickReply(String text) {
+    setState(() {
+      smartReplies = [];
+    });
+
+    textController.text = text;
+    send();
+  }
+
+  Widget _quickReplyChip(String text) {
+    return GestureDetector(
+      onTap: () => sendQuickReply(text),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.primary),
+          color: AppColors.primary.withOpacity(0.05),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     );
   }
 
@@ -86,13 +138,36 @@ class _ChatScreenState extends State<ChatScreen> {
       /// Top App Bar
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        title: const Text(
-          AppConfig.appName,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        backgroundColor: Colors.white,
         centerTitle: true,
+        title: Column(
+          children: [
+          const Text(
+          "Careena (Bot)",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircleAvatar(
+                radius: 4,
+                backgroundColor: Colors.green,
+              ),
+              SizedBox(width: 6),
+              Text(
+                "Online",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ],
+        ),
       ),
 
       body: Column(
@@ -106,18 +181,49 @@ class _ChatScreenState extends State<ChatScreen> {
                   _scrollToBottom();
                 });
 
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  controller: scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (_, i) {
-                    final msg = messages[messages.length - 1 - i];
-                    return ChatBubble(message: msg);
-                  },
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        controller: scrollController,
+                        itemCount: messages.length,
+                        itemBuilder: (_, i) => ChatBubble(message: messages[i]),
+                      ),
+                    ),
+
+                    /// Quick replies appear only with bot
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: smartReplies.isNotEmpty
+                          ? Padding(
+                        key: ValueKey(smartReplies.join()),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: smartReplies
+                              .map((text) => _quickReplyChip(text))
+                              .toList(),
+                        ),
+                      )
+                          : const SizedBox(),
+                    ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: smartReplies
+                              .map((text) => _quickReplyChip(text))
+                              .toList(),
+                        ),
+                      ),
+                  ],
                 );
               },
             ),
@@ -125,10 +231,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
           /// Message input area
           Container(
-            color: AppColors.lowerBarColor,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                )
+              ],
             ),
             child: Row(
               children: [
@@ -137,7 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: textController,
                     onSubmitted: (_) => send(),
                     decoration: InputDecoration(
-                      hintText: "Gib eine Nachricht ein...",
+                      hintText: "Nachricht eingeben...",
                       filled: true,
                       fillColor: AppColors.card,
                       contentPadding:
@@ -149,11 +260,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppColors.primary,
+                Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, Color(0xFF6C63FF)],
+                    ),
+                  ),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                    icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
                     onPressed: send,
                   ),
                 ),

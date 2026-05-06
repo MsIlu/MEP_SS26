@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/message_model.dart';
 import 'thinking_bubble.dart';
+import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -39,10 +40,15 @@ class ChatBubble extends StatelessWidget {
         decoration: BoxDecoration(
           /// Different bubble style depending on message sender
           color: isUser
-              ? const Color(0xFF4F46E5)
+              ? AppColors.primary
               : Colors.white,
 
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(16),
+            topRight: const Radius.circular(16),
+            bottomLeft: Radius.circular(isUser ? 16 : 4),
+            bottomRight: Radius.circular(isUser ? 4 : 16),
+          ),
 
           boxShadow: [
             BoxShadow(

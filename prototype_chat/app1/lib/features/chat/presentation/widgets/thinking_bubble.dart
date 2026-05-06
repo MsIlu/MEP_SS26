@@ -107,7 +107,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
 
               /// Status text shown while response is being generated
               const Text(
-                "Thinking...",
+                "Denke nach...",
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey,

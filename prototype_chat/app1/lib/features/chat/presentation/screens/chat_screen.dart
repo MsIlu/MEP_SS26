@@ -68,16 +68,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Scrolls the chat list to the most recent message.
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!scrollController.hasClients) return;
+    if (!scrollController.hasClients) return;
 
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    });
+    scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: textController,
                     onSubmitted: (_) => send(),
                     decoration: InputDecoration(
-                      hintText: "Enter a message...",
+                      hintText: "Gib eine Nachricht ein...",
                       filled: true,
                       fillColor: AppColors.card,
                       contentPadding:
@@ -154,7 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 CircleAvatar(
                   backgroundColor: AppColors.primary,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
+                    icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
                     onPressed: send,
                   ),
                 ),

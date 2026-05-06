@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                     const CircleAvatar(
                       radius: 26,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.person, color: AppColors.primary),
+                      backgroundImage: AssetImage('/images/logo.png'),
                     ),
 
                     const SizedBox(width: 12),
@@ -58,7 +58,7 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            "Good day 👋",
+                            "Guten Tag 👋",
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white70,
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            "How can I help you?",
+                            "Wie kann ich dir helfen?",
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                     Icon(Icons.search, color: AppColors.textSecondary),
                     SizedBox(width: 10),
                     Text(
-                      "Search symptoms or questions...",
+                      "Suche Symptome oder stelle Fragen...",
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
@@ -119,7 +119,7 @@ class HomeScreen extends StatelessWidget {
                     /// Chat feature entry point
                     _FeatureTile(
                       icon: Icons.chat_bubble_outline,
-                      title: "Start Chat",
+                      title: "Chat starten",
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.push(
@@ -135,25 +135,25 @@ class HomeScreen extends StatelessWidget {
                     /// Placeholder feature tiles (future functionality)
                     _FeatureTile(
                       icon: Icons.assignment,
-                      title: "Initial Assessment",
+                      title: "Erste Einschätzung",
                       color: AppColors.accent,
                     ),
 
                     _FeatureTile(
                       icon: Icons.calendar_today,
-                      title: "Appointments",
+                      title: "Termine",
                       color: Colors.orange,
                     ),
 
                     _FeatureTile(
                       icon: Icons.medical_services,
-                      title: "Prescriptions",
+                      title: "Medikamente",
                       color: Colors.red,
                     ),
 
                     _FeatureTile(
                       icon: Icons.health_and_safety,
-                      title: "Health",
+                      title: "Gesundheit",
                       color: Colors.purple,
                     ),
 

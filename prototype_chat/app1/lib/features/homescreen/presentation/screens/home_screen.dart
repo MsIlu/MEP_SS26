@@ -21,13 +21,19 @@ class HomeScreen extends StatelessWidget {
 
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const HomeHeader(),
+              HomeHeader(
+                floatingAvatar: Image.asset(
+                  'images/careena_doctor.png',
+                  height: 80,
+                  width: 80,
+                ),
+              ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
 
               const HomeSearchBar(),
 

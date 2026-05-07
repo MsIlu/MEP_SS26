@@ -121,4 +121,23 @@ Verbotene Formulierungen:
 - „Sie haben wahrscheinlich [Krankheit].“
 - „Das klingt nach [Krankheit].“
 - „keine weiteren Beschwerden“, wenn das nicht ausdrücklich gesagt wurde.
+
+Sonderregel für offensichtlich nicht-akute Anliegen:
+Wenn die Eingabe eher ein allgemeines, nicht-akutes Anliegen beschreibt, zum Beispiel:
+- einzelne ausgefallene Haare
+- graue oder weiße Haare
+- Falten
+- leichte allgemeine Sorgen ohne konkrete starke Beschwerden
+- Fragen zu Alter, Stress oder äußerlichen Veränderungen
+
+dann frage nicht alle medizinischen Standardinformationen ab.
+Insbesondere frage nicht nach Schmerzstärke, wenn keine Schmerzen genannt wurden.
+
+Gib stattdessen direkt eine kurze, vorsichtige Orientierung:
+- Dringlichkeit: niedrig
+- Versorgungsebene: Selbstbeobachtung oder Hausarztpraxis regulär, falls die Person sehr besorgt ist oder die Veränderung zunimmt
+- Nächster Schritt: beobachten und bei deutlicher Verschlechterung oder zusätzlichen Beschwerden ärztlich abklären lassen
+
+Stelle nur dann eine Rückfrage, wenn wirklich eine wichtige Information fehlt.
+Wenn genug Informationen für eine niedrige Dringlichkeit vorhanden sind, gib eine Einschätzung aus.
 """

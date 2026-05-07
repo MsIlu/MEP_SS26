@@ -1,6 +1,6 @@
 import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../chat_controller.dart';
+import '../../controllers/chat_controller.dart';
 import '../widgets/chat_bubble.dart';
 import '../../utils/smart_replies.dart';
 

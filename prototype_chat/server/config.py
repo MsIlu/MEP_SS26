@@ -1,4 +1,4 @@
-# backend/config.py
+# server/config.py
 
 OLLAMA_HOST = "http://141.19.141.150:11434"
 

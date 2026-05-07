@@ -31,7 +31,7 @@ class HomeHeader extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(6),
               child: Image.asset(
-                'assets/careena_doctor.png',
+                'images/careena_doctor.png',
               ),
             ),
           ),

@@ -20,6 +20,12 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
 from medical_rules import detect_medical_red_flags
+from topic_filter import (
+    is_health_related,
+    is_smalltalk_or_boredom,
+    OUT_OF_SCOPE_RESPONSE,
+    SMALLTALK_GOODBYE_RESPONSE,
+)
 
 app = FastAPI()
 
@@ -74,7 +80,14 @@ def chat(req: ChatRequest):
         if not user_input:
             return {"response": "Fehler: Leere Eingabe."}
 
-        messages = sessions[session_id]
+    messages = sessions[session_id]
+    # Smalltalk / Langeweile freundlich beenden
+    if is_smalltalk_or_boredom(user_input):
+        return {"response": SMALLTALK_GOODBYE_RESPONSE}
+
+    # Nur gesundheitsbezogene Anliegen zulassen
+    if not is_health_related(user_input, messages):
+        return {"response": OUT_OF_SCOPE_RESPONSE}
 
         # User Message speichern
         messages.append({

@@ -1,0 +1,32 @@
+#Diese Datei ignoriert die nachfolgenden Dateien und Ordnern und werden nicht auf GitHub gepusht.
+
+# Flutter / Dart
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# Android Studio / IntelliJ
+.idea/
+.vscode/
+*.iml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.*
+secrets.py
+
+# System
+.DS_Store
+Thumbs.db
+*.log

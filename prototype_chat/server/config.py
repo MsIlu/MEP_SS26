@@ -4,6 +4,17 @@ OLLAMA_HOST = "http://141.19.141.150:11434"
 
 SELECTED_MODEL = "llama3.2"
 
+# Performance-Einstellungen für Ollama
+MAX_HISTORY_MESSAGES = 6
+
+OLLAMA_KEEP_ALIVE = "10m"
+
+OLLAMA_OPTIONS = {
+    "num_ctx": 2048,
+    "num_predict": 220,
+    "temperature": 0.1,
+}
+
 MASTER_PROMPT = """
 Du bist ein Assistent für eine Demo-Anwendung zur medizinischen Ersteinschätzung.
 

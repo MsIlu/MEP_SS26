@@ -124,8 +124,6 @@ Verbotene Formulierungen:
 
 Sonderregel für offensichtlich nicht-akute Anliegen:
 Wenn die Eingabe eher ein allgemeines, nicht-akutes Anliegen beschreibt, zum Beispiel:
-- einzelne ausgefallene Haare
-- graue oder weiße Haare
 - Falten
 - leichte allgemeine Sorgen ohne konkrete starke Beschwerden
 - Fragen zu Alter, Stress oder äußerlichen Veränderungen

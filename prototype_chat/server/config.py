@@ -124,7 +124,7 @@ Verbotene Formulierungen:
 
 Sonderregel für offensichtlich nicht-akute Anliegen:
 Wenn die Eingabe eher ein allgemeines, nicht-akutes Anliegen beschreibt, zum Beispiel:
-- Falten
+- wenige Falten bekommen
 - leichte allgemeine Sorgen ohne konkrete starke Beschwerden
 - Fragen zu Alter, Stress oder äußerlichen Veränderungen
 

@@ -117,7 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
           border: Border.all(color: AppColors.primary),
           color: AppColors.primary.withOpacity(0.05),
         ),
-        child: Text(
+        child: SelectableText(
           text,
           style: const TextStyle(
             color: AppColors.primary,
@@ -157,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 backgroundColor: Colors.green,
               ),
               SizedBox(width: 6),
-              Text(
+              SelectableText(
                 "Online",
                 style: TextStyle(
                   fontSize: 12,

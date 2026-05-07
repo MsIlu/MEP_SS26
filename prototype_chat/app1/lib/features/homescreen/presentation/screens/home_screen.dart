@@ -4,7 +4,7 @@ import '../../../chat/presentation/themes/app_colors.dart';
 
 import '../widgets/home_header.dart';
 import '../../../homescreen/presentation/widgets/home_search_bar.dart';
-import '../../../chat/presentation/widgets/feature_grid.dart';
+import '../widgets/feature_grid.dart';
 
 class HomeScreen extends StatelessWidget {
   final ChatController controller;

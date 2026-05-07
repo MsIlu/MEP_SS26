@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app1/features/chat/controllers/chat_controller.dart';
-import '../screens/chat_screen.dart';
-import '../themes/app_colors.dart';
-
-import 'feature_tile.dart';
+import '../../../chat/presentation/screens/chat_screen.dart';
+import '../../../chat/presentation/themes/app_colors.dart';
+import '../../../chat/presentation/widgets/feature_tile.dart';
 
 class FeatureGrid extends StatelessWidget {
   final ChatController controller;

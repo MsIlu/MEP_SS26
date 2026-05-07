@@ -2,40 +2,76 @@ import 'dart:convert';
 
 import '../../../core/network/api_client.dart';
 
-/// API Layer für Chat-Kommunikation.
+/// Handles all communication with the chat backend API.
 ///
-/// Kommuniziert direkt mit dem Backend und verarbeitet JSON Antworten.
-
+/// This class is responsible for:
+/// - Sending user messages to the server
+/// - Creating and managing chat sessions
+/// - Triggering backend warm up requests
+/// - Decoding and validating JSON responses
 class ChatApi {
   final ApiClient client;
 
   ChatApi(this.client);
 
+  /// Sends a message to the backend and returns the AI response.
+  ///
+  /// [text] is the user's input message.
+  /// [sessionId] identifies the current chat session.
+  ///
+  /// Returns the response text from the server.
   Future<String> sendMessage(
-    String text,
-    String sessionId,
-  ) async {
-    final res = await client.post("/chat", {
-      "message": text,
-      "session_id": sessionId,
-    });
+      String text,
+      String sessionId,
+      ) async {
+    final res = await client.post(
+      "/chat",
+      {
+        "message": text,
+        "session_id": sessionId,
+      },
+    );
 
-    final data = jsonDecode(res.body);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    final response = data["response"];
 
-    return data["response"] ?? "Ungültige Antwort";
+    /// Validates that the API response is a String.
+    /// This prevents runtime errors caused by unexpected JSON types
+    /// (e.g. int, bool, list, or null instead of String).
+    if (response is String) {
+      return response;
+    }
+
+    /// Fallback response if the server returns invalid or missing data.
+    /// Ensures the app always receives a safe and predictable output.
+    return "Invalid server response";
   }
 
+  /// Sends a warm up request to the backend.
+  ///
+  /// This is typically used to "wake up" a cold or serverless backend
+  /// before handling the first real user request.
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {});
-    } catch (_) {}
+    } catch (e) {
+      // Optional: log error for debugging purposes
+    }
   }
 
+  /// Creates a new chat session and returns its session ID.
+  ///
+  /// The session ID is required for all subsequent chat requests.
   Future<String> createSession() async {
     final res = await client.post("/session", {});
+    final Map<String, dynamic> data = jsonDecode(res.body);
 
-    final data = jsonDecode(res.body);
+    final sessionId = data["session_id"] as String?;
 
-    return data["session_id"];
+    if (sessionId == null) {
+      throw Exception("Failed to create session: missing session_id");
+    }
+
+    return sessionId;
   }
 }

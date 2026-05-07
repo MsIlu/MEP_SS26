@@ -6,6 +6,8 @@ import '../widgets/home_header.dart';
 import '../../../homescreen/presentation/widgets/home_search_bar.dart';
 import '../widgets/feature_grid.dart';
 
+import 'package:app1/features/homescreen/presentation/widgets/floating_avatar.dart';
+
 class HomeScreen extends StatelessWidget {
   final ChatController controller;
 
@@ -26,10 +28,8 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HomeHeader(
-                floatingAvatar: Image.asset(
-                  'images/careena_doctor.png',
-                  height: 80,
-                  width: 80,
+                floatingAvatar: const FloatingAvatar(
+                  imagePath: 'images/careena_doctor.png',
                 ),
               ),
 

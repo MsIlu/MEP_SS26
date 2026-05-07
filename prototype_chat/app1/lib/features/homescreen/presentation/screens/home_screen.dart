@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:app1/features/chat/controllers/chat_controller.dart';
-import '../themes/app_colors.dart';
+import '../../../chat/presentation/themes/app_colors.dart';
 
 import '../widgets/home_header.dart';
-import '../widgets/home_search_bar.dart';
-import '../widgets/feature_grid.dart';
+import '../../../homescreen/presentation/widgets/home_search_bar.dart';
+import '../../../chat/presentation/widgets/feature_grid.dart';
 
 class HomeScreen extends StatelessWidget {
   final ChatController controller;

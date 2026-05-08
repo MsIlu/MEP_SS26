@@ -16,15 +16,17 @@ class ChatController {
   ChatController(this.chatApi);
 
   /// Reactive message list used by the UI.
+  /// Any update will automatically rebuild listening widgets.
   final ValueNotifier<List<Message>> messages =
-  ValueNotifier<List<Message>>([]);
+    ValueNotifier<List<Message>>([]);
 
-  /// Active chat session identifier.
+  /// Current active chat session ID.
+  /// Required for all backend requests.
   String? _sessionId;
 
   /// Initializes the chat session and loads the welcome message.
   ///
-  /// This method:
+  /// Steps:
   /// - Clears previous messages
   /// - Adds the welcome message
   /// - Creates a new backend session

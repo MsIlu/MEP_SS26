@@ -5,6 +5,8 @@
 /// (e.g., a bot or system).
 class Message {
   final String text;
+  /// Indicates whether this message was sent by the user.
+  /// If false, it is treated as a bot/system message.
   final bool isUser;
 
   /// Indicates whether this message is currently in a loading state

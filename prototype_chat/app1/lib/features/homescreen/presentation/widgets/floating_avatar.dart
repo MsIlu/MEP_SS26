@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Animated floating avatar widget.
+///
+/// This widget displays a circular image
+/// with a smooth vertical floating animation
+/// and a soft shadow effect.
 class FloatingAvatar extends StatefulWidget {
+  // Path to the avatar image asset
   final String imagePath;
 
   const FloatingAvatar({
@@ -14,15 +20,19 @@ class FloatingAvatar extends StatefulWidget {
 
 class _FloatingAvatarState extends State<FloatingAvatar>
     with SingleTickerProviderStateMixin {
+  // Controls the animation loop
   late AnimationController _controller;
+  // Stores the vertical movement animation
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize animation controller
     _controller = AnimationController(
       vsync: this,
+      // Duration of one animation cycle
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 

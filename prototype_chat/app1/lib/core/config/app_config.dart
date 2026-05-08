@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Central configuration class
+/// Central configuration class.
 ///
 /// This class holds global constants and environment-specific values,
 /// such as the app name, default messages, colors or backend URLs.
@@ -10,10 +10,13 @@ import 'package:flutter/foundation.dart';
 
 class AppConfig {
 
-  static const String appName = "MedBitAid v0.4"; // Display name shown in the app bar
-  static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?"; // Default welcome message shown in the chat
+  /// Name of the application displayed in the UI.
+  static const String appName = "MedBitAid v0.4";
 
-  /// Base URL for backend communication
+  /// Default welcome message shown when the chat starts.
+  static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?";
+
+  /// Base URL for backend communication.
   ///
   /// Returns the correct URL depending on the platform:
   /// - Web: localhost
@@ -26,6 +29,7 @@ class AppConfig {
     return kIsWeb
     ? "http://localhost:8000"   // Web
     : "http://10.0.2.2:8000"    // Android Emulator
+
       //"PC/FastAPIServerIP"             // Android device (physical) (no //)
     ;    
   }

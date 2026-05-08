@@ -4,7 +4,12 @@ import '../../../chat/presentation/screens/chat_screen.dart';
 import '../../../chat/presentation/themes/app_colors.dart';
 import '../../../chat/presentation/widgets/feature_tile.dart';
 
+/// Displays a grid of feature tiles on the home screen.
+///
+/// Each tile represents a specific app feature
+/// such as chat, appointments, medication, or health tools.
 class FeatureGrid extends StatelessWidget {
+  // Controller used for managing chat state
   final ChatController controller;
 
   const FeatureGrid({
@@ -15,15 +20,22 @@ class FeatureGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
+      // Number of columns in the grid
       crossAxisCount: 3,
+      // Horizontal spacing between tiles
       crossAxisSpacing: 10,
+      // Vertical spacing between tiles
       mainAxisSpacing: 10,
+      // Width-to-height ratio of each tile
       childAspectRatio: 0.9,
+
       children: [
+        // Chat feature tile
         FeatureTile(
           icon: Icons.chat_bubble_outline,
           title: "Chat starten",
           color: AppColors.primary,
+          // Opens the chat screen
           onTap: () {
             Navigator.push(
               context,
@@ -36,6 +48,7 @@ class FeatureGrid extends StatelessWidget {
           },
         ),
 
+        // Initial assessment feature
         FeatureTile(
           icon: Icons.assignment,
           title: "Ersteinschätzung",

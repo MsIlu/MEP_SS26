@@ -5,16 +5,15 @@ import '../../../core/network/api_client.dart';
 /// Handles all communication with the chat backend API.
 ///
 /// This class is responsible for:
-/// - Sending user messages to the server
-/// - Creating and managing chat sessions
-/// - Triggering backend warm up requests
-/// - Decoding and validating JSON responses
+/// - Sending requests to the backend
+/// - Receiving and decoding responses
+/// - Mapping raw API data into usable values
 class ChatApi {
   final ApiClient client;
 
   ChatApi(this.client);
 
-  /// Sends a message to the backend and returns the AI response.
+  /// Sends a user message to the backend and returns the AI response.
   ///
   /// [text] is the user's input message.
   /// [sessionId] identifies the current chat session.
@@ -32,12 +31,11 @@ class ChatApi {
       },
     );
 
+    /// Decode JSON response body
     final Map<String, dynamic> data = jsonDecode(res.body);
     final response = data["response"];
 
-    /// Validates that the API response is a String.
-    /// This prevents runtime errors caused by unexpected JSON types
-    /// (e.g. int, bool, list, or null instead of String).
+    /// Ensure response is a valid String before returning it
     if (response is String) {
       return response;
     }

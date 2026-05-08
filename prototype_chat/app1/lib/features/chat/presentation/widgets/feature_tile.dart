@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../themes/app_colors.dart';
 
+// Reusable widget for a clickable feature tile
 class FeatureTile extends StatelessWidget {
   final IconData icon;
   final String title;

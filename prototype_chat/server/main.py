@@ -20,6 +20,8 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
 from medical_rules import detect_medical_red_flags
+from fastapi.responses import StreamingResponse
+from pdf_exporter import generate_chat_pdf
 
 app = FastAPI()
 
@@ -150,6 +152,10 @@ def create_session():
         {
             "role": "system",
             "content": config.MASTER_PROMPT
+        },
+        {
+            "role": "assistant",
+            "content": config.WELCOME_MESSAGE
         }
     ]
 
@@ -157,3 +163,27 @@ def create_session():
     print("Created session: ", session_id)
 
     return {"session_id": session_id}
+
+# Define GET endpoint with dynamic session_id
+@app.get("/export/{session_id}")
+def export_pdf(session_id: str):
+
+    # Check if the session exists in memory
+    if session_id not in sessions:
+        return {"response": "Fehler: Ungültige Session-ID"}
+    
+    # Generate PDF from stored chat messages
+    pdf_buffer = generate_chat_pdf(sessions[session_id])
+
+    # Return PDF as a streaming response (no file saved on a disk)
+    return StreamingResponse(
+
+        # In-memory PDF file
+        pdf_buffer,
+        # Tell browser it's a PDF
+        media_type="application/pdf",
+        headers={
+            # Force browser to download the file instead of displaying it
+            "Content-Disposition": "attachment; filename=chat.pdf"
+        }
+    )

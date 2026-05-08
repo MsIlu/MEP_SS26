@@ -2,7 +2,7 @@ import 'package:app1/core/config/app_config.dart';
 import 'package:app1/features/chat/data/chat_api.dart';
 import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 /// Controls all chat-related business logic.
 ///
 /// This controller is responsible for:
@@ -139,5 +139,25 @@ class ChatController {
     final updated = List<Message>.from(messages.value);
     updated.add(message);
     messages.value = updated;
+  }
+  Future<void> exportPdf() async {
+  
+    try {
+
+      // Checks if a session exists; export is not possible without valid session
+      if (_sessionId == null) {
+
+        // Logs a debug message if no session is available
+        print("Keine Session vorhanden - Export abgebrochen");
+        return;
+      }
+
+      // Calls the API Layer to trigger the PDF export for the current session
+      await chatApi.exportPdf(_sessionId!);
+    } catch (e) {
+
+      // Logs the error for debugging purposes
+      print("EXPORT ERROR: $e");
+    }
   }
 }

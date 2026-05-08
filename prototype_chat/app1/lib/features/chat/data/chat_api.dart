@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/network/api_client.dart';
 
 /// Handles all communication with the chat backend API.
@@ -73,5 +74,18 @@ class ChatApi {
     }
 
     return sessionId;
+  }
+  
+  Future<void> exportPdf(String sessionId) async {
+
+    // Builds the full URL using the base URL and the sessionId
+    final url = Uri.parse("${AppConfig.baseUrl}/export/$sessionId");
+
+    // Opens the generated URL using the device's external application 
+    // (usually a browser or PDF viewer)
+    await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    );
   }
 }

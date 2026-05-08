@@ -4,6 +4,8 @@ OLLAMA_HOST = "http://141.19.141.150:11434"
 
 SELECTED_MODEL = "llama3.2"
 
+WELCOME_MESSAGE = "Hallo! 👋 Wie kann ich dir helfen?"
+
 MASTER_PROMPT = """
 Du bist ein Assistent für eine Demo-Anwendung zur medizinischen Ersteinschätzung.
 

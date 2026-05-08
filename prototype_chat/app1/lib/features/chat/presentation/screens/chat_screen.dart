@@ -145,6 +145,15 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+        IconButton(
+          icon: const Icon(Icons.picture_as_pdf),
+          tooltip: "Export Chat as PDF",
+          onPressed: () {
+            widget.controller.exportPdf();
+          },
+        ),
+      ],
       ),
 
       body: Column(

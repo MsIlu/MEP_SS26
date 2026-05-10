@@ -30,7 +30,7 @@ medical_rules = [
     },
     {
         "keywords_all": ["allergie", "atemnot"],
-        "message": "⚠️ Anaphylaxie möglich. Sofort 112 rufen."
+        "message": "⚠️ Schwere allergische Reaktion möglich. Sofort 112 rufen."
     },
 ]
 

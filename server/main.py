@@ -20,6 +20,12 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
 from medical_rules import detect_medical_red_flags
+from topic_filter import (
+    is_health_related,
+    is_smalltalk_or_boredom,
+    OUT_OF_SCOPE_RESPONSE,
+    SMALLTALK_GOODBYE_RESPONSE,
+)
 
 app = FastAPI()
 
@@ -34,6 +40,20 @@ app.add_middleware(
 
 # Session Speicher
 sessions = {}
+
+def build_ollama_messages(messages: list[dict]) -> list[dict]:
+    """
+    Baut einen kleineren Kontext für Ollama:
+    - Systemprompt bleibt immer enthalten
+    - nur die letzten Chatnachrichten werden an Ollama geschickt
+    - der vollständige Verlauf bleibt trotzdem in sessions gespeichert
+    """
+    system_messages = [m for m in messages if m.get("role") == "system"]
+    chat_messages = [m for m in messages if m.get("role") != "system"]
+
+    recent_chat_messages = chat_messages[-config.MAX_HISTORY_MESSAGES:]
+
+    return system_messages + recent_chat_messages
 
 #  Verbindung zum Hochschul-Ollama-Server 
 #  Das Gerät auf dem der Server läuft muss im Hochschulnetzwerk sein!!!
@@ -61,6 +81,13 @@ def chat(req: ChatRequest):
             return {"response": "Fehler: Leere Eingabe."}
 
         messages = sessions[session_id]
+        # Smalltalk / Langeweile freundlich beenden
+        if is_smalltalk_or_boredom(user_input):
+            return {"response": SMALLTALK_GOODBYE_RESPONSE}
+
+        # Nur gesundheitsbezogene Anliegen zulassen
+        if not is_health_related(user_input, messages):
+            return {"response": OUT_OF_SCOPE_RESPONSE}
 
         # User Message speichern
         messages.append({
@@ -80,12 +107,16 @@ def chat(req: ChatRequest):
             })
             return {"response": result}
 
+        # Nur reduzierten Verlauf an Ollama schicken
+        ollama_messages = build_ollama_messages(messages)
+
         # Ollama Anfrage
         response = client.chat(
             model=config.SELECTED_MODEL,
-            messages=messages,
-            options={"keep_alive": "2m"}
-        )
+            messages=ollama_messages,
+            options=config.OLLAMA_OPTIONS,
+            keep_alive=config.OLLAMA_KEEP_ALIVE,
+)
 
         # Debug Konsolenausgabe
         print(f"[{session_id}] Ollama Server response:")
@@ -134,7 +165,8 @@ def warmup():
         client.chat(
             model=config.SELECTED_MODEL,
             messages=[{"role": "user", "content": "antworte mit ok"}],
-            options={"keep_alive": "2m"}
+            options=config.OLLAMA_OPTIONS,
+            keep_alive=config.OLLAMA_KEEP_ALIVE,
         )
         return {"status": "warmed up"}
     except Exception as e:

@@ -1,19 +1,25 @@
 # server/config.py
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-OLLAMA_HOST = "http://141.19.141.150:11434"
+# Projekt-Hauptordner bestimmen:
+# config.py liegt in /server, deshalb gehen wir eine Ebene hoch zu MEP_SS26a
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-SELECTED_MODEL = "llama3.2"
+# .env aus dem Projekt-Hauptordner laden
+load_dotenv(BASE_DIR / ".env")
 
-# Performance-Einstellungen für Ollama
+LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://localhost:4000").rstrip("/")
+LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "")
+SELECTED_MODEL = os.getenv("LITELLM_MODEL", "medgemma:27b")
+
+# LLM-Konfiguration
+
 MAX_HISTORY_MESSAGES = 6
+LLM_MAX_TOKENS = 220
+LLM_TEMPERATURE = 0.1
 
-OLLAMA_KEEP_ALIVE = "10m"
-
-OLLAMA_OPTIONS = {
-    "num_ctx": 2048,
-    "num_predict": 220,
-    "temperature": 0.1,
-}
 
 MASTER_PROMPT = """
 Du bist ein Assistenzsystem für eine Demo-Anwendung zur KI-gestützten Patientensteuerung.

@@ -24,6 +24,7 @@ env/
 # Secrets
 .env
 .env.*
+!.env.example
 secrets.py
 
 # System

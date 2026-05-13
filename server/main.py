@@ -6,7 +6,7 @@
 # - Chatverläufe werden bei Server Neustart gelöscht, noch keine DB vorhanden
 #
 # Benötigt:
-# <bash> $ pip install fastapi uvicorn ollama
+# <bash> $ pip install fastapi uvicorn openai python-dotenv
 #
 # Zum Ausführen:
 # <bash> $ uvicorn main:app --reload
@@ -15,7 +15,7 @@
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-import ollama
+from openai import OpenAI
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
@@ -41,13 +41,13 @@ app.add_middleware(
 # Session Speicher
 sessions = {}
 
-def build_ollama_messages(messages: list[dict]) -> list[dict]:
+def build_llm_messages(messages: list[dict]) -> list[dict]:
     """
-    Baut einen kleineren Kontext für Ollama:
-    - Systemprompt bleibt immer enthalten
-    - nur die letzten Chatnachrichten werden an Ollama geschickt
-    - der vollständige Verlauf bleibt trotzdem in sessions gespeichert
-    """
+  Baut einen kleineren Kontext für das LLM:
+  - Systemprompt bleibt immer enthalten
+  - nur die letzten Chatnachrichten werden an das Modell geschickt
+  - der vollständige Verlauf bleibt trotzdem in sessions gespeichert
+  """
     system_messages = [m for m in messages if m.get("role") == "system"]
     chat_messages = [m for m in messages if m.get("role") != "system"]
 
@@ -55,10 +55,12 @@ def build_ollama_messages(messages: list[dict]) -> list[dict]:
 
     return system_messages + recent_chat_messages
 
-#  Verbindung zum Hochschul-Ollama-Server 
-#  Das Gerät auf dem der Server läuft muss im Hochschulnetzwerk sein!!!
-client = ollama.Client(
-    host=config.OLLAMA_HOST
+# Verbindung zum LiteLLM-Proxy der Hochschule.
+# Der Proxy stellt eine OpenAI-kompatible API bereit.
+# Das eigene Gerät muss sich im Hochschulnetzwerk befinden.
+client = OpenAI(
+    base_url=config.LITELLM_BASE_URL,
+    api_key=config.LITELLM_API_KEY,
 )
 
 class ChatRequest(BaseModel):
@@ -107,24 +109,25 @@ def chat(req: ChatRequest):
             })
             return {"response": result}
 
-        # Nur reduzierten Verlauf an Ollama schicken
-        ollama_messages = build_ollama_messages(messages)
+        # Nur reduzierten Verlauf an das LLM schicken
+        llm_messages = build_llm_messages(messages)
 
-        # Ollama Anfrage
-        response = client.chat(
+        # Chat-Anfrage an LiteLLM über OpenAI-kompatible API
+        response = client.chat.completions.create(
             model=config.SELECTED_MODEL,
-            messages=ollama_messages,
-            options=config.OLLAMA_OPTIONS,
-            keep_alive=config.OLLAMA_KEEP_ALIVE,
-)
+            messages=llm_messages,
+            temperature=config.LLM_TEMPERATURE,
+            max_tokens=config.LLM_MAX_TOKENS,
+        )
 
         # Debug Konsolenausgabe
-        print(f"[{session_id}] Ollama Server response:")
-        print("    Model: ", response.model, "| Total Dur (s):", response.total_duration / 1e9, "| Load Dur (s):", response.load_duration / 1e9, "| Eval Dur (s):", response.eval_duration / 1e9, "| Tokens (prompt):", response.prompt_eval_count, "| Tokens (generated):", response.eval_count)
+        print(f"[{session_id}] LiteLLM response received.")
 
-        reply = response["message"]["content"].strip()
+        reply = response.choices[0].message.content
 
-        if not reply:
+        if reply:
+            reply = reply.strip()
+        else:
             reply = "⚠️ Keine Antwort vom Modell."
 
         # Assistant Message speichern
@@ -147,14 +150,16 @@ def chat(req: ChatRequest):
 @app.get("/models")
 def get_models():
     try:
-        models = client.list()
-        model_names = [m.model for m in models.models]
+        models = client.models.list()
+
+        model_names = [m.id for m in models.data]
 
         print("Available models:", model_names)
 
         return {"models": model_names}
 
     except Exception as e:
+        print("MODELS ERROR:", repr(e))
         return {"error": str(e)}
     
     
@@ -162,14 +167,15 @@ def get_models():
 @app.post("/warmup")
 def warmup():
     try:
-        client.chat(
+        client.chat.completions.create(
             model=config.SELECTED_MODEL,
             messages=[{"role": "user", "content": "antworte mit ok"}],
-            options=config.OLLAMA_OPTIONS,
-            keep_alive=config.OLLAMA_KEEP_ALIVE,
+            temperature=config.LLM_TEMPERATURE,
+            max_tokens=10,
         )
         return {"status": "warmed up"}
     except Exception as e:
+        print("WARMUP ERROR:", repr(e))
         return {"error": str(e)}
     
 # Endpunkt zur Vergabe von Session IDs

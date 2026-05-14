@@ -26,6 +26,7 @@ from topic_filter import (
     OUT_OF_SCOPE_RESPONSE,
     SMALLTALK_GOODBYE_RESPONSE,
 )
+from database import create_db_and_tables
 
 app = FastAPI()
 
@@ -195,3 +196,10 @@ def create_session():
     print("Created session: ", session_id)
 
     return {"session_id": session_id}
+
+# Editor: Ilu
+# Runs automatically when the FastAPI server starts.
+# Creates all database tables if they do not already exist.
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()

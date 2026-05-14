@@ -101,25 +101,38 @@ def chat(req: ChatRequest):
         # Red-Flag-Prüfung vor der KI-Antwort
         red_flag_result = detect_medical_red_flags(user_input)
 
-        if red_flag_result["red_flag"] and red_flag_result["block_ai_response"]:
+        if red_flag_result.get("red_flag") and red_flag_result.get("block_ai_response", False):
             print(f"[{session_id}] Red flag detected: {red_flag_result}")
+
+            warning_text = (
+                "Wichtiger Hinweis:\n"
+                "Ihre Angaben können auf eine akute Notfallsituation hinweisen.\n\n"
+                "Nächster Schritt:\n"
+                "Bitte wählen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe.\n\n"
+                "Hinweis:\n"
+                "Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."
+            )
 
             messages.append({
                 "role": "assistant",
-                "content": f"Red-Flag-Sicherheitsprüfung ausgelöst: {red_flag_result['rule_id']} - {red_flag_result['rule_name']}"
-        })
+                "content": warning_text
+            })
 
-        return {
-            "response": None,
-            "red_flag": True,
-            "severity": red_flag_result["severity"],
-            "action": red_flag_result["action"],
-            "rule_id": red_flag_result["rule_id"],
-            "rule_name": red_flag_result["rule_name"],
-            "category": red_flag_result["category"],
-            "message_key": red_flag_result["message_key"],
-            "matched_keywords": red_flag_result.get("matched_keywords", [])
-        }
+            return {
+                "response": warning_text,
+                "red_flag": True,
+                "severity": red_flag_result.get("severity"),
+                "action": red_flag_result.get("action"),
+                "rule_id": red_flag_result.get("rule_id"),
+                "rule_name": red_flag_result.get("rule_name"),
+                "category": red_flag_result.get("category"),
+                "message_key": red_flag_result.get("message_key"),
+                "matched_keywords": red_flag_result.get("matched_keywords", [])
+            }
+
+        # Nur wenn KEINE Red Flag erkannt wurde, geht es hier normal weiter:
+        # Nur reduzierten Verlauf an das LLM schicken
+        llm_messages = build_llm_messages(messages)
 
         # Nur reduzierten Verlauf an das LLM schicken
         llm_messages = build_llm_messages(messages)

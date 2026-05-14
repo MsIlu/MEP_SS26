@@ -19,7 +19,8 @@ from openai import OpenAI
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
-from medical_rules import detect_medical_red_flags
+#from medical_rules import detect_medical_red_flags
+from red_flags.detector import detect_medical_red_flags
 from topic_filter import (
     is_health_related,
     is_smalltalk_or_boredom,
@@ -97,17 +98,28 @@ def chat(req: ChatRequest):
             "content": user_input
         })
 
-        # detect_medical_red_flags kommt aus medical_rules.py
-        result = detect_medical_red_flags(user_input)
+        # Red-Flag-Prüfung vor der KI-Antwort
+        red_flag_result = detect_medical_red_flags(user_input)
 
-        # Falls result leer ist (z.B. None), 
-        # wird der Block nicht ausgeführt 
-        if result:
+        if red_flag_result["red_flag"] and red_flag_result["block_ai_response"]:
+            print(f"[{session_id}] Red flag detected: {red_flag_result}")
+
             messages.append({
-                "role":"assistant",
-                "content":result
-            })
-            return {"response": result}
+                "role": "assistant",
+                "content": f"Red-Flag-Sicherheitsprüfung ausgelöst: {red_flag_result['rule_id']} - {red_flag_result['rule_name']}"
+        })
+
+        return {
+            "response": None,
+            "red_flag": True,
+            "severity": red_flag_result["severity"],
+            "action": red_flag_result["action"],
+            "rule_id": red_flag_result["rule_id"],
+            "rule_name": red_flag_result["rule_name"],
+            "category": red_flag_result["category"],
+            "message_key": red_flag_result["message_key"],
+            "matched_keywords": red_flag_result.get("matched_keywords", [])
+        }
 
         # Nur reduzierten Verlauf an das LLM schicken
         llm_messages = build_llm_messages(messages)

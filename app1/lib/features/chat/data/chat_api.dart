@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import '../../../core/network/api_client.dart';
 
 /// Handles all communication with the chat backend API.
@@ -23,7 +22,7 @@ class ChatApi {
       String text,
       String sessionId,
       ) async {
-    final res = await client.post(
+    final data = await client.post(
       "/chat",
       {
         "message": text,
@@ -31,18 +30,8 @@ class ChatApi {
       },
     );
 
-    /// Decode JSON response body
-    final Map<String, dynamic> data = jsonDecode(res.body);
-    final response = data["response"];
-
-    /// Ensure response is a valid String before returning it
-    if (response is String) {
-      return response;
-    }
-
-    /// Fallback response if the server returns invalid or missing data.
-    /// Ensures the app always receives a safe and predictable output.
-    return "Invalid server response";
+    return data['response'] ??
+        'Ungültige Serverantwort';
   }
 
   /// Sends a warm up request to the backend.
@@ -52,7 +41,7 @@ class ChatApi {
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {});
-    } catch (e) {
+    } catch (_) {
       // Optional: log error for debugging purposes
     }
   }
@@ -61,10 +50,9 @@ class ChatApi {
   ///
   /// The session ID is required for all subsequent chat requests.
   Future<String> createSession() async {
-    final res = await client.post("/session", {});
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final data = await client.post("/session", {});
 
-    final sessionId = data["session_id"] as String?;
+    final sessionId = data['session_id'];
 
     if (sessionId == null) {
       throw Exception("Failed to create session: missing session_id");

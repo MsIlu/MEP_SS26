@@ -1,0 +1,11 @@
+# Author: Ilu
+# This file contains all required Python packages for the backend.
+# Install them with:
+# pip install -r requirements.txt
+
+fastapi
+uvicorn
+sqlmodel
+python-dotenv
+openai
+psycopg[binary]

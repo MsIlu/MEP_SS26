@@ -6,10 +6,10 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine
-import models
+from . import models
 
 #determines the projects main folder
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 #path to .env-file in main folder
 ENV_PATH = BASE_DIR / ".env"

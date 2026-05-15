@@ -10,6 +10,7 @@ Please install the following software before starting the project.
 * Python 3.12+ (recommended)
 * Docker Desktop
 * Git
+* Plugin Docker in your IDE
 
 ### Windows Users
 

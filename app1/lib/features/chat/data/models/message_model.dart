@@ -16,12 +16,12 @@ class Message {
   /// Optional timestamp used for ordering messages or future persistence.
   final DateTime? timestamp;
 
-  const Message({
+  Message({
     required this.text,
     required this.isUser,
     this.isLoading = false,
-    this.timestamp,
-  });
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a new instance of [Message] with updated values.
   /// Unspecified fields retain their current values.

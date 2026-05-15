@@ -73,7 +73,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
   Widget build(BuildContext context) {
     return Align(
       // Aligns the bubble to the left side like a chat message
-    alignment: Alignment.centerLeft,
+      alignment: Alignment.centerLeft,
 
       child: AnimatedOpacity(
         // Smooth fade-in effect

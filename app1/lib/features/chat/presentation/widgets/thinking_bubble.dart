@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 /// - A subtle loading state bubble
 /// - A short status text indicating that the system is processing
 class ThinkingBubble extends StatefulWidget {
-  const ThinkingBubble({super.key});
+  final bool showLongProcessingHint;
+
+  const ThinkingBubble({super.key, this.showLongProcessingHint = false});
 
   @override
   State<ThinkingBubble> createState() => _ThinkingBubbleState();
@@ -100,21 +102,30 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             ],
           ),
 
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Animated loading dots
-              _dot(0.0),
-              _dot(0.2),
-              _dot(0.4),
-
-              const SizedBox(width: 8),
-
-              // Status text shown while response is being generated
-              const Text(
-                "Careena schreibt...",
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _dot(0.0),
+                  _dot(0.2),
+                  _dot(0.4),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Careena schreibt...",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
               ),
+              if (widget.showLongProcessingHint) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  "Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.",
+                  style: TextStyle(fontSize: 12, color: Color(0xFF6B7C80)),
+                ),
+              ],
             ],
           ),
         ),

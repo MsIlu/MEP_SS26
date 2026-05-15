@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
+import '../../utils/medical_terms.dart';
+import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 
 /// UI component that displays a single chat message.
@@ -11,16 +13,22 @@ import 'thinking_bubble.dart';
 /// - Styling chat bubbles based on sender
 class ChatBubble extends StatelessWidget {
   final Message message;
+  final bool showLongProcessingHint;
 
-  const ChatBubble({super.key, required this.message});
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.showLongProcessingHint = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
 
     /// Show loading indicator when message is in "thinking" state
     if (message.isLoading) {
-      return const ThinkingBubble();
+      return ThinkingBubble(showLongProcessingHint: showLongProcessingHint);
     }
 
     return Padding(
@@ -59,12 +67,19 @@ class ChatBubble extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  color: isUser ? Colors.white : const Color(0xFF2C5358),
-                  fontSize: 15,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.text,
+                    style: TextStyle(
+                      color: isUser ? Colors.white : const Color(0xFF2C5358),
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (medicalTerm != null)
+                    MedicalTermInfoBox(term: medicalTerm),
+                ],
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'core/network/api_client.dart';
 import 'features/chat/data/chat_api.dart';
 import 'features/chat/controllers/chat_controller.dart';
 import 'features/homescreen/presentation/screens/home_screen.dart';
+import 'features/chat/services/chat_service.dart';
 
 /// Entry point of the application.
 ///
@@ -22,7 +23,10 @@ void main() {
   final httpClient = http.Client();
   final apiClient = ApiClient(httpClient);
   final chatApi = ChatApi(apiClient);
-  final chatController = ChatController(chatApi);
+  final chatController = ChatController(
+    chatApi: chatApi,
+    chatService: ChatService(),
+  );
 
   /// -----------------------------
   /// App Startup

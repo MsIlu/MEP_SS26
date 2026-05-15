@@ -1,0 +1,40 @@
+name: Backend Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      # Download repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Check Python syntax
+      - name: Check Python syntax
+        run: python -m compileall .
+
+      # Import Test FastAPI
+      - name: TEst FastAPI import
+        env:
+          LITELLM_BASE_URL: dummy
+          LITELLM_API_KEY: dummy
+          LITELLM_MODEL: dummy
+        run: python -c "import main"

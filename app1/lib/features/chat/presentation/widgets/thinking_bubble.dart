@@ -42,7 +42,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
   Widget _dot(double delay) {
     return AnimatedBuilder(
       animation: controller,
-      builder: (_, __) {
+      builder: (context, child) {
         // Shift animation timing using the delay value
         final value = (controller.value + delay) % 1.0;
 
@@ -58,10 +58,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             opacity: opacity.clamp(0.3, 1),
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 3),
-              child: CircleAvatar(
-                radius: 3,
-                backgroundColor: Colors.grey,
-              ),
+              child: CircleAvatar(radius: 3, backgroundColor: Colors.grey),
             ),
           ),
         );
@@ -84,10 +81,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
           // Outer spacing around the bubble
           margin: const EdgeInsets.symmetric(vertical: 6),
           // Inner spacing inside the bubble
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
 
           // Bubble styling
           decoration: BoxDecoration(
@@ -99,13 +93,12 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             // Soft shadow effect
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
-
 
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -120,10 +113,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
               // Status text shown while response is being generated
               const Text(
                 "Careena schreibt...",
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
             ],
           ),

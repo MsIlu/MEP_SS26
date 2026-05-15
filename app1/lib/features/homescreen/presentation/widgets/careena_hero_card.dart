@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/config/app_assets.dart';
 import 'floating_avatar.dart';
 
 class CareenaHeroCard extends StatelessWidget {
@@ -16,23 +17,29 @@ class CareenaHeroCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const FloatingAvatar(imagePath: 'images/careena_doctor.png'),
+          const FloatingAvatar(imagePath: AppAssets.careenaDoctor),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Ich bin Careena!\nWie kann ich dir helfen?",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "Ich bin Careena!\nWie kann ich dir helfen?",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
                 const SizedBox(height: 11),
                 ElevatedButton(
                   onPressed: onTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF26A69A),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  child: const Text("Jetzt mit Careena sprechen",
-                      style: TextStyle(color: Colors.white, fontSize: 13)),
+                  child: const Text(
+                    "Jetzt mit Careena sprechen",
+                    style: TextStyle(color: Colors.white, fontSize: 13),
+                  ),
                 ),
               ],
             ),

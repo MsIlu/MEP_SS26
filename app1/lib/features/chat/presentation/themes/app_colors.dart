@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 /// This class acts as a design system foundation and ensures
 /// consistent color usage across the entire application.
 class AppColors {
-
   // =============================
   // Primary Colors (Medical UI)
   // =============================
@@ -15,7 +14,6 @@ class AppColors {
 
   /// Secondary accent color used for positive states and health-related elements.
   static const Color accent = Color(0xFF2ECC71);
-
 
   // =============================
   // Background Colors
@@ -27,7 +25,6 @@ class AppColors {
   /// Background color used for cards, tiles, and elevated surfaces.
   static const Color card = Colors.white;
 
-
   // =============================
   // Text Colors
   // =============================
@@ -37,7 +34,6 @@ class AppColors {
 
   /// Secondary text color used for hints, labels, and less important content.
   static const Color textSecondary = Colors.grey;
-
 
   // =============================
   // Legacy Colors (Backward Compatibility)

@@ -13,7 +13,7 @@ class CustomBottomNav extends StatelessWidget {
         border: Border.all(color: Colors.teal[100]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -29,10 +29,22 @@ class CustomBottomNav extends StatelessWidget {
           unselectedItemColor: Colors.teal[200],
           currentIndex: 0,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "Startseite"),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: "Kalender"),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Nachrichten"),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: "Einstellungen"),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: "Startseite",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today_outlined),
+              label: "Kalender",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble_outline),
+              label: "Nachrichten",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              label: "Einstellungen",
+            ),
           ],
         ),
       ),

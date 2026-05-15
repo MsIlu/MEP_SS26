@@ -11,7 +11,7 @@ class FunctionMenuTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.bgColor,
-    required this.onTap
+    required this.onTap,
   });
 
   @override
@@ -27,10 +27,19 @@ class FunctionMenuTile extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Icon(icon, color: const Color(0xFF2C5358)),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C5358))),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2C5358),
+          ),
+        ),
         trailing: const Icon(Icons.chevron_right, color: Color(0xFF26A69A)),
       ),
     );

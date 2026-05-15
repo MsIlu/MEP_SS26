@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../../../core/network/api_client.dart';
 
 /// Handles all communication with the chat backend API.
@@ -18,20 +17,13 @@ class ChatApi {
   /// [sessionId] identifies the current chat session.
   ///
   /// Returns the response text from the server.
-  Future<String> sendMessage(
-      String text,
-      String sessionId,
-      ) async {
-    final data = await client.post(
-      "/chat",
-      {
-        "message": text,
-        "session_id": sessionId,
-      },
-    );
+  Future<String> sendMessage(String text, String sessionId) async {
+    final data = await client.post("/chat", {
+      "message": text,
+      "session_id": sessionId,
+    });
 
-    return data['response'] ??
-        'Ungültige Serverantwort';
+    return data['response'] ?? 'Ungültige Serverantwort';
   }
 
   /// Sends a warm up request to the backend.

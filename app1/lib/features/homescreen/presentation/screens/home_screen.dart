@@ -1,16 +1,21 @@
-import 'package:flutter/material.dart';
 import 'package:app1/features/chat/controllers/chat_controller.dart';
 import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
+import 'package:flutter/material.dart';
+import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
-import '../widgets/function_menu_tile.dart';
 import '../widgets/custom_bottom_nav.dart';
+import '../widgets/home_function_list.dart';
+import '../widgets/notification_badge_icon.dart';
 
 class HomeScreen extends StatelessWidget {
   final ChatController controller;
+
   const HomeScreen({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final features = _buildFeatures();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -19,40 +24,40 @@ class HomeScreen extends StatelessWidget {
             _buildHeader(),
             CareenaHeroCard(onTap: () => _navigateToChat(context)),
             _buildSearchBar(),
-            _buildFunctionList(),
+            HomeFunctionList(features: features),
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(),
+      bottomNavigationBar: const CustomBottomNav(),
     );
   }
 
   void _navigateToChat(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(controller: controller)));
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text("Willkommen!", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF2C5358))),
-          _buildNotificationIcon(),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(controller: controller),
       ),
     );
   }
 
-  //Todo: Statt statischer 3 als Benachichtigungsanzahl, Anzahl dynamisch erzeugen lassen
-  Widget _buildNotificationIcon() {
-    return Stack(
-      children: [
-        const Icon(Icons.notifications_none, size: 30, color: Color(0xFF8BB5BC)),
-        Positioned(right: 0, child: CircleAvatar(radius: 7, backgroundColor: Colors.red,
-            child: const Text("3", style: TextStyle(color: Colors.white, fontSize: 8))))
-      ],
+  Widget _buildHeader() {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "Willkommen!",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2C5358),
+            ),
+          ),
+          NotificationBadgeIcon(count: 3),
+        ],
+      ),
     );
   }
 
@@ -65,26 +70,49 @@ class HomeScreen extends StatelessWidget {
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.grey[100],
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFunctionList() {
-    return Expanded(
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          const Text("Deine Funktionen...", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 15),
-          FunctionMenuTile(icon: Icons.access_time, title: "Terminplanung", bgColor: Colors.teal[100]!, onTap: () {}),
-          FunctionMenuTile(icon: Icons.link, title: "Medikamente", bgColor: Colors.teal[100]!, onTap: () {}),
-          FunctionMenuTile(icon: Icons.description_outlined, title: "Dokumente", bgColor: Colors.teal[100]!, onTap: () {}),
-          FunctionMenuTile(icon: Icons.health_and_safety_outlined, title: "Präventive Angebote", bgColor: Colors.teal[100]!, onTap: () {}),
-          FunctionMenuTile(icon: Icons.menu_book_outlined, title: "Symptomtagebuch", bgColor: Colors.teal[100]!, onTap: () {}),
-        ],
+  List<HomeFeature> _buildFeatures() {
+    final featureColor = Colors.teal[100]!;
+
+    return [
+      HomeFeature(
+        icon: Icons.access_time,
+        title: "Terminplanung",
+        backgroundColor: featureColor,
+        onTap: () {},
       ),
-    );
+      HomeFeature(
+        icon: Icons.link,
+        title: "Medikamente",
+        backgroundColor: featureColor,
+        onTap: () {},
+      ),
+      HomeFeature(
+        icon: Icons.description_outlined,
+        title: "Dokumente",
+        backgroundColor: featureColor,
+        onTap: () {},
+      ),
+      HomeFeature(
+        icon: Icons.health_and_safety_outlined,
+        title: "Präventive Angebote",
+        backgroundColor: featureColor,
+        onTap: () {},
+      ),
+      HomeFeature(
+        icon: Icons.menu_book_outlined,
+        title: "Symptomtagebuch",
+        backgroundColor: featureColor,
+        onTap: () {},
+      ),
+    ];
   }
 }

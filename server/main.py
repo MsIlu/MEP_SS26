@@ -27,7 +27,7 @@ from topic_filter import (
     OUT_OF_SCOPE_RESPONSE,
     SMALLTALK_GOODBYE_RESPONSE,
 )
-from database import create_db_and_tables
+from database.connection import create_db_and_tables
 
 app = FastAPI()
 

@@ -18,6 +18,11 @@ Docker Desktop usually requires:
 * WSL2
 * Ubuntu (recommended)
 
+
+---
+
+(You can skip step 2 - "Clone the Repository", if you have the repository and is up to date)
+
 ---
 
 # 2. Clone the Repository
@@ -41,7 +46,7 @@ git pull
 
 Make sure Docker Desktop is running before starting the database.
 
-Verify Docker installation:
+Verify Docker installation in bash-terminal:
 
 ```bash
 docker --version
@@ -49,9 +54,9 @@ docker --version
 
 ---
 
-# 4. Create the .env File
+# 4. Add in the .env File
 
-Create a `.env` file inside the main project folder:
+Add in the `.env` file, which is inside the main project folder, the database_URL:
 
 ```text
 MEP_SS26/.env
@@ -68,10 +73,12 @@ DATABASE_URL= Database_URL
 ```
 
 ### ⚠️ Warning
-```Text
-The `.env` file contains sensitive information. 
+
+```text
+The `.env` file contains sensitive information.
 Do NOT push the `.env` file to GitHub.
-The required `DATABASE_URL`, usernames, passwords, and API keys are shared separately within the team (e.g. Discord). 
+The required `DATABASE_URL`, usernames, passwords, 
+and API keys are shared separately within the team (e.g. Discord - Channel "code-schnipsel"; pinned).
 ```
 ---
 
@@ -85,7 +92,7 @@ docker compose up -d
 
 This starts the PostgreSQL database container.
 
-Check running containers:
+Check running (also bash-Terminal):
 
 ```bash
 docker ps
@@ -95,7 +102,7 @@ docker ps
 
 # 6. Install Python Dependencies
 
-Go into the backend folder:
+Start the local-terminal (not bash-Terminal) and go into the server-folder:
 
 ```bash
 cd server
@@ -111,7 +118,7 @@ pip install -r requirements.txt
 
 # 7. Start the Backend Server
 
-Inside the `server` folder:
+Start the local-Terminal (not bash-terminal) inside the `server` folder and start the server:
 
 ```bash
 python -m uvicorn main:app --reload
@@ -121,19 +128,19 @@ python -m uvicorn main:app --reload
 
 # 8. Verify Database Connection
 
-Open PostgreSQL inside Docker:
+Open the bash-terminal to start PostgreSQL in docker:
 
 ```bash
-docker exec -it mep_postgres psql -U username -d mep_server
+docker exec -it mep_postgres psql -U mep_user -d mep_server
 ```
 
-Show all tables:
+To show all tables, use the following code:
 
 ```sql
 \dt
 ```
 
-Exit PostgreSQL:
+To exit PostgreSQL, use the following code:
 
 ```sql
 \q
@@ -182,32 +189,43 @@ Check:
 
 ---
 
-# Project Structure
+# Project Structure (on 15.05.2026)
 
 ```text
 MEP_SS26/
-│
-├── docker-compose.yml
-├── .env
-│
+├── .github/
+├── app1/
+├── documents
 ├── server/
+│   ├── database/
+│   │    ├── __init__.py
+│   │    ├── connection.py
+│   │    └── models.py
+│   ├── docs/
+│   ├── models/
+│   ├── red_flags/
+│   ├── config.py
 │   ├── main.py
-│   ├── database.py
-│   ├── db_models.py
+│   ├── medical_rules.py
 │   ├── requirements.txt
-│
-└── frontend/
+│   └── topic_filter.py
+├── .env
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── README.md
+└── SETUP.md
 ```
 
 ---
 
 # Database Architecture
 
-## db_models.py
+## models.py
 
 Defines database tables using SQLModel.
 
-## database.py
+## connection.py
 
 Handles:
 

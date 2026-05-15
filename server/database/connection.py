@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine
-import db_models
+import models
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,8 +19,6 @@ load_dotenv(dotenv_path=ENV_PATH)
 
 #loads databse-URL from .env-File
 DATABASE_URL = os.getenv("DATABASE_URL")
-
-print(repr(DATABASE_URL))
 
 #prints error-message if there is no database-URL
 if not DATABASE_URL:

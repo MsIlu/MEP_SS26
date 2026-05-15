@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../controllers/chat_controller.dart';
 import '../widgets/chat_bubble.dart';
 import '../../utils/smart_replies.dart';
+import '../../data/models/message_model.dart';
 
 /// Main UI screen of the chat feature.
 ///
@@ -142,31 +143,31 @@ class _ChatScreenState extends State<ChatScreen> {
         centerTitle: true,
         title: Column(
           children: [
-          const Text(
-          "Careena (Bot)",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              CircleAvatar(
-                radius: 4,
-                backgroundColor: Colors.green,
+            const Text(
+              "Careena (Bot)",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-              SizedBox(width: 6),
-              SelectableText(
-                "Online",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircleAvatar(
+                  radius: 4,
+                  backgroundColor: Colors.green,
                 ),
-              ),
-            ],
-          ),
-        ],
+                SizedBox(width: 6),
+                SelectableText(
+                  "Online",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
 
@@ -176,7 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: widget.controller.messages,
-              builder: (context, messages, _) {
+              builder: (context, List<Message> messages, _) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _scrollToBottom();
                 });
@@ -213,16 +214,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                           : const SizedBox(),
                     ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: smartReplies
-                              .map((text) => _quickReplyChip(text))
-                              .toList(),
-                        ),
-                      ),
                   ],
                 );
               },

@@ -28,8 +28,11 @@ from topic_filter import (
     SMALLTALK_GOODBYE_RESPONSE,
 )
 from database.connection import create_db_and_tables
+from inputs.draft_router import router as draft_router
 
 app = FastAPI()
+
+app.include_router(draft_router)
 
 # CORS (für Flutter)
 app.add_middleware(

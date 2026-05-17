@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {
         onTap: () {},
       ),
       HomeFeature(
-        icon: Icons.link,
+        icon: Icons.medication,
         title: "Medikamente",
         backgroundColor: featureColor,
         onTap: () {},

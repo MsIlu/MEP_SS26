@@ -58,13 +58,14 @@ class _FloatingAvatarState extends State<FloatingAvatar>
       child: Container(
         height: 100,
         width: 100,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE7F5F3),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 30,
-              offset: Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.14),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),

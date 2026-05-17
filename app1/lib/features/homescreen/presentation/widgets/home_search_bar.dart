@@ -15,18 +15,13 @@ class HomeSearchBar extends StatelessWidget {
       ),
       child: Row(
         children: const [
-          Icon(
-            Icons.search,
-            color: AppColors.textSecondary,
-          ),
+          Icon(Icons.search, color: AppColors.textSecondary),
 
           SizedBox(width: 10),
 
           Text(
             "Suche Symptome oder stelle Fragen...",
-            style: TextStyle(
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(color: AppColors.textSecondary),
           ),
         ],
       ),

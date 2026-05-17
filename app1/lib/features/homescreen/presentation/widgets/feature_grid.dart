@@ -12,10 +12,7 @@ class FeatureGrid extends StatelessWidget {
   // Controller used for managing chat state
   final ChatController controller;
 
-  const FeatureGrid({
-    super.key,
-    required this.controller,
-  });
+  const FeatureGrid({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +37,7 @@ class FeatureGrid extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  controller: controller,
-                ),
+                builder: (_) => ChatScreen(controller: controller),
               ),
             );
           },

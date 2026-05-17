@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
+import '../../utils/medical_terms.dart';
+import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
-import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -11,62 +13,78 @@ import 'package:app1/features/chat/presentation/themes/app_colors.dart';
 /// - Styling chat bubbles based on sender
 class ChatBubble extends StatelessWidget {
   final Message message;
+  final bool showLongProcessingHint;
 
-  const ChatBubble({super.key, required this.message});
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.showLongProcessingHint = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
 
     /// Show loading indicator when message is in "thinking" state
     if (message.isLoading) {
-      return const ThinkingBubble();
+      return ThinkingBubble(showLongProcessingHint: showLongProcessingHint);
     }
 
-    return Align(
-      alignment: isUser
-          ? Alignment.centerRight
-          : Alignment.centerLeft,
-
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
-        constraints: const BoxConstraints(maxWidth: 300),
-
-        decoration: BoxDecoration(
-          /// Different bubble style depending on message sender
-          color: isUser
-              ? AppColors.primary
-              : Colors.white,
-
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
-          ),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      child: Row(
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          //Bot-Avatar
+          if (!isUser) ...[
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFFE7F5F3),
+              backgroundImage: AssetImage(AppAssets.careenaDoctor),
+            ),
+            const SizedBox(width: 8),
           ],
-        ),
 
-        /// Message text content
-        child: SelectableText(
-          message.text,
-          style: TextStyle(
-            color: isUser ? Colors.white : Colors.black87,
-            fontSize: 15,
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isUser ? const Color(0xFF26A69A) : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.text,
+                    style: TextStyle(
+                      color: isUser ? Colors.white : const Color(0xFF2C5358),
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (medicalTerm != null)
+                    MedicalTermInfoBox(term: medicalTerm),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,96 +1,52 @@
-import 'package:flutter/material.dart';
 import '../data/models/message_model.dart';
 
-/// Service class responsible for handling
-/// chat message operations and streaming responses.
+/// Handles chat-domain message operations without depending on Flutter UI state.
 class ChatService {
+  static const Duration defaultTypingDelay = Duration(milliseconds: 15);
 
-  /// Adds a new message to the chat list.
-  ///
-  /// Creates a copy of the current message list,
-  /// appends the new message, and updates the notifier.
-  void addMessage({
-    required ValueNotifier<List<Message>> messages,
+  List<Message> addMessage({
+    required List<Message> messages,
     required Message message,
   }) {
-    // Create a mutable copy of the current messages
-    final updated = List<Message>.from(messages.value);
-
-    // Add the new message
-    updated.add(message);
-
-    // Update listeners
-    messages.value = updated;
+    return List<Message>.from(messages)..add(message);
   }
 
-  /// Removes the most recent bot message from the chat.
-  ///
-  /// Iterates backwards through the message list
-  /// and removes the first non-user message found.
-  void removeLastBotMessage(
-      ValueNotifier<List<Message>> messages,
-      ) {
-    // Create a mutable copy of the current messages
-    final updated = List<Message>.from(messages.value);
+  List<Message> removeLastBotMessage(List<Message> messages) {
+    final updated = List<Message>.from(messages);
 
-    // Search from the end of the list
     for (int i = updated.length - 1; i >= 0; i--) {
-      // Remove the latest bot message
       if (!updated[i].isUser) {
         updated.removeAt(i);
         break;
       }
     }
 
-    // Update listeners
-    messages.value = updated;
+    return updated;
   }
 
-  /// Simulates a streamed bot response with typing animation.
-  ///
-  /// The response text is revealed character by character
-  /// to imitate a live AI-generated message.
-  Future<void> streamResponse({
-    required ValueNotifier<List<Message>> messages,
-    required String fullText,
-  }) async {
-    // Remove previous temporary bot message if needed
-    removeLastBotMessage(messages);
+  List<Message> replaceLastMessage({
+    required List<Message> messages,
+    required Message message,
+  }) {
+    if (messages.isEmpty) {
+      return [message];
+    }
 
-    // Create an empty bot message
-    final message = Message(
-      text: "",
-      isUser: false,
-    );
+    final updated = List<Message>.from(messages);
+    updated[updated.length - 1] = message;
+    return updated;
+  }
 
-    // Add the empty message to the list
-    final updated =
-    List<Message>.from(messages.value)..add(message);
+  Stream<String> streamText(
+    String fullText, {
+    Duration delay = defaultTypingDelay,
+  }) async* {
+    var current = '';
 
-    messages.value = updated;
-
-    // Stores the progressively built response
-    String current = "";
-
-    // Loop through every character
     for (final char in fullText.split('')) {
-      // Simulate typing delay
-      await Future.delayed(
-        const Duration(milliseconds: 15),
-      );
-
-      // Append next character
+      await Future.delayed(delay);
       current += char;
-
-      // Create updated message list
-      final list = List<Message>.from(messages.value);
-
-      // Replace the last message with updated text
-      list[list.length - 1] =
-          message.copyWith(text: current);
-
-      // Notify listeners
-      messages.value = list;
+      yield current;
     }
   }
 }

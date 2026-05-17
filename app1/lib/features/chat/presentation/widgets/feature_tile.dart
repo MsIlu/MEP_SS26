@@ -29,7 +29,7 @@ class FeatureTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -40,11 +40,8 @@ class FeatureTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: color.withOpacity(0.1),
-                child: Icon(
-                  icon,
-                  color: color,
-                ),
+                backgroundColor: color.withValues(alpha: 0.1),
+                child: Icon(icon, color: color),
               ),
 
               const SizedBox(height: 8),
@@ -52,9 +49,7 @@ class FeatureTile extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
           ),

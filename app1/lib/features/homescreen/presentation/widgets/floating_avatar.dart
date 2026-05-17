@@ -9,10 +9,7 @@ class FloatingAvatar extends StatefulWidget {
   // Path to the avatar image asset
   final String imagePath;
 
-  const FloatingAvatar({
-    super.key,
-    required this.imagePath,
-  });
+  const FloatingAvatar({super.key, required this.imagePath});
 
   @override
   State<FloatingAvatar> createState() => _FloatingAvatarState();
@@ -39,10 +36,7 @@ class _FloatingAvatarState extends State<FloatingAvatar>
     _animation = Tween<double>(
       begin: -2,
       end: 3,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -64,21 +58,19 @@ class _FloatingAvatarState extends State<FloatingAvatar>
       child: Container(
         height: 100,
         width: 100,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE7F5F3),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 30,
-              offset: Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.14),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: ClipOval(
-          child: Image.asset(
-            widget.imagePath,
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset(widget.imagePath, fit: BoxFit.cover),
         ),
       ),
     );

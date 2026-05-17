@@ -5,6 +5,7 @@
 /// (e.g., a bot or system).
 class Message {
   final String text;
+
   /// Indicates whether this message was sent by the user.
   /// If false, it is treated as a bot/system message.
   final bool isUser;
@@ -16,12 +17,12 @@ class Message {
   /// Optional timestamp used for ordering messages or future persistence.
   final DateTime? timestamp;
 
-  const Message({
+  Message({
     required this.text,
     required this.isUser,
     this.isLoading = false,
-    this.timestamp,
-  });
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a new instance of [Message] with updated values.
   /// Unspecified fields retain their current values.

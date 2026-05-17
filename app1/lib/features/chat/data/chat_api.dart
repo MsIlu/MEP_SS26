@@ -52,4 +52,34 @@ class ChatApi {
 
     return sessionId;
   }
+
+  /// Loads the current symptom draft for a session.
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    final data = await client.get("/input-drafts/$sessionId");
+
+    final symptoms = data['symptoms'];
+
+    if (symptoms == null) {
+      return [];
+    }
+
+    return List<String>.from(symptoms);
+  }
+
+  /// Updates the symptom draft for a session.
+  Future<List<String>> updateInputDraftSymptoms(
+      String sessionId,
+      List<String> symptoms,
+      ) async {
+    final data = await client.patch("/input-drafts/$sessionId", {
+      "symptoms": symptoms,
+    });
+
+    return List<String>.from(data['symptoms'] ?? []);
+  }
+
+  /// Cancels the current input draft for a session.
+  Future<void> cancelInputDraft(String sessionId) async {
+    await client.delete("/input-drafts/$sessionId");
+  }
 }

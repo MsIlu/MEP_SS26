@@ -32,8 +32,9 @@ jobs:
         run: python -m compileall .
 
       # Import Test FastAPI
-      - name: TEst FastAPI import
+      - name: Test FastAPI import
         env:
+          DATABASE_URL: postgresql+psycopg://dummy:dummy@localhost:5433/dummy
           LITELLM_BASE_URL: dummy
           LITELLM_API_KEY: dummy
           LITELLM_MODEL: dummy

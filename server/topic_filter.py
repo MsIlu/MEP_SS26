@@ -1,5 +1,3 @@
-# server/topic_filter.py
-
 """
 Topic Filter für die Demo-Anwendung.
 

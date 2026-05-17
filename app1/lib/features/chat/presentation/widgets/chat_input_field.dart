@@ -22,17 +22,7 @@ class ChatInputField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 8),
-            child: Text(
-              'Symptome beschreiben',
-              style: TextStyle(
-                color: Color(0xFF2C5358),
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          const Padding(padding: EdgeInsets.only(left: 4, bottom: 8)),
           Row(
             children: [
               Expanded(

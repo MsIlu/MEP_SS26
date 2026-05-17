@@ -13,8 +13,9 @@ class LatestMessageButton extends StatelessWidget {
       child: FloatingActionButton.extended(
         heroTag: 'latest-message-button',
         onPressed: onPressed,
-        backgroundColor: const Color(0xFF26A69A),
-        foregroundColor: Colors.white,
+        elevation: 2,
+        backgroundColor: const Color(0xFFE7F5F3).withValues(alpha: 0.92),
+        foregroundColor: const Color(0xFF2C5358),
         icon: const Icon(Icons.keyboard_arrow_down),
         label: const Text('Zur neuesten Nachricht'),
       ),

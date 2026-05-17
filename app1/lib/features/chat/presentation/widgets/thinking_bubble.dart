@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/config/app_assets.dart';
 
-/// Animated "thinking" indicator shown while the assistant is generating a response.
-///
-/// This widget displays:
-/// - A pulsing dot animation
-/// - A subtle loading state bubble
-/// - A short status text indicating that the system is processing
 class ThinkingBubble extends StatefulWidget {
   final bool showLongProcessingHint;
 
@@ -17,14 +12,13 @@ class ThinkingBubble extends StatefulWidget {
 
 class _ThinkingBubbleState extends State<ThinkingBubble>
     with SingleTickerProviderStateMixin {
-  late AnimationController controller;
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
 
-    /// Controls the repeating animation loop for the loading dots
-    controller = AnimationController(
+    _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
@@ -32,26 +26,16 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
 
   @override
   void dispose() {
-    // Dispose the controller to avoid memory leaks
-    controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  /// Builds a single animated dot with phase delay.
-  ///
-  /// Each dot uses the shared animation controller but applies
-  /// an offset to create a wave-like loading effect.
   Widget _dot(double delay) {
     return AnimatedBuilder(
-      animation: controller,
+      animation: _controller,
       builder: (context, child) {
-        // Shift animation timing using the delay value
-        final value = (controller.value + delay) % 1.0;
-
-        // Smooth scaling animation
+        final value = (_controller.value + delay) % 1.0;
         final scale = 0.8 + (value < 0.5 ? value : 1 - value) * 0.6;
-
-        // Smooth opacity animation
         final opacity = 0.3 + (value < 0.5 ? value : 1 - value) * 1.4;
 
         return Transform.scale(
@@ -70,65 +54,62 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      // Aligns the bubble to the left side like a chat message
-      alignment: Alignment.centerLeft,
-
-      child: AnimatedOpacity(
-        // Smooth fade-in effect
-        duration: const Duration(milliseconds: 300),
-        opacity: 1,
-
-        child: Container(
-          // Outer spacing around the bubble
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          // Inner spacing inside the bubble
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-
-          // Bubble styling
-          decoration: BoxDecoration(
-            color: Colors.white,
-
-            // Rounded corners for chat bubble appearance
-            borderRadius: BorderRadius.circular(16),
-
-            // Soft shadow effect
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          const CircleAvatar(
+            radius: 16,
+            backgroundColor: Color(0xFFE7F5F3),
+            backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _dot(0.0),
-                  _dot(0.2),
-                  _dot(0.4),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Careena schreibt...",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+          const SizedBox(width: 8),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              if (widget.showLongProcessingHint) ...[
-                const SizedBox(height: 8),
-                const Text(
-                  "Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.",
-                  style: TextStyle(fontSize: 12, color: Color(0xFF6B7C80)),
-                ),
-              ],
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _dot(0.0),
+                      _dot(0.2),
+                      _dot(0.4),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Careena schreibt...',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  if (widget.showLongProcessingHint) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7C80)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

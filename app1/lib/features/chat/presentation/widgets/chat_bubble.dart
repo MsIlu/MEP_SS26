@@ -43,6 +43,7 @@ class ChatBubble extends StatelessWidget {
           if (!isUser) ...[
             const CircleAvatar(
               radius: 16,
+              backgroundColor: Color(0xFFE7F5F3),
               backgroundImage: AssetImage(AppAssets.careenaDoctor),
             ),
             const SizedBox(width: 8),

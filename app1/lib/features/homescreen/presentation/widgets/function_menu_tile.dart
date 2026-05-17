@@ -17,7 +17,7 @@ class FunctionMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[200]!),
         borderRadius: BorderRadius.circular(20),

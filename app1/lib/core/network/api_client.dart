@@ -56,4 +56,77 @@ class ApiClient {
       throw Exception('Network Error: $e');
     }
   }
+
+  /// Sends a GET request to the given [path].
+  Future<Map<String, dynamic>> get(String path) async {
+    final uri = Uri.parse("${AppConfig.baseUrl}$path");
+
+    try {
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      }
+
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    } on TimeoutException {
+      throw Exception('Server Timeout');
+    } catch (e) {
+      throw Exception('Network Error: $e');
+    }
+  }
+
+  /// Sends a PATCH request to the given [path]
+  /// with a JSON-encoded [body].
+  Future<Map<String, dynamic>> patch(
+      String path,
+      Map<String, dynamic> body,
+      ) async {
+    final uri = Uri.parse("${AppConfig.baseUrl}$path");
+
+    try {
+      final response = await _client
+          .patch(
+        uri,
+        headers: const {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      }
+
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    } on TimeoutException {
+      throw Exception('Server Timeout');
+    } catch (e) {
+      throw Exception('Network Error: $e');
+    }
+  }
+
+  /// Sends a DELETE request to the given [path].
+  Future<Map<String, dynamic>> delete(String path) async {
+    final uri = Uri.parse("${AppConfig.baseUrl}$path");
+
+    try {
+      final response = await _client
+          .delete(uri)
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      }
+
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    } on TimeoutException {
+      throw Exception('Server Timeout');
+    } catch (e) {
+      throw Exception('Network Error: $e');
+    }
+  }
 }

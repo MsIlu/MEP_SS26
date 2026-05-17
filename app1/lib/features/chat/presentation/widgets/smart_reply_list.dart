@@ -16,26 +16,26 @@ class SmartReplyList extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return SizedBox(
-      height: 50,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        itemCount: replies.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final reply = replies[index];
-
-          return ActionChip(
-            label: Text(reply),
-            onPressed: () => onSelected(reply),
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: Color(0xFF26A69A)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Center(
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (final reply in replies)
+              ActionChip(
+                label: Text(reply),
+                onPressed: () => onSelected(reply),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF26A69A)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

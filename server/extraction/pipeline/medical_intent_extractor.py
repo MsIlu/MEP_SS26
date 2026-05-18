@@ -3,6 +3,8 @@ from extraction.prompts.intent_prompt import INTENT_SYSTEM_PROMPT
 from extraction.models.llm.llm_intent import MedicalIntent
 
 """
+    Author @Freddy
+    Wrapper based on extraction engine.
     Decides whether input is medically relevant.
 """
 class MedicalIntentExtractor:

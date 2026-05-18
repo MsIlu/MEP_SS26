@@ -6,6 +6,7 @@ from extraction.models.llm.llm_scope import ExtractionScope
 class ScopeExtractor:
     """
     Author @Freddy
+    Wrapper based on extraction engine.
     Determines which extraction pipelines should run.
     """
 

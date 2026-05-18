@@ -7,6 +7,7 @@ from extraction.models.llm.llm_symptom import LLMSymptom
 
 """
     Author @Freddy
+    Wrapper based on extraction engine.
 """
 class SymptomExtractor:
 

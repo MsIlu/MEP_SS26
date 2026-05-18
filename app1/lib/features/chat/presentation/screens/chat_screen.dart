@@ -9,6 +9,8 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../widgets/smart_reply_list.dart';
+import '../widgets/symptom_list.dart';
+import '../widgets/symptom_editor.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
@@ -145,13 +147,30 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  /// Opens the symptom editor as a bottom sheet.
+  /// The actual symptom state is managed by the ChatController.
+  void _showSymptomEditor() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFF7FAF9),
+      builder: (context) {
+        return SymptomEditor(
+          symptoms: widget.controller.symptoms.value,
+          onSave: widget.controller.updateSymptomsDirectly,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FA),
       appBar: const ChatAppBar(),
       body: SafeArea(
-        child: Stack(
+        child:
+        Stack(
           children: [
             Column(
               children: [
@@ -160,6 +179,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   replies: _smartReplies,
                   onSelected: _handleSmartReplySelected,
                 ),
+
+                // Displays detected symptoms as compact chips below the smart replies.
+                // Editing is handled in a separate bottom sheet.
+                SymptomList(
+                  symptomsListenable: widget.controller.symptoms,
+                  onAddPressed: _showSymptomEditor,
+                  onSymptomPressed: (symptom) {
+                    _showSymptomEditor();
+                  },
+                ),
+
                 ChatInputField(
                   controller: _textController,
                   focusNode: _inputFocusNode,
@@ -168,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
-            if (_showLatestMessageButton)
+          if (_showLatestMessageButton)
               Positioned(
                 right: 16,
                 bottom: 132,
@@ -179,7 +209,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
   Widget _buildMessageList() {
     return FocusTraversalGroup(
       child: CallbackShortcuts(

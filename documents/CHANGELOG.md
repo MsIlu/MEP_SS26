@@ -42,7 +42,14 @@ Der aktuelle Stand enthält außerdem einen überarbeiteten Careena-Home-Screen,
 ## [Unreleased]
 
 ### Added
-- 
+- Chat-Eingabefeld bleibt während einer laufenden Bot-Antwort beschreibbar.
+- Chat-Eingabefeld wird beim Öffnen des Chats automatisch fokussiert.
+- Eingabefeld kann per Pfeiltasten aus der Nachrichtenliste wieder erreicht werden.
+
+### Changed
+- Senden bleibt während einer laufenden Bot-Antwort gesperrt, während das Sanduhr-Symbol sichtbar bleibt.
+- Auto-Scroll im Chat verbessert: neue Nachrichten und gestreamte Bot-Antworten halten die Ansicht zuverlässiger am unteren Ende.
+- Auto-Scroll respektiert bewusstes Hochscrollen, solange keine laufende Bot-Antwort aktiv ist.
 
 ### Planned
 - Tests für Chat-Controller, Backend-Endpunkte und Red-Flag-Erkennung erweitern.

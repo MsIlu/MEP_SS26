@@ -19,8 +19,9 @@ from openai import OpenAI
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 import config
-#from medical_rules import detect_medical_red_flags
-from red_flags.detector import detect_medical_red_flags
+from dotenv import load_dotenv
+load_dotenv()
+from medical_rules import detect_medical_red_flags
 from topic_filter import (
     is_health_related,
     is_smalltalk_or_boredom,
@@ -98,41 +99,17 @@ def chat(req: ChatRequest):
             "content": user_input
         })
 
-        # Red-Flag-Prüfung vor der KI-Antwort
-        red_flag_result = detect_medical_red_flags(user_input)
+        # detect_medical_red_flags kommt aus medical_rules.py
+        result = detect_medical_red_flags(user_input)
 
-        if red_flag_result.get("red_flag") and red_flag_result.get("block_ai_response", False):
-            print(f"[{session_id}] Red flag detected: {red_flag_result}")
-
-            warning_text = (
-                "Wichtiger Hinweis:\n"
-                "Ihre Angaben können auf eine akute Notfallsituation hinweisen.\n\n"
-                "Nächster Schritt:\n"
-                "Bitte wählen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe.\n\n"
-                "Hinweis:\n"
-                "Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."
-            )
-
+        # Falls result leer ist (z.B. None), 
+        # wird der Block nicht ausgeführt 
+        if result:
             messages.append({
-                "role": "assistant",
-                "content": warning_text
+                "role":"assistant",
+                "content":result
             })
-
-            return {
-                "response": warning_text,
-                "red_flag": True,
-                "severity": red_flag_result.get("severity"),
-                "action": red_flag_result.get("action"),
-                "rule_id": red_flag_result.get("rule_id"),
-                "rule_name": red_flag_result.get("rule_name"),
-                "category": red_flag_result.get("category"),
-                "message_key": red_flag_result.get("message_key"),
-                "matched_keywords": red_flag_result.get("matched_keywords", [])
-            }
-
-        # Nur wenn KEINE Red Flag erkannt wurde, geht es hier normal weiter:
-        # Nur reduzierten Verlauf an das LLM schicken
-        llm_messages = build_llm_messages(messages)
+            return {"response": result}
 
         # Nur reduzierten Verlauf an das LLM schicken
         llm_messages = build_llm_messages(messages)

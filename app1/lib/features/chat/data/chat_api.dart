@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import 'models/chat_response_model.dart';
 
 /// Handles all communication with the chat backend API.
 ///
@@ -11,30 +12,26 @@ class ChatApi {
 
   ChatApi(this.client);
 
-  /// Sends a user message to the backend and returns the AI response.
+  /// Sends a user message to the backend and returns the full chat response.
   ///
-  /// [text] is the user's input message.
-  /// [sessionId] identifies the current chat session.
-  ///
-  /// Returns the response text from the server.
-  Future<String> sendMessage(String text, String sessionId) async {
+  /// The response may contain a normal chat message or red flag metadata.
+  Future<ChatResponse> sendMessage(String text, String sessionId) async {
     final data = await client.post("/chat", {
       "message": text,
       "session_id": sessionId,
     });
 
-    return data['response'] ?? 'Ungültige Serverantwort';
+    return ChatResponse.fromJson(data);
   }
 
   /// Sends a warm up request to the backend.
   ///
-  /// This is typically used to "wake up" a cold or serverless backend
-  /// before handling the first real user request.
+  /// This is used to prepare the backend before the first real user request.
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {});
     } catch (_) {
-      // Optional: log error for debugging purposes
+      // Ignore warmup errors because the actual chat request can still work.
     }
   }
 

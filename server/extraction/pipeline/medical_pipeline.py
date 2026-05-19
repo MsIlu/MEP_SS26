@@ -1,8 +1,8 @@
 import config
 
-from extraction.pipeline.medical_intent_extractor import MedicalIntentExtractor
-from extraction.pipeline.scope_extractor import ScopeExtractor
-from extraction.pipeline.symptom_extractor import SymptomExtractor
+from extraction.pipeline.extractor_intent import MedicalIntentExtractor
+from extraction.pipeline.extractor_scope import ScopeExtractor
+from extraction.pipeline.extractor_symptoms import SymptomExtractor
 from extraction.core.llm_client import LLMClient
 from extraction.core.extraction_engine import ExtractionEngine
 from extraction.models.llm.llm_pipeline_result import PipelineResult

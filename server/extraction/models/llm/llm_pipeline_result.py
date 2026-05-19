@@ -2,10 +2,10 @@ from pydantic import BaseModel
 
 from extraction.models.llm.llm_intent import MedicalIntent
 from extraction.models.llm.llm_scope import ExtractionScope
-from extraction.pipeline.symptom_extractor import SymptomList
+from extraction.pipeline.extractor_symptoms import SymptomList
 
 """
-    Autor @Freddy    
+    Author @Freddy    
 """
 class PipelineResult(BaseModel):
 

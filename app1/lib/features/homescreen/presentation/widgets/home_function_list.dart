@@ -13,7 +13,7 @@ class HomeFunctionList extends StatelessWidget {
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: features.length + 1,
-        separatorBuilder: (context, index) => const SizedBox(height: 15),
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           if (index == 0) {
             return const Text(

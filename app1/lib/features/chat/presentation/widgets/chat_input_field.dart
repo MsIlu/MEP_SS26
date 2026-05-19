@@ -42,7 +42,7 @@ class ChatInputField extends StatelessWidget {
                           child: TextField(
                             controller: controller,
                             focusNode: focusNode,
-                            enabled: !isSending,
+                            autofocus: true,
                             textInputAction: TextInputAction.send,
                             keyboardType: TextInputType.text,
                             onSubmitted: (_) {

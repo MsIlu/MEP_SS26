@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../controllers/chat_controller.dart';
 import '../../data/models/message_model.dart';
+import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
+import '../../../warning/presentation/screens/warning_page.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
@@ -46,54 +48,67 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _handleSend() async {
-    if (_isSending) return;
+  if (_isSending) return;
 
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
+  final text = _textController.text.trim();
+  if (text.isEmpty) return;
 
-    _textController.clear();
-    setState(() {
-      _isSending = true;
-      _shouldAutoScroll = true;
-      _smartReplies = [];
-      _showLongProcessingHint = false;
-      _showLatestMessageButton = false;
-    });
+  _textController.clear();
+  setState(() {
+    _isSending = true;
+    _smartReplies = [];
+    _showLongProcessingHint = false;
+  });
 
-    _longProcessingTimer?.cancel();
-    _longProcessingTimer = Timer(const Duration(seconds: 4), () {
-      if (!mounted || !_isSending) return;
+  _longProcessingTimer?.cancel();
+  _longProcessingTimer = Timer(const Duration(seconds: 4), () {
+    if (!mounted || !_isSending) return;
 
-      setState(() => _showLongProcessingHint = true);
-      _scrollToBottom();
-    });
-
-    final responseFuture = widget.controller.sendMessage(text);
+    setState(() => _showLongProcessingHint = true);
     _scrollToBottom();
+  });
 
-    Message? response;
+  final responseFuture = widget.controller.sendMessage(text);
+  _scrollToBottom();
 
-    try {
-      response = await responseFuture;
-    } catch (_) {
-      response = null;
-    }
+  ChatResponse? response;
 
-    _longProcessingTimer?.cancel();
-    _scrollToBottom();
-
-    if (!mounted) return;
-
-    setState(() {
-      _isSending = false;
-      _showLongProcessingHint = false;
-      _smartReplies = response == null
-          ? []
-          : SmartReplies.generate(response.text);
-    });
-
-    _inputFocusNode.requestFocus();
+  try {
+    response = await responseFuture;
+  } catch (_) {
+    response = null;
   }
+
+  _longProcessingTimer?.cancel();
+  _scrollToBottom();
+
+  if (!mounted) return;
+
+  setState(() {
+    _isSending = false;
+    _showLongProcessingHint = false;
+    _smartReplies = [];
+  });
+
+  // Open the warning page for red flag responses instead of showing a chat bubble.
+  if (response?.redFlag == true) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WarningPage(response: response!),
+      ),
+    );
+    return;
+  }
+
+  setState(() {
+    _smartReplies = response == null
+        ? []
+        : SmartReplies.generate(response.text);
+  });
+
+  _inputFocusNode.requestFocus();
+}
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

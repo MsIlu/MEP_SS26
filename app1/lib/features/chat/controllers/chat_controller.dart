@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
 import '../data/chat_api.dart';
+import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 
@@ -28,7 +29,12 @@ class ChatController {
     await chatApi.warmup();
   }
 
-  Future<Message?> sendMessage(String text) async {
+  /// Sends a user message and returns the full backend response.
+  ///
+  /// Normal responses are added to the chat.
+  /// Red flag responses are returned without being displayed as a chat bubble,
+  /// so the UI can open the warning page instead.
+  Future<ChatResponse?> sendMessage(String text) async {
     if (_sessionId == null) {
       throw Exception("Chat session not initialized.");
     }
@@ -42,12 +48,21 @@ class ChatController {
 
     try {
       final response = await chatApi.sendMessage(trimmed, _sessionId!);
-      final botMessage = Message(text: response, isUser: false);
 
+      // Remove the loading bubble before handling the response.
       _setMessages(chatService.removeLastBotMessage(messages.value));
+
+      // Red flag responses should not be shown as normal chat messages.
+      if (response.redFlag) {
+        return response;
+      }
+
+      final botMessage = Message(text: response.text, isUser: false);
+
       _addMessage(message: botMessage.copyWith(text: ''));
 
-      await for (final partialText in chatService.streamText(response)) {
+      // Stream the bot response character by character for the typing effect.
+      await for (final partialText in chatService.streamText(response.text)) {
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
@@ -56,7 +71,7 @@ class ChatController {
         );
       }
 
-      return botMessage;
+      return response;
     } catch (e) {
       _setMessages(chatService.removeLastBotMessage(messages.value));
 

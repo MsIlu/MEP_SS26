@@ -29,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<String> _smartReplies = [];
   Timer? _longProcessingTimer;
   bool _isSending = false;
+  bool _shouldAutoScroll = true;
   bool _showLongProcessingHint = false;
   bool _showLatestMessageButton = false;
 
@@ -37,6 +38,13 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     widget.controller.init();
     _scrollController.addListener(_handleScrollChanged);
+    widget.controller.messages.addListener(_handleMessagesChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _inputFocusNode.requestFocus();
+    });
   }
 
   Future<void> _handleSend() async {
@@ -104,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
+      if (!mounted || !_scrollController.hasClients) return;
 
       if (_showLatestMessageButton) {
         setState(() => _showLatestMessageButton = false);
@@ -118,6 +126,14 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _jumpToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
   void _scrollToTop() {
     if (!_scrollController.hasClients) return;
 
@@ -128,6 +144,23 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _focusInputField() {
+    _inputFocusNode.requestFocus();
+    _shouldAutoScroll = true;
+    _scrollToBottom();
+  }
+
+  void _handleMessagesChanged() {
+    if (!_shouldAutoScroll && !_isSending) return;
+
+    if (_isSending) {
+      _jumpToBottom();
+      return;
+    }
+
+    _scrollToBottom();
+  }
+
   void _handleSmartReplySelected(String reply) {
     _textController.text = reply;
     _handleSend();
@@ -135,6 +168,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _handleScrollChanged() {
     final shouldShow = !_isNearBottom();
+
+    _shouldAutoScroll = !shouldShow;
 
     if (shouldShow == _showLatestMessageButton) return;
 
@@ -155,6 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _longProcessingTimer?.cancel();
+    widget.controller.messages.removeListener(_handleMessagesChanged);
     _scrollController.removeListener(_handleScrollChanged);
     _textController.dispose();
     _scrollController.dispose();
@@ -203,6 +239,9 @@ class _ChatScreenState extends State<ChatScreen> {
         bindings: {
           const SingleActivator(LogicalKeyboardKey.end): _scrollToBottom,
           const SingleActivator(LogicalKeyboardKey.home): _scrollToTop,
+          const SingleActivator(LogicalKeyboardKey.arrowDown): _focusInputField,
+          const SingleActivator(LogicalKeyboardKey.arrowRight):
+              _focusInputField,
         },
         child: Focus(
           child: Scrollbar(

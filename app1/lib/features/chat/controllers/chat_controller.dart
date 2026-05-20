@@ -7,6 +7,7 @@ import '../services/chat_service.dart';
 class ChatController {
   final ChatApi chatApi;
   final ChatService chatService;
+  int _generationId = 0;
 
   ChatController({required this.chatApi, required this.chatService});
 
@@ -15,6 +16,10 @@ class ChatController {
   );
 
   String? _sessionId;
+
+  bool _isGenerating = false;
+  bool _cancelRequested = false;
+  bool get isGenerating => _isGenerating;
 
   Future<void> init() async {
     _setMessages([]);
@@ -46,17 +51,29 @@ class ChatController {
     if (trimmed.isEmpty) return null;
 
     _addMessage(message: Message(text: trimmed, isUser: true));
-
     _addMessage(message: Message(text: '', isUser: false, isLoading: true));
+    _isGenerating = true;
+    _cancelRequested = false;
+    _generationId++;
+
+    final currentGenerationId = _generationId;
 
     try {
       final response = await chatApi.sendMessage(trimmed, _sessionId!);
+      if (_cancelRequested || currentGenerationId != _generationId) {
+        return null;
+      }
       final botMessage = Message(text: response, isUser: false);
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: botMessage.copyWith(text: ''));
 
       await for (final partialText in chatService.streamText(response)) {
+
+        if (_cancelRequested || currentGenerationId != _generationId) {
+          return null;
+        }
+
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
@@ -64,14 +81,20 @@ class ChatController {
           ),
         );
       }
-
       return botMessage;
     } catch (e) {
+      if (_cancelRequested || currentGenerationId != _generationId) {
+        return null;
+      }
       _setMessages(chatService.removeLastBotMessage(messages.value));
 
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
 
       return null;
+    } finally {
+      if (currentGenerationId == _generationId) {
+        _isGenerating = false;
+      }
     }
   }
 
@@ -85,7 +108,24 @@ class ChatController {
     messages.value = updatedMessages;
   }
 
-  /// Stores the saved symptom draft shown in display mode.
+  void cancelGeneration() {
+    _cancelRequested = true;
+    _isGenerating = false;
+    _generationId++;
+
+    _setMessages(
+      chatService.removeLastBotMessage(messages.value),
+    );
+
+    _addMessage(
+      message: Message(
+        text: 'Antwort abgebrochen. Sie können Ihre Eingabe jetzt ergänzen.',
+        isUser: false,
+      ),
+    );
+  }
+
+/// Stores the saved symptom draft shown in display mode.
   final ValueNotifier<List<String>> symptoms = ValueNotifier<List<String>>([]);
 
   /// Stores a temporary editable copy of the symptoms.

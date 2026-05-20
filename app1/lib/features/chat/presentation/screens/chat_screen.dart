@@ -147,6 +147,19 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  void _handleCancelGeneration() {
+    widget.controller.cancelGeneration();
+
+    _longProcessingTimer?.cancel();
+
+    setState(() {
+      _isSending = false;
+      _showLongProcessingHint = false;
+    });
+
+    _inputFocusNode.requestFocus();
+  }
+
   /// Opens the symptom editor as a bottom sheet.
   /// The actual symptom state is managed by the ChatController.
   void _showSymptomEditor() {
@@ -244,7 +257,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: ChatBubble(
                           message: message,
                           showLongProcessingHint:
-                              message.isLoading && _showLongProcessingHint,
+                          message.isLoading && _showLongProcessingHint,
+                          onCancelGeneration: message.isLoading
+                              ? _handleCancelGeneration
+                              : null,
                         ),
                       ),
                     );

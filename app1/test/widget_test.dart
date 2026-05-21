@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app1/features/chat/data/models/chat_response_model.dart';
-import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
+import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
+import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
-import 'package:app1/features/warning/presentation/screens/warning_page.dart';
+import 'package:app1/features/warningscreen/presentation/screens/warning_page.dart';
 import 'package:app1/main.dart';
 
 void main() {
@@ -20,7 +20,7 @@ void main() {
     expect(find.text('Willkommen!'), findsOneWidget);
   });
 
-  testWidgets('Primary onboarding action opens the chat', (
+  testWidgets('Primary onboarding action opens the chatscreen', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const MyApp());
@@ -47,7 +47,7 @@ void main() {
     );
 
     expect(find.text('Handlungsempfehlung'), findsOneWidget);
-    expect(find.text('Achtung: Moeglicher Notfall'), findsOneWidget);
+    expect(find.text('Achtung: Möglicher Notfall'), findsOneWidget);
     expect(find.textContaining('Notruf 112'), findsWidgets);
   });
 }

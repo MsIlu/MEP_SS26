@@ -1,5 +1,5 @@
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/home_feature.dart';

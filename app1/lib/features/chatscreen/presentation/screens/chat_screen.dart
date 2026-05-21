@@ -6,7 +6,7 @@ import '../../controllers/chat_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
-import '../../../warning/presentation/screens/warning_page.dart';
+import '../../../warningscreen/presentation/screens/warning_page.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
@@ -91,7 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _smartReplies = [];
     });
 
-    // Open the warning page for red flag responses instead of showing a chat bubble.
+    // Open the warning screen for red flag responses instead of showing a chat bubble.
     if (response?.redFlag == true) {
       Navigator.push(
         context,

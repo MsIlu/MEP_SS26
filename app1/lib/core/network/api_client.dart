@@ -25,7 +25,7 @@ class ApiClient {
   /// with a JSON-encoded [body].
   ///
   /// Example:
-  /// post("/chat", {"message": "Hello"})
+  /// post("/chatscreen", {"message": "Hello"})
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body,

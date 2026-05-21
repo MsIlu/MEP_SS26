@@ -16,7 +16,7 @@ class ChatApi {
   ///
   /// The response may contain a normal chat message or red flag metadata.
   Future<ChatResponse> sendMessage(String text, String sessionId) async {
-    final data = await client.post("/chat", {
+    final data = await client.post("/chatscreen", {
       "message": text,
       "session_id": sessionId,
     });

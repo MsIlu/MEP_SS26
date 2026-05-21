@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
-import '../../../chat/controllers/chat_controller.dart';
+import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
-import '../../../chat/presentation/screens/chat_screen.dart';
+import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../widgets/auth_button.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';

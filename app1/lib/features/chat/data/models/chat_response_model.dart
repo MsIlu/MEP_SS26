@@ -23,7 +23,7 @@ class ChatResponse {
 
   factory ChatResponse.fromJson(Map<String, dynamic> json) {
     return ChatResponse(
-      text: json['response'] ?? 'Ungültige Serverantwort',
+      text: json['response'] ?? 'Ungueltige Serverantwort',
       redFlag: json['red_flag'] == true,
       severity: json['severity'],
       action: json['action'],
@@ -31,7 +31,8 @@ class ChatResponse {
       ruleName: json['rule_name'],
       category: json['category'],
       messageKey: json['message_key'],
-      matchedKeywords: (json['matched_keywords'] as List<dynamic>?)
+      matchedKeywords:
+          (json['matched_keywords'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
           const [],

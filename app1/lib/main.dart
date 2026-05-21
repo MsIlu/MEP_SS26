@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'core/network/api_client.dart';
-import 'features/chat/controllers/chat_controller.dart';
-import 'features/chat/data/chat_api.dart';
-import 'features/chat/services/chat_service.dart';
+import 'features/chatscreen/controllers/chat_controller.dart';
+import 'features/chatscreen/data/chat_api.dart';
+import 'features/chatscreen/services/chat_service.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 
 void main() {

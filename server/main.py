@@ -70,7 +70,7 @@ class ChatRequest(BaseModel):
     session_id: str
 
 # Endpunkt für Chatnachrichten
-@app.post("/chat")
+@app.post("/chatscreen")
 def chat(req: ChatRequest):
     try:
         user_input = req.message.strip()

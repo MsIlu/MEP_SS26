@@ -16,25 +16,43 @@ class ChatController {
   );
 
   String? _sessionId;
+  Future<void>? _initFuture;
 
   Future<void> init() async {
-    if (messages.value.isNotEmpty) return;
+    _initFuture ??= _initialize();
+    await _initFuture;
+  }
 
-    _addMessage(
-      message: Message(text: AppConfig.welcomeMessage, isUser: false),
-    );
+  Future<void> _initialize() async {
+    if (messages.value.isEmpty) {
+      _addMessage(
+        message: Message(text: AppConfig.welcomeMessage, isUser: false),
+      );
+    }
+
+    await _ensureSession(showOfflineMessage: true);
+  }
+
+  Future<bool> _ensureSession({bool showOfflineMessage = false}) async {
+    if (_sessionId != null) return true;
 
     try {
       _sessionId = await chatApi.createSession();
       await chatApi.warmup();
+      return true;
     } catch (_) {
-      _addMessage(
-        message: Message(
-          text:
-              'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
-          isUser: false,
-        ),
-      );
+      if (showOfflineMessage && !_hasOfflineMessage()) {
+        _addMessage(
+          message: Message(
+            text:
+                'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
+            isUser: false,
+          ),
+        );
+      }
+
+      _initFuture = null;
+      return false;
     }
   }
 
@@ -44,7 +62,13 @@ class ChatController {
   /// Red flag responses are returned without being displayed as a chat bubble,
   /// so the UI can open the warning page instead.
   Future<ChatResponse?> sendMessage(String text) async {
-    if (_sessionId == null) {
+    if (_initFuture != null) {
+      await _initFuture;
+    }
+
+    final hasSession = await _ensureSession();
+
+    if (!hasSession || _sessionId == null) {
       throw Exception("Chat session not initialized.");
     }
 
@@ -98,5 +122,11 @@ class ChatController {
 
   void _setMessages(List<Message> updatedMessages) {
     messages.value = updatedMessages;
+  }
+
+  bool _hasOfflineMessage() {
+    return messages.value.any(
+      (message) => message.text.startsWith('Der Chat ist gerade offline.'),
+    );
   }
 }

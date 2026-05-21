@@ -23,7 +23,7 @@ class ChatResponse {
 
   factory ChatResponse.fromJson(Map<String, dynamic> json) {
     return ChatResponse(
-      text: json['response'] ?? 'Ungueltige Serverantwort',
+      text: json['response'] ?? 'Ungültige Serverantwort',
       redFlag: json['red_flag'] == true,
       severity: json['severity'],
       action: json['action'],

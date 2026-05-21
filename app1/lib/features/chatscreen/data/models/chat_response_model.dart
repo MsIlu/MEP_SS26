@@ -31,7 +31,8 @@ class ChatResponse {
       ruleName: json['rule_name'],
       category: json['category'],
       messageKey: json['message_key'],
-      matchedKeywords: (json['matched_keywords'] as List<dynamic>?)
+      matchedKeywords:
+          (json['matched_keywords'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
           const [],

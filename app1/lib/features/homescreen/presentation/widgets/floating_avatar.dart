@@ -8,8 +8,9 @@ import 'package:flutter/material.dart';
 class FloatingAvatar extends StatefulWidget {
   // Path to the avatar image asset
   final String imagePath;
+  final double size;
 
-  const FloatingAvatar({super.key, required this.imagePath});
+  const FloatingAvatar({super.key, required this.imagePath, this.size = 100});
 
   @override
   State<FloatingAvatar> createState() => _FloatingAvatarState();
@@ -56,8 +57,8 @@ class _FloatingAvatarState extends State<FloatingAvatar>
         );
       },
       child: Container(
-        height: 100,
-        width: 100,
+        height: widget.size,
+        width: widget.size,
         decoration: BoxDecoration(
           color: const Color(0xFFE7F5F3),
           shape: BoxShape.circle,

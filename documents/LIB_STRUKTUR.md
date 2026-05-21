@@ -1,3 +1,4 @@
+#### _Hinweis: Diese Seite wird mit KI stetig an den Aufbau unseres Repos angepasst._
 # Flutter-`lib`-Struktur
 
 Diese Datei erklärt, was im Ordner `app1/lib` passiert und wofür die einzelnen Ordner und Dateien gedacht sind.
@@ -8,13 +9,13 @@ Diese Datei erklärt, was im Ordner `app1/lib` passiert und wofür die einzelnen
 
 Der Ordner `app1/lib` enthält den eigentlichen Dart-Code der Flutter-App.
 
-Die App besteht aktuell aus drei großen Bereichen:
+Die App besteht aktuell aus mehreren großen Bereichen:
 
 - `main.dart`: Startpunkt der App. Hier wird die App gestartet und die wichtigsten Klassen werden miteinander verbunden.
 - `core`: Gemeinsame Grundlagen, die mehrere App-Bereiche nutzen, zum Beispiel Konfiguration, Assets und Netzwerkkommunikation.
-- `features`: Fachliche App-Bereiche. Aktuell vor allem `chat` und `homescreen`.
+- `features`: Fachliche App-Bereiche. Aktuell vor allem `onboardingscreen`, `homescreen`, `chat` und `warningscreen`.
 
-Die App startet auf dem Home-Screen. Von dort kann der Chat mit Careena geöffnet werden. Der Chat sendet Nachrichten an das FastAPI-Backend, erhält eine Antwort zurück und zeigt diese in der Oberfläche an.
+Die App startet auf dem Onboarding-Screen. Von dort kann der Chat mit Careena direkt geöffnet werden, oder man gelangt über die Anmeldung zum HomeScreen. Der Chat sendet Nachrichten an das FastAPI-Backend, erhält eine Antwort zurück und zeigt diese in der Oberfläche an. Wenn das Backend eine medizinische Red Flag meldet, öffnet das Frontend die Handlungsempfehlungsseite im Feature `warningscreen`.
 
 ---
 
@@ -30,16 +31,34 @@ app1/lib/
 │   └── network/
 │       └── api_client.dart
 └── features/
-    ├── chat/
+    ├── chatscreen/
     │   ├── controllers/
     │   ├── data/
     │   ├── presentation/
     │   ├── services/
     │   └── utils/
-    └── homescreen/
-        ├── data/
-        └── presentation/
+    ├── homescreen/
+    │   ├── data/
+    │   ├── presentation/  
+    ├── onboardingscreen/
+    │   ├── controllers/
+    │   ├── data/  
+    └── warningscreen/
+        └── presentation/  
 ```
+
+---
+
+Ergänzend zur kompakten Baumansicht gibt es aktuell diese wichtigen Erweiterungen:
+
+- `core/widgets/responsive_frame.dart`: gemeinsame responsive Wrapper für Screens.
+- `features/onboardingscreen`: Onboarding-Startseite mit Einstieg in Chat oder HomeScreen.
+- `features/warningscreen`: Handlungsempfehlungsseite für Red-Flag-Antworten.
+- `features/warningscreen/presentation/screens`: Screen/Scaffold und Navigationsebene.
+- `features/warningscreen/presentation/widgets`: reine UI-Bausteine der Handlungsempfehlung.
+- `features/warningscreen/presentation/theme`: Texte, Farben, Layoutwerte und Decorations der Warning-UI.
+- `features/warningscreen/presentation/models`: einfache UI-Modelle, zum Beispiel `EmergencyAction`.
+- `features/warningscreen/presentation/view_models`: Aufbereitung von Backend-Daten für die Anzeige, zum Beispiel `EmergencyReason`.
 
 ---
 
@@ -50,13 +69,15 @@ app1/lib/
 3. Der `ChatController` bekommt Zugriff auf:
    - `ChatApi` für Backend-Anfragen
    - `ChatService` für lokale Chat-Logik
-4. Als erste Seite wird `HomeScreen` angezeigt.
-5. Der Home-Screen zeigt die Startseite mit Careena-Header und Funktionsliste.
-6. Beim Tippen auf "Jetzt mit Careena sprechen" wird `ChatScreen` geöffnet.
-7. `ChatScreen` initialisiert über den `ChatController` eine Chat-Session.
-8. Nutzereingaben werden über `ChatController` -> `ChatApi` -> `ApiClient` an das Backend gesendet.
-9. Die Antwort wird als Chat-Nachricht angezeigt.
-10. Zusätzlich erzeugt die App Smart Replies und zeigt bei bestimmten medizinischen Begriffen kurze Erklärungen an.
+4. Als erste Seite wird `OnboardingScreen` angezeigt.
+5. Vom Onboarding aus kann direkt der Chat geöffnet werden, oder über "Anmelden" der `HomeScreen`.
+6. Der Home-Screen zeigt die Startseite mit Careena-Header und Funktionsliste.
+7. Beim Tippen auf "Jetzt mit Careena sprechen" wird `ChatScreen` geöffnet.
+8. `ChatScreen` initialisiert über den `ChatController` eine Chat-Session.
+9. Nutzereingaben werden über `ChatController` -> `ChatApi` -> `ApiClient` an das Backend gesendet.
+10. Normale Antworten werden als Chat-Nachricht angezeigt.
+11. Bei `red_flag: true` öffnet der Chat die `WarningPage` mit Handlungsempfehlung.
+12. Zusätzlich erzeugt die App Smart Replies und zeigt bei bestimmten medizinischen Begriffen kurze Erklärungen an.
 
 ---
 
@@ -84,6 +105,18 @@ ChatScreen zeigt ChatBubble an
 
 Wichtig: Das Frontend entscheidet nicht selbst medizinisch. Es zeigt die Antwort an, die vom Backend kommt. Die Red-Flag-Erkennung und die LLM-Kommunikation passieren im Backend.
 
+Bei Red-Flag-Antworten ist der Ablauf etwas anders:
+
+```text
+Backend sendet red_flag: true
+        ↓
+ChatScreen erkennt response.redFlag
+        ↓
+WarningPage wird geöffnet
+        ↓
+EmergencyCard zeigt Handlungsempfehlung und Notruf-112-Hinweis
+```
+
 ---
 
 ## `main.dart`
@@ -98,7 +131,7 @@ Aufgaben:
 - erstellt die Haupt-App `MyApp`
 - deaktiviert das Debug-Banner
 - erstellt die Abhängigkeiten für den Chat
-- zeigt als Startseite den `HomeScreen`
+- zeigt als Startseite den `OnboardingScreen`
 
 Besonders wichtig ist die Methode `_buildChatController()`.
 
@@ -166,6 +199,21 @@ Aufgaben:
 
 Der `ApiClient` kennt keine Chat-Details. Er weiß nur: "Ich sende eine Anfrage an das Backend und bekomme JSON zurück."
 
+### `core/widgets/responsive_frame.dart`
+
+Pfad: `app1/lib/core/widgets/responsive_frame.dart`
+
+Diese Datei enthält wiederverwendbare Layout-Wrapper für responsive Screens.
+
+Wichtige Bausteine:
+
+- `ResponsiveFrame`: zentriert Inhalt und begrenzt ihn auf eine maximale Breite.
+- `ResponsiveScrollableFrame`: kombiniert responsive Breitenbegrenzung mit vertikalem Scrollen.
+- `ResponsivePageBody`: gemeinsamer Screen-Wrapper für neue Seiten.
+- `ResponsiveBreakpoints`: zentrale Breakpoint-Helfer für kompakte und größere Layouts.
+
+Neue Screens sollten nach Möglichkeit `ResponsivePageBody` nutzen, damit Breite, Padding und Scroll-Verhalten nicht pro Seite neu gebaut werden müssen.
+
 ---
 
 ## `features`
@@ -176,10 +224,12 @@ Aktuell gibt es:
 
 - `chat`: alles rund um den medizinischen Chat
 - `homescreen`: alles rund um die Startseite
+- `onboardingscreen`: Einstieg in die App mit Chat- und Home-Navigation
+- `warningscreen`: Handlungsempfehlung bei medizinischen Red Flags
 
 ---
 
-## `features/chat`
+## `features/chatscreen`
 
 Der Chat-Bereich ist in mehrere Unterordner aufgeteilt:
 
@@ -191,7 +241,7 @@ Der Chat-Bereich ist in mehrere Unterordner aufgeteilt:
 
 ### `chat/controllers/chat_controller.dart`
 
-Pfad: `app1/lib/features/chat/controllers/chat_controller.dart`
+Pfad: `app1/lib/features/chatscreen/controllers/chat_controller.dart`
 
 Der `ChatController` ist die zentrale Steuerung des Chats.
 
@@ -210,7 +260,7 @@ Die UI beobachtet `messages`, ein `ValueNotifier<List<Message>>`. Wenn sich die 
 
 ### `chat/data/chat_api.dart`
 
-Pfad: `app1/lib/features/chat/data/chat_api.dart`
+Pfad: `app1/lib/features/chatscreen/data/chat_api.dart`
 
 `ChatApi` kennt die Chat-Endpunkte des Backends.
 
@@ -224,7 +274,7 @@ Aufgaben:
 
 ### `chat/data/models/message_model.dart`
 
-Pfad: `app1/lib/features/chat/data/models/message_model.dart`
+Pfad: `app1/lib/features/chatscreen/data/models/message_model.dart`
 
 Diese Datei definiert das Modell `Message`.
 
@@ -241,7 +291,7 @@ Außerdem gibt es `copyWith(...)`. Damit kann eine neue Nachricht aus einer best
 
 ### `chat/services/chat_service.dart`
 
-Pfad: `app1/lib/features/chat/services/chat_service.dart`
+Pfad: `app1/lib/features/chatscreen/services/chat_service.dart`
 
 `ChatService` enthält Chat-Logik, die nicht direkt zur Oberfläche gehört.
 
@@ -256,7 +306,7 @@ Das Streaming ist aktuell lokal simuliert. Das bedeutet: Die Backend-Antwort kom
 
 ### `chat/utils/smart_replies.dart`
 
-Pfad: `app1/lib/features/chat/utils/smart_replies.dart`
+Pfad: `app1/lib/features/chatscreen/utils/smart_replies.dart`
 
 Diese Datei erzeugt Vorschläge für schnelle Folgefragen.
 
@@ -270,7 +320,7 @@ Die Logik ist regelbasiert und läuft nur im Frontend.
 
 ### `chat/utils/medical_terms.dart`
 
-Pfad: `app1/lib/features/chat/utils/medical_terms.dart`
+Pfad: `app1/lib/features/chatscreen/utils/medical_terms.dart`
 
 Diese Datei enthält einfache Erklärungen für medizinische Begriffe.
 
@@ -285,13 +335,13 @@ Wenn ein Bot-Text einen bekannten Begriff enthält, kann die App eine kleine Inf
 
 ---
 
-## `features/chat/presentation`
+## `features/chatscreen/presentation`
 
 Der Ordner `presentation` enthält alles, was direkt mit der sichtbaren Oberfläche des Chats zu tun hat.
 
 ### `chat/presentation/screens/chat_screen.dart`
 
-Pfad: `app1/lib/features/chat/presentation/screens/chat_screen.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/screens/chat_screen.dart`
 
 `ChatScreen` ist die komplette Chat-Seite.
 
@@ -305,6 +355,7 @@ Aufgaben:
 - zeigt Smart Replies an
 - zeigt einen Button "Zur neuesten Nachricht", wenn man hochgescrollt hat
 - zeigt nach längerer Wartezeit einen Hinweis an
+- öffnet bei `response.redFlag == true` die `WarningPage`
 - enthält Tastatur-Shortcuts:
   - `End`: nach unten scrollen
   - `Home`: nach oben scrollen
@@ -313,7 +364,7 @@ Diese Datei ist die wichtigste UI-Datei im Chat-Bereich.
 
 ### `chat/presentation/themes/app_colors.dart`
 
-Pfad: `app1/lib/features/chat/presentation/themes/app_colors.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/themes/app_colors.dart`
 
 Diese Datei enthält zentrale Farben für die Oberfläche.
 
@@ -329,7 +380,7 @@ Sie funktioniert wie ein kleines Design-System. Dadurch müssen Farben nicht üb
 
 ### `chat/presentation/widgets/chat_app_bar.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/chat_app_bar.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/chat_app_bar.dart`
 
 Diese Datei baut die obere Leiste im Chat.
 
@@ -342,7 +393,7 @@ Sie enthält:
 
 ### `chat/presentation/widgets/chat_bubble.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/chat_bubble.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/chat_bubble.dart`
 
 Diese Datei zeigt eine einzelne Chat-Nachricht an.
 
@@ -359,7 +410,7 @@ Wenn `isLoading` aktiv ist, wird statt Text eine `ThinkingBubble` angezeigt.
 
 ### `chat/presentation/widgets/chat_input_field.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/chat_input_field.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/chat_input_field.dart`
 
 Diese Datei enthält das Eingabefeld unten im Chat.
 
@@ -373,7 +424,7 @@ Bestandteile:
 
 ### `chat/presentation/widgets/thinking_bubble.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/thinking_bubble.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/thinking_bubble.dart`
 
 Diese Datei zeigt die Ladeanimation, während Careena antwortet.
 
@@ -386,7 +437,7 @@ Sie enthält:
 
 ### `chat/presentation/widgets/smart_reply_list.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/smart_reply_list.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/smart_reply_list.dart`
 
 Diese Datei zeigt vorgeschlagene Folgefragen als klickbare Chips an.
 
@@ -394,7 +445,7 @@ Wenn keine Vorschläge vorhanden sind, zeigt das Widget nichts an.
 
 ### `chat/presentation/widgets/medical_term_info_box.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/medical_term_info_box.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/medical_term_info_box.dart`
 
 Diese Datei zeigt eine kleine Erklärung zu einem medizinischen Begriff.
 
@@ -402,7 +453,7 @@ Sie wird innerhalb einer Bot-Chat-Bubble angezeigt, wenn `MedicalTerms` einen pa
 
 ### `chat/presentation/widgets/latest_message_button.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/latest_message_button.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/latest_message_button.dart`
 
 Diese Datei enthält den Button "Zur neuesten Nachricht".
 
@@ -410,11 +461,94 @@ Er erscheint, wenn man in der Chatliste nach oben scrollt und nicht mehr am Ende
 
 ### `chat/presentation/widgets/feature_tile.dart`
 
-Pfad: `app1/lib/features/chat/presentation/widgets/feature_tile.dart`
+Pfad: `app1/lib/features/chatscreen/presentation/widgets/feature_tile.dart`
 
 Diese Datei enthält eine wiederverwendbare Kachel mit Icon und Titel.
 
 Aktuell wird sie vom älteren oder alternativen `FeatureGrid` im Home-Bereich genutzt, nicht direkt vom aktuellen `HomeScreen`.
+
+---
+
+## `features/onboardingscreen`
+
+Der Onboarding-Bereich enthält die erste sichtbare Seite der App.
+
+### `onboardingscreen/presentation/screens/onboarding_screen.dart`
+
+Pfad: `app1/lib/features/onboardingscreen/presentation/screens/onboarding_screen.dart`
+
+Aufgaben:
+
+- zeigt Header, Hero-Card und Auth-Buttons
+- öffnet über den Hero-Button direkt den `ChatScreen`
+- öffnet über "Anmelden" und "Registrieren" den `HomeScreen`
+- nutzt responsive Layout-Wrapper, damit die Seite auf kleinen und größeren Screens stabil bleibt
+
+### `onboardingscreen/presentation/widgets`
+
+Dieser Ordner enthält die Bausteine des Onboarding-Screens:
+
+- `onboarding_header.dart`: Logo und App-Name
+- `onboarding_hero_card.dart`: zentrale Einstiegskarte mit Careena und Chat-CTA
+- `careena_chat_bubble.dart`: kleine Sprechblase im Hero-Bereich
+- `auth_button.dart`: wiederverwendbarer Button für Anmeldung und Registrierung
+
+---
+
+## `features/warningscreen`
+
+Der Warning-Bereich zeigt die Handlungsempfehlung, wenn das Backend eine medizinische Red Flag meldet.
+
+Wichtig: Die medizinische Entscheidung passiert weiterhin im Backend. Das Frontend liest nur `ChatResponse.redFlag` und zeigt dann die passende Oberfläche an.
+
+### `warningscreen/presentation/screens/warning_page.dart`
+
+Pfad: `app1/lib/features/warningscreen/presentation/screens/warning_page.dart`
+
+Diese Datei enthält nur noch die Screen-Ebene:
+
+- `Scaffold`
+- AppBar mit Zurück-Button
+- responsiver Seiten-Wrapper
+- Einbindung von `EmergencyCard` und `NoDiagnosisInfoBox`
+
+### `warningscreen/presentation/widgets`
+
+Pfad: `app1/lib/features/warningscreen/presentation/widgets/`
+
+Dieser Ordner enthält reine UI-Bausteine:
+
+- `emergency_card.dart`: Hauptkarte mit Notfallhinweis und Aktionen
+- `warning_header.dart`: Warnsymbol, Überschrift und Erklärungstext
+- `emergency_action_list.dart`: Liste der empfohlenen Sofortmaßnahmen
+- `emergency_call_button.dart`: Button "Notruf 112 anrufen"
+- `reason_box.dart`: Anzeige erkannter Warnzeichen
+- `no_diagnosis_info_box.dart`: Hinweis, dass keine Diagnose gestellt wird
+- `highlighted_text.dart`: Text mit optional hervorgehobenen Begriffen
+- `emergency_divider.dart`: Trenner innerhalb der Notfallkarte
+- `section_title.dart`: kleine Abschnittsüberschrift
+
+### `warningscreen/presentation/theme`
+
+Pfad: `app1/lib/features/warningscreen/presentation/theme/`
+
+Dieser Ordner bündelt Präsentationskonstanten:
+
+- `warning_copy.dart`: sichtbare Texte der Warning-UI
+- `warning_layout.dart`: Maximalbreiten, Padding und Breakpoints
+- `warning_theme.dart`: Farben, Textstile und Decorations
+
+### `warningscreen/presentation/models`
+
+Pfad: `app1/lib/features/warningscreen/presentation/models/emergency_action.dart`
+
+`EmergencyAction` beschreibt eine einzelne Handlungsempfehlung mit Icon, Text und optional hervorgehobenem Textteil.
+
+### `warningscreen/presentation/view_models`
+
+Pfad: `app1/lib/features/warningscreen/presentation/view_models/emergency_reason.dart`
+
+`EmergencyReason` bereitet die Backend-Daten aus `ChatResponse` für die Anzeige auf. Dazu gehören Regelname, Kategorie und erkannte Keywords.
 
 ---
 
@@ -576,12 +710,15 @@ Im aktuellen `HomeScreen` wird die Suchleiste direkt in `_buildSearchBar()` geba
 Für einen schnellen Einstieg empfiehlt sich diese Reihenfolge:
 
 1. `app1/lib/main.dart`
-2. `app1/lib/features/homescreen/presentation/screens/home_screen.dart`
-3. `app1/lib/features/chat/presentation/screens/chat_screen.dart`
-4. `app1/lib/features/chat/controllers/chat_controller.dart`
-5. `app1/lib/features/chat/data/chat_api.dart`
-6. `app1/lib/core/network/api_client.dart`
-7. `app1/lib/core/config/app_config.dart`
+2. `app1/lib/features/onboardingscreen/presentation/screens/onboarding_screen.dart`
+3. `app1/lib/features/homescreen/presentation/screens/home_screen.dart`
+4. `app1/lib/features/chatscreen/presentation/screens/chat_screen.dart`
+5. `app1/lib/features/chatscreen/controllers/chat_controller.dart`
+6. `app1/lib/features/warningscreen/presentation/screens/warning_page.dart`
+7. `app1/lib/features/warningscreen/presentation/widgets/emergency_card.dart`
+8. `app1/lib/features/chatscreen/data/chat_api.dart`
+9. `app1/lib/core/network/api_client.dart`
+10. `app1/lib/core/widgets/responsive_frame.dart`
 
 Danach kann man die einzelnen Widgets lesen, wenn man verstehen möchte, wie die Oberfläche im Detail gebaut ist.
 
@@ -591,13 +728,15 @@ Danach kann man die einzelnen Widgets lesen, wenn man verstehen möchte, wie die
 
 Frontend in `app1/lib`:
 
-- zeigt Home-Screen und Chat-Screen
+- zeigt Onboarding-, Home-, Chat- und Warning-Screens
 - nimmt Nutzereingaben entgegen
 - sendet Nachrichten an das Backend
 - zeigt Antworten an
+- öffnet bei Red-Flag-Antworten die Handlungsempfehlungsseite
 - simuliert Streaming
 - zeigt Smart Replies
 - zeigt einfache Begriffserklärungen
+- nutzt gemeinsame responsive Layout-Wrapper für kompatible Screen-Größen
 
 Backend in `server`:
 

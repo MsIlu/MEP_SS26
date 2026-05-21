@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import '../../../chat/presentation/screens/chat_screen.dart';
-import '../../../chat/presentation/themes/app_colors.dart';
-import '../../../chat/presentation/widgets/feature_tile.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import '../../../chatscreen/presentation/screens/chat_screen.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
+import '../../../chatscreen/presentation/widgets/feature_tile.dart';
 
 /// Displays a grid of feature tiles on the home screen.
 ///

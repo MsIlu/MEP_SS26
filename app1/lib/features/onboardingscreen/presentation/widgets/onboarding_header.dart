@@ -6,26 +6,34 @@ class OnboardingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 360;
+        final logoHeight = isCompact ? 52.0 : 65.0;
+        final titleSize = isCompact ? 20.0 : 24.0;
 
-      child: Row(
-        children: [
-          Image.asset("assets/images/careena_logo.png", height: 65),
-
-          const SizedBox(width: 10),
-
-          Text(
-            "MedBitAid v.1",
-
-            style: GoogleFonts.nunito(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF43B8BE),
-            ),
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: isCompact ? 14 : 22),
+          child: Row(
+            children: [
+              Image.asset("assets/images/careena_logo.png", height: logoHeight),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "MedBitAid v.1",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF43B8BE),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

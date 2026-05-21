@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'smart_reply_list.dart';
 
 class ChatInputField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final FocusNode focusNode;
   final bool isSending;
+  
+  final List<String> smartReplies;
+  final ValueChanged<String> onSmartReplySelected;
 
   const ChatInputField({
     super.key,
@@ -12,18 +16,26 @@ class ChatInputField extends StatelessWidget {
     required this.onSend,
     required this.focusNode,
     required this.isSending,
+    required this.smartReplies,
+    required this.onSmartReplySelected,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(padding: EdgeInsets.only(left: 4, bottom: 8)),
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 8),
+          ),
+
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Semantics(
@@ -35,35 +47,58 @@ class ChatInputField extends StatelessWidget {
                       color: const Color(0xFFF2F5FA),
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    child: Row(
+
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: TextField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            autofocus: true,
-                            textInputAction: TextInputAction.send,
-                            keyboardType: TextInputType.text,
-                            onSubmitted: (_) {
-                              if (!isSending) {
-                                onSend();
-                              }
-                            },
-                            decoration: const InputDecoration(
-                              hintText: 'Beschreiben Sie kurz Ihre Beschwerden',
-                              border: InputBorder.none,
+                        if (smartReplies.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12,10,12,6,),
+                            child: InlineSmartReplies(
+                              replies: smartReplies,
+                              onSelected: onSmartReplySelected,
                             ),
                           ),
+
+                        Row(
+                          children: [
+                            const SizedBox(width: 15),
+
+                            Expanded(
+                              child: TextField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                textInputAction: TextInputAction.send,
+                                keyboardType: TextInputType.text,
+                                onSubmitted: (_) {
+                                  if (!isSending) {
+                                    onSend();
+                                  }
+                                },
+                                decoration:
+                                    const InputDecoration(
+                                  hintText: 'Beschreiben Sie kurz Ihre Beschwerden',
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+
+                            const Icon(
+                              Icons.mic_none,
+                              color: Colors.grey,
+                            ),
+
+                            const SizedBox(width: 15),
+                          ],
                         ),
-                        const Icon(Icons.mic_none, color: Colors.grey),
-                        const SizedBox(width: 15),
                       ],
                     ),
                   ),
                 ),
               ),
+
               const SizedBox(width: 10),
+
               Semantics(
                 button: true,
                 enabled: !isSending,
@@ -73,12 +108,16 @@ class ChatInputField extends StatelessWidget {
                 child: IconButton.filled(
                   onPressed: isSending ? null : onSend,
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF26A69A),
-                    disabledBackgroundColor: Colors.grey[300],
+                    backgroundColor:
+                        const Color(0xFF26A69A),
+                    disabledBackgroundColor:
+                        Colors.grey[300],
                     fixedSize: const Size.square(48),
                   ),
                   icon: Icon(
-                    isSending ? Icons.hourglass_top : Icons.send,
+                    isSending
+                        ? Icons.hourglass_top
+                        : Icons.send,
                     color: Colors.white,
                     size: 20,
                   ),

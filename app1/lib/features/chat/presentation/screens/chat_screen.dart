@@ -10,7 +10,6 @@ import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
-import '../widgets/smart_reply_list.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
@@ -36,6 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    widget.controller.messages.addListener(_onMessagesChanged);
+    
     widget.controller.init();
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
@@ -87,7 +88,6 @@ class _ChatScreenState extends State<ChatScreen> {
   setState(() {
     _isSending = false;
     _showLongProcessingHint = false;
-    _smartReplies = [];
   });
 
   // Open the warning page for red flag responses instead of showing a chat bubble.
@@ -101,14 +101,24 @@ class _ChatScreenState extends State<ChatScreen> {
     return;
   }
 
-  setState(() {
-    _smartReplies = response == null
-        ? []
-        : SmartReplies.generate(response.text);
-  });
-
   _inputFocusNode.requestFocus();
 }
+
+  void _onMessagesChanged() {
+    // Get the current list of messages
+    final messages = widget.controller.messages.value;
+
+    if (messages.isEmpty) return;
+    
+    final lastMessage = messages.last;
+    if (lastMessage.isLoading || lastMessage.isUser)  return;
+    if (lastMessage.text.isEmpty) return;  
+    
+    // Generate smart replies from the latest assistant message
+    setState(() {
+      _smartReplies = SmartReplies.generate(lastMessage.text);
+    });
+  }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -161,10 +171,26 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _handleSmartReplySelected(String reply) {
-    _textController.text = reply;
-    _handleSend();
-  }
+void _handleSmartReplySelected(String reply) {
+  final currentText = _textController.text.trim();
+
+  final newText =
+      currentText.isEmpty ? reply : '$currentText $reply';
+
+  _textController.text = newText;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    if (!mounted) return;
+
+    _inputFocusNode.requestFocus();
+
+    await Future.delayed(Duration.zero);
+
+    _textController.selection = TextSelection.collapsed(
+      offset: _textController.text.length,
+    );
+  });
+}
 
   void _handleScrollChanged() {
     final shouldShow = !_isNearBottom();
@@ -189,6 +215,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    widget.controller.messages.removeListener(_onMessagesChanged);
     _longProcessingTimer?.cancel();
     widget.controller.messages.removeListener(_handleMessagesChanged);
     _scrollController.removeListener(_handleScrollChanged);
@@ -209,15 +236,13 @@ class _ChatScreenState extends State<ChatScreen> {
             Column(
               children: [
                 Expanded(child: _buildMessageList()),
-                SmartReplyList(
-                  replies: _smartReplies,
-                  onSelected: _handleSmartReplySelected,
-                ),
                 ChatInputField(
                   controller: _textController,
                   focusNode: _inputFocusNode,
                   isSending: _isSending,
                   onSend: _handleSend,
+                  smartReplies: _smartReplies,
+                  onSmartReplySelected: _handleSmartReplySelected,
                 ),
               ],
             ),

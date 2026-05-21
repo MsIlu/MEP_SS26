@@ -42,20 +42,36 @@ Der aktuelle Stand enthält außerdem einen überarbeiteten Careena-Home-Screen,
 ## [Unreleased]
 
 ### Added
+- Responsiver Seiten-Wrapper `ResponsivePageBody` für wiederverwendbare Screen-Breiten, Padding und optionales Scroll-Verhalten.
+- Handlungsempfehlungsseite für Red-Flag-Fälle mit klarer Notruf-112-Empfehlung.
+- Widget-Test für die Navigation vom Onboarding zum HomeScreen und ChatScreen sowie für die Handlungsempfehlungsseite.
 - Chat-Eingabefeld bleibt während einer laufenden Bot-Antwort beschreibbar.
 - Chat-Eingabefeld wird beim Öffnen des Chats automatisch fokussiert.
 - Eingabefeld kann per Pfeiltasten aus der Nachrichtenliste wieder erreicht werden.
 
 ### Changed
+- Onboarding-, Home-, Chat- und Warning-Screens nutzen ein gemeinsames responsives Layout-Verhalten.
+- `features/warningscreen` wurde nach Separation of Concerns aufgeteilt in Screen, Widgets, Theme/Copy, Models und ViewModels.
+- Die Handlungsempfehlungsseite wurde von der normalen Bottom-Navigation gelöst, damit Red-Flag-Hinweise eigenständig und fokussiert angezeigt werden.
+- Deutsche UI-Texte auf der Handlungsempfehlungsseite verwenden wieder echte Umlaute.
 - Senden bleibt während einer laufenden Bot-Antwort gesperrt, während das Sanduhr-Symbol sichtbar bleibt.
 - Auto-Scroll im Chat verbessert: neue Nachrichten und gestreamte Bot-Antworten halten die Ansicht zuverlässiger am unteren Ende.
 - Auto-Scroll respektiert bewusstes Hochscrollen, solange keine laufende Bot-Antwort aktiv ist.
+
+### Fixed
+- Chat-Initialisierung robuster gemacht: Senden wartet auf die Session-Erstellung und versucht bei fehlender Session erneut, eine Session anzulegen.
+- Red-Flag-Antworten werden im Frontend wieder als Handlungsempfehlungsscreen angezeigt, statt im normalen Chat-Fehlerpfad zu landen.
+- Mehrere responsive Darstellungsprobleme bei Onboarding-, Home-, Chat- und Warning-Screens reduziert.
+- Encoding-Artefakte in den neuen Warning-UI-Texten korrigiert.
 
 ### Planned
 - Tests für Chat-Controller, Backend-Endpunkte und Red-Flag-Erkennung erweitern.
 - Persistente Speicherung von Chat-Sessions prüfen.
 - Release-Regeln im Team festlegen, inklusive Git-Tags und Versionsnummern.
 - Medizinische Sicherheitslogik weiter validieren und dokumentieren.
+
+### Known Issues
+- `flutter test` und `flutter run -d web-server` können lokal vor der App-Ausführung an einem Flutter/native-assets-Pfadproblem mit Leerzeichen in `C:\Users\Eli Hehl\...` scheitern.
 
 ---
 

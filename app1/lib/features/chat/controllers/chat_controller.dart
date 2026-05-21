@@ -18,15 +18,24 @@ class ChatController {
   String? _sessionId;
 
   Future<void> init() async {
-    _setMessages([]);
-
-    _sessionId = await chatApi.createSession();
+    if (messages.value.isNotEmpty) return;
 
     _addMessage(
       message: Message(text: AppConfig.welcomeMessage, isUser: false),
     );
 
-    await chatApi.warmup();
+    try {
+      _sessionId = await chatApi.createSession();
+      await chatApi.warmup();
+    } catch (_) {
+      _addMessage(
+        message: Message(
+          text:
+              'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
+          isUser: false,
+        ),
+      );
+    }
   }
 
   /// Sends a user message and returns the full backend response.

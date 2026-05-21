@@ -1,6 +1,7 @@
 import 'package:app1/features/chat/controllers/chat_controller.dart';
 import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
 import '../widgets/custom_bottom_nav.dart';
@@ -15,17 +16,21 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures();
+    final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            CareenaHeroCard(onTap: () => _navigateToChat(context)),
-            _buildSearchBar(),
-            HomeFunctionList(features: features),
-          ],
+        child: ResponsivePageBody(
+          maxWidth: 720,
+          child: Column(
+            children: [
+              _buildHeader(isCompact),
+              CareenaHeroCard(onTap: () => _navigateToChat(context)),
+              _buildSearchBar(isCompact),
+              HomeFunctionList(features: features),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const CustomBottomNav(),
@@ -41,29 +46,42 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+  Widget _buildHeader(bool isCompact) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 16 : 20,
+        20,
+        isCompact ? 16 : 20,
+        10,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "Willkommen!",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C5358),
+          Expanded(
+            child: Text(
+              "Willkommen!",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: isCompact ? 24 : 28,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF2C5358),
+              ),
             ),
           ),
-          NotificationBadgeIcon(count: 3),
+          const SizedBox(width: 12),
+          const NotificationBadgeIcon(count: 3),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isCompact) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 16 : 20,
+        vertical: 15,
+      ),
       child: TextField(
         decoration: InputDecoration(
           hintText: "Suchen...",

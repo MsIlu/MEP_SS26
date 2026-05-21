@@ -16,14 +16,20 @@ class ChatInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(padding: EdgeInsets.only(left: 4, bottom: 8)),
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 360;
+
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            isCompact ? 10 : 16,
+            8,
+            isCompact ? 10 : 16,
+            16,
+          ),
+          decoration: const BoxDecoration(color: Colors.white),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Semantics(
@@ -37,7 +43,7 @@ class ChatInputField extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const SizedBox(width: 15),
+                        SizedBox(width: isCompact ? 12 : 15),
                         Expanded(
                           child: TextField(
                             controller: controller,
@@ -45,25 +51,32 @@ class ChatInputField extends StatelessWidget {
                             autofocus: true,
                             textInputAction: TextInputAction.send,
                             keyboardType: TextInputType.text,
+                            minLines: 1,
+                            maxLines: 4,
                             onSubmitted: (_) {
                               if (!isSending) {
                                 onSend();
                               }
                             },
-                            decoration: const InputDecoration(
-                              hintText: 'Beschreiben Sie kurz Ihre Beschwerden',
+                            decoration: InputDecoration(
+                              hintText: isCompact
+                                  ? 'Beschwerden beschreiben'
+                                  : 'Beschreiben Sie kurz Ihre Beschwerden',
                               border: InputBorder.none,
                             ),
                           ),
                         ),
-                        const Icon(Icons.mic_none, color: Colors.grey),
-                        const SizedBox(width: 15),
+                        if (!isCompact) ...[
+                          const Icon(Icons.mic_none, color: Colors.grey),
+                          const SizedBox(width: 15),
+                        ] else
+                          const SizedBox(width: 12),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: isCompact ? 6 : 10),
               Semantics(
                 button: true,
                 enabled: !isSending,
@@ -75,7 +88,7 @@ class ChatInputField extends StatelessWidget {
                   style: IconButton.styleFrom(
                     backgroundColor: const Color(0xFF26A69A),
                     disabledBackgroundColor: Colors.grey[300],
-                    fixedSize: const Size.square(48),
+                    fixedSize: Size.square(isCompact ? 44 : 48),
                   ),
                   icon: Icon(
                     isSending ? Icons.hourglass_top : Icons.send,
@@ -86,8 +99,8 @@ class ChatInputField extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

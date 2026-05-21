@@ -4,7 +4,6 @@ import 'core/network/api_client.dart';
 import 'features/chat/controllers/chat_controller.dart';
 import 'features/chat/data/chat_api.dart';
 import 'features/chat/services/chat_service.dart';
-import 'features/homescreen/presentation/screens/home_screen.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 
 void main() {
@@ -28,9 +27,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      home: OnboardingScreen(
-        chatController: chatController,
-      ),
+      home: OnboardingScreen(chatController: chatController),
     );
   }
 

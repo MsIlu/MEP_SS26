@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/responsive_frame.dart';
 import '../../../chat/data/models/chat_response_model.dart';
 import '../../../chat/presentation/themes/app_colors.dart';
 import '../../../homescreen/presentation/widgets/custom_bottom_nav.dart';
@@ -6,10 +7,7 @@ import '../../../homescreen/presentation/widgets/custom_bottom_nav.dart';
 class WarningPage extends StatelessWidget {
   final ChatResponse response;
 
-  const WarningPage({
-    super.key,
-    required this.response,
-  });
+  const WarningPage({super.key, required this.response});
 
   static const Color warningRed = Color(0xFFFF3045);
   static const Color warningBackground = Color(0xFFFFF1F3);
@@ -25,15 +23,13 @@ class WarningPage extends StatelessWidget {
         backgroundColor: Colors.white,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
-            Icons.chevron_left,
-            color: teal,
-            size: 32,
-          ),
+          icon: const Icon(Icons.chevron_left, color: teal, size: 32),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Handlungsempfehlung',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: darkText,
             fontWeight: FontWeight.bold,
@@ -42,7 +38,9 @@ class WarningPage extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: ResponsivePageBody(
+          maxWidth: 720,
+          scrollable: true,
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,10 +73,7 @@ class _EmergencyCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: WarningPage.warningBackground,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: WarningPage.warningRed,
-            width: 1.3,
-          ),
+          border: Border.all(color: WarningPage.warningRed, width: 1.3),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -134,9 +129,7 @@ class _EmergencyCard extends StatelessWidget {
                   // TODO: Add phone call support with url_launcher in a later sprint.
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(
-                        'Bitte wählen Sie 112 auf Ihrem Telefon.',
-                      ),
+                      content: Text('Bitte wählen Sie 112 auf Ihrem Telefon.'),
                     ),
                   );
                 },
@@ -148,9 +141,12 @@ class _EmergencyCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Notruf 112 anrufen',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Notruf 112 anrufen',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),
@@ -166,44 +162,57 @@ class _WarningHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: Color(0xFFFFDCE1),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 330;
+        final icon = CircleAvatar(
+          radius: isCompact ? 22 : 26,
+          backgroundColor: const Color(0xFFFFDCE1),
           child: Icon(
             Icons.warning_amber_rounded,
             color: WarningPage.warningRed,
-            size: 30,
+            size: isCompact ? 26 : 30,
           ),
-        ),
-        SizedBox(width: 14),
-        Expanded(
-          child: Column(
+        );
+        final copy = const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Achtung: Möglicher Notfall',
+              style: TextStyle(
+                color: WarningPage.warningRed,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              'Ihre Angaben deuten auf eine mögliche Notfallsituation hin. Bitte handeln Sie umgehend.',
+              style: TextStyle(
+                color: WarningPage.darkText,
+                fontSize: 13,
+                height: 1.3,
+              ),
+            ),
+          ],
+        );
+
+        if (isCompact) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Achtung: Möglicher Notfall',
-                style: TextStyle(
-                  color: WarningPage.warningRed,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                'Ihre Angaben deuten auf eine mögliche Notfallsituation hin. Bitte handeln Sie umgehend.',
-                style: TextStyle(
-                  color: WarningPage.darkText,
-                  fontSize: 13,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+            children: [icon, const SizedBox(height: 12), copy],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            icon,
+            const SizedBox(width: 14),
+            Expanded(child: copy),
+          ],
+        );
+      },
     );
   }
 }
@@ -230,11 +239,7 @@ class _EmergencyActionRow extends StatelessWidget {
         CircleAvatar(
           radius: 18,
           backgroundColor: WarningPage.warningRed.withValues(alpha: 0.1),
-          child: Icon(
-            icon,
-            color: WarningPage.warningRed,
-            size: 20,
-          ),
+          child: Icon(icon, color: WarningPage.warningRed, size: 20),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -362,11 +367,7 @@ class _NoDiagnosisInfoBox extends StatelessWidget {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: WarningPage.teal,
-            size: 20,
-          ),
+          Icon(Icons.info_outline, color: WarningPage.teal, size: 20),
           SizedBox(width: 10),
           Expanded(
             child: Text(

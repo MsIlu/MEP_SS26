@@ -25,6 +25,7 @@ class FunctionMenuTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+        minVerticalPadding: 12,
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -35,6 +36,8 @@ class FunctionMenuTile extends StatelessWidget {
         ),
         title: Text(
           title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xFF2C5358),

@@ -9,9 +9,18 @@ class HomeFunctionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = MediaQuery.sizeOf(context).width < 360
+        ? 16.0
+        : 20.0;
+
     return Expanded(
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          12,
+        ),
         itemCount: features.length + 1,
         separatorBuilder: (context, index) => const SizedBox(height: 8),
         itemBuilder: (context, index) {

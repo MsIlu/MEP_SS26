@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
@@ -48,67 +49,65 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _handleSend() async {
-  if (_isSending) return;
+    if (_isSending) return;
 
-  final text = _textController.text.trim();
-  if (text.isEmpty) return;
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
 
-  _textController.clear();
-  setState(() {
-    _isSending = true;
-    _smartReplies = [];
-    _showLongProcessingHint = false;
-  });
+    _textController.clear();
+    setState(() {
+      _isSending = true;
+      _smartReplies = [];
+      _showLongProcessingHint = false;
+    });
 
-  _longProcessingTimer?.cancel();
-  _longProcessingTimer = Timer(const Duration(seconds: 4), () {
-    if (!mounted || !_isSending) return;
+    _longProcessingTimer?.cancel();
+    _longProcessingTimer = Timer(const Duration(seconds: 4), () {
+      if (!mounted || !_isSending) return;
 
-    setState(() => _showLongProcessingHint = true);
+      setState(() => _showLongProcessingHint = true);
+      _scrollToBottom();
+    });
+
+    final responseFuture = widget.controller.sendMessage(text);
     _scrollToBottom();
-  });
 
-  final responseFuture = widget.controller.sendMessage(text);
-  _scrollToBottom();
+    ChatResponse? response;
 
-  ChatResponse? response;
+    try {
+      response = await responseFuture;
+    } catch (_) {
+      response = null;
+    }
 
-  try {
-    response = await responseFuture;
-  } catch (_) {
-    response = null;
+    _longProcessingTimer?.cancel();
+    _scrollToBottom();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSending = false;
+      _showLongProcessingHint = false;
+      _smartReplies = [];
+    });
+
+    // Open the warning page for red flag responses instead of showing a chat bubble.
+    if (response?.redFlag == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
+      );
+      return;
+    }
+
+    setState(() {
+      _smartReplies = response == null
+          ? []
+          : SmartReplies.generate(response.text);
+    });
+
+    _inputFocusNode.requestFocus();
   }
-
-  _longProcessingTimer?.cancel();
-  _scrollToBottom();
-
-  if (!mounted) return;
-
-  setState(() {
-    _isSending = false;
-    _showLongProcessingHint = false;
-    _smartReplies = [];
-  });
-
-  // Open the warning page for red flag responses instead of showing a chat bubble.
-  if (response?.redFlag == true) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => WarningPage(response: response!),
-      ),
-    );
-    return;
-  }
-
-  setState(() {
-    _smartReplies = response == null
-        ? []
-        : SmartReplies.generate(response.text);
-  });
-
-  _inputFocusNode.requestFocus();
-}
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -204,30 +203,33 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: const Color(0xFFF2F5FA),
       appBar: const ChatAppBar(),
       body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(child: _buildMessageList()),
-                SmartReplyList(
-                  replies: _smartReplies,
-                  onSelected: _handleSmartReplySelected,
-                ),
-                ChatInputField(
-                  controller: _textController,
-                  focusNode: _inputFocusNode,
-                  isSending: _isSending,
-                  onSend: _handleSend,
-                ),
-              ],
-            ),
-            if (_showLatestMessageButton)
-              Positioned(
-                right: 16,
-                bottom: 132,
-                child: LatestMessageButton(onPressed: _scrollToBottom),
+        child: ResponsivePageBody(
+          maxWidth: 820,
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(child: _buildMessageList()),
+                  SmartReplyList(
+                    replies: _smartReplies,
+                    onSelected: _handleSmartReplySelected,
+                  ),
+                  ChatInputField(
+                    controller: _textController,
+                    focusNode: _inputFocusNode,
+                    isSending: _isSending,
+                    onSend: _handleSend,
+                  ),
+                ],
               ),
-          ],
+              if (_showLatestMessageButton)
+                Positioned(
+                  right: 16,
+                  bottom: 132,
+                  child: LatestMessageButton(onPressed: _scrollToBottom),
+                ),
+            ],
+          ),
         ),
       ),
     );

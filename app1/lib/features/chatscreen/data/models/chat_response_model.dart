@@ -46,14 +46,14 @@ class ChatResponse {
   /// Maps raw JSON from the backend into a typed chat response.
   factory ChatResponse.fromJson(Map<String, dynamic> json) {
     return ChatResponse(
-      text: json['response'] ?? 'Ungültige Serverantwort',
+      text: json['response']?.toString() ?? 'Ungültige Serverantwort',
       redFlag: json['red_flag'] == true,
-      severity: json['severity'],
-      action: json['action'],
-      ruleId: json['rule_id'],
-      ruleName: json['rule_name'],
-      category: json['category'],
-      messageKey: json['message_key'],
+      severity: json['severity']?.toString(),
+      action: json['action']?.toString(),
+      ruleId: json['rule_id']?.toString(),
+      ruleName: json['rule_name']?.toString(),
+      category: json['category']?.toString(),
+      messageKey: json['message_key']?.toString(),
       matchedKeywords:
           (json['matched_keywords'] as List<dynamic>?)
               ?.map((item) => item.toString())

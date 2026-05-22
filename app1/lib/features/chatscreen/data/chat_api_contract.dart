@@ -1,5 +1,7 @@
+import 'models/chat_response_model.dart';
+
 abstract class ChatApiContract {
-  Future<String> sendMessage(String text, String sessionId);
+  Future<ChatResponse> sendMessage(String text, String sessionId);
 
   Future<void> warmup();
 

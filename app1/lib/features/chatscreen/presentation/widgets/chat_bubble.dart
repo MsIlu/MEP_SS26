@@ -14,11 +14,13 @@ import 'thinking_bubble.dart';
 class ChatBubble extends StatelessWidget {
   final Message message;
   final bool showLongProcessingHint;
+  final VoidCallback? onCancelGeneration;
 
   const ChatBubble({
     super.key,
     required this.message,
     this.showLongProcessingHint = false,
+    this.onCancelGeneration,
   });
 
   @override
@@ -28,7 +30,10 @@ class ChatBubble extends StatelessWidget {
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
-      return ThinkingBubble(showLongProcessingHint: showLongProcessingHint);
+      return ThinkingBubble(
+        showLongProcessingHint: showLongProcessingHint,
+        onCancelGeneration: onCancelGeneration,
+      );
     }
 
     return LayoutBuilder(

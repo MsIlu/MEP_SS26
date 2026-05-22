@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
-import '../data/chat_api.dart';
+import '../data/chat_api_contract.dart';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
@@ -8,21 +8,36 @@ import '../services/chat_service.dart';
 /// Coordinates chat state, backend sessions, and message-list updates.
 class ChatController {
   /// API adapter used for backend session and chat requests.
-  final ChatApi chatApi;
+  final ChatApiContract chatApi;
 
   /// Pure message helper used to keep list transformations testable.
   final ChatService chatService;
 
   ChatController({required this.chatApi, required this.chatService});
 
-  final ValueNotifier<List<Message>> messages = ValueNotifier<List<Message>>(
-    [],
-  );
+  final ValueNotifier<List<Message>> messages = ValueNotifier<List<Message>>([]);
+
+  /// Stores the saved symptom draft shown in display mode.
+  final ValueNotifier<List<String>> symptoms = ValueNotifier<List<String>>([]);
+
+  /// Stores a temporary editable copy of the symptoms.
+  /// Changes here are not saved until the user clicks "Save".
+  final ValueNotifier<List<String>> editableSymptoms =
+  ValueNotifier<List<String>>([]);
+
+  /// Controls whether the symptom section is in display mode or edit mode.
+  final ValueNotifier<bool> isEditingSymptoms = ValueNotifier<bool>(false);
 
   // The backend expects all messages after session creation to include the same
   // session ID, so it is cached once createSession succeeds.
   String? _sessionId;
   Future<void>? _initFuture;
+
+  int _generationId = 0;
+  bool _isGenerating = false;
+  bool _cancelRequested = false;
+
+  bool get isGenerating => _isGenerating;
 
   /// Initializes the welcome message and backend session exactly once.
   Future<void> init() async {
@@ -38,7 +53,11 @@ class ChatController {
       );
     }
 
-    await _ensureSession(showOfflineMessage: true);
+    final hasSession = await _ensureSession(showOfflineMessage: true);
+
+    if (hasSession) {
+      await loadSymptoms();
+    }
   }
 
   /// Ensures a usable backend session exists before sending real messages.
@@ -54,7 +73,7 @@ class ChatController {
         _addMessage(
           message: Message(
             text:
-                'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
+            'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
             isUser: false,
           ),
         );
@@ -84,16 +103,26 @@ class ChatController {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
-    // Add both the user's message and a loading assistant bubble before the
-    // request so the UI reflects the pending state immediately.
     _addMessage(message: Message(text: trimmed, isUser: true));
     _addMessage(message: Message(text: '', isUser: false, isLoading: true));
+
+    _isGenerating = true;
+    _cancelRequested = false;
+    _generationId++;
+
+    final currentGenerationId = _generationId;
 
     try {
       final response = await chatApi.sendMessage(trimmed, _sessionId!);
 
-      // Remove the loading bubble before handling the response.
+      if (_cancelRequested || currentGenerationId != _generationId) {
+        return null;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
+
+      // Reload symptoms after each chat response.
+      await loadSymptoms();
 
       // Red flag responses should not be shown as normal chat messages.
       if (response.redFlag) {
@@ -102,12 +131,13 @@ class ChatController {
 
       final botMessage = Message(text: response.text, isUser: false);
 
-      // Insert an empty assistant bubble first. The stream below gradually
-      // replaces it with longer partial text values.
       _addMessage(message: botMessage.copyWith(text: ''));
 
-      // Stream the bot response character by character for the typing effect.
       await for (final partialText in chatService.streamText(response.text)) {
+        if (_cancelRequested || currentGenerationId != _generationId) {
+          return null;
+        }
+
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
@@ -118,10 +148,113 @@ class ChatController {
 
       return response;
     } catch (e) {
+      if (_cancelRequested || currentGenerationId != _generationId) {
+        return null;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
       return null;
+    } finally {
+      if (currentGenerationId == _generationId) {
+        _isGenerating = false;
+      }
     }
+  }
+
+  void cancelGeneration() {
+    _cancelRequested = true;
+    _isGenerating = false;
+    _generationId++;
+
+    _setMessages(chatService.removeLastBotMessage(messages.value));
+
+    _addMessage(
+      message: Message(
+        text: 'Antwort abgebrochen. Du kannst deine Eingabe jetzt ergänzen.',
+        isUser: false,
+      ),
+    );
+  }
+
+  /// Loads the current symptom draft from the backend.
+  Future<void> loadSymptoms() async {
+    if (_sessionId == null) {
+      throw Exception("Chat session not initialized.");
+    }
+
+    final loadedSymptoms = await chatApi.getInputDraftSymptoms(_sessionId!);
+    symptoms.value = loadedSymptoms;
+  }
+
+  /// Switches the symptom section from display mode to edit mode.
+  /// A copy of the saved symptoms is created so changes can be cancelled
+  /// without modifying the original display state.
+  void startEditingSymptoms() {
+    editableSymptoms.value = List<String>.from(symptoms.value);
+    isEditingSymptoms.value = true;
+  }
+
+  /// Updates one symptom in the editable copy.
+  void updateEditableSymptom(int index, String value) {
+    final updated = List<String>.from(editableSymptoms.value);
+    updated[index] = value;
+    editableSymptoms.value = updated;
+  }
+
+  /// Adds an empty symptom field to the editable copy.
+  void addEditableSymptom() {
+    editableSymptoms.value = [
+      ...editableSymptoms.value,
+      '',
+    ];
+  }
+
+  /// Removes one symptom from the editable copy.
+  void removeEditableSymptom(int index) {
+    final updated = List<String>.from(editableSymptoms.value);
+    updated.removeAt(index);
+    editableSymptoms.value = updated;
+  }
+
+  /// Saves the edited symptoms to the backend.
+  /// After saving, the display state is updated with the backend response
+  /// and edit mode is closed.
+  Future<void> saveEditedSymptoms() async {
+    if (_sessionId == null) {
+      throw Exception("Chat session not initialized.");
+    }
+
+    final updatedSymptoms = await chatApi.updateInputDraftSymptoms(
+      _sessionId!,
+      editableSymptoms.value,
+    );
+
+    symptoms.value = updatedSymptoms;
+    editableSymptoms.value = [];
+    isEditingSymptoms.value = false;
+  }
+
+  /// Cancels editing without saving changes.
+  /// The editable copy is discarded and the original symptoms remain unchanged.
+  void cancelEditingSymptoms() {
+    editableSymptoms.value = [];
+    isEditingSymptoms.value = false;
+  }
+
+  /// Updates the saved symptoms directly.
+  /// This is used when symptoms are edited from the symptom editor.
+  Future<void> updateSymptomsDirectly(List<String> updatedSymptoms) async {
+    if (_sessionId == null) {
+      throw Exception("Chat session not initialized.");
+    }
+
+    final savedSymptoms = await chatApi.updateInputDraftSymptoms(
+      _sessionId!,
+      updatedSymptoms,
+    );
+
+    symptoms.value = savedSymptoms;
   }
 
   /// Applies a single-message append through the service helper.
@@ -139,11 +272,14 @@ class ChatController {
   /// Prevents the offline explanation from being appended repeatedly.
   bool _hasOfflineMessage() {
     return messages.value.any(
-      (message) => message.text.startsWith('Der Chat ist gerade offline.'),
+          (message) => message.text.startsWith('Der Chat ist gerade offline.'),
     );
   }
 
   void dispose() {
     messages.dispose();
+    symptoms.dispose();
+    editableSymptoms.dispose();
+    isEditingSymptoms.dispose();
   }
 }

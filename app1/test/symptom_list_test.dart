@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app1/features/chat/presentation/widgets/symptom_list.dart';
+import 'package:app1/features/chatscreen/presentation/widgets/symptom_list.dart';
 
 void main() {
   testWidgets('shows symptom bubbles when symptoms exist', (tester) async {

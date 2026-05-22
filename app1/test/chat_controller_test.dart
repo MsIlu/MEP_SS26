@@ -1,14 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/data/chat_api_contract.dart';
-import 'package:app1/features/chat/data/models/message_model.dart';
-import 'package:app1/features/chat/services/chat_service.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/data/chat_api_contract.dart';
+import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
+import 'package:app1/features/chatscreen/data/models/message_model.dart';
+import 'package:app1/features/chatscreen/services/chat_service.dart';
 
 class FakeChatApi implements ChatApiContract {
   @override
-  Future<String> sendMessage(String text, String sessionId) async {
-    return 'Fake response';
+  @override
+  Future<ChatResponse> sendMessage(String text, String sessionId) async {
+    return ChatResponse(
+      text: 'Fake response',
+      redFlag: false,
+    );
   }
 
   @override

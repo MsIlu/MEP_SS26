@@ -70,7 +70,7 @@ class ChatInputField extends StatelessWidget {
                           children: [
                             if (smartReplies.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(12,10,12,6,),
+                                padding: const EdgeInsets.fromLTRB(12,4,12,6,),
                                 child: SmartReplyList(
                                   replies: smartReplies,
                                   onSelected: onSmartReplySelected,
@@ -78,9 +78,9 @@ class ChatInputField extends StatelessWidget {
                               ),
 
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SizedBox(width: isCompact ? 12 : 15),
+                                SizedBox(width: isCompact ? 8 : 10),
 
                                 Expanded(
                                   child: TextField(

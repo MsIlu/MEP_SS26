@@ -80,7 +80,10 @@ class ChatInputField extends StatelessWidget {
                           ),
                         ),
                         if (!isCompact) ...[
-                          const Icon(Icons.mic_none, color: Colors.grey),
+                          const Tooltip(
+                            message: 'Spracheingabe ist noch nicht verfügbar',
+                            child: Icon(Icons.mic_none, color: Colors.grey),
+                          ),
                           const SizedBox(width: 15),
                         ] else
                           const SizedBox(width: 12),

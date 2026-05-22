@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// Notification icon with a small numeric badge.
 class NotificationBadgeIcon extends StatelessWidget {
+  /// Number displayed in the badge; zero hides the badge entirely.
   final int count;
 
   const NotificationBadgeIcon({super.key, required this.count});

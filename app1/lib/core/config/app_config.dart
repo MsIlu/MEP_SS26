@@ -1,18 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-/// Central configuration class.
-///
-/// This class holds global constants and environment-specific values,
-/// such as the app name, default messages, colors or backend URLs.
-///
-/// It is intentionally designed with only static members
-/// so no instance needs to be created
-
+/// Central configuration for app name, copy, and environment values.
 class AppConfig {
-  /// Name of the application displayed in the UI.
   static const String appName = "MedBitAid v0.4";
-
-  /// Default welcome message shown when the chat starts.
   static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?";
 
   /// Base URL for backend communication.

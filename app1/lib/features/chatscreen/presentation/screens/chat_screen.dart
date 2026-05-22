@@ -254,7 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final shouldLeave = await showLeaveChatDialog(context);
 
     if (!mounted || !shouldLeave) return;
-
+    widget.controller.resetChat();
     Navigator.of(context).pop();
   }
 

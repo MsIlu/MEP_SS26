@@ -162,6 +162,19 @@ class ChatController {
     }
   }
 
+  /// Resets the chat when the user leaves to the home screen.
+  void resetChat() {
+    messages.value = [];
+    symptoms.value = [];
+    editableSymptoms.value = [];
+    isEditingSymptoms.value = false;
+    _sessionId = null;
+    _initFuture = null;
+    _isGenerating = false;
+    _cancelRequested = false;
+    _generationId++;
+  }
+
   void cancelGeneration() {
     _cancelRequested = true;
     _isGenerating = false;

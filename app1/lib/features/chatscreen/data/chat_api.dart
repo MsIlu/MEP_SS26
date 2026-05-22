@@ -8,6 +8,7 @@ import 'models/chat_response_model.dart';
 /// - Receiving and decoding responses
 /// - Mapping raw API data into usable values
 class ChatApi {
+  /// Low-level API client that handles JSON POST requests.
   final ApiClient client;
 
   ChatApi(this.client);
@@ -43,6 +44,8 @@ class ChatApi {
 
     final sessionId = data['session_id'];
 
+    // A missing session ID would make every follow-up chat request invalid, so
+    // fail early with a clear error instead of caching a bad state.
     if (sessionId == null) {
       throw Exception("Failed to create session: missing session_id");
     }

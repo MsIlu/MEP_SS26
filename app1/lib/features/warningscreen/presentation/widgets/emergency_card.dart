@@ -12,13 +12,17 @@ import 'reason_box.dart';
 import 'section_title.dart';
 import 'warning_header.dart';
 
+/// Main warning card that groups urgent copy, actions, details, and call CTA.
 class EmergencyCard extends StatelessWidget {
+  /// Backend response that triggered the emergency flow.
   final ChatResponse response;
 
   const EmergencyCard({super.key, required this.response});
 
   @override
   Widget build(BuildContext context) {
+    // Convert backend metadata into a compact, user-facing reason before
+    // composing the visual warning card.
     final reason = EmergencyReason.fromResponse(response);
 
     return Semantics(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_theme.dart';
 
+/// Primary emergency action button shown at the bottom of the warning card.
 class EmergencyCallButton extends StatelessWidget {
   const EmergencyCallButton({super.key});
 
@@ -32,6 +33,7 @@ class EmergencyCallButton extends StatelessWidget {
     );
   }
 
+  /// Shows manual dialing instructions until native phone dialing is supported.
   void _showManualCallHint(BuildContext context) {
     // The app does not dial automatically yet, so users get a direct manual hint.
     ScaffoldMessenger.of(

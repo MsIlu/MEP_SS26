@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../theme/warning_theme.dart';
 
+/// Small bold section heading used inside warning cards.
 class SectionTitle extends StatelessWidget {
+  /// Heading text
   final String text;
 
   const SectionTitle(this.text, {super.key});

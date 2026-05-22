@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
+/// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatelessWidget {
+  /// Text controller owned by the chat screen.
   final TextEditingController controller;
+
+  /// Called when the user submits the current input.
   final VoidCallback onSend;
+
+  /// Focus node used by the parent screen for keyboard navigation.
   final FocusNode focusNode;
+
+  /// Disables submission while the previous message is still processing.
   final bool isSending;
 
   const ChatInputField({
@@ -18,6 +26,9 @@ class ChatInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // The mic icon is hidden on compact widths to reserve enough room for
+        // readable input text and the send button.
+        // TODO: Implement mic logic
         final isCompact = constraints.maxWidth < 360;
 
         return Container(
@@ -54,6 +65,8 @@ class ChatInputField extends StatelessWidget {
                             minLines: 1,
                             maxLines: 4,
                             onSubmitted: (_) {
+                              // Pressing Enter should behave like tapping send,
+                              // but only while the controller can accept input.
                               if (!isSending) {
                                 onSend();
                               }

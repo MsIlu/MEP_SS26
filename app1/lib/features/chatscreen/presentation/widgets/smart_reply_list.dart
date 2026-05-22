@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+/// Horizontal wrapping list of suggested next user messages.
 class SmartReplyList extends StatelessWidget {
+  /// Suggestions generated from the latest assistant response.
   final List<String> replies;
+
+  /// Called with the selected suggestion text.
   final ValueChanged<String> onSelected;
 
   const SmartReplyList({
@@ -13,6 +17,7 @@ class SmartReplyList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (replies.isEmpty) {
+      // Keep the widget cheap and layout-neutral when no suggestions exist.
       return const SizedBox.shrink();
     }
 

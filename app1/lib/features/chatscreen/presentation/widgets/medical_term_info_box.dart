@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../utils/medical_terms.dart';
 
+/// Inline explanation box for a detected medical term in an assistant message.
 class MedicalTermInfoBox extends StatelessWidget {
+  /// Glossary entry to display.
   final MedicalTerm term;
 
   const MedicalTermInfoBox({super.key, required this.term});

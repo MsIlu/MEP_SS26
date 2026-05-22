@@ -9,7 +9,7 @@ import '../../../chatscreen/presentation/widgets/feature_tile.dart';
 /// Each tile represents a specific app feature
 /// such as chat, appointments, medication, or health tools.
 class FeatureGrid extends StatelessWidget {
-  // Controller used for managing chat state
+  /// Controller reused when the chat feature opens the chat screen.
   final ChatController controller;
 
   const FeatureGrid({super.key, required this.controller});
@@ -43,7 +43,8 @@ class FeatureGrid extends StatelessWidget {
           },
         ),
 
-        // Initial assessment feature
+        // Remaining tiles are visual placeholders for upcoming features.
+        // TODO: add remaining features
         FeatureTile(
           icon: Icons.assignment,
           title: "Ersteinschätzung",

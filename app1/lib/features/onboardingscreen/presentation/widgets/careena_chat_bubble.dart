@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Small speech bubble introducing Careena on the onboarding hero card.
 class CareenaChatBubble extends StatelessWidget {
   const CareenaChatBubble({super.key});
 

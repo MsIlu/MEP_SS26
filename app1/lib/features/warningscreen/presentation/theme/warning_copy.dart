@@ -1,3 +1,4 @@
+/// Centralized German copy for the warning screen.
 class WarningCopy {
   static const String pageTitle = 'Handlungsempfehlung';
   static const String semanticEmergencyLabel =

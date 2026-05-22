@@ -1,8 +1,11 @@
+/// Generates lightweight follow-up suggestions from assistant responses.
 class SmartReplies {
+  /// Returns a small set of suggested user replies based on simple keywords.
   static List<String> generate(String text) {
     final lower = text.toLowerCase();
 
-    /// Symptoms
+    //Todo: make the replies smart, remove hard-coded replies
+    // Symptom-focused replies invite the user to add medically useful details.
     if (lower.contains("schmerz") || lower.contains("weh")) {
       return [
         "Wo genau tut es weh?",
@@ -11,7 +14,7 @@ class SmartReplies {
       ];
     }
 
-    /// Diagnosis/disease
+    // Uncertainty language usually benefits from cause and triage follow-ups.
     if (lower.contains("könnte") || lower.contains("möglich")) {
       return [
         "Welche Ursachen gibt es?",
@@ -20,7 +23,7 @@ class SmartReplies {
       ];
     }
 
-    /// Treatment
+    // Treatment-related responses often lead to practical care questions.
     if (lower.contains("behandlung") || lower.contains("medikament")) {
       return [
         "Gibt es Hausmittel?",
@@ -29,7 +32,7 @@ class SmartReplies {
       ];
     }
 
-    /// Default
+    // Default suggestions are intentionally broad and safe for most replies.
     return [
       "Erklär mir das einfacher",
       "Was soll ich jetzt tun?",

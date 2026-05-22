@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 
+/// Animated assistant bubble shown while a backend response is pending.
 class ThinkingBubble extends StatefulWidget {
+  /// Whether to show the extra hint for unusually slow responses.
   final bool showLongProcessingHint;
 
   const ThinkingBubble({super.key, this.showLongProcessingHint = false});
@@ -10,8 +12,10 @@ class ThinkingBubble extends StatefulWidget {
   State<ThinkingBubble> createState() => _ThinkingBubbleState();
 }
 
+/// Animation state for the assistant typing indicator.
 class _ThinkingBubbleState extends State<ThinkingBubble>
     with SingleTickerProviderStateMixin {
+  // Drives the three-dot pulse animation continuously while the bubble exists.
   late final AnimationController _controller;
 
   @override
@@ -30,10 +34,13 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
     super.dispose();
   }
 
+  /// Builds one animated dot with a phase offset from the other dots.
   Widget _dot(double delay) {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
+        // Offsetting the normalized controller value creates the wave-like
+        // typing animation without needing three separate controllers.
         final value = (_controller.value + delay) % 1.0;
         final scale = 0.8 + (value < 0.5 ? value : 1 - value) * 0.6;
         final opacity = 0.3 + (value < 0.5 ? value : 1 - value) * 1.4;

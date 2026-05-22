@@ -135,8 +135,6 @@ def chat(req: ChatRequest):
             }
 
         # Nur wenn KEINE Red Flag erkannt wurde, geht es hier normal weiter:
-        # Nur reduzierten Verlauf an das LLM schicken
-        llm_messages = build_llm_messages(messages)
 
         # Nur reduzierten Verlauf an das LLM schicken
         llm_messages = build_llm_messages(messages)

@@ -4,12 +4,8 @@ import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../../chatscreen/presentation/widgets/feature_tile.dart';
 
-/// Displays a grid of feature tiles on the home screen.
-///
-/// Each tile represents a specific app feature
-/// such as chat, appointments, medication, or health tools.
+/// Displays the home-screen feature grid.
 class FeatureGrid extends StatelessWidget {
-  /// Controller reused when the chat feature opens the chat screen.
   final ChatController controller;
 
   const FeatureGrid({super.key, required this.controller});
@@ -50,25 +46,21 @@ class FeatureGrid extends StatelessWidget {
           title: "Ersteinschätzung",
           color: AppColors.accent,
         ),
-
         FeatureTile(
           icon: Icons.calendar_today,
           title: "Termine",
           color: Colors.orange,
         ),
-
         FeatureTile(
           icon: Icons.medical_services,
           title: "Medikamente",
           color: Colors.red,
         ),
-
         FeatureTile(
           icon: Icons.health_and_safety,
           title: "Gesundheit",
           color: Colors.purple,
         ),
-
         FeatureTile(
           icon: Icons.local_hospital,
           title: "Test",

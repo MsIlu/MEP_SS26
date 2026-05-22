@@ -13,8 +13,6 @@ class SmartReplies {
         "Ist das gefährlich?",
       ];
     }
-
-    // Uncertainty language usually benefits from cause and triage follow-ups.
     if (lower.contains("könnte") || lower.contains("möglich")) {
       return [
         "Welche Ursachen gibt es?",
@@ -22,8 +20,6 @@ class SmartReplies {
         "Sollte ich zum Arzt?",
       ];
     }
-
-    // Treatment-related responses often lead to practical care questions.
     if (lower.contains("behandlung") || lower.contains("medikament")) {
       return [
         "Gibt es Hausmittel?",
@@ -31,8 +27,6 @@ class SmartReplies {
         "Nebenwirkungen?",
       ];
     }
-
-    // Default suggestions are intentionally broad and safe for most replies.
     return [
       "Erklär mir das einfacher",
       "Was soll ich jetzt tun?",

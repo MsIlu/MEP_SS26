@@ -1,9 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
-import 'dart:convert';
-import 'dart:async';
+import 'api_exception.dart';
 
-/// HTTP client wrapper for API requests.
+/// HTTP client wrapper for JSON API requests.
 ///
 /// This class is responsible ONLY for making HTTP requests.
 /// It does NOT:
@@ -39,25 +40,40 @@ class ApiClient {
       final response = await _client
           .post(
             uri,
-            headers: const {
-              // Indicates that the request body is JSON
-              "Content-Type": "application/json",
-            },
-
-            // Convert Dart Map -> JSON string (required for most APIs)
-            body: jsonEncode(body),
+            headers: const {"Content-Type": "application/json"},
+        // Convert Dart Map -> JSON string (required for most APIs)
+        body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 15));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return jsonDecode(response.body);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          ApiErrorType.http,
+          response.body.isEmpty ? 'HTTP request failed' : response.body,
+          statusCode: response.statusCode,
+        );
       }
-      // Surface non-success responses with their body so controller-level error
-      // bubbles have enough context during development.
-      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
+      throw const ApiException(
+        ApiErrorType.invalidResponse,
+        'Server returned an invalid JSON object',
+      );
     } on TimeoutException {
-      throw Exception('Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+    } on FormatException catch (e) {
+      throw ApiException(
+        ApiErrorType.invalidResponse,
+        'Server returned invalid JSON: ${e.message}',
+      );
+    } on ApiException {
+      rethrow;
     } catch (e) {
-      throw Exception('Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Network Error: $e');
     }
   }
 }

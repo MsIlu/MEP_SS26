@@ -6,10 +6,6 @@ import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 
 /// Coordinates chat state, backend sessions, and message-list updates.
-///
-/// The controller intentionally contains no widget code. UI layers observe
-/// [messages] and decide how to render normal responses, loading states, errors,
-/// and red-flag navigation.
 class ChatController {
   /// API adapter used for backend session and chat requests.
   final ChatApi chatApi;
@@ -26,9 +22,6 @@ class ChatController {
   // The backend expects all messages after session creation to include the same
   // session ID, so it is cached once createSession succeeds.
   String? _sessionId;
-
-  // Stores the in-flight initialization so multiple screens or rebuilds do not
-  // create several backend sessions at the same time.
   Future<void>? _initFuture;
 
   /// Initializes the welcome message and backend session exactly once.
@@ -54,8 +47,6 @@ class ChatController {
 
     try {
       _sessionId = await chatApi.createSession();
-      // Warmup is intentionally tied to session creation so the first visible
-      // user message is less likely to pay the backend's cold-start cost.
       await chatApi.warmup();
       return true;
     } catch (_) {
@@ -69,8 +60,6 @@ class ChatController {
         );
       }
 
-      // Allow a later init attempt to retry instead of permanently caching a
-      // failed initialization future.
       _initFuture = null;
       return false;
     }
@@ -98,7 +87,6 @@ class ChatController {
     // Add both the user's message and a loading assistant bubble before the
     // request so the UI reflects the pending state immediately.
     _addMessage(message: Message(text: trimmed, isUser: true));
-
     _addMessage(message: Message(text: '', isUser: false, isLoading: true));
 
     try {
@@ -131,9 +119,7 @@ class ChatController {
       return response;
     } catch (e) {
       _setMessages(chatService.removeLastBotMessage(messages.value));
-
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
-
       return null;
     }
   }
@@ -155,5 +141,9 @@ class ChatController {
     return messages.value.any(
       (message) => message.text.startsWith('Der Chat ist gerade offline.'),
     );
+  }
+
+  void dispose() {
+    messages.dispose();
   }
 }

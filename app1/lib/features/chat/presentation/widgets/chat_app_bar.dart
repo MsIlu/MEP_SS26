@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ChatAppBar({super.key});
+  final VoidCallback onBackPressed;
+
+  const ChatAppBar({
+    super.key,
+    required this.onBackPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,19 +20,17 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: Color(0xFF2C5358),
           size: 30,
         ),
-        onPressed: () => Navigator.pop(context),
+        onPressed: onBackPressed,
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Avatar
           const CircleAvatar(
             radius: 18,
             backgroundColor: Color(0xFFE7F5F3),
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 10),
-          // Name & Online-Status
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -11,6 +11,7 @@ import '../widgets/latest_message_button.dart';
 import '../widgets/smart_reply_list.dart';
 import '../widgets/symptom_list.dart';
 import '../widgets/symptom_editor.dart';
+import '../dialogs/leave_chat.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
@@ -160,6 +161,14 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocusNode.requestFocus();
   }
 
+  Future<void> _handleLeaveChat() async {
+    final shouldLeave = await showLeaveChatDialog(context);
+
+    if (!mounted || !shouldLeave) return;
+
+    Navigator.of(context).pop();
+  }
+
   /// Opens the symptom editor as a bottom sheet.
   /// The actual symptom state is managed by the ChatController.
   void _showSymptomEditor() {
@@ -178,50 +187,56 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FA),
-      appBar: const ChatAppBar(),
-      body: SafeArea(
-        child:
-        Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(child: _buildMessageList()),
-                SmartReplyList(
-                  replies: _smartReplies,
-                  onSelected: _handleSmartReplySelected,
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-                // Displays detected symptoms as compact chips below the smart replies.
-                // Editing is handled in a separate bottom sheet.
-                SymptomList(
-                  symptomsListenable: widget.controller.symptoms,
-                  onAddPressed: _showSymptomEditor,
-                  onSymptomPressed: (symptom) {
-                    _showSymptomEditor();
-                  },
-                ),
-
-                ChatInputField(
-                  controller: _textController,
-                  focusNode: _inputFocusNode,
-                  isSending: _isSending,
-                  onSend: _handleSend,
-                ),
-              ],
-            ),
-          if (_showLatestMessageButton)
-              Positioned(
-                right: 16,
-                bottom: 132,
-                child: LatestMessageButton(onPressed: _scrollToBottom),
+        await _handleLeaveChat();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF2F5FA),
+        appBar: ChatAppBar(
+          onBackPressed: _handleLeaveChat,
+        ),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(child: _buildMessageList()),
+                  SmartReplyList(
+                    replies: _smartReplies,
+                    onSelected: _handleSmartReplySelected,
+                  ),
+                  SymptomList(
+                    symptomsListenable: widget.controller.symptoms,
+                    onAddPressed: _showSymptomEditor,
+                    onSymptomPressed: (symptom) {
+                      _showSymptomEditor();
+                    },
+                  ),
+                  ChatInputField(
+                    controller: _textController,
+                    focusNode: _inputFocusNode,
+                    isSending: _isSending,
+                    onSend: _handleSend,
+                  ),
+                ],
               ),
-          ],
+              if (_showLatestMessageButton)
+                Positioned(
+                  right: 16,
+                  bottom: 132,
+                  child: LatestMessageButton(onPressed: _scrollToBottom),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
+
   Widget _buildMessageList() {
     return FocusTraversalGroup(
       child: CallbackShortcuts(

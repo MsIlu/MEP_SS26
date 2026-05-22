@@ -73,6 +73,10 @@ class ChatController {
           ),
         );
       }
+      // Reload symptoms after each chat response.
+      // The backend is expected to update the symptom draft during /chat
+      // once the symptom extractor is connected.
+      await loadSymptoms();
       return botMessage;
     } catch (e) {
       if (_cancelRequested || currentGenerationId != _generationId) {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:app1/core/network/api_client.dart';
+import 'package:app1/features/authscreen/presentation/screens/login_screen.dart';
+import 'package:app1/features/authscreen/presentation/screens/registration_screen.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
@@ -33,8 +35,31 @@ void main() {
     await tester.tap(find.text('Anmelden'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(LoginScreen), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Anmelden'));
+    await tester.pumpAndSettle();
+
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.text('Willkommen!'), findsOneWidget);
+    expect(
+      find.text('Ich bin Careena!\nWie kann ich dir helfen?'),
+      findsOneWidget,
+    );
+    expect(find.text('Deine Funktionen...'), findsOneWidget);
+  });
+
+  testWidgets('Registration opens the multi-step account flow', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(MyApp(chatController: chatController));
+
+    await tester.tap(find.text('Registrieren'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RegistrationScreen), findsOneWidget);
+    expect(find.text('Konto erstellen'), findsOneWidget);
+    expect(find.text('Persönliche Daten eingeben'), findsOneWidget);
   });
 
   testWidgets('Primary onboarding action opens the chatscreen', (
@@ -46,6 +71,18 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ChatScreen), findsOneWidget);
+  });
+
+  testWidgets('Temporary onboarding test button opens the home screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(MyApp(chatController: chatController));
+
+    await tester.tap(find.text('Test: direkt zur Homepage'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Deine Funktionen...'), findsOneWidget);
   });
 
   testWidgets('Warning page shows emergency action', (

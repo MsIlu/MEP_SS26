@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
 
 /// Large onboarding card that presents the primary chat call to action.
@@ -43,38 +45,21 @@ class OnboardingHeroCard extends StatelessWidget {
                     fontSize: isCompact ? 24 : 28,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
-                    color: const Color(0xFF244C52),
+                    color: AppColors.careenaTitle,
                   ),
                 ),
                 const SizedBox(height: 14),
                 isCompact ? const _CompactHeroBody() : const _RegularHeroBody(),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
+                CareenaButton(
+                  text: 'Jetzt mit Careena sprechen',
+                  onPressed: onPressed,
+                  backgroundColor: AppColors.careenaPrimary,
+                  borderRadius: 40,
                   height: 58,
-                  child: ElevatedButton(
-                    onPressed: onPressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF37AEB5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(40),
-                        side: const BorderSide(
-                          color: Color(0xFF00F0FF),
-                          width: 3,
-                        ),
-                      ),
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        "Jetzt mit Careena sprechen",
-                        style: GoogleFonts.nunito(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  side: const BorderSide(
+                    color: AppColors.careenaGlow,
+                    width: 3,
                   ),
                 ),
               ],

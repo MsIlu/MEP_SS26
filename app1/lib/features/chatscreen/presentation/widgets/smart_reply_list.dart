@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 /// Horizontal wrapping list of suggested next user messages.
 class SmartReplyList extends StatelessWidget {
@@ -34,7 +35,7 @@ class SmartReplyList extends StatelessWidget {
                 label: Text(reply),
                 onPressed: () => onSelected(reply),
                 backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFF26A69A)),
+                side: const BorderSide(color: AppColors.careenaTeal),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

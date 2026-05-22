@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
+import '../themes/app_colors.dart';
 
 /// Animated assistant bubble shown while a backend response is pending.
 class ThinkingBubble extends StatefulWidget {
@@ -73,7 +74,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
         children: [
           const CircleAvatar(
             radius: 16,
-            backgroundColor: Color(0xFFE7F5F3),
+            backgroundColor: AppColors.careenaBubbleBackground,
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 8),
@@ -117,7 +118,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
                       'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7C80),
+                        color: AppColors.careenaMuted,
                       ),
                     ),
                   ],

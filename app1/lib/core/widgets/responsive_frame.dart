@@ -85,7 +85,19 @@ class ResponsivePageBody extends StatelessWidget {
       );
     }
 
-    return ResponsiveFrame(maxWidth: maxWidth, padding: padding, child: child);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ResponsiveFrame(
+          maxWidth: maxWidth,
+          padding: padding,
+          child: SizedBox(
+            width: double.infinity,
+            height: constraints.maxHeight,
+            child: child,
+          ),
+        );
+      },
+    );
   }
 }
 

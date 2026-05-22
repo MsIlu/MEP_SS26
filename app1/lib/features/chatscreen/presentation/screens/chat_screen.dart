@@ -15,6 +15,7 @@ import '../widgets/smart_reply_list.dart';
 import '../widgets/symptom_list.dart';
 import '../widgets/symptom_editor.dart';
 import '../dialogs/leave_chat.dart';
+import '../themes/app_colors.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -284,7 +285,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _handleLeaveChat();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF2F5FA),
+        backgroundColor: AppColors.background,
         appBar: ChatAppBar(
           onBackPressed: _handleLeaveChat,
         ),

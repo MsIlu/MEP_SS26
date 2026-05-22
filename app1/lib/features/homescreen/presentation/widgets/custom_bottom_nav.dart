@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
@@ -8,14 +9,16 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(15, 0, 15, 12),
-      child: Center(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        heightFactor: 1,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: Colors.teal[100]!),
+              border: Border.all(color: AppColors.careenaInfoBorder),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -32,8 +35,8 @@ class CustomBottomNav extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: Colors.transparent,
                 type: BottomNavigationBarType.fixed,
-                selectedItemColor: const Color(0xFF26A69A),
-                unselectedItemColor: Colors.teal[200],
+                selectedItemColor: AppColors.careenaTeal,
+                unselectedItemColor: AppColors.careenaSoftAccent,
                 selectedFontSize: 11,
                 unselectedFontSize: 11,
                 currentIndex: 0,

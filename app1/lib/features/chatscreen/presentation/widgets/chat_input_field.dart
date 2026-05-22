@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 /// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatelessWidget {
@@ -49,7 +50,7 @@ class ChatInputField extends StatelessWidget {
                   hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF2F5FA),
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: Row(
@@ -102,7 +103,7 @@ class ChatInputField extends StatelessWidget {
                 child: IconButton.filled(
                   onPressed: isSending ? null : onSend,
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF26A69A),
+                    backgroundColor: AppColors.careenaTeal,
                     disabledBackgroundColor: Colors.grey[300],
                     fixedSize: Size.square(isCompact ? 44 : 48),
                   ),

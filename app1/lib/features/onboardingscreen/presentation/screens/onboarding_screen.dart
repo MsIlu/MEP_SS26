@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../../authscreen/presentation/screens/login_screen.dart';
+import '../../../authscreen/presentation/screens/registration_screen.dart';
+import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
-import '../../../homescreen/presentation/screens/home_screen.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../../chatscreen/presentation/screens/chat_screen.dart';
-import '../widgets/auth_button.dart';
+import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
 
@@ -17,7 +20,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDDF1F1),
+      backgroundColor: AppColors.careenaBackground,
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 560,
@@ -44,16 +47,31 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        AuthButton(
-                          text: "Anmelden",
-                          onPressed: () => _navigateToHome(context),
+                        CareenaButton(
+                          text: 'Anmelden',
+                          onPressed: () => _navigateToLogin(context),
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.onboardingButtonText,
+                          borderRadius: 22,
+                          elevation: 2,
                         ),
                         const SizedBox(height: 16),
-                        const _AuthDivider(),
+                        const AuthDivider(),
                         const SizedBox(height: 16),
-                        AuthButton(
-                          text: "Registrieren",
+                        CareenaButton(
+                          text: 'Registrieren',
+                          onPressed: () => _navigateToRegistration(context),
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.onboardingButtonText,
+                          borderRadius: 22,
+                          elevation: 2,
+                        ),
+                        const SizedBox(height: 12),
+                        // Todo: remove when testing is done
+                        TextButton.icon(
                           onPressed: () => _navigateToHome(context),
+                          icon: const Icon(Icons.home_outlined, size: 18),
+                          label: const Text('Test: direkt zur Homepage'),
                         ),
                       ],
                     ),
@@ -77,31 +95,30 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
-  /// Opens the placeholder home flow after login or registration.
+  /// Opens the login form for returning users.
+  void _navigateToLogin(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoginScreen(chatController: chatController),
+      ),
+    );
+  }
+
+  /// Opens the registration form for new users.
+  void _navigateToRegistration(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            RegistrationScreen(chatController: chatController),
+      ),
+    );
+  }
+
   void _navigateToHome(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => HomeScreen(controller: chatController),
       ),
-    );
-  }
-}
-
-/// Visual divider between the two auth actions.
-class _AuthDivider extends StatelessWidget {
-  const _AuthDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey.shade500, thickness: 1)),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text("oder", style: TextStyle(fontSize: 14)),
-        ),
-        Expanded(child: Divider(color: Colors.grey.shade500, thickness: 1)),
-      ],
     );
   }
 }

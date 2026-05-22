@@ -2,11 +2,13 @@ import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/home_function_list.dart';
-import '../widgets/notification_badge_icon.dart';
+import '../widgets/home_header.dart';
+import '../widgets/home_search_bar.dart';
 
 /// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatelessWidget {
@@ -29,9 +31,9 @@ class HomeScreen extends StatelessWidget {
           maxWidth: 720,
           child: Column(
             children: [
-              _buildHeader(isCompact),
+              HomeHeader(isCompact: isCompact),
               CareenaHeroCard(onTap: () => _navigateToChat(context)),
-              _buildSearchBar(isCompact),
+              HomeSearchBar(isCompact: isCompact),
               HomeFunctionList(features: features),
             ],
           ),
@@ -51,62 +53,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the top row with greeting text and notification badge.
-  Widget _buildHeader(bool isCompact) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        isCompact ? 16 : 20,
-        20,
-        isCompact ? 16 : 20,
-        10,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              "Willkommen!",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: isCompact ? 24 : 28,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF2C5358),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const NotificationBadgeIcon(count: 3),
-        ],
-      ),
-    );
-  }
-
-  /// Builds the local search field shown below the hero card.
-  Widget _buildSearchBar(bool isCompact) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 16 : 20,
-        vertical: 15,
-      ),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Suchen...",
-          prefixIcon: const Icon(Icons.search),
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Defines the currently available home features.
   List<HomeFeature> _buildFeatures() {
-    final featureColor = Colors.teal[100]!;
+    const featureColor = AppColors.careenaInfoBorder;
 
     return [
       HomeFeature(

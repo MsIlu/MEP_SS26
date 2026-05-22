@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import '../../utils/medical_terms.dart';
+import '../themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 
@@ -49,7 +50,7 @@ class ChatBubble extends StatelessWidget {
               if (!isUser) ...[
                 const CircleAvatar(
                   radius: 16,
-                  backgroundColor: Color(0xFFE7F5F3),
+                  backgroundColor: AppColors.careenaBubbleBackground,
                   backgroundImage: AssetImage(AppAssets.careenaDoctor),
                 ),
                 const SizedBox(width: 8),
@@ -62,7 +63,7 @@ class ChatBubble extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF26A69A) : Colors.white,
+                    color: isUser ? AppColors.careenaTeal : Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -83,9 +84,7 @@ class ChatBubble extends StatelessWidget {
                       Text(
                         message.text,
                         style: TextStyle(
-                          color: isUser
-                              ? Colors.white
-                              : const Color(0xFF2C5358),
+                          color: isUser ? Colors.white : AppColors.careenaDark,
                           fontSize: 15,
                         ),
                       ),

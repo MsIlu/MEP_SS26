@@ -1,3 +1,7 @@
+### Hinweis
+
+Diese Datei wurde KI-generiert, um uns bei der Übersicht und Pflege des Projekts zu unterstützen.
+
 # Flutter lib structure
 
 Diese Datei beschreibt die aktuelle Struktur von `app1/lib` und die wichtigsten
@@ -31,6 +35,15 @@ app1/lib/
     |   |-- data/
     |   |-- presentation/
     |   |-- services/
+    |   `-- utils/
+    |-- authscreen/
+    |   |-- data/
+    |   |-- presentation/
+    |   |   |-- models/
+    |   |   |-- screens/
+    |   |   |-- theme/
+    |   |   |-- view_models/
+    |   |   `-- widgets/
     |   `-- utils/
     |-- homescreen/
     |   |-- data/
@@ -124,9 +137,35 @@ Die Präsentation ist getrennt in:
 - `models`: Präsentationsmodelle wie `EmergencyAction`
 - `view_models`: Anzeigeaufbereitung wie `EmergencyReason`
 
-## Home und Onboarding
+## Auth, Home und Onboarding
 
-`features/onboardingscreen` ist die erste Seite und routet in Chat oder Home.
+`features/onboardingscreen` ist die erste Seite und routet direkt in den Chat
+oder in die Auth-Flows.
+
+`features/authscreen` enthält den UI-only Login- und Registrierungsflow. Login
+und Registrierung validieren lokale Formularfelder und leiten nach erfolgreichem
+Absenden in das Home weiter. Eine echte Authentifizierung oder Persistenz ist
+noch nicht angebunden.
+
+Die Auth-Präsentation ist nach Verantwortlichkeiten getrennt:
+
+- `screens`: Flow-State, Formularzustand und Navigation
+- `widgets/common`: Buttons, Textfelder, Info-Dialoge und gemeinsame
+  Layout-Bausteine
+- `widgets/registration`: einzelne Registrierungsschritte und Fortschrittsanzeige
+- `widgets/registration/birth_date`: Container, segmentierte Datumseingabe und
+  read-only Altersfeld jeweils als getrennte Widgets
+- `widgets/registration/personal`: Vorname/Nachname- und Account-Feldgruppen
+  des ersten Registrierungsschritts
+- `widgets/review`: Review-Box, Datenschutz-Hinweis und Zustimmungs-Checkbox
+- `theme`: Auth-spezifische TextStyles, Layoutwerte und Input-Decorations
+- `models`: einfache Präsentationsmodelle wie Review-Einträge
+- `view_models`: Formular-Controller für Textfelder, Step-Validierung und Review-Daten
+- `data`: statische Optionen für Formularauswahlen
+- `utils`: reine Validierungsfunktionen ohne Widget-Abhängigkeit
+
+Farben kommen aus `features/chatscreen/presentation/themes/app_colors.dart`, damit
+kein zweites Farbsystem im Auth-Feature entsteht.
 
 `features/homescreen` enthält die Startseite nach Login/Registrierung. Der
 Screen bekommt den geteilten `ChatController` und reicht ihn an den Chat weiter.
@@ -158,6 +197,7 @@ Backend liefert red_flag: true
 Das Frontend enthält jetzt fokussierte Tests für:
 
 - Onboarding-Navigation
+- Login- und Registrierungs-Navigation
 - Warning-Page-Rendering
 - `ChatService`-Transformationen
 - `ChatResponse.fromJson`

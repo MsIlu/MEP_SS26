@@ -1,73 +1,43 @@
 import 'package:flutter/material.dart';
+
 import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'notification_badge_icon.dart';
 
-/// Legacy home header with optional overlapping avatar artwork.
+/// Top row with greeting text and notification badge for the home screen.
 class HomeHeader extends StatelessWidget {
-  /// Optional avatar positioned partially outside the header container.
-  final Widget? floatingAvatar;
+  /// Whether the header should use the narrow phone spacing.
+  final bool isCompact;
 
-  const HomeHeader({super.key, this.floatingAvatar});
+  const HomeHeader({super.key, required this.isCompact});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Main header container
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, Color(0xFF6C63FF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              // Placeholder space to avoid overlapping with floating avatar
-              const SizedBox(width: 80),
-
-              // Main header text section
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Careena ist für dich da 🤍",
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Wie kann ich dir helfen?",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 16 : 20,
+        20,
+        isCompact ? 16 : 20,
+        10,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              'Willkommen!',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: isCompact ? 24 : 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.careenaDark,
               ),
-
-              // Notification icon on the right side
-              const Icon(Icons.notifications_none, color: Colors.white),
-            ],
-          ),
-        ),
-
-        // Floating avatar positioned outside the card for a layered look.
-        if (floatingAvatar != null)
-          Positioned(
-            left: -15,
-            top: -32,
-            child: Transform.translate(
-              offset: const Offset(0, 20),
-              child: SizedBox(height: 120, width: 120, child: floatingAvatar!),
             ),
           ),
-      ],
+          const SizedBox(width: 12),
+          const NotificationBadgeIcon(count: 3),
+        ],
+      ),
     );
   }
 }

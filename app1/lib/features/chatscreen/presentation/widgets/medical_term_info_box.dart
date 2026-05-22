@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/medical_terms.dart';
+import '../themes/app_colors.dart';
 
 /// Inline explanation box for a detected medical term in an assistant message.
 class MedicalTermInfoBox extends StatelessWidget {
@@ -16,20 +17,24 @@ class MedicalTermInfoBox extends StatelessWidget {
         margin: const EdgeInsets.only(top: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFE7F5F3),
+          color: AppColors.careenaBubbleBackground,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFB8E4E8)),
+          border: Border.all(color: AppColors.careenaInfoBorder),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.info_outline, color: Color(0xFF26A69A), size: 18),
+            const Icon(
+              Icons.info_outline,
+              color: AppColors.careenaTeal,
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 '${term.term}: ${term.explanation}',
                 style: const TextStyle(
-                  color: Color(0xFF2C5358),
+                  color: AppColors.careenaDark,
                   fontSize: 13,
                   height: 1.35,
                 ),

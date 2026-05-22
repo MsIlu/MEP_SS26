@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Small speech bubble introducing Careena on the onboarding hero card.
 class CareenaChatBubble extends StatelessWidget {
@@ -15,7 +16,7 @@ class CareenaChatBubble extends StatelessWidget {
 
         borderRadius: BorderRadius.circular(14),
 
-        border: Border.all(color: Colors.grey.shade300, width: 1),
+        border: Border.all(color: AppColors.careenaBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -30,7 +31,7 @@ class CareenaChatBubble extends StatelessWidget {
         style: GoogleFonts.nunito(
           fontSize: 12,
           height: 1.2,
-          color: const Color(0xFF244C52),
+          color: AppColors.careenaTitle,
         ),
       ),
     );

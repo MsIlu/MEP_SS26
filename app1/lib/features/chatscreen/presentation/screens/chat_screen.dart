@@ -12,6 +12,9 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../widgets/smart_reply_list.dart';
+import '../widgets/symptom_list.dart';
+import '../widgets/symptom_editor.dart';
+import '../dialogs/leave_chat.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -234,38 +237,92 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  void _handleCancelGeneration() {
+    widget.controller.cancelGeneration();
+
+    _longProcessingTimer?.cancel();
+
+    setState(() {
+      _isSending = false;
+      _showLongProcessingHint = false;
+    });
+
+    _inputFocusNode.requestFocus();
+  }
+
+  Future<void> _handleLeaveChat() async {
+    final shouldLeave = await showLeaveChatDialog(context);
+
+    if (!mounted || !shouldLeave) return;
+
+    Navigator.of(context).pop();
+  }
+
+  /// Opens the symptom editor as a bottom sheet.
+  /// The actual symptom state is managed by the ChatController.
+  void _showSymptomEditor() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFF7FAF9),
+      builder: (context) {
+        return SymptomEditor(
+          symptoms: widget.controller.symptoms.value,
+          onSave: widget.controller.updateSymptomsDirectly,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FA),
-      appBar: const ChatAppBar(),
-      body: SafeArea(
-        child: ResponsivePageBody(
-          maxWidth: 820,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(child: _buildMessageList()),
-                  SmartReplyList(
-                    replies: _smartReplies,
-                    onSelected: _handleSmartReplySelected,
-                  ),
-                  ChatInputField(
-                    controller: _textController,
-                    focusNode: _inputFocusNode,
-                    isSending: _isSending,
-                    onSend: _handleSend,
-                  ),
-                ],
-              ),
-              if (_showLatestMessageButton)
-                Positioned(
-                  right: 16,
-                  bottom: 132,
-                  child: LatestMessageButton(onPressed: _scrollToBottom),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        await _handleLeaveChat();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF2F5FA),
+        appBar: ChatAppBar(
+          onBackPressed: _handleLeaveChat,
+        ),
+        body: SafeArea(
+          child: ResponsivePageBody(
+            maxWidth: 820,
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(child: _buildMessageList()),
+                    SmartReplyList(
+                      replies: _smartReplies,
+                      onSelected: _handleSmartReplySelected,
+                    ),
+                    SymptomList(
+                      symptomsListenable: widget.controller.symptoms,
+                      onAddPressed: _showSymptomEditor,
+                      onSymptomPressed: (symptom) {
+                        _showSymptomEditor();
+                      },
+                    ),
+                    ChatInputField(
+                      controller: _textController,
+                      focusNode: _inputFocusNode,
+                      isSending: _isSending,
+                      onSend: _handleSend,
+                    ),
+                  ],
                 ),
-            ],
+                if (_showLatestMessageButton)
+                  Positioned(
+                    right: 16,
+                    bottom: 132,
+                    child: LatestMessageButton(onPressed: _scrollToBottom),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -314,7 +371,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: ChatBubble(
                           message: message,
                           showLongProcessingHint:
-                              message.isLoading && _showLongProcessingHint,
+                          message.isLoading && _showLongProcessingHint,
+                          onCancelGeneration: message.isLoading
+                              ? _handleCancelGeneration
+                              : null,
                         ),
                       ),
                     );

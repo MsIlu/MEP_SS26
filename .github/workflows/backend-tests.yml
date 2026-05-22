@@ -31,6 +31,12 @@ jobs:
       - name: Check Python syntax
         run: python -m compileall .
 
+      # Run backend unit tests
+      - name: Run pytest
+        run: |
+            pip install pytest
+            pytest
+
       # Import Test FastAPI
       - name: Test FastAPI import
         env:

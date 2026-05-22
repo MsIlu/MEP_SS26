@@ -5,8 +5,13 @@ import '../../../../core/config/app_assets.dart';
 class ThinkingBubble extends StatefulWidget {
   /// Whether to show the extra hint for unusually slow responses.
   final bool showLongProcessingHint;
+  final VoidCallback? onCancelGeneration;
 
-  const ThinkingBubble({super.key, this.showLongProcessingHint = false});
+  const ThinkingBubble({
+    super.key,
+    this.showLongProcessingHint = false,
+    this.onCancelGeneration,
+  });
 
   @override
   State<ThinkingBubble> createState() => _ThinkingBubbleState();
@@ -72,6 +77,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 8),
+
           AnimatedOpacity(
             duration: const Duration(milliseconds: 300),
             opacity: 1,
@@ -109,13 +115,37 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
                     const SizedBox(height: 8),
                     const Text(
                       'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7C80)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7C80),
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
           ),
+
+          if (widget.onCancelGeneration != null) ...[
+            const SizedBox(width: 6),
+            InkWell(
+              onTap: widget.onCancelGeneration,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1615F),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

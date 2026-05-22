@@ -3,7 +3,12 @@ import '../../../../core/config/app_assets.dart';
 
 /// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ChatAppBar({super.key});
+  final VoidCallback onBackPressed;
+
+  const ChatAppBar({
+    super.key,
+    required this.onBackPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: Color(0xFF2C5358),
           size: 30,
         ),
-        onPressed: () => Navigator.pop(context),
+        onPressed: onBackPressed,
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,

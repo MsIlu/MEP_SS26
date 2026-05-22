@@ -4,6 +4,7 @@ import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../theme/warning_theme.dart';
 
+/// Top section of the warning card with icon, title, and urgent explanation.
 class WarningHeader extends StatelessWidget {
   const WarningHeader({super.key});
 
@@ -11,6 +12,8 @@ class WarningHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // The icon and copy stack vertically on narrow cards so the warning
+        // title keeps enough readable width.
         final isCompact = constraints.maxWidth < WarningLayout.compactWidth;
         final icon = _WarningIcon(isCompact: isCompact);
         final copy = const _WarningHeaderCopy();
@@ -35,7 +38,9 @@ class WarningHeader extends StatelessWidget {
   }
 }
 
+/// Circular warning icon sized for compact and regular card layouts.
 class _WarningIcon extends StatelessWidget {
+  /// Whether the parent header is using its compact layout.
   final bool isCompact;
 
   const _WarningIcon({required this.isCompact});
@@ -54,6 +59,7 @@ class _WarningIcon extends StatelessWidget {
   }
 }
 
+/// Warning headline and explanatory body copy.
 class _WarningHeaderCopy extends StatelessWidget {
   const _WarningHeaderCopy();
 

@@ -1,11 +1,18 @@
+/// Small glossary entry used to explain medical language inside chat replies.
 class MedicalTerm {
+  /// Word or phrase that should be detected in a response.
   final String term;
+
+  /// Plain-language explanation shown to the user.
   final String explanation;
 
   const MedicalTerm({required this.term, required this.explanation});
 }
 
+/// Provides lightweight term matching for inline medical explanations.
 class MedicalTerms {
+  // This list is intentionally small and local so the frontend can show helpful
+  // explanations without waiting for an extra backend lookup.
   static const _terms = [
     MedicalTerm(
       term: 'Symptom',
@@ -28,10 +35,13 @@ class MedicalTerms {
     ),
   ];
 
+  /// Returns the first known glossary term contained in [text], if any.
   static MedicalTerm? firstMatch(String text) {
     final normalized = text.toLowerCase();
 
     for (final term in _terms) {
+      // The current matching is deliberately simple. It favors predictable UI
+      // behavior over fuzzy matches that could explain the wrong medical term.
       if (normalized.contains(term.term)) {
         return term;
       }

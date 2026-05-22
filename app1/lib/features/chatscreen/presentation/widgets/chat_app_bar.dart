@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 
+/// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar({super.key});
 
@@ -20,14 +21,14 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Avatar
+          // Avatar that visually connects the app bar to assistant messages.
           const CircleAvatar(
             radius: 18,
             backgroundColor: Color(0xFFE7F5F3),
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 10),
-          // Name & Online-Status
+          // Name and simple status indicator for the assistant persona.
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

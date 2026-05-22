@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 /// with a smooth vertical floating animation
 /// and a soft shadow effect.
 class FloatingAvatar extends StatefulWidget {
-  // Path to the avatar image asset
+  /// Path to the avatar image asset
   final String imagePath;
+
+  /// Diameter of the circular avatar.
   final double size;
 
   const FloatingAvatar({super.key, required this.imagePath, this.size = 100});
@@ -16,11 +18,13 @@ class FloatingAvatar extends StatefulWidget {
   State<FloatingAvatar> createState() => _FloatingAvatarState();
 }
 
+/// Animation state for the floating avatar movement.
 class _FloatingAvatarState extends State<FloatingAvatar>
     with SingleTickerProviderStateMixin {
-  // Controls the animation loop
+  // Controls the repeated vertical floating animation.
   late AnimationController _controller;
-  // Stores the vertical movement animation
+
+  // Stores the current y-axis offset for the avatar.
   late Animation<double> _animation;
 
   @override
@@ -28,6 +32,7 @@ class _FloatingAvatarState extends State<FloatingAvatar>
     super.initState();
 
     // Initialize animation controller
+    // Repeat in reverse to create a gentle up-and-down movement.
     _controller = AnimationController(
       vsync: this,
       // Duration of one animation cycle

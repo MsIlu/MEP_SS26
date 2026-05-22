@@ -5,8 +5,16 @@ import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 
+/// Coordinates chat state, backend sessions, and message-list updates.
+///
+/// The controller intentionally contains no widget code. UI layers observe
+/// [messages] and decide how to render normal responses, loading states, errors,
+/// and red-flag navigation.
 class ChatController {
+  /// API adapter used for backend session and chat requests.
   final ChatApi chatApi;
+
+  /// Pure message helper used to keep list transformations testable.
   final ChatService chatService;
 
   ChatController({required this.chatApi, required this.chatService});
@@ -15,14 +23,21 @@ class ChatController {
     [],
   );
 
+  // The backend expects all messages after session creation to include the same
+  // session ID, so it is cached once createSession succeeds.
   String? _sessionId;
+
+  // Stores the in-flight initialization so multiple screens or rebuilds do not
+  // create several backend sessions at the same time.
   Future<void>? _initFuture;
 
+  /// Initializes the welcome message and backend session exactly once.
   Future<void> init() async {
     _initFuture ??= _initialize();
     await _initFuture;
   }
 
+  /// Adds the first assistant message and prepares the backend session.
   Future<void> _initialize() async {
     if (messages.value.isEmpty) {
       _addMessage(
@@ -33,11 +48,14 @@ class ChatController {
     await _ensureSession(showOfflineMessage: true);
   }
 
+  /// Ensures a usable backend session exists before sending real messages.
   Future<bool> _ensureSession({bool showOfflineMessage = false}) async {
     if (_sessionId != null) return true;
 
     try {
       _sessionId = await chatApi.createSession();
+      // Warmup is intentionally tied to session creation so the first visible
+      // user message is less likely to pay the backend's cold-start cost.
       await chatApi.warmup();
       return true;
     } catch (_) {
@@ -51,6 +69,8 @@ class ChatController {
         );
       }
 
+      // Allow a later init attempt to retry instead of permanently caching a
+      // failed initialization future.
       _initFuture = null;
       return false;
     }
@@ -75,6 +95,8 @@ class ChatController {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
+    // Add both the user's message and a loading assistant bubble before the
+    // request so the UI reflects the pending state immediately.
     _addMessage(message: Message(text: trimmed, isUser: true));
 
     _addMessage(message: Message(text: '', isUser: false, isLoading: true));
@@ -92,6 +114,8 @@ class ChatController {
 
       final botMessage = Message(text: response.text, isUser: false);
 
+      // Insert an empty assistant bubble first. The stream below gradually
+      // replaces it with longer partial text values.
       _addMessage(message: botMessage.copyWith(text: ''));
 
       // Stream the bot response character by character for the typing effect.
@@ -114,16 +138,19 @@ class ChatController {
     }
   }
 
+  /// Applies a single-message append through the service helper.
   void _addMessage({required Message message}) {
     _setMessages(
       chatService.addMessage(messages: messages.value, message: message),
     );
   }
 
+  /// Publishes a new immutable list instance to all listeners.
   void _setMessages(List<Message> updatedMessages) {
     messages.value = updatedMessages;
   }
 
+  /// Prevents the offline explanation from being appended repeatedly.
   bool _hasOfflineMessage() {
     return messages.value.any(
       (message) => message.text.startsWith('Der Chat ist gerade offline.'),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'floating_avatar.dart';
 
+/// Home-screen card that invites the user into a Careena chat.
 class CareenaHeroCard extends StatelessWidget {
+  /// Called when the user taps the hero action.
   final VoidCallback onTap;
   const CareenaHeroCard({super.key, required this.onTap});
 
@@ -10,6 +12,8 @@ class CareenaHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Switch from side-by-side to stacked layout before the avatar and text
+        // start competing for horizontal space.
         final isCompact = constraints.maxWidth < 360;
         final avatarSize = isCompact ? 78.0 : 100.0;
 
@@ -53,7 +57,9 @@ class CareenaHeroCard extends StatelessWidget {
   }
 }
 
+/// Text and call-to-action section shared by compact and regular hero layouts.
 class _HeroTextAndAction extends StatelessWidget {
+  /// Opens the chat screen.
   final VoidCallback onTap;
 
   const _HeroTextAndAction({required this.onTap});

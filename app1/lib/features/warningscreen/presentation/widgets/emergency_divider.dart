@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../theme/warning_theme.dart';
 
+/// Red divider used to visually separate emergency instructions.
 class EmergencyDivider extends StatelessWidget {
+  /// Whether to draw the stronger full-width divider below the header.
   final bool strong;
 
   const EmergencyDivider({super.key, this.strong = false});

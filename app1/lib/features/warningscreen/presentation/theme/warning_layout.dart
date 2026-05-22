@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Shared spacing and width constants for the warning screen.
 class WarningLayout {
   static const double maxContentWidth = 640;
   static const double compactWidth = 330;

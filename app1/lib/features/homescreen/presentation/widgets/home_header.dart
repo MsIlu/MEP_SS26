@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 
+/// Legacy home header with optional overlapping avatar artwork.
 class HomeHeader extends StatelessWidget {
+  /// Optional avatar positioned partially outside the header container.
   final Widget? floatingAvatar;
 
   const HomeHeader({super.key, this.floatingAvatar});
@@ -55,21 +57,14 @@ class HomeHeader extends StatelessWidget {
           ),
         ),
 
-        // Floating avatar
+        // Floating avatar positioned outside the card for a layered look.
         if (floatingAvatar != null)
           Positioned(
             left: -15,
             top: -32,
             child: Transform.translate(
-              offset: const Offset(
-                0,
-                20,
-              ), // pushes it slightly down into header too
-              child: SizedBox(
-                height: 120, // bigger size
-                width: 120,
-                child: floatingAvatar!,
-              ),
+              offset: const Offset(0, 20),
+              child: SizedBox(height: 120, width: 120, child: floatingAvatar!),
             ),
           ),
       ],

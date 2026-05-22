@@ -7,7 +7,9 @@ import '../widgets/auth_button.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
 
+/// Entry screen that introduces Careena and routes users into chat or home.
 class OnboardingScreen extends StatelessWidget {
+  /// Shared chat controller passed forward so later screens keep one session.
   final ChatController chatController;
 
   const OnboardingScreen({super.key, required this.chatController});
@@ -23,6 +25,8 @@ class OnboardingScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Builder(
             builder: (context) {
+              // The auth controls need tighter padding on narrow devices to
+              // keep button labels and the divider from feeling cramped.
               final horizontalPadding = ResponsiveBreakpoints.isCompact(context)
                   ? 12.0
                   : 22.0;
@@ -64,6 +68,7 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
+  /// Opens the chat directly from the onboarding hero call to action.
   void _navigateToChat(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -72,6 +77,7 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
+  /// Opens the placeholder home flow after login or registration.
   void _navigateToHome(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -81,6 +87,7 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
+/// Visual divider between the two auth actions.
 class _AuthDivider extends StatelessWidget {
   const _AuthDivider();
 

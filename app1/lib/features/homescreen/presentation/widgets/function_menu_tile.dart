@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
+/// Single tappable row in the home feature list.
 class FunctionMenuTile extends StatelessWidget {
+  /// Leading icon that represents the feature.
   final IconData icon;
+
+  /// Feature label shown in the row.
   final String title;
+
+  /// Background color behind the leading icon.
   final Color bgColor;
+
+  /// Action executed when the tile is selected.
   final VoidCallback onTap;
 
   const FunctionMenuTile({

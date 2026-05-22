@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../themes/app_colors.dart';
 
-// Reusable widget for a clickable feature tile
+/// Reusable clickable tile used by chat-related feature menus.
 class FeatureTile extends StatelessWidget {
+  /// Icon displayed in the tile avatar.
   final IconData icon;
+
+  /// Tile label.
   final String title;
+
+  /// Accent color for the icon and its soft background.
   final Color color;
+
+  /// Optional tap callback; null leaves the tile visually static.
   final VoidCallback? onTap;
 
   const FeatureTile({

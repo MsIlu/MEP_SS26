@@ -8,7 +8,9 @@ import '../widgets/custom_bottom_nav.dart';
 import '../widgets/home_function_list.dart';
 import '../widgets/notification_badge_icon.dart';
 
+/// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatelessWidget {
+  /// Shared chat controller reused when opening the chat from the home screen.
   final ChatController controller;
 
   const HomeScreen({super.key, required this.controller});
@@ -16,6 +18,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures();
+    // A very small width needs tighter horizontal spacing than the shared
+    // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
@@ -37,6 +41,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Navigates to the chat while preserving the existing controller instance.
   void _navigateToChat(BuildContext context) {
     Navigator.push(
       context,
@@ -46,6 +51,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the top row with greeting text and notification badge.
   Widget _buildHeader(bool isCompact) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -76,6 +82,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the local search field shown below the hero card.
   Widget _buildSearchBar(bool isCompact) {
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -97,6 +104,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Defines the currently available home features.
   List<HomeFeature> _buildFeatures() {
     final featureColor = Colors.teal[100]!;
 

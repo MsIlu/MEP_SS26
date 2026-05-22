@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
   const CustomBottomNav({super.key});
 
@@ -26,6 +27,8 @@ class CustomBottomNav extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: BottomNavigationBar(
+                // The navigation is currently static; currentIndex keeps the
+                // home item selected until real tab routing is introduced.
                 elevation: 0,
                 backgroundColor: Colors.transparent,
                 type: BottomNavigationBarType.fixed,

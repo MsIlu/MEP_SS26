@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+/// Floating shortcut that returns the user to the newest chat message.
 class LatestMessageButton extends StatelessWidget {
+  /// Called when the button is pressed.
   final VoidCallback onPressed;
 
   const LatestMessageButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
+    // Compact screens use an icon-only FAB so it does not cover too much of the
+    // message list above the input field.
     final isCompact = MediaQuery.sizeOf(context).width < 380;
 
     return Semantics(

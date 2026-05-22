@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Branding row shown at the top of the onboarding screen.
 class OnboardingHeader extends StatelessWidget {
   const OnboardingHeader({super.key});
 
@@ -8,6 +9,8 @@ class OnboardingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // The logo and title scale down together so the row remains single-line
+        // on narrow mobile screens.
         final isCompact = constraints.maxWidth < 360;
         final logoHeight = isCompact ? 52.0 : 65.0;
         final titleSize = isCompact ? 20.0 : 24.0;

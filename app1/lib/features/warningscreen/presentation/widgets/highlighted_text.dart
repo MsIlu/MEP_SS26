@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-
 import '../theme/warning_theme.dart';
 
+/// Text widget that highlights one important substring when it is present.
 class HighlightedText extends StatelessWidget {
+  /// Full text to render.
   final String text;
+
+  /// Optional exact substring that should use the warning highlight style.
   final String? highlightedText;
 
   const HighlightedText({
@@ -16,10 +19,13 @@ class HighlightedText extends StatelessWidget {
   Widget build(BuildContext context) {
     final highlight = highlightedText;
 
+    // Fall back to plain body text when there is nothing safe to highlight.
     if (highlight == null || !text.contains(highlight)) {
       return Text(text, style: WarningTextStyles.body);
     }
 
+    // Splitting keeps the highlighted substring styleable while preserving the
+    // surrounding sentence in the default body style.
     final parts = text.split(highlight);
 
     return RichText(

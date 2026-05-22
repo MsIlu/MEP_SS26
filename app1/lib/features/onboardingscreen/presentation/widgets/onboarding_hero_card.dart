@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'careena_chat_bubble.dart';
 
+/// Large onboarding card that presents the primary chat call to action.
 class OnboardingHeroCard extends StatelessWidget {
+  /// Called when the user wants to start chatting with Careena.
   final VoidCallback onPressed;
 
   const OnboardingHeroCard({super.key, required this.onPressed});
@@ -11,6 +13,8 @@ class OnboardingHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // The stacked illustration layout becomes too tight on compact screens,
+        // so the body switches to a vertical arrangement below this width.
         final isCompact = constraints.maxWidth < 380;
         final horizontalMargin = isCompact ? 12.0 : 13.0;
 
@@ -82,6 +86,7 @@ class OnboardingHeroCard extends StatelessWidget {
   }
 }
 
+/// Wide hero body that layers copy, speech bubble, and character artwork.
 class _RegularHeroBody extends StatelessWidget {
   const _RegularHeroBody();
 
@@ -94,6 +99,8 @@ class _RegularHeroBody extends StatelessWidget {
         builder: (context, constraints) {
           return Stack(
             children: [
+              // Widths are proportional to the available card width so the
+              // illustration stays balanced on tablet and desktop frames.
               Positioned(
                 left: 0,
                 top: 6,
@@ -119,6 +126,7 @@ class _RegularHeroBody extends StatelessWidget {
   }
 }
 
+/// Narrow hero body that stacks the same content without overlapping.
 class _CompactHeroBody extends StatelessWidget {
   const _CompactHeroBody();
 
@@ -143,6 +151,7 @@ class _CompactHeroBody extends StatelessWidget {
   }
 }
 
+/// Short supporting copy below the main onboarding headline.
 class _HeroDescription extends StatelessWidget {
   const _HeroDescription();
 

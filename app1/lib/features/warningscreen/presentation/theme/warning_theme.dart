@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Color tokens used by the warning screen.
 class WarningColors {
   static const Color warningRed = Color(0xFFFF3045);
   static const Color warningBackground = Color(0xFFFFF1F3);
@@ -8,6 +9,7 @@ class WarningColors {
   static const Color teal = Color(0xFF26A69A);
 }
 
+/// Text styles shared across warning widgets.
 class WarningTextStyles {
   static const TextStyle body = TextStyle(
     color: WarningColors.darkText,
@@ -27,6 +29,7 @@ class WarningTextStyles {
   );
 }
 
+/// Reusable decorations for warning cards and information boxes.
 class WarningDecorations {
   static final BoxDecoration emergencyCard = BoxDecoration(
     color: WarningColors.warningBackground,

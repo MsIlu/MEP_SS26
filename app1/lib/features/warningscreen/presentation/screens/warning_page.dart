@@ -9,7 +9,9 @@ import '../theme/warning_theme.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
 
+/// Safety page shown when the backend detects a red-flag response.
 class WarningPage extends StatelessWidget {
+  /// Backend response that contains the red-flag metadata.
   final ChatResponse response;
 
   const WarningPage({super.key, required this.response});

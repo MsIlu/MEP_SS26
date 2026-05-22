@@ -27,14 +27,6 @@ class ChatController {
     _sessionId = await chatApi.createSession();
     await loadSymptoms();
 
-    // Temporary UI test data.
-    // Remove this again after checking the symptom draft UI.
-    symptoms.value = [
-      'Kopfschmerzen',
-      'Übelkeit',
-    ];
-
-
     _addMessage(
       message: Message(text: AppConfig.welcomeMessage, isUser: false),
     );

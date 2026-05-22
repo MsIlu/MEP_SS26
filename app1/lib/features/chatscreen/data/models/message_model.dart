@@ -1,20 +1,11 @@
 /// Represents a single chat message.
-///
-/// A message contains the textual content and metadata that describes
-/// whether it was sent by the user or received from another source
-/// (e.g., a bot or system).
 class Message {
   final String text;
 
   /// Indicates whether this message was sent by the user.
   /// If false, it is treated as a bot/system message.
   final bool isUser;
-
-  /// Indicates whether this message is currently in a loading state
-  /// (e.g., "Thinking…" or waiting for a response).
   final bool isLoading;
-
-  /// Optional timestamp used for ordering messages or future persistence.
   final DateTime? timestamp;
 
   Message({

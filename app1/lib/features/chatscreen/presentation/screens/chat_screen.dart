@@ -12,6 +12,7 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../widgets/smart_reply_list.dart';
+import '../themes/app_colors.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -237,7 +238,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FA),
+      backgroundColor: AppColors.background,
       appBar: const ChatAppBar(),
       body: SafeArea(
         child: ResponsivePageBody(

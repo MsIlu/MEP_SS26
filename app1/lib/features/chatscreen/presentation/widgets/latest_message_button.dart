@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 /// Floating shortcut that returns the user to the newest chat message.
 class LatestMessageButton extends StatelessWidget {
@@ -21,16 +22,20 @@ class LatestMessageButton extends StatelessWidget {
               heroTag: 'latest-message-button',
               onPressed: onPressed,
               elevation: 2,
-              backgroundColor: const Color(0xFFE7F5F3).withValues(alpha: 0.92),
-              foregroundColor: const Color(0xFF2C5358),
+              backgroundColor: AppColors.careenaBubbleBackground.withValues(
+                alpha: 0.92,
+              ),
+              foregroundColor: AppColors.careenaDark,
               child: const Icon(Icons.keyboard_arrow_down),
             )
           : FloatingActionButton.extended(
               heroTag: 'latest-message-button',
               onPressed: onPressed,
               elevation: 2,
-              backgroundColor: const Color(0xFFE7F5F3).withValues(alpha: 0.92),
-              foregroundColor: const Color(0xFF2C5358),
+              backgroundColor: AppColors.careenaBubbleBackground.withValues(
+                alpha: 0.92,
+              ),
+              foregroundColor: AppColors.careenaDark,
               icon: const Icon(Icons.keyboard_arrow_down),
               label: const Text('Zur neuesten Nachricht'),
             ),

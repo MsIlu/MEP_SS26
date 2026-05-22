@@ -1,9 +1,6 @@
 import '../data/models/message_model.dart';
 
 /// Handles chat-domain message operations without depending on Flutter UI state.
-///
-/// Keeping these transformations outside the controller makes message-list
-/// updates easier to test and prevents widgets from mutating shared lists.
 class ChatService {
   static const Duration defaultTypingDelay = Duration(milliseconds: 15);
 
@@ -46,9 +43,9 @@ class ChatService {
   }) async* {
     var current = '';
 
-    for (final char in fullText.split('')) {
+    for (final codePoint in fullText.runes) {
       await Future.delayed(delay);
-      current += char;
+      current += String.fromCharCode(codePoint);
       yield current;
     }
   }

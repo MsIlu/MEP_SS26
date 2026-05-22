@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import '../../../chat/presentation/screens/chat_screen.dart';
-import '../../../chat/presentation/themes/app_colors.dart';
-import '../../../chat/presentation/widgets/feature_tile.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import '../../../chatscreen/presentation/screens/chat_screen.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
+import '../../../chatscreen/presentation/widgets/feature_tile.dart';
 
 /// Displays a grid of feature tiles on the home screen.
 ///
 /// Each tile represents a specific app feature
 /// such as chat, appointments, medication, or health tools.
 class FeatureGrid extends StatelessWidget {
-  // Controller used for managing chat state
+  /// Controller reused when the chat feature opens the chat screen.
   final ChatController controller;
 
   const FeatureGrid({super.key, required this.controller});
@@ -43,7 +43,8 @@ class FeatureGrid extends StatelessWidget {
           },
         ),
 
-        // Initial assessment feature
+        // Remaining tiles are visual placeholders for upcoming features.
+        // TODO: add remaining features
         FeatureTile(
           icon: Icons.assignment,
           title: "Ersteinschätzung",

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
+/// Single tappable row in the home feature list.
 class FunctionMenuTile extends StatelessWidget {
+  /// Leading icon that represents the feature.
   final IconData icon;
+
+  /// Feature label shown in the row.
   final String title;
+
+  /// Background color behind the leading icon.
   final Color bgColor;
+
+  /// Action executed when the tile is selected.
   final VoidCallback onTap;
 
   const FunctionMenuTile({
@@ -25,6 +33,7 @@ class FunctionMenuTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+        minVerticalPadding: 12,
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -35,6 +44,8 @@ class FunctionMenuTile extends StatelessWidget {
         ),
         title: Text(
           title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xFF2C5358),

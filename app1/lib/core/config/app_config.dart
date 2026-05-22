@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 ///
 /// It is intentionally designed with only static members
 /// so no instance needs to be created
-
 class AppConfig {
   /// Name of the application displayed in the UI.
   static const String appName = "MedBitAid v0.4";

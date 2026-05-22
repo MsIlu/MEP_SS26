@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../chat/presentation/themes/app_colors.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
+/// Static search-style prompt used on the home screen.
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
 

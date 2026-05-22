@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
-import '../data/chat_api.dart';
+import '../data/chat_api_contract.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 
 class ChatController {
-  final ChatApi chatApi;
+  final ChatApiContract chatApi;
   final ChatService chatService;
   int _generationId = 0;
 
@@ -115,7 +115,7 @@ class ChatController {
 
     _addMessage(
       message: Message(
-        text: 'Antwort abgebrochen. Sie können Ihre Eingabe jetzt ergänzen.',
+        text: 'Antwort abgebrochen. Du kannst deine Eingabe jetzt ergänzen.',
         isUser: false,
       ),
     );

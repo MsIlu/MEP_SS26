@@ -1,16 +1,45 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 
-import 'package:app1/core/network/api_client.dart';
 import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/data/chat_api.dart';
+import 'package:app1/features/chat/data/chat_api_contract.dart';
 import 'package:app1/features/chat/data/models/message_model.dart';
 import 'package:app1/features/chat/services/chat_service.dart';
+
+class FakeChatApi implements ChatApiContract {
+  @override
+  Future<String> sendMessage(String text, String sessionId) async {
+    return 'Fake response';
+  }
+
+  @override
+  Future<void> warmup() async {}
+
+  @override
+  Future<String> createSession() async {
+    return 'test-session';
+  }
+
+  @override
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    return [];
+  }
+
+  @override
+  Future<List<String>> updateInputDraftSymptoms(
+      String sessionId,
+      List<String> symptoms,
+      ) async {
+    return symptoms;
+  }
+
+  @override
+  Future<void> cancelInputDraft(String sessionId) async {}
+}
 
 void main() {
   test('cancelGeneration removes last bot message and adds cancel notice', () {
     final controller = ChatController(
-      chatApi: ChatApi(ApiClient(http.Client())),
+      chatApi: FakeChatApi(),
       chatService: ChatService(),
     );
 
@@ -29,7 +58,7 @@ void main() {
 
     expect(
       controller.messages.value[1].text,
-      'Antwort abgebrochen. Sie können Ihre Eingabe jetzt ergänzen.',
+      'Antwort abgebrochen. Du kannst deine Eingabe jetzt ergänzen.',
     );
     expect(controller.messages.value[1].isUser, false);
   });

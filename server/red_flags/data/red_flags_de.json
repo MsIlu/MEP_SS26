@@ -1,0 +1,396 @@
+{
+  "catalog_version": "0.1.0",
+  "language": "de",
+  "description": "Red-Flag-Katalog für eine sicherheitsorientierte Vorprüfung vor der KI-Antwort.",
+  "defaults": {
+    "severity": "emergency",
+    "action": "call_112",
+    "block_ai_response": true,
+    "message_key": "emergency_call_112"
+  },
+  "rules": [
+    {
+      "id": "RF01",
+      "name": "Kritische Atemnot",
+      "category": "breathing",
+      "match": {
+        "keywords_any": [
+          "atemnot",
+          "luftnot",
+          "bekomme keine luft",
+          "kriege keine luft",
+          "ich bekomme keine luft",
+          "ich kriege keine luft",
+          "kaum atmen",
+          "kann kaum atmen",
+          "kann nicht richtig atmen",
+          "schlecht luft bekommen",
+          "schlecht luft kriegen",
+          "erstickungsgefühl",
+          "erstickungsgefuehl",
+          "ich ersticke",
+          "ersticke",
+          "sprechdyspnoe",
+          "blaue lippen",
+          "blau angelaufen",
+          "zyanose"
+        ],
+        "keyword_groups_all": []
+      }
+    },
+    {
+      "id": "RF02",
+      "name": "Kritische Brust- oder Thoraxschmerzen",
+      "category": "chest_pain",
+      "match": {
+        "keywords_any": [
+          "starke brustschmerzen",
+          "starker brustschmerz",
+          "druck auf der brust",
+          "enge in der brust",
+          "brust drückt",
+          "brust drueckt",
+          "starker druck auf der brust",
+          "starke schmerzen in der brust"
+        ],
+        "keyword_groups_all": [
+          [
+            "brustschmerz",
+            "brustschmerzen",
+            "thoraxschmerz",
+            "thoraxschmerzen",
+            "schmerzen in der brust"
+          ],
+          [
+            "atemnot",
+            "keine luft",
+            "luftnot",
+            "kaltschweiß",
+            "kaltschweiss",
+            "ausstrahlung",
+            "linker arm",
+            "kiefer",
+            "rücken",
+            "ruecken",
+            "plötzlich",
+            "ploetzlich",
+            "akut"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RF03",
+      "name": "Bewusstseinsveränderung, Kollaps oder Synkope",
+      "category": "consciousness",
+      "match": {
+        "keywords_any": [
+          "bewusstlos",
+          "nicht ansprechbar",
+          "kaum ansprechbar",
+          "ohnmächtig",
+          "ohnmaechtig",
+          "ohnmacht",
+          "kollaps",
+          "synkope",
+          "weggetreten",
+          "verwirrt",
+          "akut verwirrt",
+          "desorientiert",
+          "bewusstseinsveränderung",
+          "bewusstseinsveraenderung"
+        ],
+        "keyword_groups_all": []
+      }
+    },
+    {
+      "id": "RF04",
+      "name": "Neurologisches Defizit",
+      "category": "neurological_deficit",
+      "match": {
+        "keywords_any": [
+          "lähmung",
+          "laehmung",
+          "gelähmt",
+          "gelaehmt",
+          "halbseitige schwäche",
+          "halbseitige schwaeche",
+          "gesicht hängt",
+          "gesicht haengt",
+          "mundwinkel hängt",
+          "mundwinkel haengt",
+          "sprachstörung",
+          "sprachstoerung",
+          "sprache verwaschen",
+          "kann nicht sprechen",
+          "plötzlich taub",
+          "ploetzlich taub",
+          "arm taub",
+          "bein taub",
+          "sehstörung",
+          "sehstoerung",
+          "doppelbilder"
+        ],
+        "keyword_groups_all": []
+      }
+    },
+    {
+      "id": "RF05",
+      "name": "Krampfanfall",
+      "category": "seizure",
+      "match": {
+        "keywords_any": [
+          "krampfanfall",
+          "epileptischer anfall",
+          "epileptischer krampfanfall",
+          "krampft",
+          "krämpfe",
+          "kraempfe",
+          "erster anfall",
+          "erstmaliger anfall",
+          "zuckungen am ganzen körper",
+          "zuckungen am ganzen koerper"
+        ],
+        "keyword_groups_all": []
+      }
+    },
+    {
+      "id": "RF06",
+      "name": "Starke oder unstillbare Blutung",
+      "category": "bleeding",
+      "match": {
+        "keywords_any": [
+          "starke blutung",
+          "blutet stark",
+          "blutung hört nicht auf",
+          "blutung hoert nicht auf",
+          "sehr viel blut",
+          "unstillbare blutung",
+          "bluthusten",
+          "huste blut",
+          "blut erbrechen",
+          "kaffeesatzerbrechen",
+          "schwarzer stuhl",
+          "meläna",
+          "melaena",
+          "blutiger durchfall"
+        ],
+        "keyword_groups_all": []
+      }
+    },
+    {
+      "id": "RF07",
+      "name": "Schwere allergische Reaktion mit Atemwegsbeteiligung",
+      "category": "allergic_reaction",
+      "match": {
+        "keywords_any": [
+          "zunge schwillt an",
+          "lippen schwellen an",
+          "gesicht schwillt an",
+          "hals schwillt an",
+          "kehle schwillt an",
+          "schwellung im hals",
+          "schwellung der zunge",
+          "schwellung der lippen"
+        ],
+        "keyword_groups_all": [
+          [
+            "allergie",
+            "allergische reaktion",
+            "wespenstich",
+            "bienenstich",
+            "insektenstich",
+            "neues medikament"
+          ],
+          [
+            "atemnot",
+            "keine luft",
+            "luftnot",
+            "erstickungsgefühl",
+            "erstickungsgefuehl",
+            "schwellung",
+            "zunge",
+            "lippen",
+            "gesicht",
+            "kollaps"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RF08",
+      "name": "Kritische Bauchschmerzen mit Warnzeichen",
+      "category": "abdominal_pain",
+      "match": {
+        "keywords_any": [
+          "starke bauchschmerzen",
+          "unerträgliche bauchschmerzen",
+          "unertraegliche bauchschmerzen",
+          "blut erbrechen",
+          "kaffeesatzerbrechen",
+          "schwarzer stuhl",
+          "blutiger stuhl",
+          "blutiger durchfall"
+        ],
+        "keyword_groups_all": [
+          [
+            "bauchschmerzen",
+            "bauchschmerz",
+            "bauchweh",
+            "unterbauchschmerzen",
+            "oberbauchschmerzen",
+            "bauchkrämpfe",
+            "bauchkraempfe"
+          ],
+          [
+            "ohnmacht",
+            "ohnmächtig",
+            "ohnmaechtig",
+            "kollaps",
+            "synkope",
+            "atemnot",
+            "brustschmerzen",
+            "blut",
+            "blutung",
+            "schwarzer stuhl",
+            "kaffeesatzerbrechen",
+            "bauchtrauma",
+            "sturz",
+            "ikterus",
+            "gelbe haut",
+            "kein stuhlgang",
+            "kein wind",
+            "anhaltendes erbrechen"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RF09",
+      "name": "Kritischer Schwindel mit Warnzeichen",
+      "category": "dizziness",
+      "match": {
+        "keywords_any": [],
+        "keyword_groups_all": [
+          [
+            "schwindel",
+            "schwindelig",
+            "mir ist schwindelig",
+            "alles dreht sich",
+            "benommen",
+            "präsynkope",
+            "praesynkope"
+          ],
+          [
+            "ohnmacht",
+            "ohnmächtig",
+            "ohnmaechtig",
+            "kollaps",
+            "synkope",
+            "nicht ansprechbar",
+            "kaum ansprechbar",
+            "sprachstörung",
+            "sprachstoerung",
+            "lähmung",
+            "laehmung",
+            "gesicht hängt",
+            "gesicht haengt",
+            "sehstörung",
+            "sehstoerung",
+            "gangstörung",
+            "gangstoerung",
+            "kann nicht gehen",
+            "herzrasen",
+            "palpitationen",
+            "fieber",
+            "nackensteifigkeit",
+            "steifer nacken",
+            "krampfanfall",
+            "verwirrt",
+            "desorientiert"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RF10",
+      "name": "Fieber mit Warnzeichen",
+      "category": "fever",
+      "match": {
+        "keywords_any": [],
+        "keyword_groups_all": [
+          [
+            "fieber",
+            "hohes fieber",
+            "über 39",
+            "ueber 39",
+            "39 grad",
+            "40 grad",
+            "hyperthermie"
+          ],
+          [
+            "nackensteifigkeit",
+            "steifer nacken",
+            "verwirrt",
+            "desorientiert",
+            "bewusstseinsveränderung",
+            "bewusstseinsveraenderung",
+            "petechien",
+            "purpura",
+            "ausschlag",
+            "krampfanfall",
+            "lähmung",
+            "laehmung",
+            "sprachstörung",
+            "sprachstoerung",
+            "kollaps",
+            "atemnot"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RF11",
+      "name": "Kopfschmerzen mit Warnzeichen",
+      "category": "headache",
+      "match": {
+        "keywords_any": [
+          "schlimmste kopfschmerzen",
+          "stärkste kopfschmerzen",
+          "staerkste kopfschmerzen",
+          "kopfschmerz wie noch nie",
+          "plötzlich starke kopfschmerzen",
+          "ploetzlich starke kopfschmerzen",
+          "explosiver kopfschmerz",
+          "explosionsartige kopfschmerzen"
+        ],
+        "keyword_groups_all": [
+          [
+            "kopfschmerzen",
+            "kopfschmerz",
+            "kopfweh"
+          ],
+          [
+            "nackensteifigkeit",
+            "steifer nacken",
+            "fieber",
+            "sehstörung",
+            "sehstoerung",
+            "doppelbilder",
+            "lähmung",
+            "laehmung",
+            "sprachstörung",
+            "sprachstoerung",
+            "verwirrt",
+            "desorientiert",
+            "krampfanfall",
+            "sturz",
+            "schädel hirn trauma",
+            "schaedel hirn trauma",
+            "bewusstlos"
+          ]
+        ]
+      }
+    }
+  ]
+}

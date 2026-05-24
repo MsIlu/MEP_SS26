@@ -90,7 +90,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
                           style: const TextStyle(fontSize: 13),
                         ),
                         onPressed: () => widget.onSelected(reply),
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppColors.careenaBubbleBackground,
                         side: const BorderSide(color: AppColors.careenaTeal,),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

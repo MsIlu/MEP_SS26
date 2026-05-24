@@ -133,7 +133,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (messages.isEmpty) return;
     
     final lastMessage = messages.last;
-    if (lastMessage.isLoading || lastMessage.isUser)  return;
+    if (lastMessage.isLoading) return;
+    if (lastMessage.isUser)  return;
+    if (lastMessage.isStreaming) return;
     if (lastMessage.text.isEmpty) return;  
     
     // Generate smart replies from the latest assistant message

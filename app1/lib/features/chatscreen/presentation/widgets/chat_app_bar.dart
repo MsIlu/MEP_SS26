@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
+import '../themes/app_colors.dart';
 
 /// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -13,7 +14,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: const Icon(
           Icons.chevron_left,
-          color: Color(0xFF2C5358),
+          color: AppColors.careenaDark,
           size: 30,
         ),
         onPressed: () => Navigator.pop(context),
@@ -24,7 +25,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           // Avatar that visually connects the app bar to assistant messages.
           const CircleAvatar(
             radius: 18,
-            backgroundColor: Color(0xFFE7F5F3),
+            backgroundColor: AppColors.careenaBubbleBackground,
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 10),
@@ -35,7 +36,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               const Text(
                 "Careena",
                 style: TextStyle(
-                  color: Color(0xFF2C5358),
+                  color: AppColors.careenaDark,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),

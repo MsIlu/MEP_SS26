@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Animated floating avatar widget.
 ///
@@ -65,7 +66,7 @@ class _FloatingAvatarState extends State<FloatingAvatar>
         height: widget.size,
         width: widget.size,
         decoration: BoxDecoration(
-          color: const Color(0xFFE7F5F3),
+          color: AppColors.careenaBubbleBackground,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(

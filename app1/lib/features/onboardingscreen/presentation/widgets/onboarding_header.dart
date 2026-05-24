@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Branding row shown at the top of the onboarding screen.
 class OnboardingHeader extends StatelessWidget {
@@ -29,7 +30,7 @@ class OnboardingHeader extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontSize: titleSize,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF43B8BE),
+                    color: AppColors.careenaBrand,
                   ),
                 ),
               ),

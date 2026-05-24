@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
+import '../themes/app_colors.dart';
 
 /// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatelessWidget {
@@ -44,14 +45,12 @@ class ChatInputField extends StatelessWidget {
             isCompact ? 10 : 16,
             16,
           ),
-          decoration: const BoxDecoration(color: Colors.white),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 8),
-              ),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -62,7 +61,7 @@ class ChatInputField extends StatelessWidget {
                       hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF2F5FA),
+                          color: AppColors.background,
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Column(
@@ -70,51 +69,59 @@ class ChatInputField extends StatelessWidget {
                           children: [
                             if (smartReplies.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(12,4,12,6,),
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  4,
+                                  12,
+                                  6,
+                                ),
                                 child: SmartReplyList(
                                   replies: smartReplies,
-                                  onSelected: onSmartReplySelected,
-                                ),
+                                  onSelected:onSmartReplySelected,)
+                                ,
                               ),
 
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.center,
                               children: [
-                                SizedBox(width: isCompact ? 8 : 10),
+                                SizedBox(width: isCompact ? 8 : 10,),
 
                                 Expanded(
                                   child: TextField(
                                     controller: controller,
                                     focusNode: focusNode,
                                     autofocus: true,
-                                    textInputAction: TextInputAction.send,
-                                    keyboardType: TextInputType.text,
+                                    textInputAction:TextInputAction.send,
+                                    keyboardType:TextInputType.text,
                                     minLines: 1,
                                     maxLines: 4,
                                     onSubmitted: (_) {
-                                      // Pressing Enter should behave like tapping send,
-                                      // but only while the controller can accept input.
+                                      // Pressing Enter should behave
+                                      // like tapping send.
                                       if (!isSending) {
                                         onSend();
                                       }
                                     },
-                                    decoration: InputDecoration(
+                                    decoration:
+                                        InputDecoration(
                                       hintText: isCompact
                                           ? 'Beschwerden beschreiben'
                                           : 'Beschreiben Sie kurz Ihre Beschwerden',
-                                      border: InputBorder.none,
+                                      border:
+                                          InputBorder.none,
                                     ),
                                   ),
                                 ),
 
-                              if (!isCompact) ...[
-                                const Tooltip(
-                                  message: 'Spracheingabe ist noch nicht verfügbar',
-                                  child: Icon(Icons.mic_none, color: Colors.grey),
-                                ),
-                                const SizedBox(width: 15),
-                              ] else
-                                const SizedBox(width: 12),
+                                if (!isCompact) ...[
+                                  const Tooltip(
+                                    message:'Spracheingabe ist noch nicht verfügbar',
+                                    child: Icon(Icons.mic_none,color: Colors.grey,),
+                                  ),
+                                  const SizedBox(width: 15),
+                                ] else
+                                  const SizedBox(width: 12),
                               ],
                             ),
                           ],
@@ -123,8 +130,7 @@ class ChatInputField extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(width: isCompact ? 6 : 10),
-
+                  SizedBox(width: isCompact ? 6 : 10,),
                   Semantics(
                     button: true,
                     enabled: !isSending,
@@ -132,11 +138,12 @@ class ChatInputField extends StatelessWidget {
                         ? 'Nachricht wird verarbeitet'
                         : 'Symptombeschreibung senden',
                     child: IconButton.filled(
-                      onPressed: isSending ? null : onSend,
+                      onPressed:
+                          isSending ? null : onSend,
                       style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF26A69A),
-                        disabledBackgroundColor: Colors.grey[300],
-                        fixedSize: Size.square(isCompact ? 44 : 48),
+                        backgroundColor:AppColors.careenaTeal,
+                        disabledBackgroundColor:Colors.grey[300],
+                        fixedSize: Size.square(isCompact ? 44 : 48,),
                       ),
                       icon: Icon(
                         isSending

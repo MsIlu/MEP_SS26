@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 /// wrapping list of suggested next user messages.
 class SmartReplyList extends StatefulWidget {
@@ -31,15 +32,15 @@ class _SmartRepliesState extends State<SmartReplyList> {
     return Align(
       alignment: Alignment.centerRight,
       child: Padding(
-        padding: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: IntrinsicWidth(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FbFB),
+              color: AppColors.careenaNoteBackground,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF26A69A).withValues(alpha: 0.15),
+                color: AppColors.careenaTeal.withValues(alpha: 0.15),
               ),
             ),
             child: Column(
@@ -61,14 +62,14 @@ class _SmartRepliesState extends State<SmartReplyList> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF2C5358),
+                          color: AppColors.careenaDark,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Icon(
                         Icons.expand_more,
                         size: 20,
-                        color: const Color(0xFF2C5358)
+                        color: AppColors.careenaDark
                             .withValues(alpha: expanded ? 1 : 0.5),
                       ),
                     ],
@@ -82,8 +83,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: ActionChip(
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
                         label: Text(
                           reply,
@@ -91,9 +91,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
                         ),
                         onPressed: () => widget.onSelected(reply),
                         backgroundColor: Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFF26A69A),
-                        ),
+                        side: const BorderSide(color: AppColors.careenaTeal,),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

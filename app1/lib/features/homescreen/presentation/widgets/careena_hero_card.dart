@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
+import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 import 'floating_avatar.dart';
 
 /// Home-screen card that invites the user into a Careena chat.
@@ -24,7 +26,7 @@ class CareenaHeroCard extends StatelessWidget {
           ),
           padding: EdgeInsets.all(isCompact ? 16 : 20),
           decoration: BoxDecoration(
-            color: const Color(0xFFB8E4E8),
+            color: AppColors.careenaInfoBorder,
             borderRadius: BorderRadius.circular(30),
           ),
           child: isCompact
@@ -74,21 +76,13 @@ class _HeroTextAndAction extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 11),
-        ElevatedButton(
+        CareenaButton(
+          text: 'Jetzt mit Careena sprechen',
           onPressed: onTap,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF26A69A),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-          child: const FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              "Jetzt mit Careena sprechen",
-              style: TextStyle(color: Colors.white, fontSize: 13),
-            ),
-          ),
+          backgroundColor: AppColors.careenaTeal,
+          borderRadius: 20,
+          height: 44,
+          fontSize: 13,
         ),
       ],
     );

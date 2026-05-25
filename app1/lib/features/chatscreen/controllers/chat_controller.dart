@@ -87,7 +87,7 @@ class ChatController {
     // Add both the user's message and a loading assistant bubble before the
     // request so the UI reflects the pending state immediately.
     _addMessage(message: Message(text: trimmed, isUser: true));
-    _addMessage(message: Message(text: '', isUser: false, isLoading: true));
+    _addMessage(message: Message(text: '', isUser: false, isLoading: true, isStreaming: true,));
 
     try {
       final response = await chatApi.sendMessage(trimmed, _sessionId!);
@@ -111,10 +111,16 @@ class ChatController {
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
-            message: botMessage.copyWith(text: partialText),
+            message: botMessage.copyWith(text: partialText, isStreaming: true,),
           ),
         );
       }
+
+      _setMessages(
+        chatService.replaceLastMessage(
+          messages: messages.value, 
+          message: botMessage.copyWith(isStreaming: false),)
+      );
 
       return response;
     } catch (e) {

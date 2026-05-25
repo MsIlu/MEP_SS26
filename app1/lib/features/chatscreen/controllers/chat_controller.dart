@@ -104,7 +104,7 @@ class ChatController {
     if (trimmed.isEmpty) return null;
 
     _addMessage(message: Message(text: trimmed, isUser: true));
-    _addMessage(message: Message(text: '', isUser: false, isLoading: true));
+    _addMessage(message: Message(text: '', isUser: false, isLoading: true, isStreaming: true,));
 
     _isGenerating = true;
     _cancelRequested = false;
@@ -141,10 +141,16 @@ class ChatController {
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
-            message: botMessage.copyWith(text: partialText),
+            message: botMessage.copyWith(text: partialText, isStreaming: true,),
           ),
         );
       }
+
+      _setMessages(
+        chatService.replaceLastMessage(
+          messages: messages.value, 
+          message: botMessage.copyWith(isStreaming: false),)
+      );
 
       return response;
     } catch (e) {

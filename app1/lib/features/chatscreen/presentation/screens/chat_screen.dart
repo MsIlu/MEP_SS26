@@ -11,7 +11,6 @@ import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
-import '../widgets/smart_reply_list.dart';
 import '../widgets/symptom_list.dart';
 import '../widgets/symptom_editor.dart';
 import '../dialogs/leave_chat.dart';
@@ -51,6 +50,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    widget.controller.messages.addListener(_onMessagesChanged);
+    
     widget.controller.init();
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
@@ -113,7 +114,6 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _isSending = false;
       _showLongProcessingHint = false;
-      _smartReplies = [];
     });
 
     // Open the warning screen for red flag responses instead of showing a chat bubble.
@@ -125,15 +125,26 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    setState(() {
-      // Smart replies are generated from the final assistant text only. Red flag
-      // responses return early above and therefore never suggest casual replies.
-      _smartReplies = response == null
-          ? []
-          : SmartReplies.generate(response.text);
-    });
-
     _inputFocusNode.requestFocus();
+  }
+
+
+  void _onMessagesChanged() {
+    // Get the current list of messages
+    final messages = widget.controller.messages.value;
+
+    if (messages.isEmpty) return;
+    
+    final lastMessage = messages.last;
+    if (lastMessage.isLoading) return;
+    if (lastMessage.isUser)  return;
+    if (lastMessage.isStreaming) return;
+    if (lastMessage.text.isEmpty) return;  
+    
+    // Generate smart replies from the latest assistant message
+    setState(() {
+      _smartReplies = SmartReplies.generate(lastMessage.text);
+    });
   }
 
   /// Animates to the newest message after the current layout pass has finished.
@@ -197,11 +208,26 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  /// Sends the selected suggestion as if the user typed it manually.
-  void _handleSmartReplySelected(String reply) {
-    _textController.text = reply;
-    _handleSend();
-  }
+void _handleSmartReplySelected(String reply) {
+  final currentText = _textController.text.trim();
+
+  final newText =
+      currentText.isEmpty ? reply : '$currentText $reply';
+
+  _textController.text = newText;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    if (!mounted) return;
+
+    _inputFocusNode.requestFocus();
+
+    await Future.delayed(Duration.zero);
+
+    _textController.selection = TextSelection.collapsed(
+      offset: _textController.text.length,
+    );
+  });
+}
 
   /// Tracks whether the user is near the bottom and shows the jump button when
   /// new messages may otherwise arrive outside the visible area.
@@ -229,6 +255,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    widget.controller.messages.removeListener(_onMessagesChanged);
     _longProcessingTimer?.cancel();
     widget.controller.messages.removeListener(_handleMessagesChanged);
     _scrollController.removeListener(_handleScrollChanged);
@@ -275,6 +302,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  /// Builds the chat screen with symptoms above the input field and smart
+  /// replies rendered inline inside [ChatInputField].
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -297,10 +326,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 Column(
                   children: [
                     Expanded(child: _buildMessageList()),
-                    SmartReplyList(
-                      replies: _smartReplies,
-                      onSelected: _handleSmartReplySelected,
-                    ),
                     SymptomList(
                       symptomsListenable: widget.controller.symptoms,
                       onAddPressed: _showSymptomEditor,
@@ -313,6 +338,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       focusNode: _inputFocusNode,
                       isSending: _isSending,
                       onSend: _handleSend,
+                      smartReplies: _smartReplies,
+                      onSmartReplySelected: _handleSmartReplySelected,
                     ),
                   ],
                 ),
@@ -329,7 +356,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
+                
   /// Builds the scrollable, keyboard-accessible message history.
   Widget _buildMessageList() {
     return FocusTraversalGroup(

@@ -7,11 +7,13 @@ class Message {
   final bool isUser;
   final bool isLoading;
   final DateTime? timestamp;
+  final bool isStreaming;
 
   Message({
     required this.text,
     required this.isUser,
     this.isLoading = false,
+    this.isStreaming = false,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
@@ -22,11 +24,13 @@ class Message {
     bool? isUser,
     bool? isLoading,
     DateTime? timestamp,
+    bool? isStreaming,
   }) {
     return Message(
       text: text ?? this.text,
       isUser: isUser ?? this.isUser,
       isLoading: isLoading ?? this.isLoading,
+      isStreaming: isStreaming ?? this.isStreaming,
       timestamp: timestamp ?? this.timestamp,
     );
   }

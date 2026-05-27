@@ -10,7 +10,6 @@ Author @Freddy
     - symptoms
     - diagnoses
     - medications
-    - medical findings
 
     Responsible for:
     - converting unstructured text into ObservationEvent objects

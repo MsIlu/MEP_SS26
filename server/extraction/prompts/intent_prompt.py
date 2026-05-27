@@ -51,7 +51,6 @@ This includes:
 - symptoms
 - medications
 - diagnoses
-- findings
 - injuries
 - medically relevant observations
 - medically relevant body states

@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+import '../../../../core/widgets/responsive_frame.dart';
+import '../../../authscreen/presentation/screens/login_screen.dart';
+import '../../../authscreen/presentation/screens/registration_screen.dart';
+import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
+import '../../../chatscreen/controllers/chat_controller.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
+import '../../../chatscreen/presentation/screens/chat_screen.dart';
+import '../../../homescreen/presentation/screens/home_screen.dart';
+import '../widgets/onboarding_header.dart';
+import '../widgets/onboarding_hero_card.dart';
+
+/// Entry screen that introduces Careena and routes users into chat or home.
+class OnboardingScreen extends StatelessWidget {
+  /// Shared chat controller passed forward so later screens keep one session.
+  final ChatController chatController;
+
+  const OnboardingScreen({super.key, required this.chatController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.careenaBackground,
+      body: SafeArea(
+        child: ResponsivePageBody(
+          maxWidth: 560,
+          scrollable: true,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Builder(
+            builder: (context) {
+              // The auth controls need tighter padding on narrow devices to
+              // keep button labels and the divider from feeling cramped.
+              final horizontalPadding = ResponsiveBreakpoints.isCompact(context)
+                  ? 12.0
+                  : 22.0;
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const OnboardingHeader(),
+                  const SizedBox(height: 10),
+                  OnboardingHeroCard(onPressed: () => _navigateToChat(context)),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Column(
+                      children: [
+                        CareenaButton(
+                          text: 'Anmelden',
+                          onPressed: () => _navigateToLogin(context),
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.onboardingButtonText,
+                          borderRadius: 22,
+                          elevation: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        const AuthDivider(),
+                        const SizedBox(height: 16),
+                        CareenaButton(
+                          text: 'Registrieren',
+                          onPressed: () => _navigateToRegistration(context),
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.onboardingButtonText,
+                          borderRadius: 22,
+                          elevation: 2,
+                        ),
+                        const SizedBox(height: 12),
+                        // Todo: remove when testing is done
+                        TextButton.icon(
+                          onPressed: () => _navigateToHome(context),
+                          icon: const Icon(Icons.home_outlined, size: 18),
+                          label: const Text('Test: direkt zur Homepage'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Opens the chat directly from the onboarding hero call to action.
+  void _navigateToChat(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(controller: chatController),
+      ),
+    );
+  }
+
+  /// Opens the login form for returning users.
+  void _navigateToLogin(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoginScreen(chatController: chatController),
+      ),
+    );
+  }
+
+  /// Opens the registration form for new users.
+  void _navigateToRegistration(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            RegistrationScreen(chatController: chatController),
+      ),
+    );
+  }
+
+  void _navigateToHome(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(controller: chatController),
+      ),
+    );
+  }
+}

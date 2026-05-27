@@ -1,13 +1,18 @@
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/presentation/screens/chat_screen.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/responsive_frame.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/home_function_list.dart';
-import '../widgets/notification_badge_icon.dart';
+import '../widgets/home_header.dart';
+import '../widgets/home_search_bar.dart';
 
+/// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatelessWidget {
+  /// Shared chat controller reused when opening the chat from the home screen.
   final ChatController controller;
 
   const HomeScreen({super.key, required this.controller});
@@ -15,23 +20,30 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures();
+    // A very small width needs tighter horizontal spacing than the shared
+    // breakpoint helpers, because this screen has several fixed-size elements.
+    final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            CareenaHeroCard(onTap: () => _navigateToChat(context)),
-            _buildSearchBar(),
-            HomeFunctionList(features: features),
-          ],
+        child: ResponsivePageBody(
+          maxWidth: 720,
+          child: Column(
+            children: [
+              HomeHeader(isCompact: isCompact),
+              CareenaHeroCard(onTap: () => _navigateToChat(context)),
+              HomeSearchBar(isCompact: isCompact),
+              HomeFunctionList(features: features),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const CustomBottomNav(),
     );
   }
 
+  /// Navigates to the chat while preserving the existing controller instance.
   void _navigateToChat(BuildContext context) {
     Navigator.push(
       context,
@@ -41,46 +53,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Willkommen!",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C5358),
-            ),
-          ),
-          NotificationBadgeIcon(count: 3),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Suchen...",
-          prefixIcon: const Icon(Icons.search),
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// Defines the currently available home features.
   List<HomeFeature> _buildFeatures() {
-    final featureColor = Colors.teal[100]!;
+    const featureColor = AppColors.careenaInfoBorder;
 
     return [
       HomeFeature(

@@ -2,17 +2,50 @@ from openai import OpenAI
 from extraction.core.exceptions import EmptyLLMResponseError
 """
 Author @Freddy
-    Thin transport layer for OpenAI-compatible LLM APIs.
+    Lightweight client for OpenAI-compatible LLM APIs.
 
-    Responsible for:
-    - sending chat completion requests
-    - handling model selection
-    - returning raw JSON-formatted responses
+    LLMClient is responsible for sending chat completion requests
+    to a configured language model provider and returning the raw response.
 
-    Does NOT:
-    - parse JSON
-    - validate outputs
-    - apply domain logic or prompts
+    Responsibilities:
+    - initialize and manage the OpenAI-compatible client
+    - send chat completion requests
+    - handle model selection
+    - provide configurable generation parameters
+    - return raw model output as text
+
+    The client acts purely as a transport layer between the application
+    and the language model provider.
+
+    Supported providers may include:
+    - OpenAI
+    - Ollama
+    - LiteLLM
+    - other OpenAI-compatible APIs
+
+    Request flow:
+    1. build chat completion request
+    2. send request to the configured provider
+    3. receive model response
+    4. return raw response content
+
+    The client does NOT:
+    - parse JSON responses
+    - validate schemas
+    - contain extraction logic
+    - apply domain-specific reasoning
+    - implement pipeline orchestration
+
+    Error handling:
+    If the model returns an empty response,
+    an EmptyLLMResponseError is raised.
+
+    Notes:
+    The client enforces JSON response formatting via:
+        response_format={"type": "json_object"}
+
+    This is required for downstream schema validation
+    inside the ExtractionEngine.
 """
 class LLMClient:
 
@@ -32,30 +65,21 @@ class LLMClient:
     def complete(
         self,
         *,
-        system_prompt: str,
-        user_input: str,
+        messages: list[dict],
         temperature: float = 0.0,
         max_tokens: int = 1000,
         model: str | None = None,
+        json_mode: bool = False,
     ) -> str:
 
         selected_model = model or self.default_model
 
         response = self.client.chat.completions.create(
             model=selected_model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": user_input,
-                },
-            ],
+            messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            response_format={"type": "json_object"},
+            response_format={"type": "json_object"} if json_mode else None,
             
         )
 

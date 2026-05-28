@@ -1,9 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
-import 'dart:convert';
-import 'dart:async';
+import 'api_exception.dart';
 
-/// HTTP client wrapper for API requests.
+/// HTTP client wrapper for JSON API requests.
 ///
 /// This class is responsible ONLY for making HTTP requests.
 /// It does NOT:
@@ -17,6 +18,7 @@ import 'dart:async';
 /// - Encode request body to JSON
 /// TODO: Add proper HTTP error handling (status codes, timeouts, exceptions)
 class ApiClient {
+  /// Injected HTTP client so tests can provide a mock implementation.
   final http.Client _client;
 
   ApiClient(this._client);
@@ -25,35 +27,53 @@ class ApiClient {
   /// with a JSON-encoded [body].
   ///
   /// Example:
-  /// post("/chat", {"message": "Hello"})
+  /// post("/chatscreen", {"message": "Hello"})
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body,
   ) async {
-    /// Build the full request URL (base URL + endpoint path)
+    // Build the full request URL (base URL + endpoint path)
     final uri = Uri.parse("${AppConfig.baseUrl}$path");
     try {
-      /// Execute HTTP POST request and wait for the response
+      // Execute the HTTP POST request and limit the wait time so the UI can
+      // recover from an unreachable backend.
       final response = await _client
           .post(
             uri,
-            headers: const {
-              /// Indicates that the request body is JSON
-              "Content-Type": "application/json",
-            },
-
-            /// Convert Dart Map -> JSON string (required for most APIs)
-            body: jsonEncode(body),
+            headers: const {"Content-Type": "application/json"},
+        // Convert Dart Map -> JSON string (required for most APIs)
+        body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 15));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return jsonDecode(response.body);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          ApiErrorType.http,
+          response.body.isEmpty ? 'HTTP request failed' : response.body,
+          statusCode: response.statusCode,
+        );
       }
-      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
+      throw const ApiException(
+        ApiErrorType.invalidResponse,
+        'Server returned an invalid JSON object',
+      );
     } on TimeoutException {
-      throw Exception('Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+    } on FormatException catch (e) {
+      throw ApiException(
+        ApiErrorType.invalidResponse,
+        'Server returned invalid JSON: ${e.message}',
+      );
+    } on ApiException {
+      rethrow;
     } catch (e) {
-      throw Exception('Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Network Error: $e');
     }
   }
 }

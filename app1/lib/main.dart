@@ -1,44 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'core/network/api_client.dart';
-import 'features/chat/controllers/chat_controller.dart';
-import 'features/chat/data/chat_api.dart';
-import 'features/chat/services/chat_service.dart';
-import 'features/homescreen/presentation/screens/home_screen.dart';
+import 'app/app_dependencies.dart';
+import 'features/chatscreen/controllers/chat_controller.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+/// Root widget for the Careena app.
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ChatController? chatController;
+
+  const MyApp({super.key, this.chatController});
 
   @override
   Widget build(BuildContext context) {
-    final chatController = _buildChatController();
+    return _AppDependencyScope(externalChatController: chatController);
+  }
+}
 
+/// Keeps long-lived dependencies out of widget build methods.
+class _AppDependencyScope extends StatefulWidget {
+  final ChatController? externalChatController;
+
+  const _AppDependencyScope({this.externalChatController});
+
+  @override
+  State<_AppDependencyScope> createState() => _AppDependencyScopeState();
+}
+
+class _AppDependencyScopeState extends State<_AppDependencyScope> {
+  late final AppDependencies? _ownedDependencies;
+  late final ChatController _chatController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownedDependencies = widget.externalChatController == null
+        ? AppDependencies()
+        : null;
+    _chatController =
+        widget.externalChatController ?? _ownedDependencies!.chatController;
+  }
+
+  @override
+  void dispose() {
+    _ownedDependencies?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       title: 'Careena',
-
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
-
-      home: OnboardingScreen(
-        chatController: chatController,
-      ),
+      home: OnboardingScreen(chatController: _chatController),
     );
-  }
-
-  ChatController _buildChatController() {
-    final httpClient = http.Client();
-    final apiClient = ApiClient(httpClient);
-    final chatApi = ChatApi(apiClient);
-
-    return ChatController(chatApi: chatApi, chatService: ChatService());
   }
 }

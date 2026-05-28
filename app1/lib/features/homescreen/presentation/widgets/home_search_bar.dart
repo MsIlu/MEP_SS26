@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../../chat/presentation/themes/app_colors.dart';
 
+import '../../../chatscreen/presentation/themes/app_colors.dart';
+
+/// Search field shown below the home hero card.
 class HomeSearchBar extends StatelessWidget {
-  const HomeSearchBar({super.key});
+  /// Whether the field should use the narrow phone spacing.
+  final bool isCompact;
+
+  const HomeSearchBar({super.key, required this.isCompact});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      height: 50,
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 16 : 20,
+        vertical: 15,
       ),
-      child: Row(
-        children: const [
-          Icon(Icons.search, color: AppColors.textSecondary),
-
-          SizedBox(width: 10),
-
-          Text(
-            "Suche Symptome oder stelle Fragen...",
-            style: TextStyle(color: AppColors.textSecondary),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Suchen...',
+          prefixIcon: const Icon(Icons.search),
+          filled: true,
+          fillColor: AppColors.background,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
           ),
-        ],
+        ),
       ),
     );
   }

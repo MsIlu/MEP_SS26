@@ -7,12 +7,18 @@ import '../widgets/common/auth_buttons.dart';
 import '../widgets/common/auth_fields.dart';
 import '../widgets/common/auth_layout.dart';
 import 'registration_screen.dart';
+import '../../../../core/themes/theme_controller.dart';
 
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
   final ChatController chatController;
+  final ThemeController themeController;
 
-  const LoginScreen({super.key, required this.chatController});
+  const LoginScreen({
+    super.key,
+    required this.chatController,
+    required this.themeController,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -37,7 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(onBack: () => Navigator.of(context).pop()),
+          AuthTopBar(
+            onBack: () => Navigator.of(context).pop(),
+            onToggleTheme: widget.themeController.toggleTheme,
+            isDarkMode: widget.themeController.isDarkMode,
+          ),
           const SizedBox(height: 26),
           const AuthIntro(
             title: 'Willkommen zurück!',
@@ -91,8 +101,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _openRegistration() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) =>
-            RegistrationScreen(chatController: widget.chatController),
+        builder: (context) => RegistrationScreen(
+          chatController: widget.chatController,
+          themeController: widget.themeController,
+        ),
       ),
     );
   }
@@ -102,7 +114,10 @@ class _LoginScreenState extends State<LoginScreen> {
     // TODO: surface backend validation errors before navigating to HomeScreen.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => HomeScreen(controller: widget.chatController),
+        builder: (context) => HomeScreen(
+          controller: widget.chatController,
+          themeController: widget.themeController,
+        ),
       ),
     );
   }

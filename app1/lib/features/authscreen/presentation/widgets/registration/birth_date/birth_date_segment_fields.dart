@@ -42,6 +42,7 @@ class BirthDateSegmentFields extends StatelessWidget {
 
         return InputDecorator(
           decoration: AuthTheme.inputDecoration(
+            context: context,
             label: 'Geburtsdatum',
             hint: 'TT.MM.JJJJ',
           ).copyWith(errorText: field.errorText ?? liveError),

@@ -135,7 +135,7 @@ class _RegistrationHealthDataStepState
           const SizedBox(height: 20),
           Text(
             'Vorerkrankungen (optional)',
-            style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+            style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
@@ -236,7 +236,7 @@ class _BirthSexLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Geburtsgeschlecht',
-      style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+      style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
     );
   }
 }

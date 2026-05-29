@@ -21,7 +21,7 @@ class AuthPageScaffold extends StatelessWidget {
     final isCompact = ResponsiveBreakpoints.isCompact(context);
 
     return Scaffold(
-      backgroundColor: AppColors.careenaBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: maxWidth,
@@ -52,9 +52,9 @@ class AuthIntro extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(title, style: AuthTheme.titleStyle(isCompact)),
+        Text(title, style: AuthTheme.titleStyle(context, isCompact)),
         const SizedBox(height: 8),
-        Text(subtitle, style: AuthTheme.bodyStyle()),
+        Text(subtitle, style: AuthTheme.bodyStyle(context)),
       ],
     );
   }
@@ -63,15 +63,33 @@ class AuthIntro extends StatelessWidget {
 class AuthTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final bool showBrand;
+  final VoidCallback? onToggleTheme;
+  final bool isDarkMode;
 
-  const AuthTopBar({super.key, required this.onBack, this.showBrand = true});
+  const AuthTopBar({
+    super.key,
+    required this.onBack,
+    this.showBrand = true,
+    this.onToggleTheme,
+    this.isDarkMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
-        IconButton.filledTonal(
+        IconButton(
           tooltip: 'Zurück',
+          style: IconButton.styleFrom(
+            backgroundColor: isDarkTheme
+                ? AppColors.toolbarButtonBackgroundDark
+                : AppColors.toolbarButtonBackground,
+            foregroundColor: isDarkTheme
+                ? AppColors.toolbarButtonForegroundDark
+                : AppColors.toolbarButtonForeground,
+          ),
           onPressed: onBack,
           icon: const Icon(Icons.arrow_back),
         ),
@@ -93,6 +111,20 @@ class AuthTopBar extends StatelessWidget {
           ),
         ] else
           const Spacer(),
+        if (onToggleTheme != null)
+          IconButton(
+            tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+            style: IconButton.styleFrom(
+              backgroundColor: isDarkTheme
+                  ? AppColors.toolbarButtonBackgroundDark
+                  : AppColors.toolbarButtonBackground,
+              foregroundColor: isDarkTheme
+                  ? AppColors.toolbarButtonForegroundDark
+                  : AppColors.toolbarButtonForeground,
+            ),
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: onToggleTheme,
+          ),
       ],
     );
   }
@@ -105,7 +137,7 @@ class AuthSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: AuthTheme.sectionTitleStyle());
+    return Text(text, style: AuthTheme.sectionTitleStyle(context));
   }
 }
 

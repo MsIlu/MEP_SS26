@@ -11,7 +11,7 @@ import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
-import '../themes/app_colors.dart';
+import '../../../../core/themes/theme_controller.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -22,7 +22,14 @@ class ChatScreen extends StatefulWidget {
   /// Controller that provides message state and sends requests to the backend.
   final ChatController controller;
 
-  const ChatScreen({super.key, required this.controller});
+  /// Shared theme controller used to switch between light and dark mode.
+  final ThemeController themeController;
+
+  const ChatScreen({
+    super.key,
+    required this.controller,
+    required this.themeController,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -205,26 +212,24 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-void _handleSmartReplySelected(String reply) {
-  final currentText = _textController.text.trim();
+  void _handleSmartReplySelected(String reply) {
+    final currentText = _textController.text.trim();
+    final newText = currentText.isEmpty ? reply : '$currentText $reply';
 
-  final newText =
-      currentText.isEmpty ? reply : '$currentText $reply';
+    _textController.text = newText;
 
-  _textController.text = newText;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
 
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    if (!mounted) return;
+      _inputFocusNode.requestFocus();
 
-    _inputFocusNode.requestFocus();
+      await Future.delayed(Duration.zero);
 
-    await Future.delayed(Duration.zero);
-
-    _textController.selection = TextSelection.collapsed(
-      offset: _textController.text.length,
-    );
-  });
-}
+      _textController.selection = TextSelection.collapsed(
+        offset: _textController.text.length,
+      );
+    });
+  }
 
   /// Tracks whether the user is near the bottom and shows the jump button when
   /// new messages may otherwise arrive outside the visible area.
@@ -265,8 +270,11 @@ void _handleSmartReplySelected(String reply) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const ChatAppBar(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: ChatAppBar(
+        onToggleTheme: widget.themeController.toggleTheme,
+        isDarkMode: widget.themeController.isDarkMode,
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 820,
@@ -276,12 +284,12 @@ void _handleSmartReplySelected(String reply) {
                 children: [
                   Expanded(child: _buildMessageList()),
                   ChatInputField(
-                  controller: _textController,
-                  focusNode: _inputFocusNode,
-                  isSending: _isSending,
-                  onSend: _handleSend,
-                  smartReplies: _smartReplies,
-                  onSmartReplySelected: _handleSmartReplySelected,
+                    controller: _textController,
+                    focusNode: _inputFocusNode,
+                    isSending: _isSending,
+                    onSend: _handleSend,
+                    smartReplies: _smartReplies,
+                    onSmartReplySelected: _handleSmartReplySelected,
                   ),
                 ],
               ),

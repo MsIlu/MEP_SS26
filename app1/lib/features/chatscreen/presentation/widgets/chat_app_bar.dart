@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
-import '../themes/app_colors.dart';
 
 /// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ChatAppBar({super.key});
+  final VoidCallback onToggleTheme;
+  final bool isDarkMode;
+
+  const ChatAppBar({
+    super.key,
+    required this.onToggleTheme,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       leading: IconButton(
-        icon: const Icon(
+        icon: Icon(
           Icons.chevron_left,
-          color: AppColors.careenaDark,
+          color: colorScheme.onSurface,
           size: 30,
         ),
         onPressed: () => Navigator.pop(context),
@@ -23,20 +31,20 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Avatar that visually connects the app bar to assistant messages.
-          const CircleAvatar(
+          CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.careenaBubbleBackground,
-            backgroundImage: AssetImage(AppAssets.careenaDoctor),
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundImage: const AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 10),
           // Name and simple status indicator for the assistant persona.
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Careena",
                 style: TextStyle(
-                  color: AppColors.careenaDark,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -52,9 +60,12 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     "online",
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -63,6 +74,16 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       centerTitle: false,
+      actions: [
+        IconButton(
+          tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+          icon: Icon(
+            isDarkMode ? Icons.light_mode : Icons.dark_mode,
+            color: colorScheme.onSurface,
+          ),
+          onPressed: onToggleTheme,
+        ),
+      ],
     );
   }
 

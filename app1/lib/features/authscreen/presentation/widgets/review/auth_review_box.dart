@@ -58,7 +58,7 @@ class _ReviewHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+            style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
           ),
         ),
         IconButton(

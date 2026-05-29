@@ -26,6 +26,24 @@ class ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = message.isUser;
     final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final bubbleColor = isUser
+        ? AppColors.careenaTeal
+        : isDarkMode
+          ? colorScheme.surface
+          : Colors.white;
+
+    final textColor = isUser
+        ? Colors.white
+        : isDarkMode
+          ? colorScheme.onSurface
+          : AppColors.careenaDark;
+
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.05);
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -63,7 +81,7 @@ class ChatBubble extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: isUser ? AppColors.careenaTeal : Colors.white,
+                    color: bubbleColor,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -72,7 +90,7 @@ class ChatBubble extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: shadowColor,
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                       ),
@@ -84,7 +102,7 @@ class ChatBubble extends StatelessWidget {
                       Text(
                         message.text,
                         style: TextStyle(
-                          color: isUser ? Colors.white : AppColors.careenaDark,
+                          color: textColor,
                           fontSize: 15,
                         ),
                       ),

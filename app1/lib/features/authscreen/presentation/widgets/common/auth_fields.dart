@@ -51,6 +51,7 @@ class AuthTextField extends StatelessWidget {
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
       decoration: AuthTheme.inputDecoration(
+        context: context,
         label: label,
         hint: hint,
         suffixIcon: suffixIcon,

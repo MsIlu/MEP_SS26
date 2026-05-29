@@ -68,7 +68,7 @@ class AuthCalculatedField extends StatelessWidget {
       controller: controller,
       readOnly: true,
       enableInteractiveSelection: false,
-      decoration: AuthTheme.inputDecoration(label: label, hint: hint).copyWith(
+      decoration: AuthTheme.inputDecoration(context: context, label: label, hint: hint).copyWith(
         filled: true,
         fillColor: AppColors.careenaNoteBackground,
         suffixIcon: AuthInfoButton(title: label, message: infoText),

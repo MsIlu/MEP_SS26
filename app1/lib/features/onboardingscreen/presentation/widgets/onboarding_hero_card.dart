@@ -19,6 +19,13 @@ class OnboardingHeroCard extends StatelessWidget {
         // so the body switches to a vertical arrangement below this width.
         final isCompact = constraints.maxWidth < 380;
         final horizontalMargin = isCompact ? 12.0 : 13.0;
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+        final cardColor = isDarkMode ? const Color(0xFF222A35) : Colors.white;
+
+        final shadowColor = isDarkMode
+            ? Colors.black.withValues(alpha: 0.18)
+            : Colors.black.withValues(alpha: 0.08);
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
@@ -26,11 +33,11 @@ class OnboardingHeroCard extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(isCompact ? 16 : 18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: shadowColor,
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -45,7 +52,9 @@ class OnboardingHeroCard extends StatelessWidget {
                     fontSize: isCompact ? 24 : 28,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
-                    color: AppColors.careenaTitle,
+                    color: isDarkMode
+                        ? Theme.of(context).colorScheme.onSurface
+                        : AppColors.careenaTitle,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -54,11 +63,20 @@ class OnboardingHeroCard extends StatelessWidget {
                 CareenaButton(
                   text: 'Jetzt mit Careena sprechen',
                   onPressed: onPressed,
-                  backgroundColor: AppColors.careenaPrimary,
+                  backgroundColor: isDarkMode
+                      ? AppColors.toolbarButtonBackgroundDark
+                      : AppColors.careenaPrimary,
+                  foregroundColor: isDarkMode
+                      ? AppColors.toolbarButtonForegroundDark
+                      : Colors.white,
                   borderRadius: 40,
                   height: 58,
-                  side: const BorderSide(
-                    color: AppColors.careenaGlow,
+                  side: BorderSide(
+                    color: isDarkMode
+                        ? AppColors.toolbarButtonBackgroundDark.withValues(
+                            alpha: 0.35,
+                          )
+                        : AppColors.careenaGlow,
                     width: 3,
                   ),
                 ),
@@ -142,11 +160,14 @@ class _HeroDescription extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Text(
       "Beschreibe deine Beschwerden\nund erhalte deine persönliche\nHandlungsempfehlung.",
       style: GoogleFonts.nunito(
         fontSize: 12,
-        color: Colors.black87,
+        color: isDarkMode ? colorScheme.onSurfaceVariant : Colors.black87,
         height: 1.3,
       ),
     );

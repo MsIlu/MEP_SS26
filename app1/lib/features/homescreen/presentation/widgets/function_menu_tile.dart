@@ -25,10 +25,33 @@ class FunctionMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant.withValues(alpha: 0.55)
+        : Colors.grey[200]!;
+
+    final iconBackgroundColor = isDarkMode
+        ? const Color(0xFF222A35)
+        : bgColor;
+
+    final iconColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaDark;
+
+    final titleColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final trailingColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaTeal;
+
     return Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(20),
       ),
       child: ListTile(
@@ -38,21 +61,21 @@ class FunctionMenuTile extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: bgColor,
+            color: iconBackgroundColor,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: AppColors.careenaDark),
+          child: Icon(icon, color: iconColor),
         ),
         title: Text(
           title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.careenaDark,
+            color: titleColor,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.careenaTeal),
+        trailing: Icon(Icons.chevron_right, color: trailingColor),
       ),
     );
   }

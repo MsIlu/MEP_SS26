@@ -18,6 +18,11 @@ class CareenaHeroCard extends StatelessWidget {
         // start competing for horizontal space.
         final isCompact = constraints.maxWidth < 360;
         final avatarSize = isCompact ? 78.0 : 100.0;
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+        final cardColor = isDarkMode
+            ? const Color(0xFF222A35)
+            : AppColors.careenaInfoBorder;
 
         return Container(
           margin: EdgeInsets.symmetric(
@@ -26,7 +31,7 @@ class CareenaHeroCard extends StatelessWidget {
           ),
           padding: EdgeInsets.all(isCompact ? 16 : 20),
           decoration: BoxDecoration(
-            color: AppColors.careenaInfoBorder,
+            color: cardColor,
             borderRadius: BorderRadius.circular(30),
           ),
           child: isCompact
@@ -68,18 +73,36 @@ class _HeroTextAndAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final titleColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final buttonColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaTeal;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Ich bin Careena!\nWie kann ich dir helfen?",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: titleColor,
+          ),
         ),
         const SizedBox(height: 11),
         CareenaButton(
           text: 'Jetzt mit Careena sprechen',
           onPressed: onTap,
-          backgroundColor: AppColors.careenaTeal,
+          backgroundColor: buttonColor,
+          foregroundColor: isDarkMode
+              ? AppColors.toolbarButtonForegroundDark
+              : Colors.white,
           borderRadius: 20,
           height: 44,
           fontSize: 13,

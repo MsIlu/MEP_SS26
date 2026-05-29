@@ -338,6 +338,7 @@ class _ConditionChips extends StatelessWidget {
             backgroundColor: chipBackground,
             selectedColor: selectedChipBackground,
             checkmarkColor: checkmarkColor,
+            side: BorderSide(color: borderColor),
             onSelected: (selected) => onChanged(condition, selected),
           ),
       ],

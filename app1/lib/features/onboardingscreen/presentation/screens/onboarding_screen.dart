@@ -9,6 +9,7 @@ import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
+import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Entry screen that introduces Careena and routes users into chat or home.
 class OnboardingScreen extends StatelessWidget {
@@ -27,6 +28,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -82,6 +84,11 @@ class OnboardingScreen extends StatelessWidget {
                         // Todo: remove when testing is done
                         TextButton.icon(
                           onPressed: () => _navigateToHome(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: isDarkMode
+                                ? AppColors.toolbarButtonBackgroundDark
+                                : AppColors.careenaTeal,
+                          ),
                           icon: const Icon(Icons.home_outlined, size: 18),
                           label: const Text('Test: direkt zur Homepage'),
                         ),
@@ -103,8 +110,8 @@ class OnboardingScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ChatScreen(
-            controller: chatController,
-            themeController: themeController,
+          controller: chatController,
+          themeController: themeController,
         ),
       ),
     );
@@ -115,8 +122,8 @@ class OnboardingScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => LoginScreen(
-            chatController: chatController,
-            themeController: themeController,
+          chatController: chatController,
+          themeController: themeController,
         ),
       ),
     );
@@ -127,8 +134,8 @@ class OnboardingScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RegistrationScreen(
-            chatController: chatController,
-            themeController: themeController,
+          chatController: chatController,
+          themeController: themeController,
         ),
       ),
     );
@@ -138,8 +145,8 @@ class OnboardingScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => HomeScreen(
-            controller: chatController,
-            themeController: themeController,
+          controller: chatController,
+          themeController: themeController,
         ),
       ),
     );

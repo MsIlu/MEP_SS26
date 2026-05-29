@@ -41,11 +41,8 @@ Author @Freddy
     an EmptyLLMResponseError is raised.
 
     Notes:
-    The client enforces JSON response formatting via:
-        response_format={"type": "json_object"}
-
-    This is required for downstream schema validation
-    inside the ExtractionEngine.
+    The client allows normal text output or enforced JSON output
+    by toggling json_mode on/off.
 """
 class LLMClient:
 

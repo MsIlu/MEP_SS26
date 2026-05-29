@@ -22,8 +22,8 @@ from extraction.core.extraction_engine import ExtractionEngine
 from extraction.pipeline.extraction_pipeline import ExtractionPipeline
 from extraction.core.llm_client import LLMClient
 from sessions.manager import SessionManager
+from logging_config import configure_logging
 import config
-import logging
 
 app = FastAPI()
 
@@ -36,20 +36,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
-
-logging.getLogger("openai").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-logging.getLogger("httpx").setLevel(logging.WARNING)
+configure_logging()
 
 # Init
 llm_client = LLMClient(
             base_url=config.LITELLM_BASE_URL,
             api_key=config.LITELLM_API_KEY,
-            model="medgemma:4b",
+            model=config.SELECTED_MODEL,
             )
 # LOCAL DEV; REQUIRES Ollama + medgamma:4b installed on your computer
 extraction_llm_client = LLMClient(
@@ -57,6 +50,7 @@ extraction_llm_client = LLMClient(
             api_key="ollama",
             model="medgemma:4b",
             )
+
 session_manager = SessionManager()
 
 chat_logic = ChatLogic(session_manager, extraction_llm_client)

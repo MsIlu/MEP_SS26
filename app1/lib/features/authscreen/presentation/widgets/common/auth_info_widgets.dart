@@ -22,7 +22,12 @@ class AuthInfoButton extends StatelessWidget {
       child: IconButton(
         tooltip: message,
         visualDensity: visualDensity,
-        icon: const Icon(Icons.info_outline, color: AppColors.careenaTitle),
+        icon: Icon(
+          Icons.info_outline,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).colorScheme.onSurfaceVariant
+              : AppColors.careenaTitle,
+        ),
         onPressed: () => _showInfoDialog(context),
       ),
     );
@@ -64,21 +69,39 @@ class AuthCalculatedField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final fillColor = isDarkMode
+        ? const Color(0xFF263436)
+        : AppColors.careenaNoteBackground;
+
+    final borderColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark.withValues(alpha: 0.55)
+        : AppColors.careenaBorder;
+
     return TextFormField(
       controller: controller,
       readOnly: true,
       enableInteractiveSelection: false,
-      decoration: AuthTheme.inputDecoration(context: context, label: label, hint: hint).copyWith(
+      style: TextStyle(
+        color: colorScheme.onSurface,
+      ),
+      decoration: AuthTheme.inputDecoration(
+        context: context,
+        label: label,
+        hint: hint,
+      ).copyWith(
         filled: true,
-        fillColor: AppColors.careenaNoteBackground,
+        fillColor: fillColor,
         suffixIcon: AuthInfoButton(title: label, message: infoText),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: const BorderSide(color: AppColors.careenaBorder),
+          borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: const BorderSide(color: AppColors.careenaBorder),
+          borderSide: BorderSide(color: borderColor),
         ),
       ),
     );

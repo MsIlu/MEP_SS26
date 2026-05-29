@@ -127,7 +127,15 @@ class _BirthDateSegmentField extends StatelessWidget {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(maxLength),
       ],
-      decoration: InputDecoration.collapsed(hintText: hint),
+      decoration: InputDecoration.collapsed(
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
       onChanged: (value) {
         onChanged();
         if (value.length == maxLength) {
@@ -143,12 +151,15 @@ class _DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 4),
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         '.',
         style: TextStyle(
-          color: AppColors.careenaTitle,
+          color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.careenaTitle,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),

@@ -88,6 +88,12 @@ class _RegistrationHealthDataStepState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final helperTextColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
+
     return Form(
       key: widget.formKey,
       child: Column(
@@ -140,7 +146,7 @@ class _RegistrationHealthDataStepState
           const SizedBox(height: 8),
           Text(
             'Wähle alle zutreffenden aus.',
-            style: GoogleFonts.nunito(color: AppColors.careenaMuted),
+            style: GoogleFonts.nunito(color: helperTextColor),
           ),
           const SizedBox(height: 10),
           _ConditionChips(
@@ -179,10 +185,37 @@ class _BirthSexSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final containerColor = isDarkMode
+        ? const Color(0xFF222A35)
+        : Colors.white;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
+    final segmentedBackground = isDarkMode
+        ? const Color(0xFF26303C)
+        : AppColors.careenaNoteBackground;
+
+    final segmentedSelectedBackground = isDarkMode
+        ? const Color(0xFF3F8F87)
+        : AppColors.careenaSoftAccent;
+
+    final segmentedForeground = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    final segmentedSelectedForeground = isDarkMode
+        ? Colors.white
+        : AppColors.careenaTitle;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.careenaBorder),
+        color: containerColor,
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
       ),
       child: Padding(
@@ -214,11 +247,11 @@ class _BirthSexSelector extends StatelessWidget {
               selected: {selectedSex},
               showSelectedIcon: false,
               style: SegmentedButton.styleFrom(
-                backgroundColor: AppColors.careenaNoteBackground,
-                foregroundColor: AppColors.careenaBody,
-                selectedBackgroundColor: AppColors.careenaSoftAccent,
-                selectedForegroundColor: AppColors.careenaTitle,
-                side: const BorderSide(color: AppColors.careenaBorder),
+                backgroundColor: segmentedBackground,
+                foregroundColor: segmentedForeground,
+                selectedBackgroundColor: segmentedSelectedBackground,
+                selectedForegroundColor: segmentedSelectedForeground,
+                side: BorderSide(color: borderColor),
               ),
               onSelectionChanged: (selection) => onChanged(selection.first),
             ),
@@ -268,16 +301,43 @@ class _ConditionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final chipBackground = isDarkMode
+        ? const Color(0xFF222A35)
+        : null;
+
+    final selectedChipBackground = isDarkMode
+        ? const Color(0xFF3F8F87)
+        : AppColors.careenaSoftAccent;
+
+    final chipTextColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final checkmarkColor = isDarkMode
+        ? Colors.white
+        : AppColors.careenaTitle;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         for (final condition in registrationConditionOptions)
           FilterChip(
-            label: Text(condition),
+            label: Text(
+              condition,
+              style: TextStyle(color: chipTextColor),
+            ),
             selected: selectedConditions.contains(condition),
-            selectedColor: AppColors.careenaSoftAccent,
-            checkmarkColor: AppColors.careenaTitle,
+            backgroundColor: chipBackground,
+            selectedColor: selectedChipBackground,
+            checkmarkColor: checkmarkColor,
             onSelected: (selected) => onChanged(condition, selected),
           ),
       ],

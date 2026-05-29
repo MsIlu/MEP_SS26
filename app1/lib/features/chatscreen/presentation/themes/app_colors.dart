@@ -51,6 +51,6 @@ class AppColors {
   static const Color toolbarButtonBackground = careenaBrand;
   static const Color toolbarButtonForeground = Colors.white;
 
-  static const Color toolbarButtonBackgroundDark = Color(0xFF2F666B);
-  static const Color toolbarButtonForegroundDark = Color(0xFFEAF8F8);
+  static const Color toolbarButtonBackgroundDark = Color(0xFF43B8BE);
+  static const Color toolbarButtonForegroundDark = Colors.white;
 }

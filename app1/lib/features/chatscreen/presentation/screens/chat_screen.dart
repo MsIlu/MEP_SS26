@@ -132,6 +132,30 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocusNode.requestFocus();
   }
 
+  void _openTestWarningPage() {
+    final fakeResponse = ChatResponse(
+      text:
+      'Auf Basis deiner Angaben wird empfohlen, zeitnah professionelle Unterstützung in Anspruch zu nehmen. '
+          'Bitte wende dich an deine Hausärztin, deinen Hausarzt oder an eine psychotherapeutische Anlaufstelle.',
+      redFlag: true,
+      severity: 'high',
+      action:
+      'Bei akuter Gefahr oder Selbstgefährdung kontaktiere bitte sofort den Notruf 112 oder eine psychiatrische Notaufnahme.',
+      ruleId: 'test_rule',
+      ruleName: 'Lokaler Test',
+      category: 'psychische Belastung',
+      messageKey: 'local_test_warning',
+      matchedKeywords: const ['test'],
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WarningPage(response: fakeResponse),
+      ),
+    );
+  }
+
 
   void _onMessagesChanged() {
     // Get the current list of messages
@@ -282,6 +306,14 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: OutlinedButton.icon(
+                      onPressed: _openTestWarningPage,
+                      icon: const Icon(Icons.warning_amber),
+                      label: const Text('Test Handlungsempfehlung'),
+                    ),
+                  ),
                   Expanded(child: _buildMessageList()),
                   ChatInputField(
                     controller: _textController,

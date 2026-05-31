@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app/app_dependencies.dart';
+import 'core/themes/app_theme.dart';
+import 'core/themes/theme_controller.dart';
 import 'features/chatscreen/controllers/chat_controller.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 
@@ -32,33 +34,46 @@ class _AppDependencyScope extends StatefulWidget {
 class _AppDependencyScopeState extends State<_AppDependencyScope> {
   late final AppDependencies? _ownedDependencies;
   late final ChatController _chatController;
+  late final ThemeController _themeController;
 
   @override
   void initState() {
     super.initState();
+
     _ownedDependencies = widget.externalChatController == null
         ? AppDependencies()
         : null;
+
     _chatController =
         widget.externalChatController ?? _ownedDependencies!.chatController;
+
+    _themeController = ThemeController();
   }
 
   @override
   void dispose() {
+    _themeController.dispose();
     _ownedDependencies?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Careena',
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
-        useMaterial3: true,
-      ),
-      home: OnboardingScreen(chatController: _chatController),
+    return AnimatedBuilder(
+      animation: _themeController,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Careena',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: _themeController.themeMode,
+          home: OnboardingScreen(
+            chatController: _chatController,
+            themeController: _themeController,
+          ),
+        );
+      },
     );
   }
 }

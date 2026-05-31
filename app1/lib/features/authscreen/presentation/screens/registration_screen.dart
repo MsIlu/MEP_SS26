@@ -10,12 +10,18 @@ import '../widgets/registration/registration_personal_step.dart';
 import '../widgets/registration/registration_review_step.dart';
 import '../widgets/registration/registration_step_indicator.dart';
 import 'login_screen.dart';
+import '../../../../core/themes/theme_controller.dart';
 
 /// Multi-step registration flow based on the prototype screens.
 class RegistrationScreen extends StatefulWidget {
   final ChatController chatController;
+  final ThemeController themeController;
 
-  const RegistrationScreen({super.key, required this.chatController});
+  const RegistrationScreen({
+    super.key,
+    required this.chatController,
+    required this.themeController,
+  });
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -37,7 +43,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(onBack: _goBack, showBrand: false),
+          AuthTopBar(
+            onBack: _goBack,
+            showBrand: false,
+            onToggleTheme: widget.themeController.toggleTheme,
+            isDarkMode: widget.themeController.isDarkMode,
+          ),
           const SizedBox(height: 22),
           AuthIntro(title: 'Konto erstellen', subtitle: _subtitle),
           const SizedBox(height: 22),
@@ -122,8 +133,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _openLogin() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) =>
-            LoginScreen(chatController: widget.chatController),
+        builder: (context) => LoginScreen(
+          chatController: widget.chatController,
+          themeController: widget.themeController,
+        ),
       ),
     );
   }
@@ -163,7 +176,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     // TODO: profile to the API before creating the authenticated Home session.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => HomeScreen(controller: widget.chatController),
+        builder: (context) => HomeScreen(
+          controller: widget.chatController,
+          themeController: widget.themeController,
+        ),
       ),
     );
   }

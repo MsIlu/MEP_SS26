@@ -18,23 +18,42 @@ class WarningPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final backgroundColor = isDarkMode
+        ? colorScheme.surface
+        : AppColors.background;
+
+    final appBarColor = isDarkMode
+        ? colorScheme.surface
+        : Colors.white;
+
+    final titleColor = isDarkMode
+        ? colorScheme.onSurface
+        : WarningColors.darkText;
+
+    final iconColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : WarningColors.teal;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: WarningColors.teal),
+          icon: Icon(Icons.chevron_left, color: iconColor),
           iconSize: 32,
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           WarningCopy.pageTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: WarningColors.darkText,
+            color: titleColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),

@@ -30,7 +30,7 @@ class EmergencyCard extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: WarningLayout.cardPadding,
-        decoration: WarningDecorations.emergencyCard,
+        decoration: WarningDecorations.emergencyCard(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

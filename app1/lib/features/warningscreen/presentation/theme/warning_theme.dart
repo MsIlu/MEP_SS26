@@ -31,35 +31,63 @@ class WarningTextStyles {
 
 /// Reusable decorations for warning cards and information boxes.
 class WarningDecorations {
-  static final BoxDecoration emergencyCard = BoxDecoration(
-    color: WarningColors.warningBackground,
-    borderRadius: BorderRadius.circular(14),
-    border: Border.all(color: WarningColors.warningRed, width: 1.4),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.05),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
+  static BoxDecoration emergencyCard(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-  static final BoxDecoration reasonBox = BoxDecoration(
-    color: Colors.white.withValues(alpha: 0.72),
-    borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: WarningColors.warningRed.withValues(alpha: 0.18)),
-  );
-
-  static final BoxDecoration infoBox = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(14),
-    border: Border.all(color: Colors.grey.shade200),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.03),
-        blurRadius: 8,
-        offset: const Offset(0, 3),
+    return BoxDecoration(
+      color: isDarkMode
+          ? const Color(0xFF2F2529)
+          : WarningColors.warningBackground,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(
+        color: isDarkMode
+            ? WarningColors.warningRed.withValues(alpha: 0.65)
+            : WarningColors.warningRed,
+        width: 1.4,
       ),
-    ],
-  );
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: isDarkMode ? 0.18 : 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  static BoxDecoration reasonBox(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return BoxDecoration(
+      color: isDarkMode
+          ? const Color(0xFF3A2A2F)
+          : Colors.white.withValues(alpha: 0.72),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(
+        color: WarningColors.warningRed.withValues(
+          alpha: isDarkMode ? 0.35 : 0.18,
+        ),
+      ),
+    );
+  }
+
+  static BoxDecoration infoBox(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return BoxDecoration(
+      color: isDarkMode ? colorScheme.surface : Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(
+        color: isDarkMode ? colorScheme.outlineVariant : Colors.grey.shade200,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: isDarkMode ? 0.16 : 0.03),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    );
+  }
 }

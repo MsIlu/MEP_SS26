@@ -49,22 +49,39 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final boxColor = isDarkMode ? colorScheme.surface : Colors.white;
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
+    final textColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    final linkColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaPrimary;
+
     final baseStyle = GoogleFonts.nunito(
       height: 1.35,
-      color: AppColors.careenaBody,
+      color: textColor,
     );
+
     final linkStyle = baseStyle.copyWith(
-      color: AppColors.careenaPrimary,
+      color: linkColor,
       fontWeight: FontWeight.w800,
       decoration: TextDecoration.underline,
-      decorationColor: AppColors.careenaPrimary,
+      decorationColor: linkColor,
     );
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: boxColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.careenaBorder),
+        border: Border.all(color: borderColor),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -76,6 +93,7 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
             children: [
               Checkbox(
                 value: widget.value,
+                activeColor: AppColors.toolbarButtonBackgroundDark,
                 onChanged: (checked) => widget.onChanged(checked ?? false),
               ),
               const SizedBox(width: 6),

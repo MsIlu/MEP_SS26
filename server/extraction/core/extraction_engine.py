@@ -93,12 +93,17 @@ class ExtractionEngine:
             model or self.llm_client.default_model,
         )
 
+        messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text},
+                ]
+
         raw = self.llm_client.complete(
-            system_prompt=system_prompt,
-            user_input=text,
+            messages = messages,
             temperature=temperature,
             max_tokens=max_tokens,
             model=model,
+            json_mode=True,
         )
 
         if not raw:

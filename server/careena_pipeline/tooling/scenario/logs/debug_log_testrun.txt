@@ -1,0 +1,87 @@
+2026-06-01 01:38:22,050 | DEBUG | careena_pipeline.testrun | HTTP /chatscreen TESTRUN RESPONSE:
+response:
+Testlauf abgeschlossen.
+Stop-Grund: recommend
+
+Transcript:
+Patient: Hallo, ich bin eben mit dem Fahrrad gestürzt und bin bloß auf die Hüfte gefallen. Kann gerade kaum auftreten, weil es so wehtut.
+
+Careena: Ich habe noch nicht genug konkrete medizinische Informationen. Welche gesundheitliche Beschwerde steht gerade im Vordergrund?
+
+Patient: Ich habe starke Schmerzen in der Hüfte und kann kaum auftreten.
+
+Careena: Ich habe noch nicht genug konkrete medizinische Informationen. Welche gesundheitliche Beschwerde steht gerade im Vordergrund?
+
+Patient: Ich habe starke Schmerzen in der Hüfte und kann kaum auftreten.
+
+Careena: Seit wann bestehen die Beschwerden?
+
+Patient: seit zwei Stunden
+
+Careena: Wie stark sind die Schmerzen auf einer Skala von 0 bis 10?
+
+Patient: Die Schmerzen sind 9 von 10.
+
+Careena: Kurze Zusammenfassung:
+Im Vordergrund steht aktuell: Schmerzen in der Hüfte.
+
+Dringlichkeit:
+zeitnah
+
+Empfohlene Versorgungsebene:
+Hausarztpraxis
+
+Nächster Schritt:
+Kontaktieren Sie zeitnah eine Hausarztpraxis oder den ärztlichen Bereitschaftsdienst 116117, wenn die Praxis nicht erreichbar ist.
+
+Begründung:
+- Im Vordergrund steht die geschilderte Beschwerde: Schmerzen in der Hüfte.
+- Die Beschwerden bestehen laut Angabe: seit zwei Stunden.
+- Die Schmerzstärke wurde mit 9 von 10 angegeben.
+- Eine hausärztliche Ersteinschätzung ist dafür ein vorsichtiger nächster Schritt.
+
+Hinweis:
+Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.
+
+Finaler Case:
+- Hauptfokus: Schmerzen in der Hüfte
+- Pending Slot: keiner
+- symptom: Schmerzen in der Hüfte (Zeit: seit zwei Stunden; Stärke: 9/10)
+red_flag: false
+2026-06-01 01:39:16,614 | DEBUG | careena_pipeline.testrun | HTTP /chatscreen TESTRUN RESPONSE:
+response:
+Testlauf abgeschlossen.
+Stop-Grund: recommend
+
+Transcript:
+Patient: Guten Tag, mein Name ist Renate. Ich habe seit gestern so einen brennenden Ausschlag am Rücken und am Bauch, der furchtbar wehtut. Welchen Arzt muss ich denn dafür anrufen? Mein Hausarzt hat diese Woche Urlaub.
+
+Careena: Ich habe noch nicht genug konkrete medizinische Informationen. Welche gesundheitliche Beschwerde steht gerade im Vordergrund?
+
+Patient: Der brennende Ausschlag am Rücken und Bauch.
+
+Careena: Kurze Zusammenfassung:
+Im Vordergrund steht aktuell: brennender Ausschlag.
+
+Dringlichkeit:
+zeitnah
+
+Empfohlene Versorgungsebene:
+Hausarztpraxis
+
+Nächster Schritt:
+Kontaktieren Sie zeitnah eine Hausarztpraxis oder den ärztlichen Bereitschaftsdienst 116117, wenn die Praxis nicht erreichbar ist.
+
+Begründung:
+- Im Vordergrund steht die geschilderte Beschwerde: brennender Ausschlag.
+- Die Beschwerden bestehen laut Angabe: seit gestern.
+- Eine hausärztliche Ersteinschätzung ist dafür ein vorsichtiger nächster Schritt.
+
+Hinweis:
+Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.
+
+Finaler Case:
+- Hauptfokus: brennender Ausschlag
+- Pending Slot: keiner
+- symptom: brennender Ausschlag (Zeit: seit gestern)
+red_flag: false

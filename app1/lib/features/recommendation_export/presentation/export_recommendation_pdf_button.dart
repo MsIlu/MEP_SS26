@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
-
+import '../../chatscreen/presentation/themes/app_colors.dart';
 import '../data/recommendation_pdf_service.dart';
 
 /// Button that exports a generated care recommendation as a PDF.
@@ -20,7 +20,23 @@ class ExportRecommendationPdfButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final buttonColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaTeal;
+
+    final textColor = isDarkMode
+        ? AppColors.toolbarButtonForegroundDark
+        : Colors.white;
+
     return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        backgroundColor: buttonColor,
+        foregroundColor: textColor,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
       icon: const Icon(Icons.picture_as_pdf),
       label: const Text('PDF exportieren'),
       onPressed: () async {

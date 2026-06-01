@@ -12,6 +12,7 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../../../../core/themes/theme_controller.dart';
+import '../themes/app_colors.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -308,8 +309,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: OutlinedButton.icon(
+                    child:
+                    OutlinedButton.icon(
                       onPressed: _openTestWarningPage,
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: AppColors.toolbarButtonBackgroundDark,
+                        foregroundColor: AppColors.toolbarButtonForegroundDark,
+                        side: const BorderSide(
+                          color: AppColors.toolbarButtonBackgroundDark,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
                       icon: const Icon(Icons.warning_amber),
                       label: const Text('Test Handlungsempfehlung'),
                     ),

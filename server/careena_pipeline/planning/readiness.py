@@ -13,8 +13,10 @@ from careena_pipeline.pipeline_rules import FOLLOWUP_QUESTIONS, question_for_slo
 
 class AssessmentReadinessEvaluator:
     """
-    Checks whether the case has enough concrete information for a first
-    recommendation or whether Careena should ask one focused follow-up.
+    Evaluates whether the current case state is informationally sufficient.
+
+    This layer should answer readiness questions, not own the final next-step
+    decision.
     """
 
     def evaluate(

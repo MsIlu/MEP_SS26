@@ -13,7 +13,7 @@ from careena_pipeline.flow.outcomes import ActionPlanningOutcome
 
 
 class ActionPlanningStep:
-    """Combines readiness, dialogue updates, and next-step decisioning."""
+    """Orchestrates readiness evaluation and next-step decisioning."""
 
     def __init__(
         self,
@@ -44,8 +44,6 @@ class ActionPlanningStep:
             dialogue_state=dialogue_state,
             message_update=message_update,
         )
-        self.dialogue_state_manager.apply_readiness(dialogue_state, readiness, case)
-        self.dialogue_state_manager.sync_case(case, dialogue_state)
         case.ensure_primary_problem()
         log_json("ASSESSMENT READINESS", readiness)
 
@@ -61,9 +59,11 @@ class ActionPlanningStep:
         )
         log_json("RECOMMENDATION GATE", gate)
 
-        dialogue_state = self.dialogue_state_manager.apply_gate(
+        dialogue_state = self.dialogue_state_manager.apply_planning_outcome(
             dialogue_state,
-            gate,
+            readiness=readiness,
+            gate=gate,
+            case=case,
         )
         self.dialogue_state_manager.sync_case(case, dialogue_state)
         return ActionPlanningOutcome(
@@ -86,14 +86,12 @@ class ActionPlanningStep:
     ):
         if force_deterministic_gate or self.next_step_advisor is None:
             return self.recommendation_gate.decide(
-                case=case,
                 readiness=readiness,
                 user_requests_recommendation=request_recommendation,
             )
 
         if readiness.blocking_requirements and message_update is None:
             return self.recommendation_gate.decide(
-                case=case,
                 readiness=readiness,
                 user_requests_recommendation=request_recommendation,
             )

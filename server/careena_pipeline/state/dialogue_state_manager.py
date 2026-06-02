@@ -97,8 +97,6 @@ class DialogueStateManager:
                     for requirement in requirements
                 }
             ]
-        state.pending_followup = requirements[0] if requirements else None
-        state.awaiting_confirmation = readiness.confirmation_needed
         if readiness.disambiguation_needed:
             state.current_topic_status = "ambiguous"
         elif state.current_topic_status != "possible_topic_shift":
@@ -111,6 +109,22 @@ class DialogueStateManager:
             state.focus_observation_id = case.primary_problem_id
             state.focus_label = case.primary_focus_label()
 
+        return state
+
+    def apply_planning_outcome(
+        self,
+        state: DialogueState,
+        *,
+        readiness: AssessmentReadiness,
+        gate: RecommendationGateDecision,
+        case: MedicalCase | None = None,
+    ) -> DialogueState:
+        self.apply_readiness(state, readiness, case)
+        self.apply_gate(state, gate)
+        if case is not None:
+            case.ensure_primary_problem()
+            state.focus_observation_id = case.primary_problem_id
+            state.focus_label = case.primary_focus_label()
         return state
 
     def apply_gate(
@@ -131,9 +145,11 @@ class DialogueStateManager:
         elif gate.action == "confirm_information":
             state.awaiting_confirmation = True
             state.pending_followup = None
+            state.last_question_key = None
         else:
             state.awaiting_confirmation = False
             state.pending_followup = None
+            state.last_question_key = None
 
         if gate.activated_modules:
             state.recommended_modules = list(gate.activated_modules)

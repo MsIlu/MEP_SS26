@@ -77,7 +77,6 @@ class LLMNextStepAdvisor:
                 exc,
             )
             decision = self.recommendation_gate.decide(
-                case=case,
                 readiness=readiness,
                 user_requests_recommendation=user_requests_recommendation,
             )

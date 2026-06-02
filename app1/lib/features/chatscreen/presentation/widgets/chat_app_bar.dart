@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
+import '../themes/app_colors.dart';
 
 /// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -77,9 +78,13 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+          style: IconButton.styleFrom(
+            backgroundColor: AppColors.toolbarButtonBackgroundDark,
+            foregroundColor: Colors.white,
+            fixedSize: const Size.square(48),
+          ),
           icon: Icon(
             isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            color: colorScheme.onSurface,
           ),
           onPressed: onToggleTheme,
         ),

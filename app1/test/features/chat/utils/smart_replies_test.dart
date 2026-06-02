@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app1/features/chat/utils/smart_replies.dart';
+import 'package:app1/features/chatscreen/utils/smart_replies.dart';
 
 /// SmartReplies Algorithmus-Tests
 /// 

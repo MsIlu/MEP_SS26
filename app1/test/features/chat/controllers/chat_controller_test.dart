@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/data/chat_api.dart';
-import 'package:app1/features/chat/services/chat_service.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/data/chat_api.dart';
+import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 

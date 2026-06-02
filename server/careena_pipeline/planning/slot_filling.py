@@ -1,7 +1,6 @@
 import re
 
 from careena_pipeline.planning.subject_detection import SubjectDetector
-from careena_pipeline.state.module_registry import followup_slot_for_requirement
 from careena_pipeline.models import MedicalCase
 from careena_pipeline.pipeline_rules import (
     looks_like_question,
@@ -30,8 +29,6 @@ class SlotFiller:
         case.ensure_primary_problem()
         if pending_slot is None:
             return SlotFillResult(False)
-
-        pending_slot = followup_slot_for_requirement(pending_slot) or pending_slot
 
         normalized = text.strip()
         if not normalized:

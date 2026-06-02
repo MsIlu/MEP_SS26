@@ -1,7 +1,9 @@
-from careena_pipeline.state.module_registry import (
-    parse_requirements,
-    requirement_strings,
-    requirement_to_string,
+from careena_pipeline.planning.requirement_state import (
+    first_requirement,
+    merge_requirements,
+    remove_requirements,
+    requirement_key,
+    requirement_keys,
 )
 from careena_pipeline.models import (
     AssessmentReadiness,
@@ -50,25 +52,25 @@ class DialogueStateManager:
             state.current_topic_status = "single_topic"
 
         if message_update.required_fields:
-            existing = list(state.open_requirements)
-            merged = parse_requirements(existing + list(message_update.required_fields))
-            state.open_requirements = merged
+            state.open_requirements = merge_requirements(
+                state.open_requirements,
+                message_update.required_fields,
+            )
 
         if message_update.resolved_fields:
-            resolved = {
-                key
-                for key in requirement_strings(message_update.resolved_fields)
-            }
-            state.resolved_requirements = parse_requirements(
-                list(state.resolved_requirements) + list(message_update.resolved_fields)
+            state.resolved_requirements = merge_requirements(
+                state.resolved_requirements,
+                message_update.resolved_fields,
             )
-            state.open_requirements = [
-                item
-                for item in state.open_requirements
-                if requirement_to_string(item) not in resolved
-            ]
-            if requirement_to_string(state.pending_followup) in resolved:
+            state.open_requirements = remove_requirements(
+                state.open_requirements,
+                message_update.resolved_fields,
+            )
+            if requirement_key(state.pending_followup) in set(
+                requirement_keys(message_update.resolved_fields)
+            ):
                 state.pending_followup = None
+                state.last_question_key = None
 
         if case is not None:
             case.ensure_primary_problem()
@@ -84,25 +86,26 @@ class DialogueStateManager:
         readiness: AssessmentReadiness,
         case: MedicalCase | None = None,
     ) -> DialogueState:
-        requirements = parse_requirements(
+        requirements = merge_requirements(
+            None,
             readiness.blocking_requirements or readiness.missing_information
         )
         state.open_requirements = requirements
         if requirements:
-            state.resolved_requirements = [
-                item
-                for item in state.resolved_requirements
-                if requirement_to_string(item) not in {
-                    requirement_to_string(requirement)
-                    for requirement in requirements
-                }
-            ]
+            state.resolved_requirements = remove_requirements(
+                state.resolved_requirements,
+                requirements,
+            )
+        if (
+            state.pending_followup is not None
+            and requirement_key(state.pending_followup) not in set(requirement_keys(requirements))
+        ):
+            state.pending_followup = None
+            state.last_question_key = None
         if readiness.disambiguation_needed:
             state.current_topic_status = "ambiguous"
         elif state.current_topic_status != "possible_topic_shift":
             state.current_topic_status = "single_topic"
-        if readiness.recommended_modules:
-            state.recommended_modules = list(readiness.recommended_modules)
 
         if case is not None:
             case.ensure_primary_problem()
@@ -134,13 +137,8 @@ class DialogueStateManager:
     ) -> DialogueState:
         if gate.action == "ask_followup":
             if gate.missing_information:
-                pending = parse_requirements([gate.missing_information[0]])
-                state.pending_followup = pending[0] if pending else None
-                state.last_question_key = (
-                    requirement_to_string(state.pending_followup)
-                    if state.pending_followup is not None
-                    else None
-                )
+                state.pending_followup = first_requirement(gate.missing_information)
+                state.last_question_key = requirement_key(state.pending_followup)
             state.awaiting_confirmation = False
         elif gate.action == "confirm_information":
             state.awaiting_confirmation = True

@@ -48,6 +48,9 @@ Rules:
   medical case information, extraction_required should usually be true.
 - Use answer_to_followup when the message mainly answers Careena's previous
   question.
+- If a pending slot or previous Careena question is present and the latest
+  message directly addresses it, prefer answer_to_followup even when the user
+  adds a small related update in the same sentence.
 - Use confirmation when the user mainly confirms already recognized
   information.
 - Use correction when the user mainly corrects or contradicts already

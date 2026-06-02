@@ -63,6 +63,7 @@ Schema:
       "course": "worsening | improving | stable | sudden | recurrent | unknown | null",
       "measurement": {},
       "subject_ref": "self | child | relative | other_person | unknown | null",
+      "details": {},
       "confidence": 0.0
     }
   ],
@@ -114,6 +115,11 @@ Observation rules:
 - Use pending_slot and last_assistant_question to interpret short answers such
   as "seit gestern", "8 von 10", "bei meinem Sohn", "nein", or
   "ja, immer noch".
+- If pending_slot asks about an existing injury or symptom, do not restate the
+  same event as a second duplicate observation unless the user clearly reports
+  a separate new event.
+- Use details for structured follow-up content such as injury context or
+  functional limitation when it is explicitly stated.
 
 Module rules:
 - active_modules should be a short list from:
@@ -141,6 +147,8 @@ Requirement rules:
   injury.injury_context, measurement.value.
 - resolved_fields should list requirement keys that this message clearly
   answers or resolves.
+- If the message answers a pending question and also adds a small related
+  update, still mark the answered requirement in resolved_fields.
 - recommended_modules should be a short list from:
   topic_disambiguation, requirement_resolution, confirmation_check,
   recommendation_readiness, single_followup_generation,

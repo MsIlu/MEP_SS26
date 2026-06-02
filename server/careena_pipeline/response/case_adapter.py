@@ -1,4 +1,4 @@
-from careena_pipeline.state.module_registry import requirement_strings, requirement_to_string
+from careena_pipeline.planning.requirement_state import requirement_key, requirement_keys
 from careena_pipeline.models import DialogueState, MedicalCase
 
 
@@ -17,12 +17,12 @@ def case_to_payload(
         "observations": [observation.model_dump() for observation in case.observations],
         "dialogue": {
             "pending_followup": (
-                requirement_to_string(dialogue_state.pending_followup)
+                requirement_key(dialogue_state.pending_followup)
                 if dialogue_state
                 else None
             ),
             "open_requirements": (
-                requirement_strings(dialogue_state.open_requirements)
+                requirement_keys(dialogue_state.open_requirements)
                 if dialogue_state
                 else []
             ),

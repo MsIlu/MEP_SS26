@@ -1,5 +1,5 @@
 from careena_pipeline.models import CareenaPipelineResult
-from careena_pipeline.state.module_registry import followup_slot_for_requirement
+from careena_pipeline.planning.requirement_state import normalized_followup_slot
 
 
 EMERGENCY_TEXT = (
@@ -102,13 +102,11 @@ def _emergency_response(result: CareenaPipelineResult) -> dict:
 
 
 def _followup_text(result: CareenaPipelineResult) -> str:
-    pending_followup = followup_slot_for_requirement(_pending_followup(result))
+    pending_followup = normalized_followup_slot(_pending_followup(result))
     if pending_followup == "subject":
         return "Geht es um Sie selbst oder um eine andere Person?"
     if result.recommendation_gate and result.recommendation_gate.question:
         return result.recommendation_gate.question
-    if result.readiness and result.readiness.next_question:
-        return result.readiness.next_question
     return DEFAULT_FOLLOWUP_TEXT
 
 

@@ -1,12 +1,11 @@
 import json
 
 from careena_pipeline.llm.context import build_case_update_context
-from careena_pipeline.state.module_registry import (
-    infer_active_modules,
-    normalize_modules,
-    parse_requirements,
-    required_fields_for_modules,
+from careena_pipeline.planning.requirement_state import (
+    resolve_active_modules,
+    resolve_required_fields,
 )
+from careena_pipeline.state.module_registry import parse_requirements
 from careena_pipeline.core.engine import ExtractionEngine
 from careena_pipeline.models import (
     CaseObservation,
@@ -75,19 +74,19 @@ class LLMCaseUpdateExtractor:
             max_tokens=1800,
         )
 
-        active_modules = normalize_modules(llm_result.active_modules)
-        if not active_modules:
-            active_modules = infer_active_modules(
-                has_subject_update=llm_result.subject is not None,
-                observation_types=[
-                    item.type
-                    for item in llm_result.observations_added
-                ],
-            )
+        active_modules = resolve_active_modules(
+            explicit_modules=llm_result.active_modules,
+            has_subject_update=llm_result.subject is not None,
+            observation_types=[
+                item.type
+                for item in llm_result.observations_added
+            ],
+        )
 
-        required_fields = parse_requirements(llm_result.required_fields)
-        if not required_fields:
-            required_fields = required_fields_for_modules(active_modules)
+        required_fields = resolve_required_fields(
+            explicit_fields=llm_result.required_fields,
+            active_modules=active_modules,
+        )
 
         resolved_fields = parse_requirements(llm_result.resolved_fields)
 
@@ -163,6 +162,7 @@ class LLMCaseUpdateExtractor:
             course=observation.course,
             measurement=observation.measurement,
             subject_ref=observation.subject_ref,
+            details=observation.details,
             confidence=observation.confidence,
             provenance=[
                 Provenance(

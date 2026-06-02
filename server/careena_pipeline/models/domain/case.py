@@ -57,7 +57,14 @@ class MedicalCase(PipelineModel):
         return self.complaint_observations() + self.observations_of_type("diagnosis")
 
     def active_problem_ids(self) -> list[str]:
-        return [observation.id for observation in self.problem_observations()]
+        seen: set[str] = set()
+        result: list[str] = []
+        for observation in self.problem_observations():
+            if observation.id in seen:
+                continue
+            seen.add(observation.id)
+            result.append(observation.id)
+        return result
 
     def primary_observation(self) -> CaseObservation | None:
         if self.primary_problem_id:

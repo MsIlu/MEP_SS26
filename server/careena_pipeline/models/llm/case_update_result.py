@@ -50,6 +50,7 @@ class LLMCaseUpdateObservation(BaseSchema):
     course: Literal["worsening", "improving", "stable", "sudden", "recurrent", "unknown"] | None = None
     measurement: dict[str, str | int | float | bool] = Field(default_factory=dict)
     subject_ref: str | None = None
+    details: dict[str, str] = Field(default_factory=dict)
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
 

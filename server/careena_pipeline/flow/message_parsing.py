@@ -1,13 +1,11 @@
 from careena_pipeline.llm import LLMCaseUpdateExtractor, LLMIntentGatewayExtractor
 from careena_pipeline.observability import log_case_snapshot, log_json
+from careena_pipeline.planning.requirement_state import (
+    PendingFollowupContext,
+    build_pending_followup_context,
+)
 from careena_pipeline.planning import SlotFiller
 from careena_pipeline.state import CaseMerger, DialogueStateManager
-from careena_pipeline.state.module_registry import (
-    followup_slot_for_requirement,
-    infer_active_modules,
-    parse_requirement,
-    required_fields_for_modules,
-)
 from careena_pipeline.core.exceptions import (
     EmptyLLMResponseError,
     InvalidJSONError,
@@ -55,10 +53,10 @@ class MessageParsingStep:
             existing_dialogue_state,
             existing_case,
         )
-        effective_pending_slot = (
-            followup_slot_for_requirement(dialogue_state.pending_followup)
-            or pending_slot
+        pending_followup = build_pending_followup_context(
+            dialogue_state.pending_followup or pending_slot
         )
+        effective_pending_slot = pending_followup.normalized_slot
 
         raw_safety = self.safety_gate.evaluate(raw_text=text)
         log_json("SAFETY RAW TEXT", raw_safety)
@@ -69,14 +67,26 @@ class MessageParsingStep:
                 early_response_mode="emergency",
             )
 
-        if existing_case is not None and effective_pending_slot is not None:
+        request_recommendation = user_requests_recommendation(text)
+        intent_gateway = self._classify_message(
+            text=text,
+            existing_case=existing_case,
+            dialogue_state=dialogue_state,
+            pending_slot=effective_pending_slot,
+            conversation_messages=conversation_messages,
+        )
+
+        if self._should_attempt_slot_fill(
+            existing_case=existing_case,
+            pending_followup=pending_followup,
+            intent_gateway=intent_gateway,
+        ):
             slot_result = self.slot_filler.fill(existing_case, effective_pending_slot, text)
             if slot_result.filled:
                 log_json("SLOT FILL", {"slot": effective_pending_slot, "text": text})
-                request_recommendation = user_requests_recommendation(text)
                 message_update = _build_slot_fill_update(
                     text=text,
-                    pending_slot=effective_pending_slot,
+                    pending_followup=pending_followup,
                     request_recommendation=request_recommendation,
                 )
                 dialogue_state = self.dialogue_state_manager.apply_message_update(
@@ -92,14 +102,6 @@ class MessageParsingStep:
                     request_recommendation=request_recommendation,
                 )
 
-        request_recommendation = user_requests_recommendation(text)
-        intent_gateway = self._classify_message(
-            text=text,
-            existing_case=existing_case,
-            dialogue_state=dialogue_state,
-            pending_slot=effective_pending_slot,
-            conversation_messages=conversation_messages,
-        )
         if intent_gateway is not None and not intent_gateway.extraction_required:
             return MessageParsingOutcome(
                 raw_safety=raw_safety,
@@ -131,15 +133,20 @@ class MessageParsingStep:
                     "has_existing_case": existing_case is not None,
                 },
             )
-            if existing_case is not None and effective_pending_slot is not None:
+            if self._should_attempt_slot_fill(
+                existing_case=existing_case,
+                pending_followup=pending_followup,
+                intent_gateway=intent_gateway,
+            ):
                 return MessageParsingOutcome(
                     raw_safety=raw_safety,
                     dialogue_state=dialogue_state,
                     case=existing_case,
-                    message_update=_build_slot_fill_update(
+                    message_update=_build_pending_followup_update(
                         text=text,
-                        pending_slot=effective_pending_slot,
+                        pending_followup=pending_followup,
                         request_recommendation=request_recommendation,
+                        mark_resolved=False,
                     ),
                     request_recommendation=request_recommendation,
                     force_deterministic_gate=True,
@@ -217,26 +224,54 @@ class MessageParsingStep:
             )
             return None
 
+    @staticmethod
+    def _should_attempt_slot_fill(
+        *,
+        existing_case: MedicalCase | None,
+        pending_followup: PendingFollowupContext,
+        intent_gateway: IntentGateway | None,
+    ) -> bool:
+        if existing_case is None or pending_followup.normalized_slot is None:
+            return False
+        if intent_gateway is None:
+            return True
+        return intent_gateway.message_role == "answer_to_followup"
+
 
 def _build_slot_fill_update(
     *,
     text: str,
-    pending_slot: str,
+    pending_followup: PendingFollowupContext,
     request_recommendation: bool,
 ) -> MessageUpdate:
-    resolved_field = parse_requirement(pending_slot)
-    active_modules = infer_active_modules(
-        has_subject_update=bool(resolved_field and resolved_field.module == "subject"),
+    return _build_pending_followup_update(
+        text=text,
+        pending_followup=pending_followup,
+        request_recommendation=request_recommendation,
+        mark_resolved=True,
     )
+
+
+def _build_pending_followup_update(
+    *,
+    text: str,
+    pending_followup: PendingFollowupContext,
+    request_recommendation: bool,
+    mark_resolved: bool,
+) -> MessageUpdate:
     return MessageUpdate(
         raw_text=text,
         is_medical=True,
         extraction_required=True,
         user_requests_recommendation=request_recommendation,
         message_role="answer_to_followup",
-        active_modules=active_modules,
-        required_fields=required_fields_for_modules(active_modules),
-        resolved_fields=[resolved_field] if resolved_field is not None else [],
+        active_modules=pending_followup.active_modules,
+        required_fields=pending_followup.required_fields,
+        resolved_fields=(
+            [pending_followup.resolved_field]
+            if mark_resolved and pending_followup.resolved_field is not None
+            else []
+        ),
         recommended_modules=[
             "recommendation_readiness",
             "routing_recommendation",

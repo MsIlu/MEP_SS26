@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from careena_pipeline.state.module_registry import requirement_strings, requirement_to_string
+from careena_pipeline.planning.requirement_state import requirement_key, requirement_keys
 
 logger = logging.getLogger("careena_pipeline")
 testrun_logger = logging.getLogger("careena_pipeline.testrun")
@@ -218,11 +218,10 @@ def _readiness_summary(readiness: Any) -> dict[str, Any] | None:
         "ready": getattr(readiness, "ready", None),
         "missing_information": getattr(readiness, "missing_information", []),
         "blocking_requirements": getattr(readiness, "blocking_requirements", []),
-        "next_question": getattr(readiness, "next_question", None),
         "reason_tags": getattr(readiness, "reason_tags", []),
+        "confidence_gaps": getattr(readiness, "confidence_gaps", []),
         "disambiguation_needed": getattr(readiness, "disambiguation_needed", None),
         "confirmation_needed": getattr(readiness, "confirmation_needed", None),
-        "recommended_modules": getattr(readiness, "recommended_modules", []),
     }
 
 
@@ -272,13 +271,13 @@ def _dialogue_summary(dialogue_state: Any) -> dict[str, Any] | None:
         "current_topic_status": getattr(dialogue_state, "current_topic_status", None),
         "last_question_key": getattr(dialogue_state, "last_question_key", None),
         "active_modules": getattr(dialogue_state, "active_modules", []),
-        "open_requirements": requirement_strings(
+        "open_requirements": requirement_keys(
             getattr(dialogue_state, "open_requirements", [])
         ),
-        "resolved_requirements": requirement_strings(
+        "resolved_requirements": requirement_keys(
             getattr(dialogue_state, "resolved_requirements", [])
         ),
-        "pending_followup": requirement_to_string(
+        "pending_followup": requirement_key(
             getattr(dialogue_state, "pending_followup", None)
         ),
         "awaiting_confirmation": getattr(dialogue_state, "awaiting_confirmation", None),
@@ -303,10 +302,10 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
             None,
         ),
         "active_modules": getattr(message_update, "active_modules", []),
-        "required_fields": requirement_strings(
+        "required_fields": requirement_keys(
             getattr(message_update, "required_fields", [])
         ),
-        "resolved_fields": requirement_strings(
+        "resolved_fields": requirement_keys(
             getattr(message_update, "resolved_fields", [])
         ),
         "recommended_modules": getattr(message_update, "recommended_modules", []),

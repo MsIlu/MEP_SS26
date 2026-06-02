@@ -103,9 +103,6 @@ def _select_next_step_modules(
     if message_update is not None:
         modules.extend(message_update.recommended_modules)
 
-    if readiness.recommended_modules:
-        modules.extend(readiness.recommended_modules)
-
     if readiness.disambiguation_needed:
         modules.append("topic_disambiguation")
 

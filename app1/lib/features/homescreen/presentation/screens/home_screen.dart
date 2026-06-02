@@ -1,5 +1,6 @@
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
+import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:flutter/material.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -27,7 +28,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final features = _buildFeatures();
+    final features = _buildFeatures(context);
     // A very small width needs tighter horizontal spacing than the shared
     // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
@@ -69,7 +70,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// Defines the currently available home features.
-  List<HomeFeature> _buildFeatures() {
+  List<HomeFeature> _buildFeatures(BuildContext context) {
     const featureColor = AppColors.careenaInfoBorder;
 
     return [
@@ -81,9 +82,9 @@ class HomeScreen extends StatelessWidget {
       ),
       HomeFeature(
         icon: Icons.medication,
-        title: "Medikamente",
+        title: "Medikamentenplan",
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToMedicationPlan(context),
       ),
       HomeFeature(
         icon: Icons.description_outlined,
@@ -104,5 +105,15 @@ class HomeScreen extends StatelessWidget {
         onTap: () {},
       ),
     ];
+  }
+
+  void _navigateToMedicationPlan(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            MedicationPlanPage(themeController: themeController),
+      ),
+    );
   }
 }

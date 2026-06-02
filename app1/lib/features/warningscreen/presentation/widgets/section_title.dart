@@ -11,12 +11,20 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final titleColor = isDarkMode
+        ? colorScheme.onSurface
+        : WarningColors.darkText;
+
     return Text(
       text,
-      style: const TextStyle(
-        color: WarningColors.darkText,
+      style: TextStyle(
+        color: titleColor,
         fontWeight: FontWeight.bold,
         fontSize: 15,
+        height: 1.2,
       ),
     );
   }

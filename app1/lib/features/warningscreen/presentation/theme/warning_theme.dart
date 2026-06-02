@@ -27,6 +27,41 @@ class WarningTextStyles {
     fontSize: 12,
     height: 1.35,
   );
+
+  static TextStyle bodyFor(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return TextStyle(
+      color: isDarkMode
+          ? Theme.of(context).colorScheme.onSurfaceVariant
+          : WarningColors.darkText,
+      fontSize: 13,
+      height: 1.35,
+    );
+  }
+
+  static TextStyle captionFor(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return TextStyle(
+      color: isDarkMode
+          ? Theme.of(context).colorScheme.onSurfaceVariant
+          : WarningColors.darkText,
+      fontSize: 12,
+      height: 1.35,
+    );
+  }
+
+  static TextStyle titleFor(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return TextStyle(
+      color: isDarkMode
+          ? Theme.of(context).colorScheme.onSurface
+          : WarningColors.darkText,
+      fontWeight: FontWeight.bold,
+    );
+  }
 }
 
 /// Reusable decorations for warning cards and information boxes.

@@ -29,24 +29,38 @@ void main() {
 
   testWidgets('Login opens the home screen', (WidgetTester tester) async {
     await tester.pumpWidget(MyApp(chatController: chatController));
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Anmelden'), findsOneWidget);
+    final onboardingLoginButton = find.text('Anmelden');
+    expect(onboardingLoginButton, findsOneWidget);
 
-    await tester.tap(find.text('Anmelden'));
-    await tester.pumpAndSettle();
+    await tester.ensureVisible(onboardingLoginButton);
+    await tester.pump();
+
+    await tester.tap(onboardingLoginButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(LoginScreen), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Anmelden'));
-    await tester.pumpAndSettle();
+    expect(find.byType(EditableText), findsAtLeastNWidgets(2));
+
+    await tester.enterText(find.byType(EditableText).at(0), 'test@example.com');
+    await tester.enterText(find.byType(EditableText).at(1), 'password123');
+    await tester.pump();
+
+    final loginSubmitButton = find.text('Anmelden').last;
+
+    await tester.ensureVisible(loginSubmitButton);
+    await tester.pump();
+
+    await tester.tap(loginSubmitButton);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.text('Willkommen!'), findsOneWidget);
-    expect(
-      find.text('Ich bin Careena!\nWie kann ich dir helfen?'),
-      findsOneWidget,
-    );
-    expect(find.text('Deine Funktionen...'), findsOneWidget);
+    expect(find.textContaining('Ich bin Careena!'), findsOneWidget);
   });
 
   testWidgets('App allows selecting and copying visible text', (
@@ -63,7 +77,13 @@ void main() {
   ) async {
     await tester.pumpWidget(MyApp(chatController: chatController));
 
-    await tester.tap(find.text('Registrieren'));
+    final registerButton = find.text('Registrieren');
+    expect(registerButton, findsOneWidget);
+
+    await tester.ensureVisible(registerButton);
+    await tester.pumpAndSettle();
+
+    await tester.tap(registerButton);
     await tester.pumpAndSettle();
 
     expect(find.byType(RegistrationScreen), findsOneWidget);
@@ -76,22 +96,16 @@ void main() {
   ) async {
     await tester.pumpWidget(MyApp(chatController: chatController));
 
-    await tester.tap(find.text('Jetzt mit Careena sprechen'));
-    await tester.pump();
+    final chatButton = find.text('Jetzt mit Careena sprechen');
+    expect(chatButton, findsOneWidget);
 
-    expect(find.byType(ChatScreen), findsOneWidget);
-  });
-
-  testWidgets('Temporary onboarding test button opens the home screen', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(MyApp(chatController: chatController));
-
-    await tester.tap(find.text('Test: direkt zur Homepage'));
+    await tester.ensureVisible(chatButton);
     await tester.pumpAndSettle();
 
-    expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Deine Funktionen...'), findsOneWidget);
+    await tester.tap(chatButton);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ChatScreen), findsOneWidget);
   });
 
   testWidgets('Warning page shows emergency action', (

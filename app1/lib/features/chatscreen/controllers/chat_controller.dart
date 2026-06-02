@@ -100,7 +100,23 @@ class ChatController {
         return response;
       }
 
-      final botMessage = Message(text: response.text, isUser: false);
+      final responseText = response.text.toLowerCase();
+
+      final hasRecommendation =
+          (response.action != null && response.action!.trim().isNotEmpty) ||
+              responseText.contains('dringlichkeit:') ||
+              responseText.contains('empfohlene versorgungsebene:') ||
+              responseText.contains('nächster schritt:') ||
+              responseText.contains('hinweis:');
+
+      final botMessage = Message(
+        text: response.text,
+        isUser: false,
+        canExportPdf: hasRecommendation,
+        exportTitle: 'Handlungsempfehlung',
+        exportRecommendation: response.text,
+        exportNextSteps: response.action,
+      );
 
       // Insert an empty assistant bubble first. The stream below gradually
       // replaces it with longer partial text values.

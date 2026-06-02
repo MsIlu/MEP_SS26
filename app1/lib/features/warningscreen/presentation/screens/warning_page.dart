@@ -8,6 +8,7 @@ import '../theme/warning_layout.dart';
 import '../theme/warning_theme.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
+import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// Safety page shown when the backend detects a red-flag response.
 class WarningPage extends StatelessWidget {
@@ -68,6 +69,17 @@ class WarningPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               EmergencyCard(response: response),
+              const SizedBox(height: 16),
+
+              ExportRecommendationPdfButton(
+                title: WarningCopy.pageTitle,
+                patientSummary: 'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                recommendation: response.text,
+                nextSteps:
+                response.action ??
+                    'Bitte folgen Sie den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktieren Sie den Notruf 112.',
+              ),
+
               const SizedBox(height: 16),
               const NoDiagnosisInfoBox(),
             ],

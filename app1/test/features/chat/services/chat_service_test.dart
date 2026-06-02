@@ -1,45 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app1/features/chat/services/chat_service.dart';
-import 'package:app1/features/chat/data/models/message_model.dart';
+import 'package:app1/features/chatscreen/data/models/message_model.dart';
+import 'package:app1/features/chatscreen/services/chat_service.dart';
 
-/// ChatService Unit Tests
-/// 
-/// Der ChatService isoliert die reine Geschäftslogik der Nachrichten-Manipulation 
-/// vom Flutter-UI-Framework. Hier testen wir die Kernoperationen der Chat-Historie:
-/// 1. Das korrekte Anhängen neuer Nachrichten an ein bestehendes Array.
-/// 2. Das Entfernen der temporären "Lade-Blase" (Thinking Bubble), sobald die echte Serverantwort da ist.
+/// Unit tests for pure chat message list operations.
 void main() {
-  group('ChatService - Logik zur Historien-Manipulation', () {
+  group('ChatService', () {
     final chatService = ChatService();
 
-    test('addMessage() muss eine neue Nachricht unverändert an das Listenende anhängen', () {
-      // Setup
-      final alteListe = <Message>[];
-      final neueNachricht = Message(text: 'Test-Nachricht', isUser: true);
+    test('addMessage appends without mutating the existing list', () {
+      final original = <Message>[];
+      final newMessage = Message(text: 'Test-Nachricht', isUser: true);
 
-      // Execution
-      final ergebnis = chatService.addMessage(messages: alteListe, message: neueNachricht);
+      final result = chatService.addMessage(
+        messages: original,
+        message: newMessage,
+      );
 
-      // Verification
-      expect(ergebnis.length, 1);
-      expect(ergebnis.first.text, 'Test-Nachricht');
-      expect(ergebnis.first.isUser, true);
+      expect(original, isEmpty);
+      expect(result, [newMessage]);
     });
 
-    test('removeLastBotMessage() muss die allerletzte Assistenz-Nachricht (z.B. Lade-Indikator) aus der Liste löschen', () {
-      // Setup: Eine Liste simulieren, bei der die letzte Nachricht vom Bot (Ladezustand) stammt
-      final liste = [
+    test('removeLastBotMessage removes the newest assistant bubble', () {
+      // Loading bubbles are assistant messages and should disappear first.
+      final messages = [
         Message(text: 'Ich habe Bauchschmerzen', isUser: true),
-        Message(text: '', isUser: false, isLoading: true), // Zu entfernender Ladeindikator
+        Message(text: '', isUser: false, isLoading: true),
       ];
 
-      // Execution
-      final ergebnis = chatService.removeLastBotMessage(liste);
+      final result = chatService.removeLastBotMessage(messages);
 
-      // Verification
-      expect(ergebnis.length, 1, 
-          reason: 'Die Liste darf nach dem Entfernen des Lade-Indikators nur noch die User-Eingabe enthalten.');
-      expect(ergebnis.first.isUser, true);
+      expect(result, hasLength(1));
+      expect(result.first.isUser, true);
     });
   });
 }

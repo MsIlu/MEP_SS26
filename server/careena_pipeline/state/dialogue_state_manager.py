@@ -12,13 +12,24 @@ from careena_pipeline.models import (
     MessageUpdate,
     RecommendationGateDecision,
 )
+from careena_pipeline.state.dialogue_focus_sync import DialogueFocusSync
 
 
 class DialogueStateManager:
     """
-    Keeps dialogue/process state separate from the medical case while mirroring
-    the legacy case fields for compatibility with the current UI and adapters.
+    Applies process-state mutations for the running dialogue.
+
+    Focus and case-link synchronization are delegated to a dedicated
+    compatibility bridge so this class can stay closer to actual process
+    state transitions.
     """
+
+    def __init__(
+        self,
+        *,
+        focus_sync: DialogueFocusSync | None = None,
+    ):
+        self.focus_sync = focus_sync or DialogueFocusSync()
 
     def ensure_state(
         self,
@@ -26,14 +37,7 @@ class DialogueStateManager:
         case: MedicalCase | None = None,
     ) -> DialogueState:
         state = dialogue_state or DialogueState()
-        if case is not None:
-            state.active_case_id = case.case_id
-            case.ensure_primary_problem()
-            if state.focus_observation_id is None:
-                state.focus_observation_id = case.primary_problem_id
-            if state.focus_label is None:
-                state.focus_label = case.primary_focus_label()
-        return state
+        return self.focus_sync.ensure_state_links(state, case)
 
     def apply_message_update(
         self,
@@ -72,13 +76,7 @@ class DialogueStateManager:
                 state.pending_followup = None
                 state.last_question_key = None
 
-        if case is not None:
-            case.ensure_primary_problem()
-            state.active_case_id = case.case_id
-            state.focus_observation_id = case.primary_problem_id
-            state.focus_label = case.primary_focus_label()
-
-        return state
+        return self.focus_sync.sync_state_from_case(state, case)
 
     def apply_readiness(
         self,
@@ -107,12 +105,7 @@ class DialogueStateManager:
         elif state.current_topic_status != "possible_topic_shift":
             state.current_topic_status = "single_topic"
 
-        if case is not None:
-            case.ensure_primary_problem()
-            state.focus_observation_id = case.primary_problem_id
-            state.focus_label = case.primary_focus_label()
-
-        return state
+        return self.focus_sync.sync_state_from_case(state, case)
 
     def apply_planning_outcome(
         self,
@@ -124,11 +117,7 @@ class DialogueStateManager:
     ) -> DialogueState:
         self.apply_readiness(state, readiness, case)
         self.apply_gate(state, gate)
-        if case is not None:
-            case.ensure_primary_problem()
-            state.focus_observation_id = case.primary_problem_id
-            state.focus_label = case.primary_focus_label()
-        return state
+        return self.focus_sync.sync_state_from_case(state, case)
 
     def apply_gate(
         self,
@@ -159,11 +148,4 @@ class DialogueStateManager:
         case: MedicalCase | None,
         state: DialogueState,
     ) -> MedicalCase | None:
-        if case is None:
-            return None
-
-        if state.focus_observation_id is not None:
-            case.primary_problem_id = state.focus_observation_id
-        else:
-            case.ensure_primary_problem()
-        return case
+        return self.focus_sync.sync_case_from_state(case, state)

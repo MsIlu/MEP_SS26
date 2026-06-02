@@ -2,13 +2,15 @@ from dataclasses import dataclass
 
 from careena_pipeline.state.module_registry import (
     RequirementRef,
-    followup_slot_for_requirement,
     infer_active_modules,
     normalize_modules,
+    required_fields_for_modules,
+)
+from careena_pipeline.state.requirement_language import (
+    followup_slot_for_requirement,
     parse_requirement,
     parse_requirements,
     requirement_ref,
-    required_fields_for_modules,
 )
 from careena_pipeline.models import DialogueState, MedicalCase, MessageUpdate
 
@@ -58,7 +60,6 @@ def build_requirement_state(
     )
     resolved_fields = _resolved_fields(
         case=case,
-        message_update=message_update,
     )
     blocking_requirements = _blocking_requirements(
         case=case,
@@ -140,9 +141,12 @@ def resolve_required_fields(
     explicit_fields: list[RequirementRef | dict | str] | tuple[RequirementRef | dict | str, ...] | None,
     active_modules: list[str],
 ) -> list[RequirementRef]:
-    fields = parse_requirements(explicit_fields)
-    if fields:
-        return fields
+    # Requirement policy should come from the module contract, not from an LLM
+    # claiming a case is already "complete enough".
+    #
+    # We still keep `explicit_fields` in the interface for compatibility with
+    # current call sites and logs, but the authoritative field set is derived
+    # from the active modules.
     return required_fields_for_modules(active_modules)
 
 
@@ -253,14 +257,10 @@ def _required_fields(
 def _resolved_fields(
     *,
     case: MedicalCase,
-    message_update: MessageUpdate | None,
 ) -> dict[str, RequirementRef]:
-    resolved = {
-        item.key: item
-        for item in parse_requirements(
-            message_update.resolved_fields if message_update is not None else []
-        )
-    }
+    # Phase-3 rule: requirement fulfillment should come from information that
+    # is visibly anchored in the case, not directly from raw message signals.
+    resolved: dict[str, RequirementRef] = {}
     if case.subject.relation != "unknown":
         item = requirement_ref("subject", "subject_relation")
         resolved[item.key] = item
@@ -268,44 +268,44 @@ def _resolved_fields(
         item = requirement_ref("subject", "age")
         resolved[item.key] = item
     for observation in case.observations_of_type("symptom", "injury", include_negated=True):
-        if observation.temporality:
+        if observation.requirement_value("duration_or_onset"):
             item = requirement_ref(observation.type, "duration_or_onset")
             resolved[item.key] = item
-        if observation.body_site:
+        if observation.requirement_value("body_site"):
             item = requirement_ref(observation.type, "body_site")
             resolved[item.key] = item
-        if observation.severity is not None:
+        if observation.requirement_value("severity") is not None:
             item = requirement_ref(observation.type, "severity")
             resolved[item.key] = item
-        if observation.type == "symptom" and observation.course:
+        if observation.type == "symptom" and observation.requirement_value("course"):
             item = requirement_ref(observation.type, "course")
             resolved[item.key] = item
-        if observation.type == "injury" and observation.details.get("context"):
+        if observation.type == "injury" and observation.requirement_value("injury_context"):
             item = requirement_ref("injury", "injury_context")
             resolved[item.key] = item
-        if observation.type == "injury" and observation.details.get("functional_limitation"):
+        if observation.type == "injury" and observation.requirement_value("functional_limitation"):
             item = requirement_ref("injury", "functional_limitation")
             resolved[item.key] = item
     for observation in case.observations_of_type("measurement", include_negated=True):
-        if observation.measurement.get("kind"):
+        if observation.requirement_value("kind"):
             item = requirement_ref("measurement", "kind")
             resolved[item.key] = item
-        if observation.measurement:
+        if observation.requirement_value("value"):
             item = requirement_ref("measurement", "value")
             resolved[item.key] = item
     for observation in case.observations_of_type("medication", include_negated=True):
-        if observation.label or observation.concept:
+        if observation.requirement_value("name"):
             item = requirement_ref("medication", "name")
             resolved[item.key] = item
-        if observation.details:
+        if observation.requirement_value("use_context"):
             item = requirement_ref("medication", "use_context")
             resolved[item.key] = item
     for observation in case.observations_of_type("risk_factor", include_negated=True):
-        if observation.label or observation.concept:
+        if observation.requirement_value("kind"):
             item = requirement_ref("risk_factor", "kind")
             resolved[item.key] = item
     for observation in case.observations_of_type("concern", include_negated=True):
-        if observation.label or observation.display_label:
+        if observation.requirement_value("main_concern"):
             item = requirement_ref("concern", "main_concern")
             resolved[item.key] = item
     return resolved

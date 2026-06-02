@@ -70,10 +70,90 @@ class RecommendationGate:
             activated_modules=activated_modules,
         )
 
+    def normalize(
+        self,
+        *,
+        readiness: AssessmentReadiness,
+        decision: RecommendationGateDecision,
+        user_requests_recommendation: bool = False,
+    ) -> RecommendationGateDecision:
+        expected_action = _expected_action_for(readiness)
+        missing_information = readiness.blocking_requirements or readiness.missing_information
+        activated_modules = decision.activated_modules or _activated_modules(
+            readiness=readiness,
+            user_requests_recommendation=user_requests_recommendation,
+        )
+        reasons = decision.reasons or _default_reasons_for(
+            action=expected_action,
+            readiness=readiness,
+            user_requests_recommendation=user_requests_recommendation,
+        )
+
+        if expected_action == "ask_followup":
+            question = decision.question or (
+                _question_for(missing_information[0]) if missing_information else None
+            )
+            return RecommendationGateDecision(
+                action="ask_followup",
+                reasons=reasons,
+                question=question,
+                missing_information=missing_information,
+                can_recommend_with_uncertainty=False,
+                activated_modules=activated_modules,
+            )
+
+        if expected_action == "confirm_information":
+            return RecommendationGateDecision(
+                action="confirm_information",
+                reasons=reasons,
+                question=None,
+                missing_information=[],
+                can_recommend_with_uncertainty=False,
+                activated_modules=activated_modules,
+            )
+
+        return RecommendationGateDecision(
+            action="recommend",
+            reasons=reasons,
+            question=None,
+            missing_information=[],
+            can_recommend_with_uncertainty=bool(readiness.confidence_gaps),
+            activated_modules=activated_modules,
+        )
+
 
 def _question_for(requirement: str) -> str:
     normalized = normalized_followup_slot(requirement) or requirement
     return FOLLOWUP_QUESTIONS.get(normalized, question_for_slot(normalized))
+
+
+def _expected_action_for(readiness: AssessmentReadiness) -> str:
+    if readiness.disambiguation_needed:
+        return "ask_followup"
+    if readiness.blocking_requirements:
+        return "ask_followup"
+    if readiness.missing_information:
+        return "ask_followup"
+    if readiness.confirmation_needed:
+        return "confirm_information"
+    return "recommend"
+
+
+def _default_reasons_for(
+    *,
+    action: str,
+    readiness: AssessmentReadiness,
+    user_requests_recommendation: bool,
+) -> list[str]:
+    if action == "ask_followup":
+        if readiness.disambiguation_needed:
+            return ["disambiguation_needed"]
+        if readiness.blocking_requirements:
+            return ["blocking_requirements"]
+        return ["missing_information"]
+    if action == "confirm_information":
+        return ["confirmation_needed"]
+    return ["ready_requested" if user_requests_recommendation else "ready"]
 
 
 def _activated_modules(

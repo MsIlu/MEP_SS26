@@ -43,6 +43,24 @@ class PipelineServices:
     synthetic_patient_runner: SyntheticPatientRunner
 
 
+@dataclass
+class PipelineRuntimeServices:
+    llm_client: LLMClient
+    extraction_engine: ExtractionEngine
+    intent_gateway_extractor: LLMIntentGatewayExtractor
+    case_update_extractor: LLMCaseUpdateExtractor
+    next_step_advisor: LLMNextStepAdvisor
+    routing_advisor: LLMRoutingAdvisor
+    decision_pipeline: CareenaDecisionPipeline
+    session_store: CareenaSessionStore
+    confirmation_service: ConfirmationService
+
+
+@dataclass
+class ToolingServices:
+    synthetic_patient_runner: SyntheticPatientRunner
+
+
 def build_llm_client(
     *,
     llm_mode: Literal["env", "local"] = "env",
@@ -71,10 +89,37 @@ def build_default_services(
     call_models: dict[str, str] | None = None,
     scenario_llm_mode: Literal["env", "local"] = "local",
 ) -> PipelineServices:
-    llm_client = build_llm_client(llm_mode=llm_mode)
-    scenario_llm_client = llm_client if scenario_llm_mode == llm_mode else build_llm_client(
-        llm_mode=scenario_llm_mode
+    runtime = build_pipeline_runtime(
+        llm_mode=llm_mode,
+        call_models=call_models,
     )
+    tooling = build_tooling_services(
+        decision_pipeline=runtime.decision_pipeline,
+        primary_llm_client=runtime.llm_client,
+        primary_llm_mode=llm_mode,
+        scenario_llm_mode=scenario_llm_mode,
+    )
+
+    return PipelineServices(
+        llm_client=runtime.llm_client,
+        extraction_engine=runtime.extraction_engine,
+        intent_gateway_extractor=runtime.intent_gateway_extractor,
+        case_update_extractor=runtime.case_update_extractor,
+        next_step_advisor=runtime.next_step_advisor,
+        routing_advisor=runtime.routing_advisor,
+        decision_pipeline=runtime.decision_pipeline,
+        session_store=runtime.session_store,
+        confirmation_service=runtime.confirmation_service,
+        synthetic_patient_runner=tooling.synthetic_patient_runner,
+    )
+
+
+def build_pipeline_runtime(
+    *,
+    llm_mode: Literal["env", "local"] = "env",
+    call_models: dict[str, str] | None = None,
+) -> PipelineRuntimeServices:
+    llm_client = build_llm_client(llm_mode=llm_mode)
     call_model_config = build_call_model_config(
         default_model=llm_client.default_model,
         overrides=call_models,
@@ -111,16 +156,8 @@ def build_default_services(
     )
     session_store = CareenaSessionStore()
     confirmation_service = ConfirmationService()
-    synthetic_patient_runner = SyntheticPatientRunner(
-        patient_llms={
-            llm_mode: llm_client,
-            scenario_llm_mode: scenario_llm_client,
-        },
-        default_patient_llm_mode=scenario_llm_mode,
-        decision_pipeline=decision_pipeline,
-    )
 
-    return PipelineServices(
+    return PipelineRuntimeServices(
         llm_client=llm_client,
         extraction_engine=extraction_engine,
         intent_gateway_extractor=intent_gateway_extractor,
@@ -130,5 +167,29 @@ def build_default_services(
         decision_pipeline=decision_pipeline,
         session_store=session_store,
         confirmation_service=confirmation_service,
+    )
+
+
+def build_tooling_services(
+    *,
+    decision_pipeline: CareenaDecisionPipeline,
+    primary_llm_client: LLMClient,
+    primary_llm_mode: Literal["env", "local"],
+    scenario_llm_mode: Literal["env", "local"] = "local",
+) -> ToolingServices:
+    scenario_llm_client = (
+        primary_llm_client
+        if scenario_llm_mode == primary_llm_mode
+        else build_llm_client(llm_mode=scenario_llm_mode)
+    )
+    synthetic_patient_runner = SyntheticPatientRunner(
+        patient_llms={
+            primary_llm_mode: primary_llm_client,
+            scenario_llm_mode: scenario_llm_client,
+        },
+        default_patient_llm_mode=scenario_llm_mode,
+        decision_pipeline=decision_pipeline,
+    )
+    return ToolingServices(
         synthetic_patient_runner=synthetic_patient_runner,
     )

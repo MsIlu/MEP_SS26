@@ -67,6 +67,40 @@ Schema:
       "measurement": {},
       "subject_ref": "self | child | relative | other_person | unknown | null",
       "details": {},
+      "symptom_data": {
+        "duration_or_onset": "string or null",
+        "body_site": "string or null",
+        "severity": null,
+        "course": "worsening | improving | stable | sudden | recurrent | unknown | null",
+        "quality": "string or null"
+      },
+      "injury_data": {
+        "duration_or_onset": "string or null",
+        "body_site": "string or null",
+        "severity": null,
+        "injury_context": "string or null",
+        "functional_limitation": "string or null"
+      },
+      "measurement_data": {
+        "kind": "string or null",
+        "value": "string or null",
+        "numeric_value": null,
+        "unit": "string or null",
+        "measured_at": "string or null"
+      },
+      "medication_data": {
+        "name": "string or null",
+        "dose": "string or null",
+        "frequency": "string or null",
+        "route": "string or null",
+        "use_context": "string or null",
+        "is_current": null
+      },
+      "diagnosis_data": {
+        "name": "string or null",
+        "status": "string or null",
+        "chronicity": "string or null"
+      },
       "confidence": 0.0
     }
   ],
@@ -112,6 +146,14 @@ Observation rules:
 - Write concept as a short lowercase snake_case key when useful.
 - Extract temporality, severity, body_site, laterality, course, measurement,
   and details only when explicitly stated.
+- Use the typed observation data blocks when they fit the observation type:
+  - `symptom_data` for symptom-specific structure
+  - `injury_data` for trauma-specific structure
+  - `measurement_data` for measured values
+  - `medication_data` for medication facts
+  - `diagnosis_data` for diagnosis or condition facts
+- Prefer these typed blocks over stuffing everything into `details` or
+  `measurement`.
 - Severity must be an integer from 0 to 10 or null.
 - If latest_user_message only answers a pending question and adds no new
   medical fact, return an empty observations_added list.
@@ -123,6 +165,8 @@ Observation rules:
   a separate new event.
 - Use details for structured follow-up content such as injury context or
   functional limitation when it is explicitly stated.
+- The legacy top-level fields still exist for compatibility, but the typed
+  blocks should carry the cleaner medical structure when possible.
 
 Module rules:
 - active_modules should be a short list from:

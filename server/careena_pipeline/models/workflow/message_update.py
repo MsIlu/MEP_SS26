@@ -12,6 +12,21 @@ from careena_pipeline.models.workflow.intent_gateway import IntentGateway
 
 
 class MessageUpdate(PipelineModel):
+    """
+    Bridging result of the message-processing path.
+
+    This object intentionally mixes several signal families for the current
+    architecture:
+    - final message-level result used by merge/state
+    - gateway guidance traces from Call 1
+    - direct LLM traces from Call 2
+    - requirement/module hints for later decision layers
+
+    The fields therefore do not all carry the same truth weight. Phase 2
+    documentation treats this object as an explicit signal bundle, not as a
+    pure extraction model.
+    """
+
     raw_text: str
     intent_category: str | None = None
     is_medical: bool = False

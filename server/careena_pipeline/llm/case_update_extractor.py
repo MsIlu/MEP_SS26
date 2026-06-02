@@ -10,7 +10,7 @@ from careena_pipeline.planning.requirement_state import (
     resolve_active_modules,
     resolve_required_fields,
 )
-from careena_pipeline.state.module_registry import parse_requirements
+from careena_pipeline.state.requirement_language import parse_requirements
 from careena_pipeline.core.engine import ExtractionEngine
 from careena_pipeline.models import (
     CaseObservation,
@@ -181,6 +181,11 @@ class LLMCaseUpdateExtractor:
             measurement=observation.measurement,
             subject_ref=observation.subject_ref,
             details=observation.details,
+            symptom_data=observation.symptom_data,
+            injury_data=observation.injury_data,
+            measurement_data=observation.measurement_data,
+            medication_data=observation.medication_data,
+            diagnosis_data=observation.diagnosis_data,
             confidence=observation.confidence,
             provenance=[
                 Provenance(

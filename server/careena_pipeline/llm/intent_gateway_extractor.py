@@ -5,7 +5,7 @@ from careena_pipeline.llm.call_control import (
     CallModelConfig,
     INTENT_GATEWAY_CALL,
 )
-from careena_pipeline.llm.context import build_case_update_context
+from careena_pipeline.llm.context import build_intent_gateway_context
 from careena_pipeline.llm.prompts.intent_gateway import INTENT_GATEWAY_SYSTEM_PROMPT
 from careena_pipeline.models import DialogueState, IntentGateway, MedicalCase
 from careena_pipeline.observability import log_json
@@ -37,7 +37,7 @@ class LLMIntentGatewayExtractor:
         pending_slot: str | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
     ) -> IntentGateway:
-        context = build_case_update_context(
+        context = build_intent_gateway_context(
             latest_user_message=text,
             existing_case=existing_case,
             dialogue_state=dialogue_state,

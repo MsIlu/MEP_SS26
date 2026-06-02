@@ -29,7 +29,7 @@ logger = logging.getLogger("careena_pipeline")
 
 class LLMNextStepAdvisor:
     """
-    Optional support call for conversation-control wording.
+    Optional support call for follow-up shaping within gate bounds.
 
     The primary direction comes from readiness plus the deterministic gate.
     This helper should only refine hard-to-hardcode follow-up decisions, not
@@ -57,7 +57,7 @@ class LLMNextStepAdvisor:
         last_user_message: str,
         user_requests_recommendation: bool = False,
     ) -> RecommendationGateDecision:
-        module_names = _select_next_step_modules(
+        support_modules = _select_support_modules(
             message_update=message_update,
             readiness=readiness,
             user_requests_recommendation=user_requests_recommendation,
@@ -70,13 +70,13 @@ class LLMNextStepAdvisor:
             "case": case.model_dump(),
             "dialogue_state": dialogue_state.model_dump() if dialogue_state is not None else None,
             "message_update": message_update.model_dump() if message_update is not None else None,
-            "activated_modules": module_names,
+            "activated_modules": support_modules,
         }
 
         try:
             llm_result = self.engine.extract(
                 text=json.dumps(payload, ensure_ascii=False),
-                system_prompt=build_next_step_system_prompt(module_names),
+                system_prompt=build_next_step_system_prompt(support_modules),
                 output_schema=LLMNextStepResult,
                 max_tokens=1200,
                 model=(
@@ -94,7 +94,7 @@ class LLMNextStepAdvisor:
                 readiness=readiness,
                 user_requests_recommendation=user_requests_recommendation,
             )
-            decision.activated_modules = module_names
+            decision.activated_modules = support_modules
             return decision
 
         return RecommendationGateDecision(
@@ -103,11 +103,11 @@ class LLMNextStepAdvisor:
             reasons=llm_result.reasons,
             missing_information=llm_result.missing_information,
             can_recommend_with_uncertainty=llm_result.can_recommend_with_uncertainty,
-            activated_modules=llm_result.activated_modules or module_names,
+            activated_modules=llm_result.activated_modules or support_modules,
         )
 
 
-def _select_next_step_modules(
+def _select_support_modules(
     *,
     message_update: MessageUpdate | None,
     readiness: AssessmentReadiness,

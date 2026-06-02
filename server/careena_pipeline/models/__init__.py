@@ -20,6 +20,13 @@ from careena_pipeline.state.module_registry import ModuleName, RequirementRef
 from careena_pipeline.models.domain.case import MedicalCase
 from careena_pipeline.models.domain.dialogue import DialogueState
 from careena_pipeline.models.domain.observation import CaseObservation
+from careena_pipeline.models.domain.observation_data import (
+    DiagnosisObservationData,
+    InjuryObservationData,
+    MeasurementObservationData,
+    MedicationObservationData,
+    SymptomObservationData,
+)
 from careena_pipeline.models.domain.provenance import Provenance
 from careena_pipeline.models.domain.subject import Subject
 from careena_pipeline.models.workflow.case_update import CaseUpdate
@@ -51,13 +58,17 @@ __all__ = [
     "ConfirmationUpdate",
     "ConversationTurn",
     "DialogueState",
+    "DiagnosisObservationData",
     "DialogueSummary",
     "DialogueTopicStatus",
     "ExtractionProfile",
     "IntentCategory",
     "IntentGateway",
+    "InjuryObservationData",
     "MessageRole",
     "MessageUpdate",
+    "MeasurementObservationData",
+    "MedicationObservationData",
     "MedicalCase",
     "ObservationStatus",
     "ObservationType",
@@ -75,6 +86,7 @@ __all__ = [
     "Specialty",
     "Subject",
     "SubjectRelation",
+    "SymptomObservationData",
     "Urgency",
     "UrgencyAssessment",
 ]

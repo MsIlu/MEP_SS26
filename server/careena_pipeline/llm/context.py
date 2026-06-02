@@ -1,3 +1,11 @@
+"""
+Shared context builders for Careena's message-level LLM calls.
+
+Phase 2 keeps Call 1 and Call 2 on the same technical context shape for now,
+but exposes separate builder entrypoints so their contracts stay readable and
+can diverge later without another broad rename.
+"""
+
 from careena_pipeline.planning.requirement_state import requirement_key, requirement_keys
 from careena_pipeline.models import (
     CaseSummary,
@@ -14,7 +22,44 @@ from careena_pipeline.models import (
 MAX_RECENT_TURNS = 4
 
 
+def build_intent_gateway_context(
+    *,
+    latest_user_message: str,
+    existing_case: MedicalCase | None = None,
+    dialogue_state: DialogueState | None = None,
+    pending_slot: str | None = None,
+    messages: list[dict[str, str]] | None = None,
+) -> CaseUpdateContext:
+    return _build_shared_message_context(
+        latest_user_message=latest_user_message,
+        existing_case=existing_case,
+        dialogue_state=dialogue_state,
+        pending_slot=pending_slot,
+        intent_gateway=None,
+        messages=messages,
+    )
+
+
 def build_case_update_context(
+    *,
+    latest_user_message: str,
+    existing_case: MedicalCase | None = None,
+    dialogue_state: DialogueState | None = None,
+    pending_slot: str | None = None,
+    intent_gateway: IntentGateway | None = None,
+    messages: list[dict[str, str]] | None = None,
+) -> CaseUpdateContext:
+    return _build_shared_message_context(
+        latest_user_message=latest_user_message,
+        existing_case=existing_case,
+        dialogue_state=dialogue_state,
+        pending_slot=pending_slot,
+        intent_gateway=intent_gateway,
+        messages=messages,
+    )
+
+
+def _build_shared_message_context(
     *,
     latest_user_message: str,
     existing_case: MedicalCase | None = None,

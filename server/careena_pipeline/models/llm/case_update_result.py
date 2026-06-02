@@ -9,6 +9,13 @@ from careena_pipeline.models.common.types import (
     PlannerModule,
     SubjectRelation,
 )
+from careena_pipeline.models.domain.observation_data import (
+    DiagnosisObservationData,
+    InjuryObservationData,
+    MeasurementObservationData,
+    MedicationObservationData,
+    SymptomObservationData,
+)
 from careena_pipeline.models.system.baseSchema import BaseSchema
 
 
@@ -51,6 +58,11 @@ class LLMCaseUpdateObservation(BaseSchema):
     measurement: dict[str, str | int | float | bool] = Field(default_factory=dict)
     subject_ref: str | None = None
     details: dict[str, str] = Field(default_factory=dict)
+    symptom_data: SymptomObservationData | None = None
+    injury_data: InjuryObservationData | None = None
+    measurement_data: MeasurementObservationData | None = None
+    medication_data: MedicationObservationData | None = None
+    diagnosis_data: DiagnosisObservationData | None = None
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
 

@@ -17,21 +17,37 @@ def build_reasons(case: MedicalCase, recommendation: Any) -> list[str]:
     if case.subject.age is not None:
         reasons.append(f"Die betroffene Person ist {case.subject.age} Jahre alt.")
 
-    temporality = _first_value(case, "temporality")
+    temporality = _first_value(
+        case,
+        "temporality",
+        preferred_types=("symptom", "injury", "measurement", "concern"),
+    )
     if temporality:
         reasons.append(
             f"Die Beschwerden bestehen laut Angabe: {_clean_sentence_value(temporality)}."
         )
 
-    context = _first_detail(case, "context")
+    context = _first_detail(
+        case,
+        "context",
+        preferred_types=("injury", "symptom", "measurement", "concern"),
+    )
     if context:
         reasons.append(f"Zum Hergang wurde angegeben: {_clean_sentence_value(context)}.")
 
-    severity = _first_value(case, "severity")
+    severity = _first_value(
+        case,
+        "severity",
+        preferred_types=("symptom", "injury", "measurement", "concern"),
+    )
     if severity is not None:
         reasons.append(f"Die Schmerzstärke wurde mit {severity} von 10 angegeben.")
 
-    functional_limitation = _first_detail(case, "functional_limitation")
+    functional_limitation = _first_detail(
+        case,
+        "functional_limitation",
+        preferred_types=("injury", "symptom", "measurement", "concern"),
+    )
     if functional_limitation:
         reasons.append(
             "Zur Belastbarkeit wurde angegeben: "
@@ -58,16 +74,32 @@ def build_reasons(case: MedicalCase, recommendation: Any) -> list[str]:
     return _dedupe(reasons)
 
 
-def _first_value(case: MedicalCase, attribute: str):
-    for observation in _routing_observations(case):
+def _first_value(
+    case: MedicalCase,
+    attribute: str,
+    *,
+    preferred_types: tuple[str, ...] | None = None,
+):
+    for observation in _ordered_routing_observations(
+        case,
+        preferred_types=preferred_types,
+    ):
         value = getattr(observation, attribute, None)
         if value is not None:
             return value
     return None
 
 
-def _first_detail(case: MedicalCase, key: str) -> str | None:
-    for observation in _routing_observations(case):
+def _first_detail(
+    case: MedicalCase,
+    key: str,
+    *,
+    preferred_types: tuple[str, ...] | None = None,
+) -> str | None:
+    for observation in _ordered_routing_observations(
+        case,
+        preferred_types=preferred_types,
+    ):
         value = observation.details.get(key)
         if value:
             return value
@@ -81,6 +113,22 @@ def _routing_observations(case: MedicalCase):
         "measurement",
         "concern",
         include_negated=True,
+    )
+
+
+def _ordered_routing_observations(
+    case: MedicalCase,
+    *,
+    preferred_types: tuple[str, ...] | None = None,
+):
+    observations = _routing_observations(case)
+    if not preferred_types:
+        return observations
+
+    type_rank = {value: index for index, value in enumerate(preferred_types)}
+    return sorted(
+        observations,
+        key=lambda observation: type_rank.get(observation.type, len(type_rank)),
     )
 
 

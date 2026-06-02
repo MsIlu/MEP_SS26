@@ -90,16 +90,28 @@ class ActionPlanningStep:
         )
 
         if force_deterministic_gate or self.next_step_advisor is None:
-            return deterministic_gate
+            return self.recommendation_gate.normalize(
+                readiness=readiness,
+                decision=deterministic_gate,
+                user_requests_recommendation=request_recommendation,
+            )
 
         if readiness.blocking_requirements and message_update is None:
-            return deterministic_gate
+            return self.recommendation_gate.normalize(
+                readiness=readiness,
+                decision=deterministic_gate,
+                user_requests_recommendation=request_recommendation,
+            )
 
         # The deterministic readiness/gate contract stays authoritative.
         # The LLM advisor may help with follow-up wording, but should not
         # overturn a ready/recommend or confirmation outcome.
         if deterministic_gate.action != "ask_followup":
-            return deterministic_gate
+            return self.recommendation_gate.normalize(
+                readiness=readiness,
+                decision=deterministic_gate,
+                user_requests_recommendation=request_recommendation,
+            )
 
         advised_gate = self.next_step_advisor.decide(
             case=case,
@@ -111,5 +123,13 @@ class ActionPlanningStep:
             user_requests_recommendation=request_recommendation,
         )
         if advised_gate.action != "ask_followup":
-            return deterministic_gate
-        return advised_gate
+            return self.recommendation_gate.normalize(
+                readiness=readiness,
+                decision=deterministic_gate,
+                user_requests_recommendation=request_recommendation,
+            )
+        return self.recommendation_gate.normalize(
+            readiness=readiness,
+            decision=advised_gate,
+            user_requests_recommendation=request_recommendation,
+        )

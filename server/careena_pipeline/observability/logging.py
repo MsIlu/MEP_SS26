@@ -292,9 +292,24 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
 
     return {
         "intent_category": getattr(message_update, "intent_category", None),
+        "gateway_category": getattr(message_update, "gateway_category", None),
+        "llm_intent_category": getattr(message_update, "llm_intent_category", None),
         "message_role": getattr(message_update, "message_role", None),
+        "gateway_message_role": getattr(message_update, "gateway_message_role", None),
+        "llm_message_role": getattr(message_update, "llm_message_role", None),
         "is_medical": getattr(message_update, "is_medical", None),
+        "llm_is_medical": getattr(message_update, "llm_is_medical", None),
         "extraction_required": getattr(message_update, "extraction_required", None),
+        "gateway_extraction_required": getattr(
+            message_update,
+            "gateway_extraction_required",
+            None,
+        ),
+        "llm_extraction_required": getattr(
+            message_update,
+            "llm_extraction_required",
+            None,
+        ),
         "possible_new_topic": getattr(message_update, "possible_new_topic", None),
         "user_requests_recommendation": getattr(
             message_update,

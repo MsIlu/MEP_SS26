@@ -1,4 +1,5 @@
 import re
+from typing import TYPE_CHECKING
 
 from careena_pipeline.planning.subject_detection import SubjectDetector
 from careena_pipeline.models import MedicalCase
@@ -6,6 +7,9 @@ from careena_pipeline.pipeline_rules import (
     looks_like_question,
     normalize_text,
 )
+
+if TYPE_CHECKING:
+    from careena_pipeline.planning.requirement_state import PendingFollowupContext
 
 
 class SlotFillResult:
@@ -25,8 +29,14 @@ class SlotFiller:
     def __init__(self, subject_detector: SubjectDetector | None = None):
         self.subject_detector = subject_detector or SubjectDetector()
 
-    def fill(self, case: MedicalCase, pending_slot: str | None, text: str) -> SlotFillResult:
+    def fill(
+        self,
+        case: MedicalCase,
+        pending_followup: "PendingFollowupContext",
+        text: str,
+    ) -> SlotFillResult:
         case.ensure_primary_problem()
+        pending_slot = pending_followup.normalized_slot
         if pending_slot is None:
             return SlotFillResult(False)
 
@@ -57,7 +67,15 @@ class SlotFiller:
         if pending_slot == "duration_or_onset":
             if not _looks_like_temporality(normalized):
                 return SlotFillResult(False, pending_slot)
-            self._apply_temporality(case, normalized)
+            self._apply_temporality(
+                case,
+                normalized,
+                module=(
+                    pending_followup.resolved_field.module
+                    if pending_followup.resolved_field is not None
+                    else None
+                ),
+            )
             return SlotFillResult(True, pending_slot)
 
         if pending_slot == "injury_context":
@@ -82,16 +100,15 @@ class SlotFiller:
         return SlotFillResult(False, pending_slot)
 
     @staticmethod
-    def _apply_temporality(case: MedicalCase, value: str) -> None:
-        for observation in _focused_observations(case):
-            if observation.temporality is None:
+    def _apply_temporality(
+        case: MedicalCase,
+        value: str,
+        *,
+        module: str | None,
+    ) -> None:
+        for observation in _target_observations(case, module=module):
+            if _can_replace_temporality(observation.temporality, value):
                 observation.temporality = value
-            if (
-                observation.type == "injury"
-                and "context" not in observation.details
-                and _contains_context_marker(value)
-            ):
-                observation.details["context"] = value
 
     @staticmethod
     def _apply_detail(case: MedicalCase, key: str, value: str) -> None:
@@ -191,6 +208,36 @@ def _focused_injuries(case: MedicalCase):
     ]
 
 
+def _target_observations(case: MedicalCase, *, module: str | None):
+    if module == "injury":
+        return _focused_injuries(case) or case.observations_of_type(
+            "injury",
+            include_negated=True,
+        )
+    if module == "symptom":
+        symptoms = case.observations_of_type("symptom", include_negated=True)
+        focus = case.primary_focus_label()
+        focus_id = case.primary_problem_id
+        if focus_id:
+            focused = [
+                observation
+                for observation in symptoms
+                if observation.id == focus_id
+            ]
+            if focused:
+                return focused
+        if focus:
+            focused = [
+                observation
+                for observation in symptoms
+                if _matches_focus(observation, focus)
+            ]
+            if focused:
+                return focused
+        return symptoms
+    return _focused_observations(case)
+
+
 def _matches_focus(observation, focus: str) -> bool:
     normalized_focus = normalize_text(focus)
     return normalized_focus in {
@@ -218,7 +265,7 @@ def _contains_context_marker(text: str) -> bool:
             "schlag",
             "aufprall",
         )
-    ) or len(normalized.split()) >= 3
+    )
 
 
 def _looks_like_temporality(text: str) -> bool:
@@ -258,3 +305,21 @@ def _looks_like_functional_limitation(text: str) -> bool:
             "normal",
         )
     ) or len(normalized.split()) >= 2
+
+
+def _can_replace_temporality(current: str | None, incoming: str) -> bool:
+    if not incoming:
+        return False
+    if current is None:
+        return True
+
+    normalized_current = normalize_text(current)
+    normalized_incoming = normalize_text(incoming)
+    if normalized_current == normalized_incoming:
+        return False
+
+    # Replace vague extraction placeholders with concrete user-provided timing.
+    if normalized_current in {"just now", "eben", "gerade", "aktuell", "now"}:
+        return True
+
+    return False

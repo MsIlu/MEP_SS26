@@ -56,5 +56,8 @@ Rules:
 - Use correction when the user mainly corrects or contradicts already
   recognized information.
 - Use topic_shift when the user appears to introduce a different issue.
+- Do not use topic_shift for a normal clarification, a follow-up answer, a
+  correction of the same issue, or an update such as worsening/improving of
+  the current complaint.
 - extraction_profile should currently always be "default".
 """

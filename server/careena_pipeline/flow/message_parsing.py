@@ -81,9 +81,24 @@ class MessageParsingStep:
             pending_followup=pending_followup,
             intent_gateway=intent_gateway,
         ):
-            slot_result = self.slot_filler.fill(existing_case, effective_pending_slot, text)
+            slot_result = self.slot_filler.fill(
+                existing_case,
+                pending_followup,
+                text,
+            )
             if slot_result.filled:
-                log_json("SLOT FILL", {"slot": effective_pending_slot, "text": text})
+                log_json(
+                    "SLOT FILL",
+                    {
+                        "slot": effective_pending_slot,
+                        "requirement": (
+                            pending_followup.resolved_field.key
+                            if pending_followup.resolved_field is not None
+                            else None
+                        ),
+                        "text": text,
+                    },
+                )
                 message_update = _build_slot_fill_update(
                     text=text,
                     pending_followup=pending_followup,
@@ -292,6 +307,7 @@ def _build_intent_gateway_update(
         extraction_required=intent_gateway.extraction_required,
         user_requests_recommendation=request_recommendation,
         message_role=intent_gateway.message_role,
+        intent_gateway=intent_gateway,
     )
 
 

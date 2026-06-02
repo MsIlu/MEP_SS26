@@ -155,18 +155,26 @@ def normalized_followup_slot(
 def build_pending_followup_context(
     pending_slot: str | RequirementRef | None,
 ) -> PendingFollowupContext:
+    resolved_field = parse_requirement(pending_slot)
     normalized_slot = normalized_followup_slot(pending_slot)
-    resolved_field = parse_requirement(normalized_slot)
     active_modules = resolve_active_modules(
-        explicit_modules=None,
+        explicit_modules=(
+            [resolved_field.module]
+            if resolved_field is not None and resolved_field.module != "case"
+            else None
+        ),
         has_subject_update=bool(
             resolved_field is not None and resolved_field.module == "subject"
         ),
         observation_types=None,
     )
-    required_fields = resolve_required_fields(
-        explicit_fields=None,
-        active_modules=active_modules,
+    required_fields = (
+        [resolved_field]
+        if resolved_field is not None
+        else resolve_required_fields(
+            explicit_fields=None,
+            active_modules=active_modules,
+        )
     )
     return PendingFollowupContext(
         normalized_slot=normalized_slot,

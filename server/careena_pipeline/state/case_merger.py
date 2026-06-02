@@ -1,6 +1,32 @@
 from careena_pipeline.models import CaseObservation, MedicalCase, MessageUpdate
 
 
+def _pick_text(
+    *,
+    current: str | None,
+    incoming: str | None,
+    overwrite: bool,
+) -> str | None:
+    if not incoming:
+        return current
+    if overwrite or not current:
+        return incoming
+    return current
+
+
+def _pick_value(
+    *,
+    current,
+    incoming,
+    overwrite: bool,
+):
+    if incoming is None:
+        return current
+    if overwrite or current is None:
+        return incoming
+    return current
+
+
 class CaseMerger:
     """
     Merges a structured CaseUpdate into an existing MedicalCase.
@@ -17,6 +43,7 @@ class CaseMerger:
         if existing_case is None:
             existing_case = MedicalCase()
 
+        merged_any = False
         if update.subject is not None and update.subject.relation != "unknown":
             if (
                 existing_case.subject.relation == "unknown"
@@ -27,22 +54,43 @@ class CaseMerger:
         for observation in update.observations_added:
             target = self._merge_target(existing_case, update, observation)
             if target is not None:
-                self._merge_observation(target, observation)
+                self._merge_observation(
+                    target,
+                    observation,
+                    message_role=update.message_role,
+                )
+                merged_any = True
                 continue
             if self._already_present(existing_case, observation):
                 continue
+            observation.status = self._status_for_new_observation(
+                update.message_role,
+                default=observation.status,
+            )
             self._append(existing_case, observation)
+            merged_any = True
 
         for observation in update.negated_observations_added:
             target = self._merge_target(existing_case, update, observation)
             if target is not None:
-                self._merge_observation(target, observation)
+                self._merge_observation(
+                    target,
+                    observation,
+                    message_role=update.message_role,
+                )
+                merged_any = True
                 continue
             if self._already_present(existing_case, observation):
                 continue
+            observation.status = self._status_for_new_observation(
+                update.message_role,
+                default=observation.status,
+            )
             existing_case.observations.append(observation)
+            merged_any = True
 
         self._apply_requirement_resolution(existing_case, update)
+        self._apply_message_role(existing_case, update, merged_any=merged_any)
 
         if update.possible_new_topic:
             primary = self._latest_focus_candidate(existing_case, update)
@@ -81,7 +129,7 @@ class CaseMerger:
         if exact is not None:
             return exact
 
-        same_focus = cls._same_focus_target(case, observation)
+        same_focus = cls._same_focus_target(case, update, observation)
         if same_focus is not None:
             return same_focus
 
@@ -99,33 +147,80 @@ class CaseMerger:
         return None
 
     @staticmethod
-    def _merge_observation(target: CaseObservation, source: CaseObservation) -> None:
-        if not target.display_label and source.display_label:
-            target.display_label = source.display_label
-        if not target.concept and source.concept:
-            target.concept = source.concept
-        if not target.temporality and source.temporality:
-            target.temporality = source.temporality
-        if target.severity is None and source.severity is not None:
-            target.severity = source.severity
-        if not target.body_site and source.body_site:
-            target.body_site = source.body_site
-        if target.laterality is None and source.laterality is not None:
-            target.laterality = source.laterality
-        if target.course is None and source.course is not None:
-            target.course = source.course
+    def _merge_observation(
+        target: CaseObservation,
+        source: CaseObservation,
+        *,
+        message_role: str,
+    ) -> None:
+        overwrite = message_role == "correction"
+        target.display_label = _pick_text(
+            current=target.display_label,
+            incoming=source.display_label,
+            overwrite=overwrite,
+        )
+        target.concept = _pick_text(
+            current=target.concept,
+            incoming=source.concept,
+            overwrite=overwrite,
+        )
+        target.temporality = _pick_text(
+            current=target.temporality,
+            incoming=source.temporality,
+            overwrite=overwrite,
+        )
+        target.severity = _pick_value(
+            current=target.severity,
+            incoming=source.severity,
+            overwrite=overwrite,
+        )
+        target.body_site = _pick_text(
+            current=target.body_site,
+            incoming=source.body_site,
+            overwrite=overwrite,
+        )
+        target.laterality = _pick_value(
+            current=target.laterality,
+            incoming=source.laterality,
+            overwrite=overwrite,
+        )
+        target.course = _pick_value(
+            current=target.course,
+            incoming=source.course,
+            overwrite=overwrite,
+        )
         if source.measurement:
-            target.measurement = {**target.measurement, **source.measurement}
+            target.measurement = (
+                {**target.measurement, **source.measurement}
+                if overwrite
+                else {**source.measurement, **target.measurement}
+            )
         if source.details:
-            target.details = {**target.details, **source.details}
-        if source.subject_ref and not target.subject_ref:
-            target.subject_ref = source.subject_ref
+            target.details = (
+                {**target.details, **source.details}
+                if overwrite
+                else {**source.details, **target.details}
+            )
+        target.subject_ref = _pick_text(
+            current=target.subject_ref,
+            incoming=source.subject_ref,
+            overwrite=overwrite,
+        )
+        if overwrite and source.source_span:
+            target.source_span = source.source_span
+        if overwrite:
+            target.negated = source.negated
+            target.certainty = source.certainty
         if source.provenance:
             target.provenance.extend(source.provenance)
         if source.confidence is not None and (
             target.confidence is None or source.confidence > target.confidence
         ):
             target.confidence = source.confidence
+        if message_role == "confirmation":
+            target.status = "user_confirmed"
+        elif message_role == "correction":
+            target.status = "user_corrected"
 
     @classmethod
     def _apply_requirement_resolution(
@@ -148,6 +243,7 @@ class CaseMerger:
                 sources=sources,
                 resolved_keys=resolved_keys,
                 module="injury",
+                overwrite=update.message_role == "correction",
             )
         if any(key.startswith("symptom.") for key in resolved_keys) and primary.type == "symptom":
             cls._project_fields(
@@ -155,6 +251,7 @@ class CaseMerger:
                 sources=sources,
                 resolved_keys=resolved_keys,
                 module="symptom",
+                overwrite=update.message_role == "correction",
             )
 
     @classmethod
@@ -165,31 +262,55 @@ class CaseMerger:
         sources: list[CaseObservation],
         resolved_keys: set[str],
         module: str,
+        overwrite: bool,
     ) -> None:
         if f"{module}.duration_or_onset" in resolved_keys:
             value = cls._first_value(sources, "temporality")
-            if value and not target.temporality:
+            if value and (overwrite or not target.temporality):
                 target.temporality = value
         if f"{module}.severity" in resolved_keys:
             value = cls._first_value(sources, "severity")
-            if value is not None and target.severity is None:
+            if value is not None and (overwrite or target.severity is None):
                 target.severity = value
         if f"{module}.body_site" in resolved_keys:
             value = cls._first_value(sources, "body_site")
-            if value and not target.body_site:
+            if value and (overwrite or not target.body_site):
                 target.body_site = value
         if f"{module}.course" in resolved_keys:
             value = cls._first_value(sources, "course")
-            if value and target.course is None:
+            if value and (overwrite or target.course is None):
                 target.course = value
         if module == "injury" and "injury.injury_context" in resolved_keys:
             value = cls._first_detail(sources, "context")
-            if value and "context" not in target.details:
+            if value and (overwrite or "context" not in target.details):
                 target.details["context"] = value
         if module == "injury" and "injury.functional_limitation" in resolved_keys:
             value = cls._first_detail(sources, "functional_limitation")
-            if value and "functional_limitation" not in target.details:
+            if value and (
+                overwrite or "functional_limitation" not in target.details
+            ):
                 target.details["functional_limitation"] = value
+
+    @staticmethod
+    def _status_for_new_observation(message_role: str, *, default: str) -> str:
+        if message_role == "confirmation":
+            return "user_confirmed"
+        if message_role == "correction":
+            return "user_corrected"
+        return default
+
+    @staticmethod
+    def _apply_message_role(
+        case: MedicalCase,
+        update: MessageUpdate,
+        *,
+        merged_any: bool,
+    ) -> None:
+        primary = case.primary_observation()
+        if primary is None:
+            return
+        if update.message_role == "confirmation" and not merged_any:
+            primary.status = "user_confirmed"
 
     @staticmethod
     def _first_value(sources: list[CaseObservation], field: str):
@@ -241,17 +362,80 @@ class CaseMerger:
     def _same_focus_target(
         cls,
         case: MedicalCase,
+        update: MessageUpdate,
         observation: CaseObservation,
     ) -> CaseObservation | None:
+        if update.possible_new_topic or update.message_role == "topic_shift":
+            return None
+
         candidates = [
             existing
             for existing in case.observations
             if existing.type == observation.type
         ]
         for existing in candidates:
-            if cls._same_focus(existing, observation):
+            if (
+                cls._same_focus(existing, observation)
+                and cls._can_merge_same_focus(
+                    update=update,
+                    existing=existing,
+                    incoming=observation,
+                )
+            ):
                 return existing
         return None
+
+    @classmethod
+    def _can_merge_same_focus(
+        cls,
+        *,
+        update: MessageUpdate,
+        existing: CaseObservation,
+        incoming: CaseObservation,
+    ) -> bool:
+        if update.message_role in {"answer_to_followup", "confirmation", "correction"}:
+            return True
+        if cls._has_conflicting_qualifiers(existing, incoming):
+            return False
+        return True
+
+    @staticmethod
+    def _has_conflicting_qualifiers(
+        existing: CaseObservation,
+        incoming: CaseObservation,
+    ) -> bool:
+        if (
+            existing.laterality is not None
+            and incoming.laterality is not None
+            and existing.laterality != incoming.laterality
+        ):
+            return True
+        if (
+            existing.subject_ref
+            and incoming.subject_ref
+            and existing.subject_ref != incoming.subject_ref
+        ):
+            return True
+        if existing.negated != incoming.negated:
+            return True
+
+        overlapping_details = set(existing.details).intersection(incoming.details)
+        if any(
+            existing.details[key] != incoming.details[key]
+            for key in overlapping_details
+        ):
+            return True
+
+        overlapping_measurements = set(existing.measurement).intersection(
+            incoming.measurement
+        )
+        if any(
+            existing.measurement[key] != incoming.measurement[key]
+            for key in overlapping_measurements
+        ):
+            return True
+
+        return False
 
     @staticmethod
     def _latest_focus_candidate(

@@ -23,6 +23,9 @@ next decision layer will likely need.
 
 Use context only to interpret short answers correctly.
 Use intent_gateway as guidance for the type of message you are processing.
+Intent_gateway is not final truth. If latest_user_message and the structured
+context clearly indicate a different message role or update type, output the
+better fitting extraction result.
 Extract only information that is explicitly stated, confirmed, corrected, or
 negated in latest_user_message.
 Do not copy facts from case_summary into observations_added unless the latest
@@ -140,6 +143,11 @@ Message role rules:
 - recommendation_request: the main purpose is asking what to do or where to go.
 - topic_shift: the message appears to introduce a second issue or switch focus.
 - non_medical: no human-medical case update can be extracted.
+- If pending_slot or last_assistant_question clearly shows that the user is
+  mainly answering a follow-up, use answer_to_followup even when a small
+  related detail is added in the same message.
+- If the upstream gateway suggested a role but latest_user_message clearly
+  behaves differently, return the better fitting role.
 
 Requirement rules:
 - required_fields should list important requirement keys for the active modules,
@@ -158,6 +166,8 @@ Requirement rules:
 Topic rule:
 Set possible_new_topic true only when latest_user_message appears to introduce
 a separate medical issue in addition to the current one.
+Do not set possible_new_topic for a clarification, a follow-up answer, a
+correction, or a progression update of the same complaint.
 """
 
 

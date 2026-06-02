@@ -1,59 +1,42 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:app1/core/network/api_client.dart';
+import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
-import 'package:app1/core/network/api_client.dart';
-import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:http/http.dart' as http;
 
-/// HomeScreen Widget- und Integrationstest
-///
-/// Dieser Widget-Test überprüft die visuelle Präsentationsschicht des Hauptbildschirms.
-/// Da wir echte UI-Komponenten rendern, testen wir hier:
-/// 1. Wird die Willkommens-Überschrift korrekt für den Patienten dargestellt?
-/// 2. Existiert die interaktive Careena-Karte, über die man den Chat aufruft?
+/// Widget tests for the home screen presentation layer.
 void main() {
-  group('HomeScreen - UI & Widget-Rendering Tests', () {
-    testWidgets(
-      'Sollte den Willkommenstext und die Careena-Aufforderungskarte korrekt auf dem Screen rendern',
-          (WidgetTester tester) async {
-        // Setup: Abhängigkeiten aufbauen, um das HomeScreen-Widget in der Testumgebung zu laden
-        final apiClient = ApiClient(http.Client());
-        final chatApi = ChatApi(apiClient);
-        final controller = ChatController(
-          chatApi: chatApi,
-          chatService: ChatService(),
-        );
-        final themeController = ThemeController();
+  group('HomeScreen', () {
+    testWidgets('renders the welcome area and Careena entry card', (
+      WidgetTester tester,
+    ) async {
+      // The home screen needs the same controllers it receives in production.
+      final apiClient = ApiClient(http.Client());
+      final chatApi = ChatApi(apiClient);
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+      );
+      final themeController = ThemeController();
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
 
-        // Execution: Widget in den virtuellen Test-Bildschirm "pumpen"
-        await tester.pumpWidget(
-          MaterialApp(
-            home: HomeScreen(
-              controller: controller,
-              themeController: themeController,
-            ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
           ),
-        );
+        ),
+      );
 
-        // Verification 1: Prüfen, ob das Begrüßungs-Text-Widget existiert
-        expect(
-          find.text('Willkommen!'),
-          findsOneWidget,
-          reason:
-          'Der Willkommensgruß muss auf der Startseite gut sichtbar gerendert werden.',
-        );
-
-        // Verification 2: Prüfen, ob der Text auf der Hero-Card vorhanden ist
-        expect(
-          find.textContaining('Ich bin Careena!'),
-          findsOneWidget,
-          reason:
-          'Die Einstiegskarte für den Chatbot muss für den Nutzer sofort ins Auge springen.',
-        );
-      },
-    );
+      expect(find.text('Willkommen!'), findsOneWidget);
+      expect(find.textContaining('Ich bin Careena!'), findsOneWidget);
+      expect(find.text('Medikamentenplan'), findsOneWidget);
+    });
   });
 }

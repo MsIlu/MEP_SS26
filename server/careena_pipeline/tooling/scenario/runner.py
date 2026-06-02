@@ -1,14 +1,16 @@
+from typing import Literal
+
 from pydantic import Field
 
-from careena_pipeline.pipeline import CareenaDecisionPipeline
+from careena_pipeline.core.client import LLMClient
 from careena_pipeline.core.exceptions import (
     EmptyLLMResponseError,
     InvalidJSONError,
     SchemaValidationError,
 )
-from careena_pipeline.core.client import LLMClient
 from careena_pipeline.models import CareenaPipelineResult, DialogueState, MedicalCase
 from careena_pipeline.models.common.base import PipelineModel
+from careena_pipeline.pipeline import CareenaDecisionPipeline
 from careena_pipeline.response import pipeline_result_to_chat_response
 from careena_pipeline.tooling.scenario.prompts import DEFAULT_PATIENT_PROMPT
 
@@ -24,6 +26,10 @@ class ScenarioRunnerRequest(PipelineModel):
         description="Optionale erste Patientennachricht. Wenn leer, erzeugt das LLM sie.",
     )
     max_turns: int = Field(default=6, ge=1, le=20)
+    patient_llm_mode: Literal["env", "local"] | None = Field(
+        default=None,
+        description="Optionaler LLM-Modus fuer den Fake-Patienten.",
+    )
     patient_model: str | None = None
     patient_temperature: float = Field(default=0.25, ge=0.0, le=1.5)
 
@@ -42,9 +48,29 @@ class ScenarioRunnerResult(PipelineModel):
 
 
 class SyntheticPatientRunner:
-    def __init__(self, *, patient_llm: LLMClient, decision_pipeline: CareenaDecisionPipeline):
-        self.patient_llm = patient_llm
+    def __init__(
+        self,
+        *,
+        patient_llm: LLMClient | None = None,
+        patient_llms: dict[str, LLMClient] | None = None,
+        default_patient_llm_mode: Literal["env", "local"] = "local",
+        decision_pipeline: CareenaDecisionPipeline,
+    ):
+        llm_map = dict(patient_llms or {})
+        if patient_llm is not None:
+            llm_map.setdefault(default_patient_llm_mode, patient_llm)
+            llm_map.setdefault("default", patient_llm)
+        if not llm_map:
+            raise ValueError("SyntheticPatientRunner requires at least one patient LLM client.")
+
+        self.patient_llms = llm_map
+        self.default_patient_llm_mode = default_patient_llm_mode
         self.decision_pipeline = decision_pipeline
+        self.default_patient_llm = (
+            self.patient_llms.get(self.default_patient_llm_mode)
+            or self.patient_llms.get("default")
+            or next(iter(self.patient_llms.values()))
+        )
 
     def run(self, request: ScenarioRunnerRequest) -> ScenarioRunnerResult:
         transcript: list[ScenarioTranscriptEntry] = []
@@ -114,39 +140,35 @@ class SyntheticPatientRunner:
         )
 
     def _generate_opening(self, request: ScenarioRunnerRequest) -> str:
-        messages = [
-            {"role": "system", "content": request.patient_prompt},
-            {
-                "role": "user",
-                "content": (
-                    "Szenario:\n"
-                    f"{request.scenario_prompt}\n\n"
-                    "Schreibe die erste Nachricht, mit der dieser Patient Careena kontaktiert.\n"
-                    "Wichtig: Starte realistisch unvollstaendig. Nenne das Hauptproblem "
-                    "und hoechstens ein bis zwei spontane Zusatzinformationen. Verrate "
-                    "nicht direkt alle Details aus dem Szenario."
-                ),
-            },
-        ]
-        return self._complete_patient(messages=messages, request=request)
+        return self._complete_patient(
+            request=request,
+            instruction=(
+                "Formuliere die erste Chat-Nachricht dieser Person an Careena.\n"
+                "Schreibe natuerlich, alltagssprachlich und nicht wie ein Testfall.\n"
+                "Starte realistisch unvollstaendig: nenne das Hauptproblem und "
+                "hoechstens ein bis zwei spontane Zusatzinformationen.\n"
+                "Keine Aufzaehlung, keine Analyse, kein vollstaendiger Fact-Dump."
+            ),
+        )
 
-    def _generate_patient_reply(self, *, request: ScenarioRunnerRequest, transcript: list[ScenarioTranscriptEntry]) -> str:
+    def _generate_patient_reply(
+        self,
+        *,
+        request: ScenarioRunnerRequest,
+        transcript: list[ScenarioTranscriptEntry],
+    ) -> str:
         transcript_text = "\n".join(f"{entry.role}: {entry.content}" for entry in transcript)
-        messages = [
-            {"role": "system", "content": request.patient_prompt},
-            {
-                "role": "user",
-                "content": (
-                    "Szenario:\n"
-                    f"{request.scenario_prompt}\n\n"
-                    "Bisheriger Chat:\n"
-                    f"{transcript_text}\n\n"
-                    "Antworte jetzt als Patient auf die letzte Careena-Nachricht.\n"
-                    "Antworte knapp und nur auf das, wonach Careena gerade gefragt hat."
-                ),
-            },
-        ]
-        return self._complete_patient(messages=messages, request=request)
+        return self._complete_patient(
+            request=request,
+            instruction=(
+                "Bisheriger Chat:\n"
+                f"{transcript_text}\n\n"
+                "Antworte jetzt als dieselbe Person auf die letzte Careena-Nachricht.\n"
+                "Antworte kurz, natuerlich und nur mit den Informationen, die gerade "
+                "wirklich zur letzten Frage passen.\n"
+                "Keine Listen, keine Meta-Erklaerung, keine komplette Wiederholung des Szenarios."
+            ),
+        )
 
     def _repair_bad_patient_reply(
         self,
@@ -158,26 +180,42 @@ class SyntheticPatientRunner:
         last_careena = _last_content(transcript, role="careena")
         if not last_careena:
             return patient_message
-        if _too_similar(patient_message, last_careena) or _looks_like_question(patient_message) or _reply_mismatches_question(patient_message, last_careena):
-            repair_prompt = (
-                "Deine letzte Antwort war ungeeignet, weil sie die Frage wiederholt "
-                "oder nicht zur gestellten Frage passt.\n\n"
-                f"Careena fragte:\n{last_careena}\n\n"
-                "Antworte jetzt als Patient kurz und direkt mit der passenden Information "
-                "aus dem Szenario. Wiederhole die Frage nicht."
-            )
+        if self._needs_retry(patient_message=patient_message, last_careena=last_careena):
             return self._complete_patient(
-                messages=[
-                    {"role": "system", "content": request.patient_prompt},
-                    {"role": "user", "content": f"Szenario:\n{request.scenario_prompt}\n\n{repair_prompt}"},
-                ],
                 request=request,
+                instruction=(
+                    "Deine letzte Antwort war noch keine gute Patientenantwort.\n\n"
+                    f"Careena fragte:\n{last_careena}\n\n"
+                    f"Deine letzte Antwort war:\n{patient_message}\n\n"
+                    "Antworte jetzt kurz, direkt und menschlich mit der passenden Information "
+                    "aus dem Szenario. Wiederhole die Frage nicht und stelle keine Gegenfrage."
+                ),
             )
         return patient_message
 
-    def _complete_patient(self, *, messages: list[dict], request: ScenarioRunnerRequest) -> str:
+    def _needs_retry(self, *, patient_message: str, last_careena: str) -> bool:
+        return _too_similar(patient_message, last_careena) or _looks_like_question(patient_message)
+
+    def _complete_patient(
+        self,
+        *,
+        request: ScenarioRunnerRequest,
+        instruction: str,
+    ) -> str:
+        patient_llm = self.patient_llms.get(request.patient_llm_mode) or self.default_patient_llm
+        messages = [
+            {"role": "system", "content": request.patient_prompt},
+            {
+                "role": "user",
+                "content": (
+                    "Szenario:\n"
+                    f"{request.scenario_prompt}\n\n"
+                    f"{instruction}"
+                ),
+            },
+        ]
         try:
-            reply = self.patient_llm.complete(
+            reply = patient_llm.complete(
                 messages=messages,
                 temperature=request.patient_temperature,
                 max_tokens=300,
@@ -191,7 +229,7 @@ class SyntheticPatientRunner:
 
 def _clean_patient_reply(reply: str) -> str:
     cleaned = reply.strip().strip('"')
-    prefixes = ["patient:", "patientin:", "angehoerige:", "angehÃ¶rige:"]
+    prefixes = ["patient:", "patientin:", "angehoerige:", "angehoeriger:"]
     lowered = cleaned.lower()
     for prefix in prefixes:
         if lowered.startswith(prefix):
@@ -226,25 +264,9 @@ def _too_similar(left: str, right: str) -> bool:
 
 def _looks_like_question(text: str) -> bool:
     normalized = text.strip().lower()
-    return normalized.endswith("?") or normalized.startswith(("wie ", "was ", "wann ", "wo ", "wer ", "welche ", "kann ", "koennen ", "kÃ¶nnen "))
-
-
-def _reply_mismatches_question(reply: str, question: str) -> bool:
-    reply_norm = _normalize_text(reply)
-    question_norm = _normalize_text(question)
-    if "seit wann" in question_norm:
-        return not _contains_any(reply_norm, ["seit", "heute", "gestern", "vorhin", "stunde", "stunden", "tag", "tage", "woche", "wochen", "minute", "minuten"])
-    if "wie alt" in question_norm:
-        return not any(character.isdigit() for character in reply_norm)
-    if "skala" in question_norm or "0 bis 10" in question_norm:
-        return not any(str(value) in reply_norm.split() for value in range(0, 11))
-    if "auftreten" in question_norm or "belasten" in question_norm:
-        return not _contains_any(reply_norm, ["auftreten", "stehen", "gehen", "laufen", "belasten", "kaum", "nicht", "normal"])
-    return False
-
-
-def _contains_any(text: str, markers: list[str]) -> bool:
-    return any(marker in text for marker in markers)
+    return normalized.endswith("?") or normalized.startswith(
+        ("wie ", "was ", "wann ", "wo ", "wer ", "welche ", "kann ", "koennen ")
+    )
 
 
 def _normalize_text(text: str) -> str:

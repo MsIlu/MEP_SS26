@@ -1,6 +1,10 @@
 import json
 import logging
 
+from careena_pipeline.llm.call_control import (
+    CallModelConfig,
+    ROUTING_CALL,
+)
 from careena_pipeline.core.exceptions import (
     EmptyLLMResponseError,
     InvalidJSONError,
@@ -28,7 +32,7 @@ logger = logging.getLogger("careena_pipeline")
 
 class LLMRoutingAdvisor:
     """
-    Produces a structured routing recommendation from the current MedicalCase.
+    Primary Call 3 that produces the structured routing recommendation.
 
     The advisor owns only the LLM routing call and maps the validated output into
     the internal Recommendation model. Fallbacks and reason text are delegated to
@@ -39,9 +43,11 @@ class LLMRoutingAdvisor:
         self,
         engine: ExtractionEngine,
         fallback_engine: RecommendationEngine | None = None,
+        call_models: CallModelConfig | None = None,
     ):
         self.engine = engine
         self.fallback_engine = fallback_engine or RecommendationEngine()
+        self.call_models = call_models
 
     def recommend(
         self,
@@ -62,6 +68,11 @@ class LLMRoutingAdvisor:
                 system_prompt=ROUTING_SYSTEM_PROMPT,
                 output_schema=LLMRoutingResult,
                 max_tokens=1400,
+                model=(
+                    self.call_models.model_for(ROUTING_CALL)
+                    if self.call_models is not None
+                    else None
+                ),
             )
         except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
             logger.warning(

@@ -2,6 +2,10 @@ import json
 from dataclasses import dataclass
 
 from careena_pipeline.llm.context import build_case_update_context
+from careena_pipeline.llm.call_control import (
+    CASE_UPDATE_CALL,
+    CallModelConfig,
+)
 from careena_pipeline.planning.requirement_state import (
     resolve_active_modules,
     resolve_required_fields,
@@ -37,15 +41,20 @@ class _ResolvedIntent:
 
 class LLMCaseUpdateExtractor:
     """
-    LLM module that directly produces a CaseUpdate-shaped result.
+    Primary Call 2 that produces the CaseUpdate-shaped result.
 
     This is the preferred active extraction path for Careena. The generic
     ExtractionEngine remains infrastructure; this class defines the concrete
     task and adapts the LLM-facing schema into internal pipeline models.
     """
 
-    def __init__(self, engine: ExtractionEngine):
+    def __init__(
+        self,
+        engine: ExtractionEngine,
+        call_models: CallModelConfig | None = None,
+    ):
         self.engine = engine
+        self.call_models = call_models
 
     def extract_update(
         self,
@@ -81,6 +90,11 @@ class LLMCaseUpdateExtractor:
             system_prompt=system_prompt,
             output_schema=LLMCaseUpdateResult,
             max_tokens=1800,
+            model=(
+                self.call_models.model_for(CASE_UPDATE_CALL)
+                if self.call_models is not None
+                else None
+            ),
         )
 
         active_modules = resolve_active_modules(

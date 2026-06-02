@@ -1,6 +1,10 @@
 import json
 import logging
 
+from careena_pipeline.llm.call_control import (
+    CallModelConfig,
+    NEXT_STEP_CALL,
+)
 from careena_pipeline.planning.recommendation_gate import RecommendationGate
 from careena_pipeline.core.exceptions import (
     EmptyLLMResponseError,
@@ -25,17 +29,22 @@ logger = logging.getLogger("careena_pipeline")
 
 class LLMNextStepAdvisor:
     """
-    Uses an LLM for the hard-to-hardcode conversation-control decision:
-    ask a focused follow-up, ask for confirmation, or proceed to recommendation.
+    Optional support call for conversation-control wording.
+
+    The primary direction comes from readiness plus the deterministic gate.
+    This helper should only refine hard-to-hardcode follow-up decisions, not
+    replace the main Call 1 / Call 2 / Call 3 contract.
     """
 
     def __init__(
         self,
         engine: ExtractionEngine,
         recommendation_gate: RecommendationGate | None = None,
+        call_models: CallModelConfig | None = None,
     ):
         self.engine = engine
         self.recommendation_gate = recommendation_gate or RecommendationGate()
+        self.call_models = call_models
 
     def decide(
         self,
@@ -70,6 +79,11 @@ class LLMNextStepAdvisor:
                 system_prompt=build_next_step_system_prompt(module_names),
                 output_schema=LLMNextStepResult,
                 max_tokens=1200,
+                model=(
+                    self.call_models.model_for(NEXT_STEP_CALL)
+                    if self.call_models is not None
+                    else None
+                ),
             )
         except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
             logger.warning(

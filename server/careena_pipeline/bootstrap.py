@@ -6,6 +6,7 @@ import config
 from careena_pipeline.core.client import LLMClient
 from careena_pipeline.core.engine import ExtractionEngine
 from careena_pipeline.pipeline import CareenaDecisionPipeline
+from careena_pipeline.llm.call_control import build_call_model_config
 from careena_pipeline.llm import (
     LLMCaseUpdateExtractor,
     LLMIntentGatewayExtractor,
@@ -67,21 +68,38 @@ def build_llm_client(
 def build_default_services(
     *,
     llm_mode: Literal["env", "local"] = "env",
+    call_models: dict[str, str] | None = None,
+    scenario_llm_mode: Literal["env", "local"] = "local",
 ) -> PipelineServices:
     llm_client = build_llm_client(llm_mode=llm_mode)
+    scenario_llm_client = llm_client if scenario_llm_mode == llm_mode else build_llm_client(
+        llm_mode=scenario_llm_mode
+    )
+    call_model_config = build_call_model_config(
+        default_model=llm_client.default_model,
+        overrides=call_models,
+    )
 
     extraction_engine = ExtractionEngine(llm_client)
-    intent_gateway_extractor = LLMIntentGatewayExtractor(extraction_engine)
-    case_update_extractor = LLMCaseUpdateExtractor(extraction_engine)
+    intent_gateway_extractor = LLMIntentGatewayExtractor(
+        extraction_engine,
+        call_models=call_model_config,
+    )
+    case_update_extractor = LLMCaseUpdateExtractor(
+        extraction_engine,
+        call_models=call_model_config,
+    )
     recommendation_gate = RecommendationGate()
     recommendation_engine = RecommendationEngine()
     next_step_advisor = LLMNextStepAdvisor(
         extraction_engine,
         recommendation_gate=recommendation_gate,
+        call_models=call_model_config,
     )
     routing_advisor = LLMRoutingAdvisor(
         extraction_engine,
         fallback_engine=recommendation_engine,
+        call_models=call_model_config,
     )
     decision_pipeline = CareenaDecisionPipeline(
         case_update_extractor,
@@ -94,7 +112,11 @@ def build_default_services(
     session_store = CareenaSessionStore()
     confirmation_service = ConfirmationService()
     synthetic_patient_runner = SyntheticPatientRunner(
-        patient_llm=llm_client,
+        patient_llms={
+            llm_mode: llm_client,
+            scenario_llm_mode: scenario_llm_client,
+        },
+        default_patient_llm_mode=scenario_llm_mode,
         decision_pipeline=decision_pipeline,
     )
 

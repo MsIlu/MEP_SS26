@@ -231,28 +231,24 @@ class CaseMerger:
         if not update.resolved_fields:
             return
 
-        primary = case.primary_observation()
-        if primary is None:
-            return
-
         resolved_keys = {item.key for item in update.resolved_fields}
         sources = update.observations_added + update.negated_observations_added
-        if any(key.startswith("injury.") for key in resolved_keys) and primary.type == "injury":
-            cls._project_fields(
-                target=primary,
-                sources=sources,
-                resolved_keys=resolved_keys,
-                module="injury",
-                overwrite=update.message_role == "correction",
-            )
-        if any(key.startswith("symptom.") for key in resolved_keys) and primary.type == "symptom":
-            cls._project_fields(
-                target=primary,
-                sources=sources,
-                resolved_keys=resolved_keys,
-                module="symptom",
-                overwrite=update.message_role == "correction",
-            )
+        overwrite = update.message_role == "correction"
+        for module in ("injury", "symptom"):
+            if not any(key.startswith(f"{module}.") for key in resolved_keys):
+                continue
+            for target in cls._requirement_targets(case, module=module):
+                cls._project_fields(
+                    target=target,
+                    sources=sources,
+                    resolved_keys=resolved_keys,
+                    module=module,
+                    overwrite=overwrite,
+                    fallback_text=update.raw_text,
+                )
+                # For now only enrich one intended target per module to avoid
+                # spraying a follow-up answer across multiple observations.
+                break
 
     @classmethod
     def _project_fields(
@@ -263,6 +259,7 @@ class CaseMerger:
         resolved_keys: set[str],
         module: str,
         overwrite: bool,
+        fallback_text: str | None,
     ) -> None:
         if f"{module}.duration_or_onset" in resolved_keys:
             value = cls._first_value(sources, "temporality")
@@ -281,7 +278,7 @@ class CaseMerger:
             if value and (overwrite or target.course is None):
                 target.course = value
         if module == "injury" and "injury.injury_context" in resolved_keys:
-            value = cls._first_detail(sources, "context")
+            value = cls._first_detail(sources, "context") or fallback_text
             if value and (overwrite or "context" not in target.details):
                 target.details["context"] = value
         if module == "injury" and "injury.functional_limitation" in resolved_keys:
@@ -290,6 +287,32 @@ class CaseMerger:
                 overwrite or "functional_limitation" not in target.details
             ):
                 target.details["functional_limitation"] = value
+
+    @staticmethod
+    def _requirement_targets(
+        case: MedicalCase,
+        *,
+        module: str,
+    ) -> list[CaseObservation]:
+        primary = case.primary_observation()
+        if primary is not None and primary.type == module:
+            return [primary]
+
+        targets = case.observations_of_type(module, include_negated=True)
+        if not targets:
+            return []
+
+        primary_focus = case.primary_focus_label()
+        if primary_focus:
+            focused = [
+                observation
+                for observation in targets
+                if observation.patient_label == primary_focus
+            ]
+            if focused:
+                return focused
+
+        return targets
 
     @staticmethod
     def _status_for_new_observation(message_role: str, *, default: str) -> str:

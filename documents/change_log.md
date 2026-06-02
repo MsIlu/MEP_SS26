@@ -192,6 +192,10 @@ und Abgabe.
   Tagesleisten-Chips/Pfeile/Monatsseparatoren sind eigene Widgets. Bestehende
   gemeinsame Widgets wie `ResponsiveFrame`, `ResponsivePageBody` und
   `AuthTopBar` werden dabei wiederverwendet.
+- Tests für den Medikamentenplan ergänzt: Planungslogik für
+  Einnahmehäufigkeiten, Tagesplan-Darstellung, 24-Stunden-Zeiten,
+  Zukunftssperre beim `Eingenommen`-Haken und untere Seitenaktionen werden
+  abgedeckt.
 
 ### Fixed
 
@@ -199,6 +203,8 @@ und Abgabe.
 - Unicode-Streaming in `ChatService` korrigiert, damit Emoji-Codepoints nicht
   zerschnitten werden.
 - Warning-Page-Test auf die korrigierte deutsche Copy angepasst.
+- Home- und Chatscreen-Tests auf die aktuelle `features/chatscreen`-Struktur
+  und den benötigten `ThemeController` angepasst.
 
 ### Known Issues
 

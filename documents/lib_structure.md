@@ -260,6 +260,11 @@ Das Frontend enthält jetzt fokussierte Tests für:
 - Warning-Page-Rendering
 - `ChatService`-Transformationen
 - `ChatResponse.fromJson`
+- Medikamentenplan-Planungslogik unter
+  `test/features/medication_plan/presentation/utils`
+- Medikamentenplan-Widgets unter
+  `test/features/medication_plan/presentation/widgets`, unter anderem
+  Tagesplan, `Eingenommen`-Status und untere Aktionen
 
 Sinnvolle nächste Testziele sind Controller-Fehlerpfade, API-Exceptions und die
 Red-Flag-Navigation.

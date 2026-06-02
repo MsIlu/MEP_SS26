@@ -2,6 +2,8 @@ from careena_pipeline.models.common.base import PipelineModel
 from careena_pipeline.models.common.types import (
     CareLevel,
     DialogueTopicStatus,
+    ExtractionProfile,
+    IntentCategory,
     MessageRole,
     ObservationStatus,
     ObservationType,
@@ -29,6 +31,7 @@ from careena_pipeline.models.workflow.context import (
     ConversationTurn,
     DialogueSummary,
 )
+from careena_pipeline.models.workflow.intent_gateway import IntentGateway
 from careena_pipeline.models.workflow.message_update import MessageUpdate
 from careena_pipeline.models.workflow.readiness import AssessmentReadiness
 from careena_pipeline.models.workflow.recommendation import Recommendation
@@ -50,6 +53,9 @@ __all__ = [
     "DialogueState",
     "DialogueSummary",
     "DialogueTopicStatus",
+    "ExtractionProfile",
+    "IntentCategory",
+    "IntentGateway",
     "MessageRole",
     "MessageUpdate",
     "MedicalCase",

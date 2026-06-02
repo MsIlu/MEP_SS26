@@ -2,6 +2,7 @@ from pydantic import Field
 
 from careena_pipeline.models.common.base import PipelineModel
 from careena_pipeline.models.common.types import DialogueTopicStatus, PlannerModule
+from careena_pipeline.models.workflow.intent_gateway import IntentGateway
 
 
 class ConversationTurn(PipelineModel):
@@ -45,5 +46,6 @@ class CaseUpdateContext(PipelineModel):
     pending_slot: str | None = None
     last_assistant_question: str | None = None
     recent_turns: list[ConversationTurn] = Field(default_factory=list)
+    intent_gateway: IntentGateway | None = None
     case_summary: CaseSummary | None = None
     dialogue_summary: DialogueSummary | None = None

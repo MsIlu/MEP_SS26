@@ -10,6 +10,19 @@ ResponseMode = Literal[
     "cannot_assess",
 ]
 
+IntentCategory = Literal[
+    "symptom_report",
+    "emergency",
+    "administrative",
+    "general_health_question",
+    "smalltalk",
+    "not_medical",
+]
+
+ExtractionProfile = Literal[
+    "default",
+]
+
 ObservationType = Literal[
     "symptom",
     "medication",

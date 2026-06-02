@@ -6,6 +6,7 @@ from careena_pipeline.models import (
     ConversationTurn,
     DialogueState,
     DialogueSummary,
+    IntentGateway,
     MedicalCase,
 )
 
@@ -19,6 +20,7 @@ def build_case_update_context(
     existing_case: MedicalCase | None = None,
     dialogue_state: DialogueState | None = None,
     pending_slot: str | None = None,
+    intent_gateway: IntentGateway | None = None,
     messages: list[dict[str, str]] | None = None,
 ) -> CaseUpdateContext:
     recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
@@ -29,6 +31,7 @@ def build_case_update_context(
         pending_slot=pending_slot,
         last_assistant_question=last_assistant_question,
         recent_turns=recent_turns,
+        intent_gateway=intent_gateway,
         case_summary=_summarize_case(existing_case, dialogue_state),
         dialogue_summary=_summarize_dialogue(dialogue_state, existing_case),
     )

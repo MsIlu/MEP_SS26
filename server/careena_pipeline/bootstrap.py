@@ -8,6 +8,7 @@ from careena_pipeline.core.engine import ExtractionEngine
 from careena_pipeline.pipeline import CareenaDecisionPipeline
 from careena_pipeline.llm import (
     LLMCaseUpdateExtractor,
+    LLMIntentGatewayExtractor,
     LLMNextStepAdvisor,
     LLMRoutingAdvisor,
 )
@@ -31,6 +32,7 @@ DEFAULT_LLM_MAX_RETRIES = 1
 class PipelineServices:
     llm_client: LLMClient
     extraction_engine: ExtractionEngine
+    intent_gateway_extractor: LLMIntentGatewayExtractor
     case_update_extractor: LLMCaseUpdateExtractor
     next_step_advisor: LLMNextStepAdvisor
     routing_advisor: LLMRoutingAdvisor
@@ -69,6 +71,7 @@ def build_default_services(
     llm_client = build_llm_client(llm_mode=llm_mode)
 
     extraction_engine = ExtractionEngine(llm_client)
+    intent_gateway_extractor = LLMIntentGatewayExtractor(extraction_engine)
     case_update_extractor = LLMCaseUpdateExtractor(extraction_engine)
     recommendation_gate = RecommendationGate()
     recommendation_engine = RecommendationEngine()
@@ -82,6 +85,7 @@ def build_default_services(
     )
     decision_pipeline = CareenaDecisionPipeline(
         case_update_extractor,
+        intent_gateway_extractor=intent_gateway_extractor,
         recommendation_gate=recommendation_gate,
         recommendation_engine=recommendation_engine,
         next_step_advisor=next_step_advisor,
@@ -97,6 +101,7 @@ def build_default_services(
     return PipelineServices(
         llm_client=llm_client,
         extraction_engine=extraction_engine,
+        intent_gateway_extractor=intent_gateway_extractor,
         case_update_extractor=case_update_extractor,
         next_step_advisor=next_step_advisor,
         routing_advisor=routing_advisor,

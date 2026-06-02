@@ -11,6 +11,7 @@ from careena_pipeline.core.engine import ExtractionEngine
 from careena_pipeline.models import (
     CaseObservation,
     DialogueState,
+    IntentGateway,
     MedicalCase,
     MessageUpdate,
     Provenance,
@@ -45,6 +46,7 @@ class LLMCaseUpdateExtractor:
         existing_case: MedicalCase | None = None,
         dialogue_state: DialogueState | None = None,
         pending_slot: str | None = None,
+        intent_gateway: IntentGateway | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
     ) -> MessageUpdate:
         system_prompt = build_case_update_system_prompt(
@@ -55,6 +57,7 @@ class LLMCaseUpdateExtractor:
             existing_case=existing_case,
             dialogue_state=dialogue_state,
             pending_slot=pending_slot,
+            intent_gateway=intent_gateway,
             messages=conversation_messages,
         )
         log_json(
@@ -90,9 +93,21 @@ class LLMCaseUpdateExtractor:
 
         return MessageUpdate(
             raw_text=text,
-            intent_category=llm_result.intent.category,
-            is_medical=llm_result.intent.is_medical,
-            extraction_required=llm_result.intent.extraction_required,
+            intent_category=(
+                intent_gateway.category
+                if intent_gateway is not None
+                else llm_result.intent.category
+            ),
+            is_medical=(
+                intent_gateway.is_medical
+                if intent_gateway is not None
+                else llm_result.intent.is_medical
+            ),
+            extraction_required=(
+                intent_gateway.extraction_required
+                if intent_gateway is not None
+                else llm_result.intent.extraction_required
+            ),
             intent_confidence=llm_result.intent.confidence,
             subject=self._adapt_subject(llm_result.subject),
             observations_added=[
@@ -105,7 +120,11 @@ class LLMCaseUpdateExtractor:
             ],
             user_requests_recommendation=llm_result.user_requests_recommendation,
             possible_new_topic=llm_result.possible_new_topic,
-            message_role=llm_result.message_role,
+            message_role=(
+                intent_gateway.message_role
+                if intent_gateway is not None
+                else llm_result.message_role
+            ),
             active_modules=active_modules,
             required_fields=required_fields,
             resolved_fields=resolved_fields,

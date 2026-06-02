@@ -1,4 +1,4 @@
-from careena_pipeline.llm import LLMCaseUpdateExtractor
+from careena_pipeline.llm import LLMCaseUpdateExtractor, LLMIntentGatewayExtractor
 from careena_pipeline.observability import log_case_snapshot, log_json
 from careena_pipeline.planning import SlotFiller
 from careena_pipeline.state import CaseMerger, DialogueStateManager
@@ -13,7 +13,7 @@ from careena_pipeline.core.exceptions import (
     InvalidJSONError,
     SchemaValidationError,
 )
-from careena_pipeline.models import DialogueState, MedicalCase, MessageUpdate
+from careena_pipeline.models import DialogueState, IntentGateway, MedicalCase, MessageUpdate
 from careena_pipeline.pipeline_rules import user_requests_recommendation
 from careena_pipeline.safety import SafetyGate
 from careena_pipeline.flow.outcomes import MessageParsingOutcome
@@ -25,12 +25,14 @@ class MessageParsingStep:
     def __init__(
         self,
         *,
+        intent_gateway_extractor: LLMIntentGatewayExtractor | None,
         case_update_extractor: LLMCaseUpdateExtractor,
         safety_gate: SafetyGate,
         case_merger: CaseMerger,
         slot_filler: SlotFiller,
         dialogue_state_manager: DialogueStateManager,
     ):
+        self.intent_gateway_extractor = intent_gateway_extractor
         self.case_update_extractor = case_update_extractor
         self.safety_gate = safety_gate
         self.case_merger = case_merger
@@ -90,12 +92,34 @@ class MessageParsingStep:
                     request_recommendation=request_recommendation,
                 )
 
+        request_recommendation = user_requests_recommendation(text)
+        intent_gateway = self._classify_message(
+            text=text,
+            existing_case=existing_case,
+            dialogue_state=dialogue_state,
+            pending_slot=effective_pending_slot,
+            conversation_messages=conversation_messages,
+        )
+        if intent_gateway is not None and not intent_gateway.extraction_required:
+            return MessageParsingOutcome(
+                raw_safety=raw_safety,
+                dialogue_state=dialogue_state,
+                message_update=_build_intent_gateway_update(
+                    text=text,
+                    intent_gateway=intent_gateway,
+                    request_recommendation=request_recommendation,
+                ),
+                request_recommendation=request_recommendation,
+                early_response_mode=_early_response_mode_for(intent_gateway),
+            )
+
         try:
             message_update = self.case_update_extractor.extract_update(
                 text,
                 existing_case=existing_case,
                 dialogue_state=dialogue_state,
                 pending_slot=effective_pending_slot,
+                intent_gateway=intent_gateway,
                 conversation_messages=conversation_messages,
             )
         except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
@@ -108,7 +132,6 @@ class MessageParsingStep:
                 },
             )
             if existing_case is not None and effective_pending_slot is not None:
-                request_recommendation = user_requests_recommendation(text)
                 return MessageParsingOutcome(
                     raw_safety=raw_safety,
                     dialogue_state=dialogue_state,
@@ -163,6 +186,37 @@ class MessageParsingStep:
             request_recommendation=message_update.user_requests_recommendation,
         )
 
+    def _classify_message(
+        self,
+        *,
+        text: str,
+        existing_case: MedicalCase | None,
+        dialogue_state: DialogueState,
+        pending_slot: str | None,
+        conversation_messages: list[dict[str, str]] | None,
+    ) -> IntentGateway | None:
+        if self.intent_gateway_extractor is None:
+            return None
+
+        try:
+            return self.intent_gateway_extractor.classify(
+                text,
+                existing_case=existing_case,
+                dialogue_state=dialogue_state,
+                pending_slot=pending_slot,
+                conversation_messages=conversation_messages,
+            )
+        except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
+            log_json(
+                "INTENT GATEWAY FAILED",
+                {
+                    "error": str(exc),
+                    "pending_slot": pending_slot,
+                    "has_existing_case": existing_case is not None,
+                },
+            )
+            return None
+
 
 def _build_slot_fill_update(
     *,
@@ -188,3 +242,25 @@ def _build_slot_fill_update(
             "routing_recommendation",
         ],
     )
+
+
+def _build_intent_gateway_update(
+    *,
+    text: str,
+    intent_gateway: IntentGateway,
+    request_recommendation: bool,
+) -> MessageUpdate:
+    return MessageUpdate(
+        raw_text=text,
+        intent_category=intent_gateway.category,
+        is_medical=intent_gateway.is_medical,
+        extraction_required=intent_gateway.extraction_required,
+        user_requests_recommendation=request_recommendation,
+        message_role=intent_gateway.message_role,
+    )
+
+
+def _early_response_mode_for(intent_gateway: IntentGateway) -> str:
+    if intent_gateway.category in {"smalltalk", "not_medical"}:
+        return "out_of_scope"
+    return "cannot_assess"

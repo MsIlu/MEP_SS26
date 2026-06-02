@@ -11,6 +11,7 @@ The model input is structured JSON with these fields:
 - pending_slot: what the application is currently waiting for, if anything
 - last_assistant_question: the previous Careena question, if available
 - recent_turns: a short recent chat window for conversational interpretation
+- intent_gateway: lightweight upstream classification of the latest message
 - case_summary: a compact summary of the current case state
 - dialogue_summary: the current conversation-control state
 
@@ -21,6 +22,7 @@ You only describe how the latest user message updates the case and what the
 next decision layer will likely need.
 
 Use context only to interpret short answers correctly.
+Use intent_gateway as guidance for the type of message you are processing.
 Extract only information that is explicitly stated, confirmed, corrected, or
 negated in latest_user_message.
 Do not copy facts from case_summary into observations_added unless the latest

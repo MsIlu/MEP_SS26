@@ -7,6 +7,7 @@ from careena_pipeline.models.workflow.context import (
     ConversationTurn,
     DialogueSummary,
 )
+from careena_pipeline.models.workflow.intent_gateway import IntentGateway
 from careena_pipeline.models.workflow.message_update import MessageUpdate
 from careena_pipeline.models.workflow.readiness import AssessmentReadiness
 from careena_pipeline.models.workflow.recommendation import Recommendation
@@ -24,6 +25,7 @@ __all__ = [
     "ConfirmationUpdate",
     "ConversationTurn",
     "DialogueSummary",
+    "IntentGateway",
     "MessageUpdate",
     "Recommendation",
     "RecommendationGateDecision",

@@ -1,5 +1,6 @@
 from careena_pipeline.llm import (
     LLMCaseUpdateExtractor,
+    LLMIntentGatewayExtractor,
     LLMNextStepAdvisor,
     LLMRoutingAdvisor,
 )
@@ -32,6 +33,7 @@ class CareenaDecisionPipeline:
     def __init__(
         self,
         case_update_extractor: LLMCaseUpdateExtractor,
+        intent_gateway_extractor: LLMIntentGatewayExtractor | None = None,
         safety_gate: SafetyGate | None = None,
         case_merger: CaseMerger | None = None,
         slot_filler: SlotFiller | None = None,
@@ -51,6 +53,7 @@ class CareenaDecisionPipeline:
         recommendation_engine = recommendation_engine or RecommendationEngine()
 
         self.message_parsing = MessageParsingStep(
+            intent_gateway_extractor=intent_gateway_extractor,
             case_update_extractor=case_update_extractor,
             safety_gate=safety_gate,
             case_merger=case_merger,

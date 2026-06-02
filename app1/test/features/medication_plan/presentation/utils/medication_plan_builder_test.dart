@@ -26,9 +26,9 @@ void main() {
       ], DateTime(2026, 6, 2));
 
       expect(doses, hasLength(2));
-      expect(doses[0].doseIndex, 1);
+      expect(doses[0].doseIndex, 0);
       expect(doses[0].intakeTime, const TimeOfDay(hour: 8, minute: 30));
-      expect(doses[1].doseIndex, 0);
+      expect(doses[1].doseIndex, 1);
       expect(doses[1].intakeTime, const TimeOfDay(hour: 20, minute: 0));
     });
 

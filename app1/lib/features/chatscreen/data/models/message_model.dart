@@ -41,7 +41,7 @@ class Message {
     bool? isLoading,
     DateTime? timestamp,
     bool? isStreaming,
-    bool? canExportPdf,g
+    bool? canExportPdf,
     String? exportTitle,
     String? exportRecommendation,
     String? exportNextSteps,

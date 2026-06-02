@@ -12,7 +12,6 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../../../../core/themes/theme_controller.dart';
-import '../themes/app_colors.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -133,29 +132,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocusNode.requestFocus();
   }
 
-  void _openTestWarningPage() {
-    final fakeResponse = ChatResponse(
-      text:
-      'Auf Basis deiner Angaben wird empfohlen, zeitnah professionelle Unterstützung in Anspruch zu nehmen. '
-          'Bitte wende dich an deine Hausärztin, deinen Hausarzt oder an eine psychotherapeutische Anlaufstelle.',
-      redFlag: true,
-      severity: 'high',
-      action:
-      'Bei akuter Gefahr oder Selbstgefährdung kontaktiere bitte sofort den Notruf 112 oder eine psychiatrische Notaufnahme.',
-      ruleId: 'test_rule',
-      ruleName: 'Lokaler Test',
-      category: 'psychische Belastung',
-      messageKey: 'local_test_warning',
-      matchedKeywords: const ['test'],
-    );
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => WarningPage(response: fakeResponse),
-      ),
-    );
-  }
 
 
   void _onMessagesChanged() {
@@ -307,25 +283,6 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child:
-                    OutlinedButton.icon(
-                      onPressed: _openTestWarningPage,
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: AppColors.toolbarButtonBackgroundDark,
-                        foregroundColor: AppColors.toolbarButtonForegroundDark,
-                        side: const BorderSide(
-                          color: AppColors.toolbarButtonBackgroundDark,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                      ),
-                      icon: const Icon(Icons.warning_amber),
-                      label: const Text('Test Handlungsempfehlung'),
-                    ),
-                  ),
                   Expanded(child: _buildMessageList()),
                   ChatInputField(
                     controller: _textController,

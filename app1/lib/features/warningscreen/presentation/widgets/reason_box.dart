@@ -22,7 +22,7 @@ class ReasonBox extends StatelessWidget {
       decoration: WarningDecorations.reasonBox(context),
       child: Text(
         '${WarningCopy.reasonPrefix}: ${reason.label}',
-        style: WarningTextStyles.caption,
+        style: WarningTextStyles.captionFor(context),
       ),
     );
   }

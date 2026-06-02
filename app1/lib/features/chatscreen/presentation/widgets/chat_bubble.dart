@@ -5,6 +5,7 @@ import '../../utils/medical_terms.dart';
 import '../themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
+import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -108,6 +109,16 @@ class ChatBubble extends StatelessWidget {
                       ),
                       if (medicalTerm != null)
                         MedicalTermInfoBox(term: medicalTerm),
+                      if (!isUser && message.canExportPdf && !message.isStreaming) ...[
+                        const SizedBox(height: 12),
+                        ExportRecommendationPdfButton(
+                          title: message.exportTitle ?? 'Handlungsempfehlung',
+                          patientSummary:
+                          'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                          recommendation: message.exportRecommendation ?? message.text,
+                          nextSteps: message.exportNextSteps ?? '',
+                        ),
+                      ],
                     ],
                   ),
                 ),

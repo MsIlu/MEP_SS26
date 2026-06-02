@@ -1,0 +1,390 @@
+import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
+/// Creates a styled PDF document for a generated care recommendation.
+class RecommendationPdfService {
+  static const String _logoPath = 'assets/images/logo.png';
+
+  static final PdfColor _primaryColor = PdfColor.fromInt(0xFF00897B);
+  static final PdfColor _primaryLight = PdfColor.fromInt(0xFFE0F2F1);
+  static final PdfColor _warningColor = PdfColor.fromInt(0xFFE65100);
+  static final PdfColor _warningLight = PdfColor.fromInt(0xFFFFF3E0);
+  static final PdfColor _textColor = PdfColor.fromInt(0xFF263238);
+  static final PdfColor _mutedTextColor = PdfColor.fromInt(0xFF607D8B);
+  static final PdfColor _borderColor = PdfColor.fromInt(0xFFE0E0E0);
+  static final PdfColor _pageBackground = PdfColor.fromInt(0xFFFAFAFA);
+  static final PdfColor _cardBackground = PdfColor.fromInt(0xFFFFFFFF);
+
+  Future<Uint8List> buildRecommendationPdf({
+    required String title,
+    required String patientSummary,
+    required String recommendation,
+    required String nextSteps,
+  }) async {
+    final pdf = pw.Document();
+    final logo = await _loadOptionalLogo();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        build: (context) {
+          return [
+            _buildHeader(
+              title: title,
+              logo: logo,
+            ),
+            pw.Container(
+              color: _pageBackground,
+              padding: const pw.EdgeInsets.fromLTRB(32, 28, 32, 28),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: [
+                  _buildMetaInfo(),
+                  pw.SizedBox(height: 18),
+
+                  _buildSectionCard(
+                    title: 'Patientenzusammenfassung',
+                    text: patientSummary,
+                  ),
+                  pw.SizedBox(height: 14),
+
+                  _buildSectionCard(
+                    title: 'Versorgungsempfehlung',
+                    text: recommendation,
+                    highlighted: true,
+                  ),
+                  pw.SizedBox(height: 14),
+
+                  _buildSectionCard(
+                    title: 'Nächste Schritte',
+                    text: nextSteps,
+                  ),
+                  pw.SizedBox(height: 18),
+
+                  _buildEmergencyNotice(),
+                  pw.SizedBox(height: 20),
+
+                  _buildDisclaimer(),
+                ],
+              ),
+            ),
+          ];
+        },
+        footer: (context) => _buildFooter(context),
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  Future<pw.MemoryImage?> _loadOptionalLogo() async {
+    try {
+      final bytes = await rootBundle.load(_logoPath);
+      return pw.MemoryImage(bytes.buffer.asUint8List());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  pw.Widget _buildHeader({
+    required String title,
+    required pw.MemoryImage? logo,
+  }) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.fromLTRB(32, 28, 32, 30),
+      decoration: pw.BoxDecoration(
+        color: _primaryColor,
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Row(
+                children: [
+                  if (logo != null)
+                    pw.Container(
+                      width: 44,
+                      height: 44,
+                      padding: const pw.EdgeInsets.all(6),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(12),
+                      ),
+                      child: pw.Image(logo),
+                    )
+                  else
+                    pw.Container(
+                      width: 44,
+                      height: 44,
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(12),
+                      ),
+                      child: pw.Center(
+                        child: pw.Text(
+                          'C',
+                          style: pw.TextStyle(
+                            color: _primaryColor,
+                            fontSize: 24,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  pw.SizedBox(width: 12),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Careena',
+                        style: pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 20,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'MEP26',
+                        style: const pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.white,
+                  borderRadius: pw.BorderRadius.circular(20),
+                ),
+                child: pw.Text(
+                  'PDF Export',
+                  style: pw.TextStyle(
+                    color: _primaryColor,
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 28),
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              color: PdfColors.white,
+              fontSize: 26,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Generierte Handlungsempfehlung aus dem Careena-Chat',
+            style: const pw.TextStyle(
+              color: PdfColors.white,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildMetaInfo() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: _cardBackground,
+        borderRadius: pw.BorderRadius.circular(12),
+        border: pw.Border.all(color: _borderColor),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          _buildMetaItem(
+            label: 'Dokument',
+            value: 'Handlungsempfehlung',
+          ),
+          _buildMetaItem(
+            label: 'Erstellt am',
+            value: _formatDate(DateTime.now()),
+          ),
+          _buildMetaItem(
+            label: 'Quelle',
+            value: 'Careena Chat',
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildMetaItem({
+    required String label,
+    required String value,
+  }) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          label,
+          style: pw.TextStyle(
+            color: _mutedTextColor,
+            fontSize: 9,
+          ),
+        ),
+        pw.SizedBox(height: 3),
+        pw.Text(
+          value,
+          style: pw.TextStyle(
+            color: _textColor,
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildSectionCard({
+    required String title,
+    required String text,
+    bool highlighted = false,
+  }) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(18),
+      decoration: pw.BoxDecoration(
+        color: highlighted ? _primaryLight : _cardBackground,
+        borderRadius: pw.BorderRadius.circular(14),
+        border: pw.Border.all(
+          color: highlighted ? _primaryColor : _borderColor,
+          width: highlighted ? 1.2 : 1,
+        ),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              color: highlighted ? _primaryColor : _textColor,
+              fontSize: 15,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 10),
+          pw.Text(
+            text,
+            style: pw.TextStyle(
+              color: _textColor,
+              fontSize: 11,
+              lineSpacing: 4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildEmergencyNotice() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(16),
+      decoration: pw.BoxDecoration(
+        color: _warningLight,
+        borderRadius: pw.BorderRadius.circular(14),
+        border: pw.Border.all(color: _warningColor),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Wichtiger Hinweis',
+            style: pw.TextStyle(
+              color: _warningColor,
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Bei akuter Gefahr, Selbstgefährdung oder einem medizinischen Notfall '
+                'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
+                'aufgesucht werden.',
+            style: pw.TextStyle(
+              color: _textColor,
+              fontSize: 10.5,
+              lineSpacing: 3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildDisclaimer() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: PdfColor.fromInt(0xFFF5F5F5),
+        borderRadius: pw.BorderRadius.circular(12),
+      ),
+      child: pw.Text(
+        'Hinweis: Dieses Dokument wurde automatisch durch die MEP26-Anwendung '
+            'erstellt. Es ersetzt keine ärztliche, psychotherapeutische oder '
+            'medizinische Beratung, Diagnose oder Behandlung. Die Empfehlung dient '
+            'ausschließlich als unterstützende Orientierung.',
+        style: pw.TextStyle(
+          color: _mutedTextColor,
+          fontSize: 9,
+          lineSpacing: 3,
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildFooter(pw.Context context) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.fromLTRB(32, 8, 32, 18),
+      color: _pageBackground,
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'Careena · MEP26',
+            style: pw.TextStyle(
+              color: _mutedTextColor,
+              fontSize: 9,
+            ),
+          ),
+          pw.Text(
+            'Seite ${context.pageNumber} von ${context.pagesCount}',
+            style: pw.TextStyle(
+              color: _mutedTextColor,
+              fontSize: 9,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+
+    return '$day.$month.$year';
+  }
+}

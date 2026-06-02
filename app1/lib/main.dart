@@ -72,6 +72,11 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: _themeController.themeMode,
+          builder: (context, child) {
+            // Allows users to select and copy visible app text without changing
+            // each individual Text widget.
+            return SelectionArea(child: child ?? const SizedBox.shrink());
+          },
           home: OnboardingScreen(
             chatController: _chatController,
             themeController: _themeController,

@@ -49,6 +49,15 @@ void main() {
     expect(find.text('Deine Funktionen...'), findsOneWidget);
   });
 
+  testWidgets('App allows selecting and copying visible text', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(MyApp(chatController: chatController));
+
+    // The root selection area makes normal Text widgets copyable across pages.
+    expect(find.byType(SelectionArea), findsOneWidget);
+  });
+
   testWidgets('Registration opens the multi-step account flow', (
     WidgetTester tester,
   ) async {

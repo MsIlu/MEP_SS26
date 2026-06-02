@@ -26,11 +26,13 @@ und Abgabe.
 - Unit-Tests für `ChatService` und `ChatResponse.fromJson` ergänzt.
 - `MyApp` unterstützt injizierbare `ChatController`, damit Widget-Tests ohne
   echte Backend-Initialisierung laufen können.
-- Neue Strukturdatei `Documentation/lib_structure.md` ergänzt.
+- Neue Strukturdatei `documents/lib_structure.md` ergänzt.
 - Login-Screen und mehrstufigen Registrierungs-Screen als neues
   `features/authscreen` ergänzt.
 - `Meine Medikamente` als neues Feature ergänzt, inklusive lokaler Speicherung
   von Medikament, Dosis, Einnahmezeit und täglichen Push-Erinnerungen.
+- Appweite Textauswahl über eine globale `SelectionArea` ergänzt, damit Nutzer
+  sichtbare Texte innerhalb der App markieren und kopieren können.
 
 ### Changed
 

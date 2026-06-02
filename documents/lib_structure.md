@@ -78,9 +78,9 @@ Abhängigkeiten werden in `_AppDependencyScope` gehalten. Die App setzt außerde
 Deutsch als Material-Locale, damit Systemdialoge wie Time-Picker deutsche Texte
 verwenden.
 
-Die `MaterialApp` nutzt eine globale `SelectionArea`, damit normale sichtbare
-Texte innerhalb der App markiert und kopiert werden können, ohne jedes
-Text-Widget einzeln anzupassen.
+`ResponsivePageBody` legt eine `SelectionArea` um Seiteninhalte, damit normale
+sichtbare Texte innerhalb der App markiert und kopiert werden können, ohne
+jedes Text-Widget einzeln anzupassen.
 
 `app/app_dependencies.dart` ist der Composition Root der App. Dort werden diese
 Objekte einmal erstellt und gemeinsam verwendet:

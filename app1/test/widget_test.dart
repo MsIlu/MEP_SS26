@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
@@ -49,12 +50,10 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
-        builder: (context, child) {
-          // Mirrors the app-level wrapper that makes visible text copyable.
-          return SelectionArea(child: child ?? const SizedBox.shrink());
-        },
-        home: const Text('Kopierbarer Text'),
+      const MaterialApp(
+        home: Scaffold(
+          body: ResponsivePageBody(child: Text('Kopierbarer Text')),
+        ),
       ),
     );
 

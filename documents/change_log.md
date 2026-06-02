@@ -31,8 +31,9 @@ und Abgabe.
   `features/authscreen` ergänzt.
 - `Meine Medikamente` als neues Feature ergänzt, inklusive lokaler Speicherung
   von Medikament, Dosis, Einnahmezeit und täglichen Push-Erinnerungen.
-- Appweite Textauswahl über eine globale `SelectionArea` ergänzt, damit Nutzer
-  sichtbare Texte innerhalb der App markieren und kopieren können.
+- Appweite Textauswahl über `SelectionArea` im gemeinsamen
+  `ResponsivePageBody` ergänzt, damit Nutzer sichtbare Seitentexte markieren
+  und kopieren können.
 
 ### Changed
 

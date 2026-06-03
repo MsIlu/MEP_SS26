@@ -18,10 +18,11 @@ class HighlightedText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlight = highlightedText;
+    final bodyStyle = WarningTextStyles.bodyFor(context);
 
     // Fall back to plain body text when there is nothing safe to highlight.
     if (highlight == null || !text.contains(highlight)) {
-      return Text(text, style: WarningTextStyles.body);
+      return Text(text, style: bodyStyle);
     }
 
     // Splitting keeps the highlighted substring styleable while preserving the
@@ -30,7 +31,7 @@ class HighlightedText extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: WarningTextStyles.body,
+        style: bodyStyle,
         children: [
           TextSpan(text: parts.first),
           TextSpan(text: highlight, style: WarningTextStyles.highlight),

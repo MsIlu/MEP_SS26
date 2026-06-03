@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
 import 'core/themes/app_theme.dart';
 import 'core/themes/theme_controller.dart';
@@ -65,6 +66,9 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Careena',
+          locale: const Locale('de', 'DE'),
+          supportedLocales: const [Locale('de', 'DE')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: _themeController.themeMode,

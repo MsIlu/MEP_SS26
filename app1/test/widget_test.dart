@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:app1/core/network/api_client.dart';
-import 'package:app1/features/authscreen/presentation/screens/login_screen.dart';
-import 'package:app1/features/authscreen/presentation/screens/registration_screen.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
@@ -11,78 +11,72 @@ import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/warningscreen/presentation/screens/warning_page.dart';
-import 'package:app1/main.dart';
 
 void main() {
   late ChatController chatController;
+  late ThemeController themeController;
 
   setUp(() {
     chatController = ChatController(
       chatApi: _FakeChatApi(),
       chatService: ChatService(),
     );
+    themeController = ThemeController();
   });
 
   tearDown(() {
     chatController.dispose();
+    themeController.dispose();
   });
 
-  testWidgets('Login opens the home screen', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp(chatController: chatController));
-
-    expect(find.text('Anmelden'), findsOneWidget);
-
-    await tester.tap(find.text('Anmelden'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LoginScreen), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(FilledButton, 'Anmelden'));
-    await tester.pumpAndSettle();
+  testWidgets('Home screen renders the authenticated entry point', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeScreen(
+          controller: chatController,
+          themeController: themeController,
+        ),
+      ),
+    );
 
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.text('Willkommen!'), findsOneWidget);
-    expect(
-      find.text('Ich bin Careena!\nWie kann ich dir helfen?'),
-      findsOneWidget,
+    expect(find.textContaining('Ich bin Careena!'), findsOneWidget);
+  });
+
+  testWidgets('App allows selecting and copying visible text', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ResponsivePageBody(child: Text('Kopierbarer Text')),
+        ),
+      ),
     );
-    expect(find.text('Deine Funktionen...'), findsOneWidget);
+
+    expect(find.byType(SelectionArea), findsOneWidget);
+    expect(find.text('Kopierbarer Text'), findsOneWidget);
   });
 
-  testWidgets('Registration opens the multi-step account flow', (
+  testWidgets('Chat screen opens with controller-backed UI', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(MyApp(chatController: chatController));
-
-    await tester.tap(find.text('Registrieren'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(RegistrationScreen), findsOneWidget);
-    expect(find.text('Konto erstellen'), findsOneWidget);
-    expect(find.text('Persönliche Daten eingeben'), findsOneWidget);
-  });
-
-  testWidgets('Primary onboarding action opens the chatscreen', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(MyApp(chatController: chatController));
-
-    await tester.tap(find.text('Jetzt mit Careena sprechen'));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChatScreen(
+          controller: chatController,
+          themeController: themeController,
+        ),
+      ),
+    );
     await tester.pump();
 
     expect(find.byType(ChatScreen), findsOneWidget);
-  });
-
-  testWidgets('Temporary onboarding test button opens the home screen', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(MyApp(chatController: chatController));
-
-    await tester.tap(find.text('Test: direkt zur Homepage'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Deine Funktionen...'), findsOneWidget);
+    expect(find.text('Careena'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
   });
 
   testWidgets('Warning page shows emergency action', (

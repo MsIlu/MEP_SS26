@@ -77,11 +77,14 @@ class ResponsivePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Keeps visible page text selectable without touching every Text widget.
+    final selectableChild = SelectionArea(child: child);
+
     if (scrollable) {
       return ResponsiveScrollableFrame(
         maxWidth: maxWidth,
         padding: padding,
-        child: child,
+        child: selectableChild,
       );
     }
 
@@ -93,7 +96,7 @@ class ResponsivePageBody extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             height: constraints.maxHeight,
-            child: child,
+            child: selectableChild,
           ),
         );
       },

@@ -137,6 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
+
   void _onMessagesChanged() {
     // Get the current list of messages
     final messages = widget.controller.messages.value;

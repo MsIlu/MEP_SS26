@@ -41,33 +41,36 @@ class _ChatInputFieldState extends State<ChatInputField>
     with SingleTickerProviderStateMixin {
   bool _isListening = false;
 
-  // Pulsier-Animation für den Mic-Button während der Aufnahme
-  late final AnimationController _pulseController = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  );
+  late final AnimationController _pulseController;
 
-  late final Animation<double> _pulseAnimation = Tween<double>(
-    begin: 1.0,
-    end: 1.3,
-  ).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+  late final Animation<double> _pulseAnimation;
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  widget.speechService.onListeningStopped = () {
-    if (!mounted) return;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
 
-    _pulseController.stop();
-    _pulseController.reset();
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
 
-    setState(() => _isListening = false);
-  };
-}
+    widget.speechService.onListeningStopped = () {
+      if (!mounted) return;
+
+      _pulseController.stop();
+      _pulseController.reset();
+
+      setState(() => _isListening = false);
+    };
+  }
 
   @override
   void dispose() {
+    widget.speechService.onListeningStopped = null;
     _pulseController.dispose();
     super.dispose();
   }

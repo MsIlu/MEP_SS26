@@ -44,18 +44,13 @@ llm_client = LLMClient(
             api_key=config.LITELLM_API_KEY,
             model=config.SELECTED_MODEL,
             )
-# LOCAL DEV; REQUIRES Ollama + medgamma:4b installed on your computer
-extraction_llm_client = LLMClient(
-            base_url="http://localhost:11434/v1",
-            api_key="ollama",
-            model="medgemma:4b",
-            )
+
 
 session_manager = SessionManager()
 
-chat_logic = ChatLogic(session_manager, extraction_llm_client)
+chat_logic = ChatLogic(session_manager, llm_client)
 
-engine = ExtractionEngine(extraction_llm_client)
+engine = ExtractionEngine(llm_client)
 pipeline = ExtractionPipeline(engine)
 
 # Model

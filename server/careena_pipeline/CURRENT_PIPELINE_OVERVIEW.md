@@ -1,5 +1,8 @@
 # Current Careena Pipeline Overview
 
+Allgemeine Anmerkung:
+KI generiert - so circa 85 % sind richtig würd ich sagen
+
 ## Ausgangspunkt
 
 Früher war Careena im Wesentlichen ein KI-Chatbot mit einem Masterprompt: Eine Nutzernachricht ging in einen großen Prompt hinein, und das Modell sollte gleichzeitig verstehen, strukturieren, nachfragen, priorisieren und antworten.
@@ -17,15 +20,15 @@ Der Code bringt heute deutlich mehr mit als einen Chatbot:
 - Session-State über mehrere Nachrichten hinweg
 - ein internes `MedicalCase`-Modell als langlebige Fallrepräsentation
 - ein separates `DialogueState`-Modell für Prozess- und Gesprächszustand
-- deterministische Safety-Prüfung auf Red Flags
-- Readiness-Logik: Das System entscheidet, ob schon genug Informationen vorliegen
+- deterministische Safety-Prüfung auf Red Flags [importiert red flag logik]
+- Readiness-Logik: Das System entscheidet, ob schon genug Informationen vorliegen [das ist ziemlich kritisch]
 - Requirement-/Slot-Logik für gezielte Rückfragen
 - Confirmation-Flow zum Bestätigen, Ablehnen oder Korrigieren erkannter Angaben
 - Recommendation-Gating: Empfehlung erst dann, wenn der Fall dafür freigegeben ist
 - Routing-/Empfehlungslogik als eigener Schritt
-- Fallback-Verhalten bei LLM-Ausfällen oder unbrauchbaren Outputs
+- Fallback-Verhalten bei LLM-Ausfällen oder unbrauchbaren Outputs [naja reden wir nicht drüber]
 - Observability/Debug-Logging für jeden wichtigen Zwischenschritt
-- Test-/Scenario-Tooling mit synthetischem Patienten
+- Test-/Scenario-Tooling mit synthetischem Patienten [aktivierbar im frontend via eingabe: /testrun , /testrun 2 etc, aktuell mit medgemma:4b]
 
 ## High-Level-Architektur
 
@@ -48,7 +51,7 @@ Die Pipeline produziert am Ende ein `CareenaPipelineResult` mit:
 - `recommendation`
 - `response_mode`
 
-Damit ist die Antwort nicht mehr nur "Text vom Modell", sondern das Ergebnis eines nachvollziehbaren internen Entscheidungsprozesses.
+Damit ist die Antwort nicht mehr nur "Text vom Modell", sondern das Ergebnis eines nachvollziehbareren internen Entscheidungsprozesses.
 
 ## Lauf zur Laufzeit
 
@@ -62,7 +65,7 @@ Die wichtigsten Endpunkte:
 - `POST /warmup`: einfacher Health/Warmup-Endpunkt
 - `POST /chatscreen`: Haupt-Chat-Endpunkt
 - `GET /case/{session_id}`: liefert den aktuellen strukturierten Fall
-- `POST /case/confirm`: verarbeitet Bestätigungen/Korrekturen
+- `POST /case/confirm`: verarbeitet Bestätigungen/Korrekturen [nicht richtig eingebunden derzeit]
 - `POST /scenario/run`: startet einen synthetischen Szenario-Test
 
 Für jede Session werden gespeichert:
@@ -93,6 +96,8 @@ Zusätzlich gibt es:
 - `SyntheticPatientRunner` für Testdialoge
 
 ## Die eigentliche Pipeline
+
+[Da ist noch einiges verwässert, message parsing ist ein fiebertraum, genauso wie einige andere sinnlos lange dateien. bin ich noch am bereinigen aber es zieht sich]
 
 ### Phase A: Message Parsing
 

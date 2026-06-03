@@ -20,7 +20,7 @@ class SmartReplyList extends StatefulWidget {
 }
 
 class _SmartRepliesState extends State<SmartReplyList> {
-  bool expanded = true;
+  static bool isExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
 
     final mutedIconColor = isDarkMode
         ? const Color(0xFF9DBDBA)
-        : AppColors.careenaDark.withValues(alpha: expanded ? 1 : 0.5);
+        : AppColors.careenaDark.withValues(alpha: isExpanded ? 1 : 0.5);
 
     return Align(
       alignment: Alignment.centerRight,
@@ -73,7 +73,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
                   borderRadius: BorderRadius.circular(10),
                   onTap: () {
                     setState(() {
-                      expanded = !expanded;
+                      isExpanded = !isExpanded;
                     });
                   },
                   child: Row(
@@ -92,13 +92,13 @@ class _SmartRepliesState extends State<SmartReplyList> {
                         Icons.expand_more,
                         size: 20,
                         color: mutedIconColor
-                            .withValues(alpha: expanded ? 1 : 0.5),
+                            .withValues(alpha: isExpanded ? 1 : 0.5),
                       ),
                     ],
                   ),
                 ),
 
-                if (expanded) ...[
+                if (isExpanded) ...[
                   const SizedBox(height: 8),
 
                   for (final reply in widget.replies) ...[

@@ -12,6 +12,7 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/latest_message_button.dart';
 import '../../../../core/themes/theme_controller.dart';
+import 'package:app1/core/services/speech_service.dart';
 
 /// Main conversational UI for Careena.
 ///
@@ -42,6 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocusNode = FocusNode();
+  final _speechService = SpeechService();
 
   // Local UI-only state. The chat messages themselves live in ChatController.
   List<String> _smartReplies = [];
@@ -75,6 +77,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final text = _textController.text.trim();
     if (text.isEmpty) return;
+
+    await _speechService.stop();
 
     // Clear input and smart replies immediately to make the UI feel responsive
     // before the network request starts.
@@ -290,6 +294,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     onSend: _handleSend,
                     smartReplies: _smartReplies,
                     onSmartReplySelected: _handleSmartReplySelected,
+                    speechService: _speechService,
                   ),
                 ],
               ),

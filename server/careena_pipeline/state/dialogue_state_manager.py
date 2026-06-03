@@ -45,33 +45,36 @@ class DialogueStateManager:
         message_update: MessageUpdate,
         case: MedicalCase | None = None,
     ) -> DialogueState:
-        state.recommendation_requested = message_update.user_requests_recommendation
-        state.recommended_modules = list(message_update.recommended_modules)
-        if message_update.active_modules:
-            state.active_modules = list(message_update.active_modules)
+        planner_hints = message_update.planner_hints
+        requirement_hints = message_update.requirement_hints
+
+        state.recommendation_requested = planner_hints.recommendation_requested
+        state.recommended_modules = list(planner_hints.recommended_modules)
+        if requirement_hints.active_modules:
+            state.active_modules = list(requirement_hints.active_modules)
 
         if message_update.possible_new_topic:
             state.current_topic_status = "possible_topic_shift"
         elif state.current_topic_status != "ambiguous":
             state.current_topic_status = "single_topic"
 
-        if message_update.required_fields:
+        if requirement_hints.required_fields:
             state.open_requirements = merge_requirements(
                 state.open_requirements,
-                message_update.required_fields,
+                requirement_hints.required_fields,
             )
 
-        if message_update.resolved_fields:
+        if requirement_hints.resolved_fields:
             state.resolved_requirements = merge_requirements(
                 state.resolved_requirements,
-                message_update.resolved_fields,
+                requirement_hints.resolved_fields,
             )
             state.open_requirements = remove_requirements(
                 state.open_requirements,
-                message_update.resolved_fields,
+                requirement_hints.resolved_fields,
             )
             if requirement_key(state.pending_followup) in set(
-                requirement_keys(message_update.resolved_fields)
+                requirement_keys(requirement_hints.resolved_fields)
             ):
                 state.pending_followup = None
                 state.last_question_key = None

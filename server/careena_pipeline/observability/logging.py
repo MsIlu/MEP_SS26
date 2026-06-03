@@ -194,13 +194,13 @@ def _case_summary(case: Any) -> dict[str, Any] | None:
                 "label": getattr(observation, "label", None),
                 "display_label": getattr(observation, "display_label", None),
                 "concept": getattr(observation, "concept", None),
-                "body_site": getattr(observation, "body_site", None),
+                "body_site": observation.runtime_value("body_site"),
                 "laterality": getattr(observation, "laterality", None),
-                "course": getattr(observation, "course", None),
+                "course": observation.runtime_value("course"),
                 "measurement": getattr(observation, "measurement", {}),
                 "subject_ref": getattr(observation, "subject_ref", None),
-                "temporality": getattr(observation, "temporality", None),
-                "severity": getattr(observation, "severity", None),
+                "temporality": observation.runtime_value("temporality"),
+                "severity": observation.runtime_value("severity"),
                 "details": getattr(observation, "details", {}),
                 "negated": getattr(observation, "negated", None),
                 "status": getattr(observation, "status", None),
@@ -290,6 +290,10 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
     if message_update is None:
         return None
 
+    case_payload = getattr(message_update, "case_payload", None)
+    requirement_hints = getattr(message_update, "requirement_hints", None)
+    planner_hints = getattr(message_update, "planner_hints", None)
+
     return {
         "intent_category": getattr(message_update, "intent_category", None),
         "gateway_category": getattr(message_update, "gateway_category", None),
@@ -316,12 +320,33 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
             "user_requests_recommendation",
             None,
         ),
-        "active_modules": getattr(message_update, "active_modules", []),
+        "active_modules": (
+            list(requirement_hints.active_modules)
+            if requirement_hints is not None
+            else getattr(message_update, "active_modules", [])
+        ),
         "required_fields": requirement_keys(
-            getattr(message_update, "required_fields", [])
+            (
+                requirement_hints.required_fields
+                if requirement_hints is not None
+                else getattr(message_update, "required_fields", [])
+            )
         ),
         "resolved_fields": requirement_keys(
-            getattr(message_update, "resolved_fields", [])
+            (
+                requirement_hints.resolved_fields
+                if requirement_hints is not None
+                else getattr(message_update, "resolved_fields", [])
+            )
         ),
-        "recommended_modules": getattr(message_update, "recommended_modules", []),
+        "recommended_modules": (
+            list(planner_hints.recommended_modules)
+            if planner_hints is not None
+            else getattr(message_update, "recommended_modules", [])
+        ),
+        "has_case_payload": (
+            case_payload.has_updates
+            if case_payload is not None
+            else None
+        ),
     }

@@ -108,7 +108,7 @@ class SlotFiller:
     ) -> None:
         for observation in _target_observations(case, module=module):
             if _can_replace_temporality(observation.temporality, value):
-                observation.temporality = value
+                observation.set_surface_field("temporality", value)
 
     @staticmethod
     def _apply_detail(case: MedicalCase, key: str, value: str) -> None:
@@ -125,7 +125,7 @@ class SlotFiller:
 
         for observation in observations:
             if observation.type in {"injury", "symptom"} and key not in observation.details:
-                observation.details[key] = value
+                observation.set_detail_value(key, value)
 
     @staticmethod
     def _extract_severity(text: str) -> int | None:
@@ -158,7 +158,7 @@ class SlotFiller:
     def _apply_severity(case: MedicalCase, value: int) -> None:
         for observation in _focused_observations(case):
             if observation.severity is None:
-                observation.severity = value
+                observation.set_surface_field("severity", value)
 
 
 def _focused_observations(case: MedicalCase):

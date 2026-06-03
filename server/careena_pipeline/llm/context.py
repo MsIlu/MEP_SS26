@@ -149,9 +149,9 @@ def _summarize_case(
             type=observation.type,
             display_label=observation.patient_label,
             concept=observation.concept,
-            body_site=observation.body_site,
-            temporality=observation.temporality,
-            severity=observation.severity,
+            body_site=observation.runtime_value("body_site"),
+            temporality=observation.runtime_value("temporality"),
+            severity=observation.runtime_value("severity"),
             details=observation.details,
             status=observation.status,
         )

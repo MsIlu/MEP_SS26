@@ -43,15 +43,16 @@ class CaseMerger:
         if existing_case is None:
             existing_case = MedicalCase()
 
+        case_payload = update.case_payload
         merged_any = False
-        if update.subject is not None and update.subject.relation != "unknown":
+        if case_payload.subject is not None and case_payload.subject.relation != "unknown":
             if (
                 existing_case.subject.relation == "unknown"
-                or update.subject.confidence >= existing_case.subject.confidence
+                or case_payload.subject.confidence >= existing_case.subject.confidence
             ):
-                existing_case.subject = update.subject
+                existing_case.subject = case_payload.subject
 
-        for observation in update.observations_added:
+        for observation in case_payload.observations_added:
             target = self._merge_target(existing_case, update, observation)
             if target is not None:
                 self._merge_observation(
@@ -70,7 +71,7 @@ class CaseMerger:
             self._append(existing_case, observation)
             merged_any = True
 
-        for observation in update.negated_observations_added:
+        for observation in case_payload.negated_observations_added:
             target = self._merge_target(existing_case, update, observation)
             if target is not None:
                 self._merge_observation(
@@ -163,43 +164,47 @@ class CaseMerger:
             incoming=source.concept,
             overwrite=overwrite,
         )
-        target.temporality = _pick_text(
-            current=target.temporality,
-            incoming=source.temporality,
+        temporality = _pick_text(
+            current=target.runtime_value("temporality"),
+            incoming=source.runtime_value("temporality"),
             overwrite=overwrite,
         )
-        target.severity = _pick_value(
-            current=target.severity,
-            incoming=source.severity,
+        if temporality != target.temporality:
+            target.set_surface_field("temporality", temporality)
+
+        severity = _pick_value(
+            current=target.runtime_value("severity"),
+            incoming=source.runtime_value("severity"),
             overwrite=overwrite,
         )
-        target.body_site = _pick_text(
-            current=target.body_site,
-            incoming=source.body_site,
+        if severity != target.severity:
+            target.set_surface_field("severity", severity)
+
+        body_site = _pick_text(
+            current=target.runtime_value("body_site"),
+            incoming=source.runtime_value("body_site"),
             overwrite=overwrite,
         )
+        if body_site != target.body_site:
+            target.set_surface_field("body_site", body_site)
+
         target.laterality = _pick_value(
             current=target.laterality,
             incoming=source.laterality,
             overwrite=overwrite,
         )
-        target.course = _pick_value(
-            current=target.course,
-            incoming=source.course,
+        course = _pick_value(
+            current=target.runtime_value("course"),
+            incoming=source.runtime_value("course"),
             overwrite=overwrite,
         )
+        if course != target.course:
+            target.set_surface_field("course", course)
+
         if source.measurement:
-            target.measurement = (
-                {**target.measurement, **source.measurement}
-                if overwrite
-                else {**source.measurement, **target.measurement}
-            )
+            target.merge_measurement_values(source.measurement, overwrite=overwrite)
         if source.details:
-            target.details = (
-                {**target.details, **source.details}
-                if overwrite
-                else {**source.details, **target.details}
-            )
+            target.merge_detail_values(source.details, overwrite=overwrite)
         target.subject_ref = _pick_text(
             current=target.subject_ref,
             incoming=source.subject_ref,
@@ -220,7 +225,6 @@ class CaseMerger:
             target.status = "user_confirmed"
         elif message_role == "correction":
             target.status = "user_corrected"
-        target.synchronize_structure()
 
     @staticmethod
     def _status_for_new_observation(message_role: str, *, default: str) -> str:
@@ -245,8 +249,14 @@ class CaseMerger:
 
     @staticmethod
     def _same_focus(left: CaseObservation, right: CaseObservation) -> bool:
-        left_key = ((left.concept or left.label or "").strip().lower(), (left.body_site or "").strip().lower())
-        right_key = ((right.concept or right.label or "").strip().lower(), (right.body_site or "").strip().lower())
+        left_key = (
+            (left.concept or left.label or "").strip().lower(),
+            (left.runtime_value("body_site") or "").strip().lower(),
+        )
+        right_key = (
+            (right.concept or right.label or "").strip().lower(),
+            (right.runtime_value("body_site") or "").strip().lower(),
+        )
         return left_key == right_key
 
     @staticmethod
@@ -357,7 +367,7 @@ class CaseMerger:
         case: MedicalCase,
         update: MessageUpdate,
     ) -> CaseObservation | None:
-        candidates = update.observations_added + update.negated_observations_added
+        candidates = update.case_payload.all_observations
         for observation in candidates:
             for existing in case.observations:
                 if existing.id == observation.id:

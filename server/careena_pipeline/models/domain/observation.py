@@ -16,6 +16,15 @@ from careena_pipeline.models.domain.provenance import Provenance
 
 
 class CaseObservation(PipelineModel):
+    """
+    Transitional observation model for the current Careena case state.
+
+    The generic surface fields are still the broadest runtime interface of the
+    system. Typed `*_data` payloads carry more focused medical structure, but
+    they are not yet the sole canonical read/write path. Mutations that target
+    the generic surface should therefore keep the structured payloads in sync.
+    """
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: ObservationType
     label: str
@@ -93,6 +102,83 @@ class CaseObservation(PipelineModel):
         self._seed_structured_data_from_legacy()
         self._seed_legacy_fields_from_structured()
 
+    def set_surface_field(self, name: str, value) -> None:
+        self._set_field(name, value)
+        self.synchronize_structure()
+
+    def set_detail_value(
+        self,
+        key: str,
+        value: str,
+        *,
+        overwrite: bool = False,
+    ) -> None:
+        if not overwrite and key in self.details:
+            return
+        self.details[key] = value
+        self.synchronize_structure()
+
+    def merge_detail_values(
+        self,
+        values: dict[str, str],
+        *,
+        overwrite: bool = False,
+    ) -> None:
+        changed = False
+        for key, value in values.items():
+            if overwrite or key not in self.details:
+                self.details[key] = value
+                changed = True
+        if changed:
+            self.synchronize_structure()
+
+    def merge_measurement_values(
+        self,
+        values: dict[str, str | int | float | bool],
+        *,
+        overwrite: bool = False,
+    ) -> None:
+        changed = False
+        for key, value in values.items():
+            if overwrite or key not in self.measurement:
+                self.measurement[key] = value
+                changed = True
+        if changed:
+            self.synchronize_structure()
+
+    def runtime_value(self, name: str):
+        if name == "temporality":
+            return self._runtime_temporality()
+        if name == "body_site":
+            return self._runtime_body_site()
+        if name == "severity":
+            return self._runtime_severity()
+        if name == "course":
+            return self._runtime_course()
+        return getattr(self, name, None)
+
+    def runtime_detail_value(self, key: str) -> str | None:
+        if key == "context":
+            return self._runtime_injury_context()
+        if key == "functional_limitation":
+            return self._runtime_functional_limitation()
+        return self.details.get(key)
+
+    def runtime_measurement_value(self, key: str):
+        data = self.measurement_data
+        if key == "kind":
+            return (data.kind if data is not None else None) or self.measurement.get("kind")
+        if key == "value":
+            return (
+                (data.value if data is not None else None)
+                or (data.numeric_value if data is not None else None)
+                or self.measurement.get("value")
+                or self.measurement.get("numeric_value")
+            )
+        if key == "unit":
+            return (data.unit if data is not None else None) or self.measurement.get("unit")
+        return self.measurement.get(key)
+
     def requirement_value(self, field: str):
         if self.type == "symptom":
             return self._symptom_requirement_value(field)
@@ -125,7 +211,7 @@ class CaseObservation(PipelineModel):
             self.label,
             self.display_label or "",
             self.concept or "",
-            self.body_site or "",
+            self.runtime_value("body_site") or "",
             self.source_span,
         ]
         parts.extend(str(value) for value in self.details.values())
@@ -385,6 +471,45 @@ class CaseObservation(PipelineModel):
         if field == "use_context":
             return (data.use_context if data is not None else None) or self.details.get("use_context")
         return None
+
+    def _runtime_temporality(self):
+        if self.type == "symptom":
+            return self._symptom_requirement_value("duration_or_onset")
+        if self.type == "injury":
+            return self._injury_requirement_value("duration_or_onset")
+        if self.type == "measurement":
+            data = self.measurement_data
+            return (data.measured_at if data is not None else None) or self.temporality
+        return self.temporality
+
+    def _runtime_body_site(self):
+        if self.type == "symptom":
+            return self._symptom_requirement_value("body_site")
+        if self.type == "injury":
+            return self._injury_requirement_value("body_site")
+        return self.body_site
+
+    def _runtime_severity(self):
+        if self.type == "symptom":
+            return self._symptom_requirement_value("severity")
+        if self.type == "injury":
+            return self._injury_requirement_value("severity")
+        return self.severity
+
+    def _runtime_course(self):
+        if self.type == "symptom":
+            return self._symptom_requirement_value("course")
+        return self.course
+
+    def _runtime_injury_context(self) -> str | None:
+        if self.type == "injury":
+            return self._injury_requirement_value("injury_context")
+        return self.details.get("context")
+
+    def _runtime_functional_limitation(self) -> str | None:
+        if self.type == "injury":
+            return self._injury_requirement_value("functional_limitation")
+        return self.details.get("functional_limitation")
 
     def _set_field(self, name: str, value) -> None:
         object.__setattr__(self, name, value)

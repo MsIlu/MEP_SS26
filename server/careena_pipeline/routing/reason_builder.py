@@ -84,7 +84,7 @@ def _first_value(
         case,
         preferred_types=preferred_types,
     ):
-        value = getattr(observation, attribute, None)
+        value = observation.runtime_value(attribute)
         if value is not None:
             return value
     return None
@@ -100,7 +100,7 @@ def _first_detail(
         case,
         preferred_types=preferred_types,
     ):
-        value = observation.details.get(key)
+        value = observation.runtime_detail_value(key)
         if value:
             return value
     return None
@@ -141,15 +141,15 @@ def _measurement_reason(case: MedicalCase) -> str | None:
         if observation.type != "measurement" or not observation.measurement:
             continue
 
-        kind = observation.measurement.get("kind") or observation.concept
+        kind = observation.runtime_measurement_value("kind") or observation.concept
         if kind == "blood_pressure":
-            systolic = observation.measurement.get("systolic")
-            diastolic = observation.measurement.get("diastolic")
+            systolic = observation.runtime_measurement_value("systolic")
+            diastolic = observation.runtime_measurement_value("diastolic")
             if systolic and diastolic:
                 return f"Als Blutdruckmesswert wurde {systolic}/{diastolic} angegeben."
         if kind == "temperature":
-            value = observation.measurement.get("value")
-            unit = observation.measurement.get("unit", "Grad")
+            value = observation.runtime_measurement_value("value")
+            unit = observation.runtime_measurement_value("unit") or "Grad"
             if value:
                 return f"Als Temperatur wurde {value} {unit} angegeben."
 

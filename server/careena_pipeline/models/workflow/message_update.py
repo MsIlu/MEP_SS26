@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pydantic import Field
 
 from careena_pipeline.state.module_registry import ModuleName, RequirementRef
@@ -9,6 +11,46 @@ from careena_pipeline.models.common.types import (
 from careena_pipeline.models.domain.observation import CaseObservation
 from careena_pipeline.models.domain.subject import Subject
 from careena_pipeline.models.workflow.intent_gateway import IntentGateway
+
+
+@dataclass(frozen=True)
+class MessageCasePayload:
+    subject: Subject | None
+    observations_added: list[CaseObservation]
+    negated_observations_added: list[CaseObservation]
+
+    @property
+    def all_observations(self) -> list[CaseObservation]:
+        return self.observations_added + self.negated_observations_added
+
+    @property
+    def has_updates(self) -> bool:
+        return self.subject is not None or bool(self.all_observations)
+
+
+@dataclass(frozen=True)
+class MessageRequirementHints:
+    active_modules: list[ModuleName]
+    required_fields: list[RequirementRef]
+    resolved_fields: list[RequirementRef]
+
+    @property
+    def has_signals(self) -> bool:
+        return bool(
+            self.active_modules
+            or self.required_fields
+            or self.resolved_fields
+        )
+
+
+@dataclass(frozen=True)
+class MessagePlannerHints:
+    recommended_modules: list[PlannerModule]
+    recommendation_requested: bool
+
+    @property
+    def has_signals(self) -> bool:
+        return self.recommendation_requested or bool(self.recommended_modules)
 
 
 class MessageUpdate(PipelineModel):
@@ -52,6 +94,29 @@ class MessageUpdate(PipelineModel):
     @property
     def subject_update(self) -> Subject | None:
         return self.subject
+
+    @property
+    def case_payload(self) -> MessageCasePayload:
+        return MessageCasePayload(
+            subject=self.subject,
+            observations_added=list(self.observations_added),
+            negated_observations_added=list(self.negated_observations_added),
+        )
+
+    @property
+    def requirement_hints(self) -> MessageRequirementHints:
+        return MessageRequirementHints(
+            active_modules=list(self.active_modules),
+            required_fields=list(self.required_fields),
+            resolved_fields=list(self.resolved_fields),
+        )
+
+    @property
+    def planner_hints(self) -> MessagePlannerHints:
+        return MessagePlannerHints(
+            recommended_modules=list(self.recommended_modules),
+            recommendation_requested=self.user_requests_recommendation,
+        )
 
     @property
     def extracted_requirements(self) -> list[RequirementRef]:

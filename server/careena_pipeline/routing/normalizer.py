@@ -86,7 +86,7 @@ def _has_severe_lower_body_complaint(case: MedicalCase) -> bool:
 
 def _has_severe_complaint(case: MedicalCase) -> bool:
     return any(
-        observation.severity is not None and observation.severity >= 8
+        (severity := observation.runtime_value("severity")) is not None and severity >= 8
         for observation in case.observations_of_type("symptom", "injury")
     )
 
@@ -117,7 +117,7 @@ def _case_text(case: MedicalCase) -> str:
 
 def _first_detail(case: MedicalCase, key: str) -> str | None:
     for observation in case.observations_of_type("symptom", "injury"):
-        value = observation.details.get(key)
+        value = observation.runtime_detail_value(key)
         if value:
             return value
     return None

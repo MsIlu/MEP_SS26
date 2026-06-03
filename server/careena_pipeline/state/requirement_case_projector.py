@@ -15,11 +15,14 @@ class RequirementCaseProjector:
         case: MedicalCase,
         update: MessageUpdate,
     ) -> None:
-        if not update.resolved_fields:
+        requirement_hints = update.requirement_hints
+        case_payload = update.case_payload
+
+        if not requirement_hints.resolved_fields:
             return
 
-        resolved_keys = {item.key for item in update.resolved_fields}
-        sources = update.observations_added + update.negated_observations_added
+        resolved_keys = {item.key for item in requirement_hints.resolved_fields}
+        sources = case_payload.all_observations
         overwrite = update.message_role == "correction"
         for module in ("injury", "symptom"):
             if not any(key.startswith(f"{module}.") for key in resolved_keys):
@@ -51,30 +54,33 @@ class RequirementCaseProjector:
         if f"{module}.duration_or_onset" in resolved_keys:
             value = cls._first_value(sources, "temporality")
             if value and (overwrite or not target.temporality):
-                target.temporality = value
+                target.set_surface_field("temporality", value)
         if f"{module}.severity" in resolved_keys:
             value = cls._first_value(sources, "severity")
             if value is not None and (overwrite or target.severity is None):
-                target.severity = value
+                target.set_surface_field("severity", value)
         if f"{module}.body_site" in resolved_keys:
             value = cls._first_value(sources, "body_site")
             if value and (overwrite or not target.body_site):
-                target.body_site = value
+                target.set_surface_field("body_site", value)
         if f"{module}.course" in resolved_keys:
             value = cls._first_value(sources, "course")
             if value and (overwrite or target.course is None):
-                target.course = value
+                target.set_surface_field("course", value)
         if module == "injury" and "injury.injury_context" in resolved_keys:
             value = cls._first_detail(sources, "context") or fallback_text
             if value and (overwrite or "context" not in target.details):
-                target.details["context"] = value
+                target.set_detail_value("context", value, overwrite=overwrite)
         if module == "injury" and "injury.functional_limitation" in resolved_keys:
             value = cls._first_detail(sources, "functional_limitation")
             if value and (
                 overwrite or "functional_limitation" not in target.details
             ):
-                target.details["functional_limitation"] = value
-        target.synchronize_structure()
+                target.set_detail_value(
+                    "functional_limitation",
+                    value,
+                    overwrite=overwrite,
+                )
 
     @staticmethod
     def _requirement_targets(

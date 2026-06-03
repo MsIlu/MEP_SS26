@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, deprecated_member_use
+
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter/foundation.dart';
 
@@ -20,7 +22,6 @@ class SpeechService {
         _status = SpeechStatus.error;
       },
       onStatus: (status) {
-        print("Speech Status: $status");
         if (status == 'done' || status == 'notListening') {
           _status = SpeechStatus.idle;
           onListeningStopped?.call();

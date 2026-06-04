@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 
@@ -33,7 +32,7 @@ class CareenaChatBubble extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(30, 18, 18, 18),
         child: Text(
           'Ich bin Careena!\nDeine persönliche\nKI-Gesundheitsassistentin.',
-          style: GoogleFonts.nunito(
+          style: TextStyle(
             fontSize: 12,
             height: 1.25,
             fontWeight: FontWeight.w700,

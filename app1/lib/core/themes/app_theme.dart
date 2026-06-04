@@ -5,6 +5,7 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData lightTheme = ThemeData(
+    fontFamily: 'Nunito',
     brightness: Brightness.light,
     scaffoldBackgroundColor: AppColors.lightBackground,
     primaryColor: AppColors.primary,
@@ -36,6 +37,7 @@ class AppTheme {
   );
 
   static ThemeData darkTheme = ThemeData(
+    fontFamily: 'Nunito',
     brightness: Brightness.dark,
     scaffoldBackgroundColor: AppColors.darkBackground,
     primaryColor: AppColors.primary,

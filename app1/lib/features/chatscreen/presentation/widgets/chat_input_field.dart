@@ -112,6 +112,8 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     await widget.speechService.listen(
       onResult: (text) {
+        if (!widget.speechService.isListening) return;
+
         // Erkannten Text live ins Eingabefeld schreiben
         widget.controller.text = text;
         widget.controller.selection = TextSelection.fromPosition(

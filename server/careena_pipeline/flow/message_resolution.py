@@ -197,7 +197,7 @@ class MessageResolutionService:
         log_json("CASE UPDATE", message_update)
         return MessageResolutionResult(
             message_update=message_update,
-            request_recommendation=message_update.user_requests_recommendation,
+            request_recommendation=message_update.planner_hints.recommendation_requested,
         )
 
     def _resolve_extraction_failure(

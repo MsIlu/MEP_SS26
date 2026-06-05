@@ -49,7 +49,9 @@ class MessageParsingPolicy:
                 early_response_mode="cannot_assess",
             )
 
-        if not message_update.is_medical:
+        intent_signals = message_update.intent_signals
+
+        if not intent_signals.is_medical:
             return self._build_outcome(
                 raw_safety=raw_safety,
                 dialogue_state=dialogue_state,
@@ -58,7 +60,7 @@ class MessageParsingPolicy:
                 early_response_mode="out_of_scope",
             )
 
-        if not message_update.extraction_required:
+        if not intent_signals.extraction_required:
             return self._build_outcome(
                 raw_safety=raw_safety,
                 dialogue_state=dialogue_state,

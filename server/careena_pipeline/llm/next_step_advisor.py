@@ -57,16 +57,24 @@ class LLMNextStepAdvisor:
         last_user_message: str,
         user_requests_recommendation: bool = False,
     ) -> RecommendationGateDecision:
+        deterministic_gate = self.recommendation_gate.normalize(
+            readiness=readiness,
+            decision=self.recommendation_gate.decide(
+                readiness=readiness,
+                user_requests_recommendation=user_requests_recommendation,
+            ),
+            user_requests_recommendation=user_requests_recommendation,
+        )
         support_modules = _select_support_modules(
             message_update=message_update,
-            readiness=readiness,
-            user_requests_recommendation=user_requests_recommendation,
+            deterministic_gate=deterministic_gate,
         )
         payload = {
             "last_user_message": last_user_message,
             "user_requests_recommendation": user_requests_recommendation,
             "safety": safety.model_dump(),
             "readiness_heuristic": readiness.model_dump(),
+            "deterministic_gate": deterministic_gate.model_dump(),
             "case": case.model_dump(),
             "dialogue_state": dialogue_state.model_dump() if dialogue_state is not None else None,
             "message_update": message_update.model_dump() if message_update is not None else None,
@@ -90,12 +98,7 @@ class LLMNextStepAdvisor:
                 "LLM next-step decision failed; falling back to deterministic gate: %s",
                 exc,
             )
-            decision = self.recommendation_gate.decide(
-                readiness=readiness,
-                user_requests_recommendation=user_requests_recommendation,
-            )
-            decision.activated_modules = support_modules
-            return decision
+            return deterministic_gate
 
         return RecommendationGateDecision(
             action=llm_result.action,
@@ -110,34 +113,12 @@ class LLMNextStepAdvisor:
 def _select_support_modules(
     *,
     message_update: MessageUpdate | None,
-    readiness: AssessmentReadiness,
-    user_requests_recommendation: bool,
+    deterministic_gate: RecommendationGateDecision,
 ) -> list[str]:
     modules: list[str] = []
     if message_update is not None:
-        modules.extend(message_update.recommended_modules)
-
-    if readiness.disambiguation_needed:
-        modules.append("topic_disambiguation")
-
-    if readiness.blocking_requirements or readiness.missing_information:
-        modules.extend(
-            [
-                "requirement_resolution",
-                "single_followup_generation",
-            ]
-        )
-
-    if readiness.confirmation_needed:
-        modules.append("confirmation_check")
-
-    if readiness.ready or user_requests_recommendation:
-        modules.extend(
-            [
-                "recommendation_readiness",
-                "routing_recommendation",
-            ]
-        )
+        modules.extend(message_update.planner_hints.recommended_modules)
+    modules.extend(deterministic_gate.activated_modules)
 
     seen: set[str] = set()
     return [module for module in modules if not (module in seen or seen.add(module))]

@@ -39,7 +39,14 @@ from careena_pipeline.models.workflow.context import (
     DialogueSummary,
 )
 from careena_pipeline.models.workflow.intent_gateway import IntentGateway
-from careena_pipeline.models.workflow.message_update import MessageUpdate
+from careena_pipeline.models.workflow.message_update import (
+    MessageCasePayload,
+    MessageIntentSignals,
+    MessagePlannerHints,
+    MessageRequirementHints,
+    MessageTraceSignals,
+    MessageUpdate,
+)
 from careena_pipeline.models.workflow.readiness import AssessmentReadiness
 from careena_pipeline.models.workflow.recommendation import Recommendation
 from careena_pipeline.models.workflow.recommendation_gate import RecommendationGateDecision
@@ -66,6 +73,11 @@ __all__ = [
     "IntentGateway",
     "InjuryObservationData",
     "MessageRole",
+    "MessageCasePayload",
+    "MessageIntentSignals",
+    "MessagePlannerHints",
+    "MessageRequirementHints",
+    "MessageTraceSignals",
     "MessageUpdate",
     "MeasurementObservationData",
     "MedicationObservationData",

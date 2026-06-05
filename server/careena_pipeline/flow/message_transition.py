@@ -41,7 +41,10 @@ class MessageTransitionService:
         message_update: MessageUpdate,
     ) -> AppliedMessageTransition:
         case = self.case_merger.merge_update(existing_case, message_update)
-        self.requirement_case_projector.apply(case, message_update)
+        self.requirement_case_projector.project_transitional_signals(
+            case,
+            message_update,
+        )
         dialogue_state = self.dialogue_state_manager.apply_message_update(
             dialogue_state,
             message_update,

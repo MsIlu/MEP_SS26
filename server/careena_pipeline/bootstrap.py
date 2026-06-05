@@ -15,6 +15,8 @@ from careena_pipeline.llm import (
 )
 from careena_pipeline.planning import RecommendationGate
 from careena_pipeline.routing.fallback_engine import RecommendationEngine
+from careena_pipeline.simulation_runtime.adapters import CareenaPipelineAdapter
+from careena_pipeline.simulation_runtime.runner import SimulationRunner
 from careena_pipeline.state import ConfirmationService, CareenaSessionStore
 from careena_pipeline.tooling.scenario.runner import SyntheticPatientRunner
 
@@ -41,6 +43,7 @@ class PipelineServices:
     session_store: CareenaSessionStore
     confirmation_service: ConfirmationService
     synthetic_patient_runner: SyntheticPatientRunner
+    simulation_runner: SimulationRunner
 
 
 @dataclass
@@ -59,6 +62,7 @@ class PipelineRuntimeServices:
 @dataclass
 class ToolingServices:
     synthetic_patient_runner: SyntheticPatientRunner
+    simulation_runner: SimulationRunner
 
 
 def build_llm_client(
@@ -111,6 +115,7 @@ def build_default_services(
         session_store=runtime.session_store,
         confirmation_service=runtime.confirmation_service,
         synthetic_patient_runner=tooling.synthetic_patient_runner,
+        simulation_runner=tooling.simulation_runner,
     )
 
 
@@ -190,6 +195,15 @@ def build_tooling_services(
         default_patient_llm_mode=scenario_llm_mode,
         decision_pipeline=decision_pipeline,
     )
+    simulation_runner = SimulationRunner(
+        participant_llms={
+            primary_llm_mode: primary_llm_client,
+            scenario_llm_mode: scenario_llm_client,
+        },
+        default_participant_llm_mode=scenario_llm_mode,
+        system_adapter=CareenaPipelineAdapter(decision_pipeline),
+    )
     return ToolingServices(
         synthetic_patient_runner=synthetic_patient_runner,
+        simulation_runner=simulation_runner,
     )

@@ -20,23 +20,25 @@ class RecommendationGate:
         readiness: AssessmentReadiness,
         user_requests_recommendation: bool = False,
     ) -> RecommendationGateDecision:
+        expected_action = _expected_action_for(readiness)
         missing_information = readiness.blocking_requirements or readiness.missing_information
         question = _question_for(missing_information[0]) if missing_information else None
         activated_modules = _activated_modules(
+            action=expected_action,
             readiness=readiness,
             user_requests_recommendation=user_requests_recommendation,
         )
 
-        if readiness.disambiguation_needed:
+        if expected_action == "ask_followup" and readiness.disambiguation_needed:
             return RecommendationGateDecision(
                 action="ask_followup",
                 reasons=["disambiguation_needed"],
-                question=question,
+                question=_disambiguation_question(missing_information, fallback_question=question),
                 missing_information=missing_information,
                 activated_modules=activated_modules,
             )
 
-        if readiness.blocking_requirements:
+        if expected_action == "ask_followup" and readiness.blocking_requirements:
             return RecommendationGateDecision(
                 action="ask_followup",
                 reasons=["blocking_requirements"],
@@ -45,7 +47,7 @@ class RecommendationGate:
                 activated_modules=activated_modules,
             )
 
-        if readiness.missing_information:
+        if expected_action == "ask_followup" and readiness.missing_information:
             return RecommendationGateDecision(
                 action="ask_followup",
                 reasons=["missing_information"],
@@ -54,7 +56,7 @@ class RecommendationGate:
                 activated_modules=activated_modules,
             )
 
-        if readiness.confirmation_needed:
+        if expected_action == "confirm_information":
             return RecommendationGateDecision(
                 action="confirm_information",
                 reasons=["confirmation_needed"],
@@ -80,6 +82,7 @@ class RecommendationGate:
         expected_action = _expected_action_for(readiness)
         missing_information = readiness.blocking_requirements or readiness.missing_information
         activated_modules = decision.activated_modules or _activated_modules(
+            action=expected_action,
             readiness=readiness,
             user_requests_recommendation=user_requests_recommendation,
         )
@@ -91,7 +94,9 @@ class RecommendationGate:
 
         if expected_action == "ask_followup":
             question = decision.question or (
-                _question_for(missing_information[0]) if missing_information else None
+                _disambiguation_question(missing_information)
+                if readiness.disambiguation_needed
+                else (_question_for(missing_information[0]) if missing_information else None)
             )
             return RecommendationGateDecision(
                 action="ask_followup",
@@ -127,6 +132,22 @@ def _question_for(requirement: str) -> str:
     return FOLLOWUP_QUESTIONS.get(normalized, question_for_slot(normalized))
 
 
+def _disambiguation_question(
+    missing_information: list[str],
+    *,
+    fallback_question: str | None = None,
+) -> str:
+    if "subject.subject_relation" in set(missing_information):
+        return (
+            "Geht es um Sie selbst oder um eine andere Person? "
+            "Wenn es um mehrere Personen geht, sagen Sie bitte auch klar, wer welche Beschwerden hat."
+        )
+    return fallback_question or (
+        "Damit ich die Beschwerden richtig zuordnen kann: "
+        "Wer hat welche Beschwerden, und was gehoert zu wem?"
+    )
+
+
 def _expected_action_for(readiness: AssessmentReadiness) -> str:
     if readiness.disambiguation_needed:
         return "ask_followup"
@@ -158,18 +179,21 @@ def _default_reasons_for(
 
 def _activated_modules(
     *,
+    action: str,
     readiness: AssessmentReadiness,
     user_requests_recommendation: bool,
 ) -> list[str]:
     modules: list[str] = []
-    if readiness.disambiguation_needed:
+    if action == "ask_followup" and readiness.disambiguation_needed:
         modules.append("topic_disambiguation")
-    if readiness.blocking_requirements or readiness.missing_information:
+    if action == "ask_followup" and (readiness.blocking_requirements or readiness.missing_information):
         modules.extend(["requirement_resolution", "single_followup_generation"])
-    if readiness.confirmation_needed:
+    if action == "confirm_information":
         modules.append("confirmation_check")
-    if readiness.ready or user_requests_recommendation:
+    if action == "recommend":
         modules.extend(["recommendation_readiness", "routing_recommendation"])
+        if user_requests_recommendation:
+            modules.append("recommendation_requested")
 
     seen: set[str] = set()
     return [module for module in modules if not (module in seen or seen.add(module))]

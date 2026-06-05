@@ -45,6 +45,7 @@ class DialogueStateManager:
         message_update: MessageUpdate,
         case: MedicalCase | None = None,
     ) -> DialogueState:
+        intent_signals = message_update.intent_signals
         planner_hints = message_update.planner_hints
         requirement_hints = message_update.requirement_hints
 
@@ -53,7 +54,7 @@ class DialogueStateManager:
         if requirement_hints.active_modules:
             state.active_modules = list(requirement_hints.active_modules)
 
-        if message_update.possible_new_topic:
+        if intent_signals.possible_new_topic:
             state.current_topic_status = "possible_topic_shift"
         elif state.current_topic_status != "ambiguous":
             state.current_topic_status = "single_topic"
@@ -133,7 +134,7 @@ class DialogueStateManager:
                 state.last_question_key = requirement_key(state.pending_followup)
             state.awaiting_confirmation = False
         elif gate.action == "confirm_information":
-            state.awaiting_confirmation = True
+            state.awaiting_confirmation = False
             state.pending_followup = None
             state.last_question_key = None
         else:

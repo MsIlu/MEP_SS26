@@ -55,11 +55,13 @@ def build_requirement_state(
     )
     required_fields = _required_fields(
         case=case,
+        dialogue_state=dialogue_state,
         active_modules=active_modules,
         message_update=message_update,
     )
     resolved_fields = _resolved_fields(
         case=case,
+        dialogue_state=dialogue_state,
     )
     blocking_requirements = _blocking_requirements(
         case=case,
@@ -229,24 +231,47 @@ def _active_modules(
     message_update: MessageUpdate | None,
 ) -> list[str]:
     modules = list(dialogue_state.active_modules) if dialogue_state is not None else []
-    if message_update is not None and message_update.active_modules:
-        modules = list(message_update.active_modules)
+    if message_update is not None and message_update.requirement_hints.active_modules:
+        modules = list(message_update.requirement_hints.active_modules)
+
+    observation_types = [
+        observation.type
+        for observation in _focused_requirement_observations(
+            case=case,
+            dialogue_state=dialogue_state,
+        )
+    ]
+    if not observation_types:
+        observation_types = [observation.type for observation in case.observations]
+
     return resolve_active_modules(
         explicit_modules=modules,
         has_subject_update=case.subject.relation != "unknown" or case.subject.age is not None,
-        observation_types=[observation.type for observation in case.observations],
+        observation_types=observation_types,
     )
 
 
 def _required_fields(
     *,
     case: MedicalCase,
+    dialogue_state: DialogueState | None,
     active_modules: list[str],
     message_update: MessageUpdate | None,
 ) -> list[RequirementRef]:
+    focused_observation = _focused_requirement_observation(
+        case=case,
+        dialogue_state=dialogue_state,
+    )
+    if focused_observation is not None and focused_observation.type in {"symptom", "injury"}:
+        active_modules = [
+            module
+            for module in active_modules
+            if module not in {"symptom", "injury"} or module == focused_observation.type
+        ]
+
     return resolve_required_fields(
         explicit_fields=(
-            list(message_update.required_fields)
+            list(message_update.requirement_hints.required_fields)
             if message_update is not None
             else None
         ),
@@ -257,6 +282,7 @@ def _required_fields(
 def _resolved_fields(
     *,
     case: MedicalCase,
+    dialogue_state: DialogueState | None,
 ) -> dict[str, RequirementRef]:
     # Phase-3 rule: requirement fulfillment should come from information that
     # is visibly anchored in the case, not directly from raw message signals.
@@ -267,7 +293,11 @@ def _resolved_fields(
     if case.subject.age is not None:
         item = requirement_ref("subject", "age")
         resolved[item.key] = item
-    for observation in case.observations_of_type("symptom", "injury", include_negated=True):
+    for observation in _focused_requirement_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("symptom", "injury"),
+    ):
         if observation.requirement_value("duration_or_onset"):
             item = requirement_ref(observation.type, "duration_or_onset")
             resolved[item.key] = item
@@ -309,3 +339,39 @@ def _resolved_fields(
             item = requirement_ref("concern", "main_concern")
             resolved[item.key] = item
     return resolved
+
+
+def _focused_requirement_observation(
+    *,
+    case: MedicalCase,
+    dialogue_state: DialogueState | None,
+):
+    focus_id = (
+        dialogue_state.focus_observation_id
+        if dialogue_state is not None and dialogue_state.focus_observation_id is not None
+        else case.primary_problem_id
+    )
+    if focus_id is not None:
+        for observation in case.active_observations(include_negated=True):
+            if observation.id == focus_id:
+                return observation
+    return case.primary_observation()
+
+
+def _focused_requirement_observations(
+    *,
+    case: MedicalCase,
+    dialogue_state: DialogueState | None,
+    types: tuple[str, ...] | None = None,
+):
+    focused = _focused_requirement_observation(
+        case=case,
+        dialogue_state=dialogue_state,
+    )
+    if focused is not None and (types is None or focused.type in types):
+        return [focused]
+
+    if types is None:
+        return case.active_observations(include_negated=True)
+
+    return case.observations_of_type(*types, include_negated=True)

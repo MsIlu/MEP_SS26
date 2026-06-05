@@ -126,6 +126,8 @@ class CaseObservation(PipelineModel):
     ) -> None:
         changed = False
         for key, value in values.items():
+            if _is_placeholder_merge_value(value):
+                continue
             if overwrite or key not in self.details:
                 self.details[key] = value
                 changed = True
@@ -140,6 +142,8 @@ class CaseObservation(PipelineModel):
     ) -> None:
         changed = False
         for key, value in values.items():
+            if _is_placeholder_merge_value(value):
+                continue
             if overwrite or key not in self.measurement:
                 self.measurement[key] = value
                 changed = True
@@ -525,3 +529,11 @@ def _bool_or_none(value) -> bool | None:
     if isinstance(value, bool):
         return value
     return None
+
+
+def _is_placeholder_merge_value(value) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in {"", "unknown", "unklar"}
+    return False

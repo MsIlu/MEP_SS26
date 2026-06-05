@@ -134,17 +134,10 @@ def _recommendation_text(result: CareenaPipelineResult) -> str:
 
 
 def _confirmation_text(result: CareenaPipelineResult) -> str:
-    if not result.case or not result.case.observations:
-        return "Ich habe noch keine Angaben erkannt, die Sie bestätigen können."
-
-    items = [
-        f"- {observation.patient_label}"
-        for observation in result.case.observations
-        if observation.status != "user_rejected"
-    ]
-    if not items:
-        return "Ich habe noch keine aktiven Angaben erkannt, die Sie bestätigen können."
-    return "Ich habe folgende Angaben erkannt:\n" + "\n".join(items[:6]) + "\n\nStimmt das so?"
+    return (
+        "Bestaetigung erforderlich. "
+        "Dieser Schritt ist im Chat aktuell noch nicht eingebunden."
+    )
 
 
 def _care_level_label(care_level: str, specialty: str) -> str:

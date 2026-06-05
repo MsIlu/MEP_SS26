@@ -53,6 +53,52 @@ class MessagePlannerHints:
         return self.recommendation_requested or bool(self.recommended_modules)
 
 
+@dataclass(frozen=True)
+class MessageIntentSignals:
+    intent_category: str | None
+    is_medical: bool
+    extraction_required: bool
+    intent_confidence: float
+    message_role: MessageRole
+    possible_new_topic: bool
+
+    @property
+    def has_signals(self) -> bool:
+        return any(
+            (
+                self.intent_category is not None,
+                self.is_medical,
+                self.extraction_required,
+                self.intent_confidence > 0.0,
+                self.message_role != "new_information",
+                self.possible_new_topic,
+            )
+        )
+
+
+@dataclass(frozen=True)
+class MessageTraceSignals:
+    notes: list[str]
+    intent_gateway: IntentGateway | None
+    llm_intent_category: str | None
+    llm_is_medical: bool | None
+    llm_extraction_required: bool | None
+    llm_message_role: MessageRole | None
+
+    @property
+    def has_signals(self) -> bool:
+        return any(
+            (
+                bool(self.notes),
+                self.intent_gateway is not None,
+                self.llm_intent_category is not None,
+                self.llm_is_medical is not None,
+                self.llm_extraction_required is not None,
+                self.llm_message_role is not None,
+            )
+        )
+
+
 class MessageUpdate(PipelineModel):
     """
     Bridging result of the message-processing path.
@@ -116,6 +162,28 @@ class MessageUpdate(PipelineModel):
         return MessagePlannerHints(
             recommended_modules=list(self.recommended_modules),
             recommendation_requested=self.user_requests_recommendation,
+        )
+
+    @property
+    def intent_signals(self) -> MessageIntentSignals:
+        return MessageIntentSignals(
+            intent_category=self.intent_category,
+            is_medical=self.is_medical,
+            extraction_required=self.extraction_required,
+            intent_confidence=self.intent_confidence,
+            message_role=self.message_role,
+            possible_new_topic=self.possible_new_topic,
+        )
+
+    @property
+    def trace_signals(self) -> MessageTraceSignals:
+        return MessageTraceSignals(
+            notes=list(self.notes),
+            intent_gateway=self.intent_gateway,
+            llm_intent_category=self.llm_intent_category,
+            llm_is_medical=self.llm_is_medical,
+            llm_extraction_required=self.llm_extraction_required,
+            llm_message_role=self.llm_message_role,
         )
 
     @property

@@ -1,13 +1,29 @@
 from careena_pipeline.models import CaseObservation, MedicalCase, MessageUpdate
 
 
+def _same_observation_identity(
+    left: CaseObservation,
+    right: CaseObservation,
+) -> bool:
+    return (
+        left.type == right.type
+        and (left.concept or left.label) == (right.concept or right.label)
+        and left.source_span == right.source_span
+        and left.subject_ref == right.subject_ref
+        and left.negated == right.negated
+    )
+
+
 def _pick_text(
     *,
     current: str | None,
     incoming: str | None,
     overwrite: bool,
+    ignore_values: set[str] | None = None,
 ) -> str | None:
     if not incoming:
+        return current
+    if ignore_values is not None and incoming in ignore_values:
         return current
     if overwrite or not current:
         return incoming
@@ -19,8 +35,11 @@ def _pick_value(
     current,
     incoming,
     overwrite: bool,
+    ignore_values: set | None = None,
 ):
     if incoming is None:
+        return current
+    if ignore_values is not None and incoming in ignore_values:
         return current
     if overwrite or current is None:
         return incoming
@@ -43,6 +62,7 @@ class CaseMerger:
         if existing_case is None:
             existing_case = MedicalCase()
 
+        intent_signals = update.intent_signals
         case_payload = update.case_payload
         merged_any = False
         if case_payload.subject is not None and case_payload.subject.relation != "unknown":
@@ -58,14 +78,14 @@ class CaseMerger:
                 self._merge_observation(
                     target,
                     observation,
-                    message_role=update.message_role,
+                    message_role=intent_signals.message_role,
                 )
                 merged_any = True
                 continue
             if self._already_present(existing_case, observation):
                 continue
             observation.status = self._status_for_new_observation(
-                update.message_role,
+                intent_signals.message_role,
                 default=observation.status,
             )
             self._append(existing_case, observation)
@@ -77,22 +97,22 @@ class CaseMerger:
                 self._merge_observation(
                     target,
                     observation,
-                    message_role=update.message_role,
+                    message_role=intent_signals.message_role,
                 )
                 merged_any = True
                 continue
             if self._already_present(existing_case, observation):
                 continue
             observation.status = self._status_for_new_observation(
-                update.message_role,
+                intent_signals.message_role,
                 default=observation.status,
             )
             existing_case.observations.append(observation)
             merged_any = True
 
-        self._apply_message_role(existing_case, update, merged_any=merged_any)
+        self._apply_message_role(existing_case, intent_signals.message_role, merged_any=merged_any)
 
-        if update.possible_new_topic:
+        if intent_signals.possible_new_topic:
             primary = self._latest_focus_candidate(existing_case, update)
             if primary is not None:
                 existing_case.set_primary_observation(primary)
@@ -104,9 +124,7 @@ class CaseMerger:
     @staticmethod
     def _already_present(case: MedicalCase, observation: CaseObservation) -> bool:
         return any(
-            existing.type == observation.type
-            and (existing.concept or existing.label) == (observation.concept or observation.label)
-            and existing.source_span == observation.source_span
+            _same_observation_identity(existing, observation)
             for existing in case.observations
         )
 
@@ -138,10 +156,11 @@ class CaseMerger:
             return None
 
         resolved_keys = {item.key for item in update.resolved_fields}
-        if (
-            observation.type == "injury"
-            and primary.type == "injury"
-            and any(key.startswith("injury.") for key in resolved_keys)
+        if cls._can_merge_into_primary_injury(
+            update=update,
+            primary=primary,
+            incoming=observation,
+            resolved_keys=resolved_keys,
         ):
             return primary
         return None
@@ -192,11 +211,13 @@ class CaseMerger:
             current=target.laterality,
             incoming=source.laterality,
             overwrite=overwrite,
+            ignore_values={"unknown"},
         )
         course = _pick_value(
             current=target.runtime_value("course"),
             incoming=source.runtime_value("course"),
             overwrite=overwrite,
+            ignore_values={"unknown"},
         )
         if course != target.course:
             target.set_surface_field("course", course)
@@ -209,12 +230,15 @@ class CaseMerger:
             current=target.subject_ref,
             incoming=source.subject_ref,
             overwrite=overwrite,
+            ignore_values={"unknown"},
         )
         if overwrite and source.source_span:
             target.source_span = source.source_span
         if overwrite:
-            target.negated = source.negated
-            target.certainty = source.certainty
+            if source.negated:
+                target.negated = True
+            if source.certainty != "confirmed":
+                target.certainty = source.certainty
         if source.provenance:
             target.provenance.extend(source.provenance)
         if source.confidence is not None and (
@@ -237,14 +261,14 @@ class CaseMerger:
     @staticmethod
     def _apply_message_role(
         case: MedicalCase,
-        update: MessageUpdate,
+        message_role: str,
         *,
         merged_any: bool,
     ) -> None:
         primary = case.primary_observation()
         if primary is None:
             return
-        if update.message_role == "confirmation" and not merged_any:
+        if message_role == "confirmation" and not merged_any:
             primary.status = "user_confirmed"
 
     @staticmethod
@@ -275,11 +299,7 @@ class CaseMerger:
         observation: CaseObservation,
     ) -> CaseObservation | None:
         for existing in case.observations:
-            if (
-                existing.type == observation.type
-                and (existing.concept or existing.label) == (observation.concept or observation.label)
-                and existing.source_span == observation.source_span
-            ):
+            if _same_observation_identity(existing, observation):
                 return existing
         return None
 
@@ -290,24 +310,21 @@ class CaseMerger:
         update: MessageUpdate,
         observation: CaseObservation,
     ) -> CaseObservation | None:
-        if update.possible_new_topic or update.message_role == "topic_shift":
+        intent_signals = update.intent_signals
+        if intent_signals.possible_new_topic or intent_signals.message_role == "topic_shift":
             return None
 
-        candidates = [
-            existing
-            for existing in case.observations
-            if existing.type == observation.type
-        ]
-        for existing in candidates:
-            if (
-                cls._same_focus(existing, observation)
-                and cls._can_merge_same_focus(
-                    update=update,
-                    existing=existing,
-                    incoming=observation,
-                )
-            ):
-                return existing
+        primary = case.primary_observation()
+        if primary is None or primary.type != observation.type:
+            return None
+        if not cls._same_focus(primary, observation):
+            return None
+        if cls._can_merge_same_focus(
+            update=update,
+            existing=primary,
+            incoming=observation,
+        ):
+            return primary
         return None
 
     @classmethod
@@ -318,9 +335,41 @@ class CaseMerger:
         existing: CaseObservation,
         incoming: CaseObservation,
     ) -> bool:
-        if update.message_role in {"answer_to_followup", "confirmation", "correction"}:
-            return True
         if cls._has_conflicting_qualifiers(existing, incoming):
+            return False
+        if update.intent_signals.message_role in {"answer_to_followup", "confirmation", "correction"}:
+            return True
+        return True
+
+    @classmethod
+    def _can_merge_into_primary_injury(
+        cls,
+        *,
+        update: MessageUpdate,
+        primary: CaseObservation,
+        incoming: CaseObservation,
+        resolved_keys: set[str],
+    ) -> bool:
+        if update.intent_signals.possible_new_topic:
+            return False
+        if update.intent_signals.message_role not in {"answer_to_followup", "correction"}:
+            return False
+        if incoming.type != "injury" or primary.type != "injury":
+            return False
+        if not any(key.startswith("injury.") for key in resolved_keys):
+            return False
+        if cls._has_conflicting_qualifiers(primary, incoming):
+            return False
+
+        incoming_focus = (
+            (incoming.concept or incoming.label or "").strip().lower(),
+            (incoming.runtime_value("body_site") or "").strip().lower(),
+        )
+        primary_focus = (
+            (primary.concept or primary.label or "").strip().lower(),
+            (primary.runtime_value("body_site") or "").strip().lower(),
+        )
+        if incoming_focus != ("", "") and incoming_focus != primary_focus:
             return False
         return True
 

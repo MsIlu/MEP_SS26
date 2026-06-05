@@ -8,8 +8,12 @@ from careena_pipeline.observability.logging import (
     log_json,
     log_testrun_response,
 )
-from careena_pipeline.models import ConfirmationUpdate
 from careena_pipeline.response import case_to_payload, pipeline_result_to_chat_response
+from careena_pipeline.simulation_runtime import (
+    SimulationRequest,
+    normalized_simulation_request,
+    run_simulation_command,
+)
 from careena_pipeline.tooling.scenario import DEFAULT_TESTRUN_SCENARIO, SCENARIO_PROMPTS
 from careena_pipeline.tooling.scenario.runner import ScenarioRunnerRequest
 
@@ -32,16 +36,11 @@ class ChatRequest(BaseModel):
     session_id: str
 
 
-class ConfirmationRequest(BaseModel):
-    session_id: str
-    update: ConfirmationUpdate
-
-
 services = build_default_services(llm_mode="env")
 decision_pipeline = services.decision_pipeline
 session_store = services.session_store
-confirmation_service = services.confirmation_service
 synthetic_patient_runner = services.synthetic_patient_runner
+simulation_runner = services.simulation_runner
 
 
 @app.post("/session")
@@ -64,23 +63,19 @@ def chat(req: ChatRequest):
     if not req.message.strip():
         return {"response": "Fehler: Leere Eingabe.", "red_flag": False}
 
-    if req.message.strip().startswith("/testrun"):
-        scenario_prompt = req.message.strip()[len("/testrun"):].strip()
-        scenario_prompt = _resolve_scenario_prompt(scenario_prompt)
-
-        result = synthetic_patient_runner.run(
-            ScenarioRunnerRequest(
-                scenario_prompt=scenario_prompt,
-                max_turns=8,
-            )
+    if req.message.strip().startswith("/simrun"):
+        selector = req.message.strip()[len("/simrun"):].strip()
+        response_text = run_simulation_command(
+            selector=selector,
+            simulation_runner=simulation_runner,
         )
         response = {
-            "response": _format_scenario_transcript(result),
+            "response": response_text,
             "red_flag": False,
         }
         session.messages.append({"role": "user", "content": req.message})
         session.messages.append({"role": "assistant", "content": response["response"]})
-        log_testrun_response("HTTP /chatscreen TESTRUN RESPONSE", response)
+        log_testrun_response("HTTP /chatscreen SIMRUN RESPONSE", response)
         return response
 
     result = decision_pipeline.run(
@@ -117,28 +112,17 @@ def get_case(session_id: str):
     }
 
 
-@app.post("/case/confirm")
-def confirm_case(req: ConfirmationRequest):
-    session = session_store.get(req.session_id)
-    if session is None:
-        return {"error": "invalid_session"}
-    if session.case is None:
-        return {"error": "missing_case"}
-
-    session.case = confirmation_service.apply(session.case, req.update)
-    log_json("HTTP /case/confirm CASE", session.case)
-    return {
-        "case": case_to_payload(
-            session.case,
-            dialogue_state=session.dialogue_state,
-        )
-    }
-
-
 @app.post("/scenario/run")
 def run_scenario(req: ScenarioRunnerRequest):
     result = synthetic_patient_runner.run(req)
     log_json("HTTP /scenario/run RESULT", result)
+    return result.model_dump()
+
+
+@app.post("/simulation/run")
+def run_simulation(req: SimulationRequest):
+    result = simulation_runner.run(normalized_simulation_request(req))
+    log_json("HTTP /simulation/run RESULT", result)
     return result.model_dump()
 
 

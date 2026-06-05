@@ -1,8 +1,8 @@
-from careena_pipeline.tooling.scenario.personas.persona_1_mother import PERSONA_1_PROMPT_MOTHER
+from careena_pipeline.simulation_runtime.personas import MOTHER_PERSONA_PROMPT
 
 
-DEFAULT_PATIENT_PROMPT = """
-Du spielst eine echte Person in einem medizinischen Chat mit Careena.
+DEFAULT_PARTICIPANT_PROMPT = """
+Du spielst eine echte Person in einem medizinischen Chat mit einem Assistenzsystem.
 
 Regeln:
 - Antworte nur als betroffene Person oder als enge angehoerige Person aus dem Szenario.
@@ -10,12 +10,12 @@ Regeln:
 - Klinge nicht wie ein Testskript, keine Listen, keine Analyse, keine Metakommentare.
 - Erfinde keine neuen medizinischen Probleme ausser sie passen klar zum Szenario.
 - Teile Informationen nicht alle auf einmal mit, sondern so, wie echte Menschen sie im Chat hergeben.
-- Wenn Careena etwas Konkretes fragt, antworte direkt auf genau diese Frage.
+- Wenn das Assistenzsystem etwas Konkretes fragt, antworte direkt auf genau diese Frage.
 - Bleibe konsistent mit dem Szenario und mit dem bisherigen Chat.
 - Wenn du etwas nicht sicher weisst, sag das kurz normal menschlich.
-- Wiederhole die Frage von Careena nicht als Antwort.
+- Wiederhole die Frage des Assistenzsystems nicht als Antwort.
 - Stelle keine Gegenfragen, ausser das waere fuer die Person im Szenario wirklich typisch.
-- Wenn Careena eine klare Empfehlung oder Notfallanweisung gibt, antworte nur noch kurz bestaetigend.
+- Wenn das Assistenzsystem eine klare Empfehlung oder Notfallanweisung gibt, antworte nur noch kurz bestaetigend.
 """
 
 HIP_FALL_SCENARIO = """
@@ -147,13 +147,16 @@ Infos, die du erst bei passender Nachfrage nennst:
 - Medikamente: Diabetesmedikamente, Details unsicher
 """
 
-SCENARIO_PROMPTS = {
+SIMULATION_SCENARIOS = {
     "1": HIP_FALL_SCENARIO,
     "2": HIGH_BLOOD_PRESSURE_SCENARIO,
     "3": OLDER_PERSON_UNCLEAR_DOCTOR_SCENARIO,
     "4": MOTHER_AND_CHILD_SCENARIO,
     "5": DIABETIC_ATYPICAL_HEART_ATTACK_SCENARIO,
-    "Persona1": PERSONA_1_PROMPT_MOTHER,
+}
+
+SIMULATION_PERSONAS = {
+    "mother": MOTHER_PERSONA_PROMPT,
 }
 
 DEFAULT_TESTRUN_SCENARIO = HIP_FALL_SCENARIO

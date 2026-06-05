@@ -76,11 +76,33 @@ def _collect_readiness_facts(
     dialogue_state: DialogueState | None,
     message_update: MessageUpdate | None,
 ) -> _ReadinessFacts:
-    symptoms = case.observations_of_type("symptom")
-    injuries = case.observations_of_type("injury")
-    diagnoses = case.observations_of_type("diagnosis")
-    measurements = case.observations_of_type("measurement", include_negated=True)
-    concerns = case.observations_of_type("concern", include_negated=True)
+    symptoms = _focused_problem_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("symptom",),
+    )
+    injuries = _focused_problem_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("injury",),
+    )
+    diagnoses = _focused_problem_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("diagnosis",),
+    )
+    measurements = _focused_problem_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("measurement",),
+        include_negated=True,
+    )
+    concerns = _focused_problem_observations(
+        case=case,
+        dialogue_state=dialogue_state,
+        types=("concern",),
+        include_negated=True,
+    )
     complaint_observations = symptoms + injuries + measurements + concerns
 
     requirement_state = build_requirement_state(
@@ -92,7 +114,7 @@ def _collect_readiness_facts(
     return _ReadinessFacts(
         has_medical_problem=bool(complaint_observations or diagnoses),
         concern_only_case=bool(
-            concerns and not symptoms and not injuries and not measurements
+            concerns and not symptoms and not injuries and not measurements and not diagnoses
         ),
         blocking_requirements=requirement_state.blocking_requirements,
         disambiguation_needed=has_mixed_subject_signal(case),
@@ -139,6 +161,49 @@ def _confirmation_needed(
     dialogue_state: DialogueState | None,
     message_update: MessageUpdate | None,
 ) -> bool:
-    if message_update is not None and message_update.message_role in {"confirmation", "correction"}:
-        return False
-    return bool(dialogue_state and dialogue_state.awaiting_confirmation)
+    # Confirmation is currently not an active chat product path.
+    # Keep the field in the contract for compatibility, but do not let a
+    # dormant state flag steer readiness until the confirmation workflow is
+    # defined end-to-end again.
+    return False
+
+
+def _focused_problem_observation(
+    *,
+    case: MedicalCase,
+    dialogue_state: DialogueState | None,
+    include_negated: bool = True,
+):
+    focus_id = (
+        dialogue_state.focus_observation_id
+        if dialogue_state is not None and dialogue_state.focus_observation_id is not None
+        else case.primary_problem_id
+    )
+    if focus_id is None:
+        return None
+
+    for observation in case.active_observations(include_negated=include_negated):
+        if observation.id == focus_id:
+            return observation
+    return None
+
+
+def _focused_problem_observations(
+    *,
+    case: MedicalCase,
+    dialogue_state: DialogueState | None,
+    types: tuple[str, ...],
+    include_negated: bool = False,
+):
+    focused = _focused_problem_observation(
+        case=case,
+        dialogue_state=dialogue_state,
+        include_negated=include_negated,
+    )
+    if focused is not None and focused.type in set(types):
+        return [focused]
+
+    return case.observations_of_type(
+        *types,
+        include_negated=include_negated,
+    )

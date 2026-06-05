@@ -291,59 +291,119 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
         return None
 
     case_payload = getattr(message_update, "case_payload", None)
+    intent_signals = getattr(message_update, "intent_signals", None)
     requirement_hints = getattr(message_update, "requirement_hints", None)
     planner_hints = getattr(message_update, "planner_hints", None)
+    trace_signals = getattr(message_update, "trace_signals", None)
 
     return {
-        "intent_category": getattr(message_update, "intent_category", None),
-        "gateway_category": getattr(message_update, "gateway_category", None),
-        "llm_intent_category": getattr(message_update, "llm_intent_category", None),
-        "message_role": getattr(message_update, "message_role", None),
-        "gateway_message_role": getattr(message_update, "gateway_message_role", None),
-        "llm_message_role": getattr(message_update, "llm_message_role", None),
-        "is_medical": getattr(message_update, "is_medical", None),
-        "llm_is_medical": getattr(message_update, "llm_is_medical", None),
-        "extraction_required": getattr(message_update, "extraction_required", None),
-        "gateway_extraction_required": getattr(
-            message_update,
-            "gateway_extraction_required",
-            None,
-        ),
-        "llm_extraction_required": getattr(
-            message_update,
-            "llm_extraction_required",
-            None,
-        ),
-        "possible_new_topic": getattr(message_update, "possible_new_topic", None),
-        "user_requests_recommendation": getattr(
-            message_update,
-            "user_requests_recommendation",
-            None,
-        ),
-        "active_modules": (
-            list(requirement_hints.active_modules)
-            if requirement_hints is not None
-            else getattr(message_update, "active_modules", [])
-        ),
-        "required_fields": requirement_keys(
-            (
-                requirement_hints.required_fields
+        "intent_signals": {
+            "intent_category": (
+                intent_signals.intent_category
+                if intent_signals is not None
+                else getattr(message_update, "intent_category", None)
+            ),
+            "message_role": (
+                intent_signals.message_role
+                if intent_signals is not None
+                else getattr(message_update, "message_role", None)
+            ),
+            "is_medical": (
+                intent_signals.is_medical
+                if intent_signals is not None
+                else getattr(message_update, "is_medical", None)
+            ),
+            "extraction_required": (
+                intent_signals.extraction_required
+                if intent_signals is not None
+                else getattr(message_update, "extraction_required", None)
+            ),
+            "intent_confidence": (
+                intent_signals.intent_confidence
+                if intent_signals is not None
+                else getattr(message_update, "intent_confidence", None)
+            ),
+            "possible_new_topic": (
+                intent_signals.possible_new_topic
+                if intent_signals is not None
+                else getattr(message_update, "possible_new_topic", None)
+            ),
+        },
+        "requirement_hints": {
+            "active_modules": (
+                list(requirement_hints.active_modules)
                 if requirement_hints is not None
-                else getattr(message_update, "required_fields", [])
-            )
-        ),
-        "resolved_fields": requirement_keys(
-            (
-                requirement_hints.resolved_fields
-                if requirement_hints is not None
-                else getattr(message_update, "resolved_fields", [])
-            )
-        ),
-        "recommended_modules": (
-            list(planner_hints.recommended_modules)
-            if planner_hints is not None
-            else getattr(message_update, "recommended_modules", [])
-        ),
+                else getattr(message_update, "active_modules", [])
+            ),
+            "required_fields": requirement_keys(
+                (
+                    requirement_hints.required_fields
+                    if requirement_hints is not None
+                    else getattr(message_update, "required_fields", [])
+                )
+            ),
+            "resolved_fields": requirement_keys(
+                (
+                    requirement_hints.resolved_fields
+                    if requirement_hints is not None
+                    else getattr(message_update, "resolved_fields", [])
+                )
+            ),
+        },
+        "planner_hints": {
+            "recommendation_requested": (
+                planner_hints.recommendation_requested
+                if planner_hints is not None
+                else getattr(message_update, "user_requests_recommendation", None)
+            ),
+            "recommended_modules": (
+                list(planner_hints.recommended_modules)
+                if planner_hints is not None
+                else getattr(message_update, "recommended_modules", [])
+            ),
+        },
+        "trace_signals": {
+            "gateway_category": (
+                trace_signals.intent_gateway.category
+                if trace_signals is not None and trace_signals.intent_gateway is not None
+                else getattr(message_update, "gateway_category", None)
+            ),
+            "gateway_message_role": (
+                trace_signals.intent_gateway.message_role
+                if trace_signals is not None and trace_signals.intent_gateway is not None
+                else getattr(message_update, "gateway_message_role", None)
+            ),
+            "gateway_extraction_required": (
+                trace_signals.intent_gateway.extraction_required
+                if trace_signals is not None and trace_signals.intent_gateway is not None
+                else getattr(message_update, "gateway_extraction_required", None)
+            ),
+            "llm_intent_category": (
+                trace_signals.llm_intent_category
+                if trace_signals is not None
+                else getattr(message_update, "llm_intent_category", None)
+            ),
+            "llm_is_medical": (
+                trace_signals.llm_is_medical
+                if trace_signals is not None
+                else getattr(message_update, "llm_is_medical", None)
+            ),
+            "llm_extraction_required": (
+                trace_signals.llm_extraction_required
+                if trace_signals is not None
+                else getattr(message_update, "llm_extraction_required", None)
+            ),
+            "llm_message_role": (
+                trace_signals.llm_message_role
+                if trace_signals is not None
+                else getattr(message_update, "llm_message_role", None)
+            ),
+            "notes": (
+                list(trace_signals.notes)
+                if trace_signals is not None
+                else getattr(message_update, "notes", [])
+            ),
+        },
         "has_case_payload": (
             case_payload.has_updates
             if case_payload is not None

@@ -3,27 +3,46 @@ from careena_pipeline.models import CaseObservation, MedicalCase, MessageUpdate
 
 class RequirementCaseProjector:
     """
-    Transitional bridge that projects resolved requirement signals into the case.
+    Transitional bridge that projects requirement-style process signals into the
+    case.
 
-    This is intentionally separated from `CaseMerger` so requirement-driven
-    enrichment is visible as a compatibility path instead of hidden merge
-    behavior.
+    This component is intentionally *not* part of the canonical merge truth.
+    It exists as a compatibility layer for follow-up answers whose requirement
+    state is already known, but whose content is not yet stably represented as a
+    proper case delta.
     """
 
+    TRANSITIONAL_COMPONENT = True
+    TRUST_LEVEL = "distrust"
+
     def apply(
+        self,
+        case: MedicalCase,
+        update: MessageUpdate,
+    ) -> bool:
+        # Compatibility entry point kept for older call sites.
+        return self.project_transitional_signals(case, update)
+
+    def project_transitional_signals(
         self,
         case: MedicalCase,
         update: MessageUpdate,
     ) -> None:
         requirement_hints = update.requirement_hints
         case_payload = update.case_payload
+        intent_signals = update.intent_signals
 
-        if not requirement_hints.resolved_fields:
-            return
+        if not self._should_project(
+            case_payload=case_payload,
+            requirement_hints=requirement_hints,
+            intent_signals=intent_signals,
+        ):
+            return False
 
         resolved_keys = {item.key for item in requirement_hints.resolved_fields}
         sources = case_payload.all_observations
-        overwrite = update.message_role == "correction"
+        overwrite = intent_signals.message_role == "correction"
+        projected_any = False
         for module in ("injury", "symptom"):
             if not any(key.startswith(f"{module}.") for key in resolved_keys):
                 continue
@@ -36,9 +55,32 @@ class RequirementCaseProjector:
                     overwrite=overwrite,
                     fallback_text=update.raw_text,
                 )
+                projected_any = True
                 # For now only enrich one intended target per module to avoid
                 # spraying a follow-up answer across multiple observations.
                 break
+        return projected_any
+
+    @staticmethod
+    def _should_project(
+        *,
+        case_payload,
+        requirement_hints,
+        intent_signals,
+    ) -> bool:
+        if not requirement_hints.resolved_fields:
+            return False
+
+        # Once a message already produced an explicit case delta, the canonical
+        # merge path should stay authoritative and this compatibility bridge
+        # should not mutate the case a second time.
+        if case_payload.has_updates:
+            return False
+
+        # Restrict projection to the narrow transition paths it was introduced
+        # for instead of treating every resolved requirement as a reason to
+        # write back into case truth.
+        return intent_signals.message_role in {"answer_to_followup", "correction"}
 
     @classmethod
     def _project_fields(

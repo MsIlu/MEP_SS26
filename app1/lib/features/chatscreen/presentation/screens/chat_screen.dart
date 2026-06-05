@@ -79,10 +79,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _runWarningFlow() async {
+    // Checks whether the warning has already been accepted by the user
     final shouldShow = await _warningController.shouldShowWarning();
 
     if (!mounted || !shouldShow) return;
 
+    // Shows a mandatory dialog that blocks interaction until confirmed
     await showDialog(
       context: context,
       barrierDismissible: false,

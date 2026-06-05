@@ -1,25 +1,37 @@
 from uuid import uuid4
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from ..base.base import BaseSchema, AuditInfo
-from ..provenance.provenance import Coding
+from models.base.base import BaseSchema 
+from models.base.audit import AuditInfo
+from models.clinical.coding import Coding
 
 """
-Data model for persistant or chronic medical conditions
-
-:param condition_id 
-:param name         name of condition
-:param coding       encoding of condition
-:param chronic      is condition chronic
-:param audit        audit information
+Repräsentiert eine langanhaltende oder chronische medizinische Diagnose
 """
 class Condition(BaseSchema):
-    condition_id: str = Field(default_factory=lambda: str(uuid4()))
+    model_config = ConfigDict(validate_assignment=True)
 
-    name: str
+    condition_id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        description="Eindeutige, automatisch generierte ID des Erkrankungseintrags."
+    )
 
-    coding: Coding | None = None
+    name: str = Field(
+        ...,
+        description="Der klinische Name der Erkrankung oder Diagnose (z. B. 'Asthma bronchiale')."
+    )
 
-    chronic: bool = True
+    coding: Coding | None = Field(
+        default=None,
+        description="Die standardisierte medizinische Codierung (z. B. ICD-10 Code wie 'E11' für Diabetes)."
+    )
 
-    audit: AuditInfo = Field(default_factory=AuditInfo)
+    chronic: bool = Field(
+        default=True,
+        description="True, wenn es sich um eine chronische oder persistierende Erkrankung handelt."
+    )
+
+    audit: AuditInfo = Field(
+        default_factory=AuditInfo,
+        description="Automatische Zeitstempel und Komponenten-Protokolle für diesen Erkrankungseintrag."
+    )

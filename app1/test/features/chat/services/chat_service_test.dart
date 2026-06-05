@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app1/features/chat/services/chat_service.dart';
-import 'package:app1/features/chat/data/models/message_model.dart';
+import 'package:app1/features/chatscreen/services/chat_service.dart';
+import 'package:app1/features/chatscreen/data/models/message_model.dart';
 
 /// ChatService Unit Tests
 /// 

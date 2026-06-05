@@ -1,18 +1,32 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from ..base.base import BaseSchema
-from .red_flag import RedFlag
-from .safety_event import SafetyEvent
+from models.base.base import BaseSchema
+from models.safety.red_flag import RedFlag
+from models.safety.safety_event import SafetyEvent
 
 """
-Data model to store information about safety events within a session
+Verwaltet den aktuellen Sicherheitszustand einer Session
 
 """
 class SafetyState(BaseSchema):
-    emergency_detected: bool = False
+    model_config = ConfigDict(validate_assignment=True)
 
-    ai_response_blocked: bool = False
+    emergency_detected: bool = Field(
+        default=False,
+        description="True signalisiert einen akuten, medizinischen Notfall."
+    )
 
-    active_red_flags: list[RedFlag] = Field(default_factory=list)
+    ai_response_blocked: bool = Field(
+        default=False,
+        description="True blockiert die reguläre LLM-Antwortgenerierung aus Sicherheitsgründen."
+    )
 
-    safety_events: list[SafetyEvent] = Field(default_factory=list)
+    active_red_flags: list[RedFlag] = Field(
+        default_factory=list,
+        description="Liste aller im aktuellen Chatverlauf aktiv erkannten Alarmsymptome (Red Flags)."
+    )
+
+    safety_events: list[SafetyEvent] = Field(
+        default_factory=list,
+        description="Chronologisches Logbuch aller sicherheitsrelevanten System- und Guardrail-Ereignisse."
+    )

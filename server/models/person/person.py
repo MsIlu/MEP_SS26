@@ -1,16 +1,34 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from .base import BaseSchema
-from .patient_profile import PatientProfile
-from .session_reference import SessionReference
-from .longitudinal_state import LongitudinalState
+from models.base.base import BaseSchema
+from models.person.patient_profile import PatientProfile
+from models.session.session_reference import SessionReference  
+from models.longitudinal.longitudinal_state import LongitudinalState
 
+"""
+Es fasst die medizinischen Stammdaten, administrative Identifikation und
+die historische Chat-Übersicht zusammen.
+"""
 
 class Person(BaseSchema):
-    person_id: str
+    model_config = ConfigDict(validate_assignment=True)
 
-    patient_profile: PatientProfile = Field(default_factory=PatientProfile)
+    person_id: str = Field(
+        ...,
+        description="Eindeutige ID der Person (z. B. PostgreSQL-User-UUID oder Matrikel-Dummy)."
+    )
 
-    sessions: list[SessionReference] = Field(default_factory=list)
+    patient_profile: PatientProfile = Field(
+        default_factory=PatientProfile,
+        description="Die Patientenakte (Stammdaten, Allergien, Vorerkrankungen)."
+    )
 
-    longitudinal_state: LongitudinalState = Field(default_factory=LongitudinalState)
+    sessions: list[SessionReference] = Field(
+        default_factory=list,
+        description="Chronologische Liste von Referenzen auf alle vergangenen und aktiven Chat-Sessions."
+    )
+
+    longitudinal_state: LongitudinalState = Field(
+        default_factory=LongitudinalState,
+        description="Die berechneten Langzeit- und Risikomuster über alle Sessions hinweg."
+    )

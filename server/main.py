@@ -1,25 +1,19 @@
-# Backend Server mit fastapi x uvicorn
-# 
-# HINWEISE: 
-#
-# - Session basiert, unterschiedliche Nutzer sollten eigenen Chatkontext haben
-# - Chatverläufe werden bei Server Neustart gelöscht, noch keine DB vorhanden
-#
-# Benötigt:
-# <bash> $ pip install fastapi uvicorn openai python-dotenv
-#
-# Zum Ausführen:
-# <bash> $ uvicorn main:app --reload
-# oder
-# <bash> $ python -m uvicorn main:app --reload
+"""
+Backend Server für das Projekt MEP_SS26.
+Dieses basiert auf FastAPI und nutzt eine PostgreSQL-Datenbank via Docker.
+Die Kommunikation mit dem hochschulinternen KI-Modell (medgemma:27b) erfolgt über einen 
+LiteLLM-Proxy, der über die standardisierte OpenAI-Schnittstelle angesprochen wird.
+"""
 
-from fastapi import FastAPI
+import logging
+import uuid
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
-import uuid
-from fastapi.middleware.cors import CORSMiddleware
+
 import config
-#from medical_rules import detect_medical_red_flags
 from red_flags.detector import detect_medical_red_flags
 from topic_filter import (
     is_health_related,
@@ -29,7 +23,40 @@ from topic_filter import (
 )
 from database.connection import create_db_and_tables
 
-app = FastAPI()
+# Zentrales Logging konfigurieren (besser als rohe print-Statements)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+# Standardisierte medizinische Notfallwarnung auslagern
+EMERGENCY_WARNING_TEXT = (
+    "Wichtiger Hinweis:\n"
+    "Ihre Angaben können auf eine akute Notfallsituation hinweisen.\n\n"
+    "Nächster Schritt:\n"
+    "Bitte wählen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe.\n\n"
+    "Hinweis:\n"
+    "Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modernes Lifecycle-Management für den FastAPI-Startup-Prozess."""
+    logger.info("Starte Backend-Server und initialisiere Datenbanktabellen...")
+    try:
+        create_db_and_tables()
+        logger.info("Datenbanktabellen erfolgreich abgeglichen/erstellt.")
+    except Exception as e:
+        logger.error(f"Fehler bei der Datenbank-Initialisierung: {e}")
+    yield
+    logger.info("Backend-Server wird heruntergefahren...")
+
+
+# FastAPI-Instanz mit modernem Lifespan-Handler initialisieren
+app = FastAPI(
+    title="MEP_SS26 Backend",
+    description="Medizininformatik Projekt-Backend mit KI-Anbindung",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # CORS (für Flutter)
 app.add_middleware(
@@ -40,26 +67,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Session Speicher
+# In-Memory Session Speicher (Wird später durch DB-Modell ersetzt)
 sessions = {}
 
-def build_llm_messages(messages: list[dict]) -> list[dict]:
-    """
-  Baut einen kleineren Kontext für das LLM:
-  - Systemprompt bleibt immer enthalten
-  - nur die letzten Chatnachrichten werden an das Modell geschickt
-  - der vollständige Verlauf bleibt trotzdem in sessions gespeichert
-  """
-    system_messages = [m for m in messages if m.get("role") == "system"]
-    chat_messages = [m for m in messages if m.get("role") != "system"]
-
-    recent_chat_messages = chat_messages[-config.MAX_HISTORY_MESSAGES:]
-
-    return system_messages + recent_chat_messages
-
-# Verbindung zum LiteLLM-Proxy der Hochschule.
-# Der Proxy stellt eine OpenAI-kompatible API bereit.
-# Das eigene Gerät muss sich im Hochschulnetzwerk befinden.
+# OpenAI-kompatibler LiteLLM-Client
 client = OpenAI(
     base_url=config.LITELLM_BASE_URL,
     api_key=config.LITELLM_API_KEY,
@@ -69,6 +80,13 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str
 
+def build_llm_messages(messages: list[dict]) -> list[dict]:
+    """Baut einen reduzierten Kontext für das LLM unter Beibehaltung des System-Prompts."""
+    system_messages = [m for m in messages if m.get("role") == "system"]
+    chat_messages = [m for m in messages if m.get("role") != "system"]
+    recent_chat_messages = chat_messages[-config.MAX_HISTORY_MESSAGES:]
+    return system_messages + recent_chat_messages
+
 # Endpunkt für Chatnachrichten
 @app.post("/chatscreen")
 def chat(req: ChatRequest):
@@ -76,51 +94,37 @@ def chat(req: ChatRequest):
         user_input = req.message.strip()
         session_id = req.session_id
 
-        print(f"[{session_id}] User: {user_input}")
+        logger.info(f"[{session_id}] Eingehende Nachricht: '{user_input}'")
         
         if session_id not in sessions:
-            return {"response": "Fehler: Ungültige Session-ID"}
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ungültige Session-ID")
         
         if not user_input:
-            return {"response": "Fehler: Leere Eingabe."}
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Leere Eingabe.")
 
         messages = sessions[session_id]
-        # Smalltalk / Langeweile freundlich beenden
+
+        # 1. Guard-Rails: Smalltalk abfangen 
         if is_smalltalk_or_boredom(user_input):
             return {"response": SMALLTALK_GOODBYE_RESPONSE}
 
-        # Nur gesundheitsbezogene Anliegen zulassen
+        # 2. Guard-Rails: Prüfung der medizinischen Relevanz
         if not is_health_related(user_input, messages):
             return {"response": OUT_OF_SCOPE_RESPONSE}
 
-        # User Message speichern
-        messages.append({
-            "role": "user",
-            "content": user_input
-        })
+        # User-Eingabe im Verlauf sichern 
+        messages.append({"role": "user", "content": user_input})
 
-        # Red-Flag-Prüfung vor der KI-Antwort
+        # 3. Sicherheitsprüfung: Red-Flags (Notfälle) erkennen
         red_flag_result = detect_medical_red_flags(user_input)
 
         if red_flag_result.get("red_flag") and red_flag_result.get("block_ai_response", False):
-            print(f"[{session_id}] Red flag detected: {red_flag_result}")
+            logger.warning(f"[{session_id}] Medizinischer Notfall erkannt: {red_flag_result}")
 
-            warning_text = (
-                "Wichtiger Hinweis:\n"
-                "Ihre Angaben können auf eine akute Notfallsituation hinweisen.\n\n"
-                "Nächster Schritt:\n"
-                "Bitte wählen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe.\n\n"
-                "Hinweis:\n"
-                "Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."
-            )
-
-            messages.append({
-                "role": "assistant",
-                "content": warning_text
-            })
+            messages.append({"role": "assistant", "content": EMERGENCY_WARNING_TEXT})
 
             return {
-                "response": warning_text,
+                "response": EMERGENCY_WARNING_TEXT,
                 "red_flag": True,
                 "severity": red_flag_result.get("severity"),
                 "action": red_flag_result.get("action"),
@@ -131,14 +135,10 @@ def chat(req: ChatRequest):
                 "matched_keywords": red_flag_result.get("matched_keywords", [])
             }
 
-        # Nur wenn KEINE Red Flag erkannt wurde, geht es hier normal weiter:
-        # Nur reduzierten Verlauf an das LLM schicken
+        # 4. KI-Verarbeitung (Nur wenn kein Notfall vorliegt)
         llm_messages = build_llm_messages(messages)
 
-        # Nur reduzierten Verlauf an das LLM schicken
-        llm_messages = build_llm_messages(messages)
-
-        # Chat-Anfrage an LiteLLM über OpenAI-kompatible API
+        # Chat-Anfrage an LiteLLM Proxy
         response = client.chat.completions.create(
             model=config.SELECTED_MODEL,
             messages=llm_messages,
@@ -147,29 +147,22 @@ def chat(req: ChatRequest):
         )
 
         # Debug Konsolenausgabe
-        print(f"[{session_id}] LiteLLM response received.")
-
+        logger.info(f"[{session_id}] Antwort von LiteLLM erfolgreich empfangen.")
         reply = response.choices[0].message.content
 
-        if reply:
-            reply = reply.strip()
-        else:
-            reply = "⚠️ Keine Antwort vom Modell."
+        reply = reply.strip() if reply else "⚠️ Keine Antwort vom Modell."
 
-        # Assistant Message speichern
-        messages.append({
-            "role": "assistant",
-            "content": reply
-        })
-
-        print(f"[{session_id}] Verlauf Länge: {len(messages)}")
+        # KI-Assistenten Antwort im Verlauf sichern 
+        messages.append({"role": "assistant","content": reply})
+        logger.info(f"[{session_id}] Aktuelle Verlaufslänge: {len(messages)}")
 
         return {"response": reply}
 
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
-        print("Error:", e)
-        return {"response": f"❌ Fehler: {str(e)}"}
-
+        logger.error(f"Interner Serverfehler in /chatscreen: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 # Endpunkt zur Abfrage der verfügbaren Modelle
@@ -177,16 +170,12 @@ def chat(req: ChatRequest):
 def get_models():
     try:
         models = client.models.list()
-
         model_names = [m.id for m in models.data]
-
-        print("Available models:", model_names)
-
+        logger.info(f"Verfügbare KI-Modelle abgerufen: {model_names}")
         return {"models": model_names}
-
     except Exception as e:
-        print("MODELS ERROR:", repr(e))
-        return {"error": str(e)}
+        logger.error(f"Fehler beim Abrufen der Modelle: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     
 # Endpunkt startet Sprachmodell serverseitig für schnellere Antworten
@@ -199,32 +188,26 @@ def warmup():
             temperature=config.LLM_TEMPERATURE,
             max_tokens=10,
         )
+        logger.info("Modell-Warmup erfolgreich durchgeführt.")
         return {"status": "warmed up"}
     except Exception as e:
-        print("WARMUP ERROR:", repr(e))
-        return {"error": str(e)}
+        logger.error(f"Fehler beim Modell-Warmup: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 # Endpunkt zur Vergabe von Session IDs
 @app.post("/session")
 def create_session():
-    session_id = str(uuid.uuid4())
+    try:
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = [
+            {
+                "role": "system",
+                "content": config.MASTER_PROMPT
+            }
+        ]
+        logger.info(f"Neue Session erfolgreich generiert: {session_id}")
+        return {"session_id": session_id}
+    except Exception as e:
+        logger.error(f"Fehler bei Session-Erstellung: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    # Session initialisieren
-    sessions[session_id] = [
-        {
-            "role": "system",
-            "content": config.MASTER_PROMPT
-        }
-    ]
-
-    #Debug/Log
-    print("Created session: ", session_id)
-
-    return {"session_id": session_id}
-
-# Editor: Ilu
-# Runs automatically when the FastAPI server starts.
-# Creates all database tables if they do not already exist.
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()

@@ -1,15 +1,25 @@
-from ..base.base import BaseSchema
+from pydantic import Field, ConfigDict
+from models.base.base import BaseSchema
 
 """
-Data model to store demographic patient information
-
-:param age 
-:param biological_sex
-:param pregnancy_status
+Erfasst biologische und medizinisch relevante Patientendaten 
 """
 class Demographics(BaseSchema):
-    age: int | None = None
+    model_config = ConfigDict(validate_assignment=True)
 
-    biological_sex: str | None = None
+    age: int | None = Field(
+        default=None,
+        ge=0,
+        le=125,
+        description="Das Alter des Patienten in Jahren."
+    )
 
-    pregnancy_status: bool | None = None
+    biological_sex: str | None = Field(
+        default=None,
+        description="Das biologische Geschlecht des Patienten (z. B. 'male', 'female', 'other')."
+    )
+
+    pregnancy_status: bool | None = Field(
+        default=None,
+        description="Gibt an, ob aktuell eine Schwangerschaft vorliegt (klinisch kritischer Faktor)."
+    )

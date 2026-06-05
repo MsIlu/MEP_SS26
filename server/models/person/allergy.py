@@ -1,25 +1,37 @@
 from uuid import uuid4
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from ..base.base import BaseSchema, AuditInfo
+from ..base.base import BaseSchema
+from models.base.audit import AuditInfo
 
 """
 Data model for patient reported allergies 
-
-:param allergy_id:  unique id
-:param substance:   Substance 
-:param reaction:    described reaction
-:param severity:    severity rating
-:param audit:       audit information
 """
 
 class Allergy(BaseSchema):
-    allergy_id: str = Field(default_factory=lambda: str(uuid4()))
+    model_config = ConfigDict(validate_assignment=True)
 
-    substance: str
+    allergy_id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        description="Eindeutige ID des Allergieeintrags."
+    )
 
-    reaction: str | None = None
+    substance: str = Field(
+        ...,
+        description="Die allergieauslösende Substanz (z. B. 'Penicillin', 'Ibuprofen')."
+    )
 
-    severity: str | None = None
+    reaction: str | None = Field(
+        default=None,
+        description="Die vom Patienten beschriebene klinische Reaktion (z. B. 'Juckreiz', 'Ödem')."
+    )
 
-    audit: AuditInfo = Field(default_factory=AuditInfo)
+    severity: str | None = Field(
+        default=None,
+        description="Der Schweregrad der allergischen Reaktion (z. B. 'mild', 'moderate', 'severe')."
+    )
+
+    audit: AuditInfo = Field(
+        default_factory=AuditInfo,
+        description="Automatische Zeitstempel und Komponenten-Protokolle für diesen Allergieeintrag."
+    )

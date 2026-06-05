@@ -1,20 +1,41 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from .base import BaseSchema
-from .demographics import Demographics
-from .condition import Condition
-from .medication import Medication
-from .allergy import Allergy
-from .risk_factor import RiskFactor
+from models.base.base import BaseSchema
+from models.person.demographics import Demographics
+from models.person.condition import Condition
+from models.person.medication import Medication
+from models.person.allergy import Allergy
+from models.person.risk_factor import RiskFactor
 
+"""
+Bündelt Demografie, Vorerkrankungen, Medikationspläne,
+Allergien und Risikofaktoren zu einem vollständigen Patientenprofil
+"""
 
 class PatientProfile(BaseSchema):
-    demographics: Demographics = Field(default_factory=Demographics)
+    model_config = ConfigDict(validate_assignment=True)
 
-    chronic_conditions: list[Condition] = Field(default_factory=list)
+    demographics: Demographics = Field(
+        default_factory=Demographics,
+        description="Biologische und demografische Basisdaten des Patienten."
+    )
 
-    medications: list[Medication] = Field(default_factory=list)
+    chronic_conditions: list[Condition] = Field(
+        default_factory=list,
+        description="Liste aller bekannten chronischen oder langanhaltenden Vorerkrankungen."
+    )
 
-    allergies: list[Allergy] = Field(default_factory=list)
+    medications: list[Medication] = Field(
+        default_factory=list,
+        description="Aktueller Medikationsplan bzw. eingenommene Dauermedikation."
+    )
 
-    baseline_risk_factors: list[RiskFactor] = Field(default_factory=list)
+    allergies: list[Allergy] = Field(
+        default_factory=list,
+        description="Erfasste Allergien und Unverträglichkeiten zur Vermeidung von Kontraindikationen."
+    )
+
+    baseline_risk_factors: list[RiskFactor] = Field(
+        default_factory=list,
+        description="Generelle medizinische oder lebensstilbedingte Risikofaktoren des Patienten."
+    )

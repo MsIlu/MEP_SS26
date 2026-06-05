@@ -1,13 +1,33 @@
+"""
+Definiert die am Chat beteiligten Akteure und deren medizinische Rollen.
+Ermöglicht die Unterscheidung zwischen dem Nutzer und dem eigentlichen Patienten.
+"""
+
+from pydantic import Field
 from ..base.base import BaseSchema
 
-"""
-Data model to describe the participants within a session
-Used to describe wether the patient is referring to himself or someone else
-"""
 
 class SessionParticipant(BaseSchema):
-    participant_id: str
+    """
+    Schema zur Beschreibung eines Sitzungsteilnehmers.
+    Verknüpft die technische Session mit den realen Personenprofilen aus der Datenbank.
+    """
 
-    person_id: str | None = None
+    participant_id: str = Field(
+        ...,
+        description="Eindeutige Identifikationsnummer des Teilnehmers in dieser Sitzung."
+    )
 
-    role: str
+    person_id: str | None = Field(
+        default=None,
+        description="Optionale Verknüpfung zur ID der realen Person in der Datenbank."
+    )
+
+    role: str = Field(
+        ...,
+        description="Die Rolle des Teilnehmers (z. B. 'patient', 'relative', 'doctor')."
+    )
+
+    class ConfigDict:
+        """Pydantic-Konfiguration für strikte Validierung."""
+        validate_assignment = True

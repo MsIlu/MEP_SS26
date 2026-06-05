@@ -1,25 +1,33 @@
-from datetime import datetime, UTC
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime, timezone
+from pydantic import ConfigDict, Field
+from models.base.base import BaseSchema
 
-from .base import BaseSchema
-
+"""
+Stellt automatische Zeitstempel für alle Datenmodelle bereit
+"""
 def utc_now() -> datetime:
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
-"""
-Data structure for audit information.
-Automatically creates timestamps upon creation.
-
-:param created_at   Time of creation
-:param updated_at   Time of last access
-:param created_by   Component that created the object
-:param updated_by   Component that last updated the object
-"""
 class AuditInfo(BaseSchema):
-    created_at: datetime = Field(default_factory=utc_now)
 
-    updated_at: datetime = Field(default_factory=utc_now)
+    model_config = ConfigDict(validate_assignment=True)
 
-    created_by: str | None = None
+    created_at: datetime = Field(
+        default_factory=utc_now,
+        description="Der exakte Erstellungszeitpunkt des Objekts im System (UTC)."
+    )
 
-    updated_by: str | None = None
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        description="Der Zeitpunkt der letzten Modifikation oder des letzten Zugriffs (UTC)."
+    )
+
+    created_by: str | None = Field(
+        default=None,
+        description="Die Komponente oder Rolle, die das Objekt initial angelegt hat (z. B. 'frontend')."
+    )
+
+    updated_by: str | None = Field(
+        default=None,
+        description="Die Komponente oder Rolle, die das Objekt zuletzt aktualisiert hat."
+    )

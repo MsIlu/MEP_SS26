@@ -1,5 +1,5 @@
-#server/red_flags/detector
-# detects red flags and acts before AI response
+from typing import Any
+from models.safety.red_flag import RedFlag
 
 from red_flags.catalog_loader import load_red_flag_catalog
 from red_flags.normalizer import normalize_text
@@ -11,13 +11,11 @@ def find_matching_keywords(keywords: list[str], normalized_user_input: str) -> l
     """
 
     matched_keywords = []
-
     for keyword in keywords:
         normalized_keyword = normalize_text(keyword)
 
         if normalized_keyword in normalized_user_input:
             matched_keywords.append(keyword)
-
     return matched_keywords
 
 
@@ -30,7 +28,7 @@ def match_keyword_groups(keyword_groups: list[list[str]], normalized_user_input:
     Gruppe 1: ["bauchschmerzen", "bauchweh"]
     Gruppe 2: ["kollaps", "blut", "atemnot"]
 
-    Regel trifft nur, wenn mindestens ein Begriff aus Gruppe 1 UND mindestens ein Begriff aus Gruppe 2 gefunden wird.
+    Regel trifft nur, wenn aus JEDER Gruppe mindestens ein Begriff matcht.
     """
 
     if not keyword_groups:
@@ -59,13 +57,13 @@ def rule_matches(rule: dict, normalized_user_input: str) -> tuple[bool, list[str
     keywords_any = match_config.get("keywords_any", [])
     keyword_groups_all = match_config.get("keyword_groups_all", [])
 
+    # 1. Option: ODER-Logik (Irgendein Keyword matcht direkt)
     direct_matches = find_matching_keywords(keywords_any, normalized_user_input)
-
     if direct_matches:
         return True, direct_matches
 
+    # 2. Option: UND-Logik über die Gruppen hinweg
     groups_match, group_matches = match_keyword_groups(keyword_groups_all, normalized_user_input)
-
     if groups_match:
         return True, group_matches
 
@@ -75,14 +73,28 @@ def rule_matches(rule: dict, normalized_user_input: str) -> tuple[bool, list[str
 def detect_medical_red_flags(user_input: str) -> dict:
     """
     Erkennt Red Flags anhand des Katalogs.
-
     Die Funktion stellt keine Diagnose.
     Sie prüft nur, ob eine sicherheitsrelevante Regel aus dem Katalog greift.
+    Wenn kein Match vorliegt, wird None zurückgegeben.
+    
+    Pydantic-Sicherheitsmodell (Architektur-Entscheidung):
+    -----------------------------------------------------
+    Statt eines unüberprüften, nativen Python-Dictionaries wird hier ein voll
+    validiertes 'RedFlag'-Pydantic-Objekt zurückgegeben. 
+    
+    Vorteile für das Gesamtprojekt:
+    1. Typensicherheit & Integrität: Verhindert 'Garbage-In, Garbage-Out'. Tippfehler
+       in den Attributnamen (z. B. im Server-Rework oder Frontend) werden sofort an 
+       der Schnittstelle abgefangen, bevor sie die Datenbank korrumpieren.
+    2. Fail-Safe-Prinzip: Durch 'extra="forbid"' im globalen BaseSchema blockiert das
+       System unbefugte oder manipulierte Zusatzfelder (Schutz vor Injections).
+    3. Entwickler-Komfort: Ermöglicht Autovervollständigung im restlichen
+       Backend (z. B. beim PDF-Export) und generiert die interaktive Swagger-API-
+       Dokumentation (/docs) vollautomatisch.
     """
 
     catalog = load_red_flag_catalog()
     defaults = catalog.get("defaults", {})
-
     normalized_user_input = normalize_text(user_input)
 
     for rule in catalog.get("rules", []):

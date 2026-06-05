@@ -1,33 +1,70 @@
-from pydantic import Field
-
-from ..session.session_subject import SessionSubject
-from ..session.session_participant import SessionParticipant
-from ..base.base import BaseSchema
-from ..clinical.clinical_state import ClinicalState
-from ..safety.safety_state import SafetyState
-from ..conversation.conversation_state import ConversationState
-from ..provenance.provenance_state import ProvenanceState
-from .session_metadata import SessionMetadata
-
 """
-Data Model for a single session
-Holds all relevant information regarding this session
+Das zentrale Aggregat-Modell, das alle spezialisierten Teilzustände
+(Klinisch, Konversation, Sicherheit, Metadaten) einer Sitzung bündelt.
 """
+
+from pydantic import Field, ConfigDict
+
+# Umstellung aller Imports auf absolute Pfade zur Eliminierung von Pylance-Warnungen
+from models.base.base import BaseSchema
+from models.session.session_participant import SessionParticipant
+from models.session.session_subject import SessionSubject
+from models.session.session_metadata import SessionMetadata
+from models.clinical.clinical_state import ClinicalState
+from models.safety.safety_state import SafetyState
+from models.conversation.conversation_state import ConversationState
+from models.provenance.provenance_state import ProvenanceState
+
+
 class SessionState(BaseSchema):
-    session_id: str
+    """
+    Zentrales Zustandsschema einer Chat-Sitzung.
+    Dient als primärer Einstiegspunkt für das Laden und Speichern im Session-Manager.
+    """
 
-    person_id: str
+    model_config = ConfigDict(validate_assignment=True)
 
-    participant: SessionParticipant = Field(default_factory=SessionParticipant)
+    session_id: str = Field(
+        ...,
+        description="Eindeutige UUID der Chat-Sitzung."
+    )
 
-    subject: SessionSubject = Field(default_factory=SessionSubject)
+    person_id: str = Field(
+        ...,
+        description="Eindeutige ID des primären App-Nutzers."
+    )
 
-    clinical_state: ClinicalState = Field(default_factory=ClinicalState)
+    participant: SessionParticipant = Field(
+        default_factory=SessionParticipant,
+        description="Informationen über den aktuellen Chat-Teilnehmer."
+    )
 
-    safety_state: SafetyState = Field(default_factory=SafetyState)
+    subject: SessionSubject = Field(
+        default_factory=SessionSubject,
+        description="Das medizinische Subjekt (der Patient), auf das sich die Sitzung bezieht."
+    )
 
-    conversation_state: ConversationState = Field(default_factory=ConversationState)
+    clinical_state: ClinicalState = Field(
+        default_factory=ClinicalState,
+        description="Der erfasste klinische Zustand (Symptome, Dauer, Verlauf)."
+    )
 
-    provenance_state: ProvenanceState = Field(default_factory=ProvenanceState)
+    safety_state: SafetyState = Field(
+        default_factory=SafetyState,
+        description="Sicherheitsrelevante Zustände (z. B. getriggerte Red Flags)."
+    )
 
-    metadata: SessionMetadata = Field(default_factory=SessionMetadata)
+    conversation_state: ConversationState = Field(
+        default_factory=ConversationState,
+        description="Der Zustand der Konversationsführung (z. B. Chatverlauf-Metadaten)."
+    )
+
+    provenance_state: ProvenanceState = Field(
+        default_factory=ProvenanceState,
+        description="Herkunfts- und Protokollierungsdaten zur Nachvollziehbarkeit (Audit-Trail)."
+    )
+
+    metadata: SessionMetadata = Field(
+        default_factory=SessionMetadata,
+        description="Administrative Metadaten (Zeitstempel, Sprachkonfiguration)."
+    )

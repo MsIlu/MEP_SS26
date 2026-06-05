@@ -1,15 +1,31 @@
-from ..base.base import BaseSchema
-
 """
-Data model used to describe other persons mentioned by the user
-
-:param person_id internal ID
-:param temporary_label for example daughter / stranger
-:param relationship_to_user describe relation to user
+Definiert den eigentlichen Patienten einer Sitzung,
+falls der Nutzer der App stellvertretend für eine andere Person chattet.
 """
+
+from pydantic import Field, ConfigDict
+from models.base.base import BaseSchema
+
+
 class SessionSubject(BaseSchema):
-    person_id: str | None = None
+    """
+    Schema zur Beschreibung des Patientensubjekts.
+    Ermöglicht die stellvertretende Symptomerfassung für Angehörige oder Dritte.
+    """
 
-    temporary_label: str | None = None
+    model_config = ConfigDict(validate_assignment=True)
 
-    relationship_to_user: str | None = None
+    person_id: str | None = Field(
+        default=None,
+        description="Optionale, eindeutige ID des Patienten aus der Datenbank."
+    )
+
+    temporary_label: str | None = Field(
+        default=None,
+        description="Temporäre Bezeichnung während des Chats (z. B. 'Tochter', 'Fremder')."
+    )
+
+    relationship_to_user: str | None = Field(
+        default=None,
+        description="Das genaue Verwandtschafts- oder Beziehungsverhältnis zum App-Nutzer."
+    )

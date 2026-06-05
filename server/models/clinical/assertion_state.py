@@ -1,11 +1,31 @@
-from .base import BaseSchema
+from pydantic import Field, ConfigDict
+from models.base.base import BaseSchema
 
 
 class AssertionState(BaseSchema):
-    negated: bool = False
+    """
+    Schema zur Erfassung des Aussage-Status eines klinischen Faktums.
+    Verhindert, dass verneinte oder hypothetische Symptome als feste Diagnosen missinterpretiert werden.
+    """
 
-    uncertain: bool = False
+    model_config = ConfigDict(validate_assignment=True)
 
-    hypothetical: bool = False
+    negated: bool = Field(
+        default=False,
+        description="Gibt an, ob das Symptom explizit verneint wurde (z. B. 'keine Schmerzen')."
+    )
 
-    reported_by_patient: bool = True
+    uncertain: bool = Field(
+        default=False,
+        description="Gibt an, ob die Aussage mit Unsicherheit behaftet ist (z. B. 'vielleicht Fieber')."
+    )
+
+    hypothetical: bool = Field(
+        default=False,
+        description="Gibt an, ob das Symptom rein hypothetisch genannt wurde (z. B. 'falls Schmerzen auftreten')."
+    )
+
+    reported_by_patient: bool = Field(
+        default=True,
+        description="True, wenn der Patient selbst berichtet; False, wenn es z. B. Beobachtungen Dritter sind."
+    )

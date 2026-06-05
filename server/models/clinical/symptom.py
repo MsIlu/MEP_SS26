@@ -1,39 +1,95 @@
 from uuid import uuid4
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from .base import BaseSchema, AuditInfo
-from .common import Coding, Provenance
-from .temporal import TemporalState
-from .assertion import AssertionState
+from models.base.base import BaseSchema
+from models.base.audit import AuditInfo
+from models.provenance.provenance_state import ProvenanceState
+from models.clinical.coding import Coding
+from models.clinical.temporal import TemporalState
+from models.clinical.assertion_state import AssertionState
 
 
 class SymptomAttributes(BaseSchema):
-    severity: int | None = Field(default=None, ge=0, le=10)
+    """
+    Die Ausprägung eines Symptoms wird spezifiziert.
+    Der Schweregrad, die Lokalisation und Schmerz 
+    """
+    model_config = ConfigDict(validate_assignment=True)
 
-    location: str | None = None
+    severity: int | None = Field(
+        default=None, 
+        ge=0, 
+        le=10,
+        description="Schweregrad des Symptoms auf einer numerischen Skala (0 = kein Schmerz, 10 = Maximalschmerz)."
+    )
 
-    radiation: str | None = None
+    location: str | None = Field(
+        default=None,
+        description="Die anatomische Lokalisation des Symptoms (z. B. 'Unterbauch links')."
+    )
 
-    frequency: str | None = None
+    radiation: str | None = Field(
+        default=None,
+        description="Gibt an, ob und wohin das Symptom ausstrahlt (z. B. 'ausstrahlend in den Rücken')."
+    )
 
+    frequency: str | None = Field(
+        default=None,
+        description="Die zeitliche Häufigkeit des Auftretens (z. B. 'kontinuierlich', 'episodisch', 'intermittierend')."
+    )
 
 class Symptom(BaseSchema):
-    symptom_id: str = Field(default_factory=lambda: str(uuid4()))
+    """
+    Bündelt alle extrahierten Attribute, zeitlichen Zustände und Kontexte einer Beschwerde
+    """
+    model_config = ConfigDict(validate_assignment=True)
 
-    raw_text: str
+    symptom_id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        description="Eindeutige, automatisch generierte ID des Symptoms."
+    )
 
-    normalized_name: str
+    raw_text: str = Field(
+        ...,
+        description="Der originale Textabschnitt aus dem Chat, in dem das Symptom genannt wurde."
+    )
 
-    coding: Coding | None = None
+    normalized_name: str = Field(
+        ...,
+        description="Der medizinisch bereinigte Standardname des Symptoms (z. B. 'Cephalgie' für Kopfschmerzen)."
+    )
 
-    attributes: SymptomAttributes = Field(default_factory=SymptomAttributes)
+    coding: Coding | None = Field(
+        default=None,
+        description="Die FHIR-konforme medizinische Codierung (z. B. ICD-10 oder SNOMED-CT)."
+    )
 
-    temporal: TemporalState = Field(default_factory=TemporalState)
+    attributes: SymptomAttributes = Field(
+        default_factory=SymptomAttributes,
+        description="Detaillierte klinische Ausprägungen und Spezifikationen des Symptoms."
+    )
 
-    assertion: AssertionState = Field(default_factory=AssertionState)
+    temporal: TemporalState = Field(
+        default_factory=TemporalState,
+        description="Zeitlicher Verlauf, Beginn und Dauer der Beschwerde."
+    )
 
-    status: str = "active"
+    assertion: AssertionState = Field(
+        default_factory=AssertionState,
+        description="Der Aussagekontext (z. B. ob das Symptom verneint oder unsicher ist)."
+    )
 
-    provenance: Provenance = Field(default_factory=Provenance)
+    status: str = Field(
+        default="active",
+        description="Der aktuelle Status des Symptoms im Behandlungsverlauf (z. B. 'active', 'resolved')."
+    )
 
-    audit: AuditInfo = Field(default_factory=AuditInfo)
+    provenance: ProvenanceState = Field(
+        default_factory=ProvenanceState,
+        description="Herkunftsnachweis, der das Symptom mit der Quellnachricht verknüpft."
+    )
+
+    audit: AuditInfo = Field(
+        default_factory=AuditInfo,
+        description="Automatische Zeitstempel und Komponenten-Protokolle für dieses Symptom."
+    )

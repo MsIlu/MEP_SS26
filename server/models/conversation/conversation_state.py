@@ -1,27 +1,39 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from ..base.base import BaseSchema
+from models.base.base import BaseSchema
 
 """
-Data structure to control the conversation within a session
-not medical
-
-:param current_phase    current phase of the conversation
-:param missing_information  missing information
-:param pending_questions  store questions that need to be answered
-:param summary_ready    flag to mark enough information gathered
-:param summary_confirmed flag to mark summary confirmed by patient
-:param assessment_complete flag to end conversation.
+Datenstruktur, um die Konverversation des nicht-medizinischen Chatfluss zu steuern.
 """
 class ConversationState(BaseSchema):
-    current_phase: str = "information_gathering"
+    model_config = ConfigDict(validate_assignment=True)
 
-    missing_information: list[str] = Field(default_factory=list)
+    current_phase: str = Field(
+        default="information_gathering",
+        description="Die aktuelle Phase des Gesprächs (z. B. 'information_gathering', 'summary', 'final_assessment')."
+    )
 
-    pending_questions: list[str] = Field(default_factory=list)
+    missing_information: list[str] = Field(
+        default_factory=list,
+        description="Liste noch offener klinischer Datenpunkte, die das LLM erfragen muss."
+    )
 
-    summary_ready: bool = False
+    pending_questions: list[str] = Field(
+        default_factory=list,
+        description="Zwischengespeicherte Fragen, die im weiteren Verlauf beantwortet werden müssen."
+    )
 
-    summary_confirmed: bool = False
+    summary_ready: bool = Field(
+        default=False,
+        description="True, wenn das LLM genügend Informationen für eine Zusammenfassung gesammelt hat."
+    )
 
-    assessment_complete: bool = False
+    summary_confirmed: bool = Field(
+        default=False,
+        description="True, wenn der Patient die vom LLM generierte Zusammenfassung bestätigt hat."
+    )
+
+    assessment_complete: bool = Field(
+        default=False,
+        description="True beendet die Konversation und schließt die Session."
+    )

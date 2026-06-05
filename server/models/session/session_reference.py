@@ -1,12 +1,35 @@
-from datetime import datetime
-from pydantic import Field
+"""
 
-from .base import BaseSchema, utc_now
+Es stellt die Verknüpfungsstruktur bereit, um klinische und administrative
+Datenobjekte einer spezifischen Chat-Sitzung zuzuordnen.
+"""
+
+from datetime import datetime, timezone
+from pydantic import Field, ConfigDict
+
+# Absoluter Import zur Vermeidung von Pylance-Fehlern in VS Code
+from models.base.base import BaseSchema
 
 
 class SessionReference(BaseSchema):
-    session_id: str
+    """
+    Schema für die Referenzierung einer Sitzung.
+    Dient als relationaler Anker für Datenbankeinträge.
+    """
 
-    created_at: datetime = Field(default_factory=utc_now)
+    model_config = ConfigDict(validate_assignment=True)
 
-    last_updated_at: datetime = Field(default_factory=utc_now)
+    session_id: str = Field(
+        ...,
+        description="Die eindeutige UUID der referenzierten Chat-Sitzung."
+    )
+
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Erstellungszeitpunkt der Referenz im System (UTC)."
+    )
+
+    last_updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Zeitpunkt der letzten Aktualisierung dieser Referenz (UTC)."
+    )

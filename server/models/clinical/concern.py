@@ -1,19 +1,45 @@
 from uuid import uuid4
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from .base import BaseSchema, AuditInfo
-from .common import Provenance
+from models.base.base import BaseSchema 
+from models.base.audit import AuditInfo
+from models.provenance.provenance_state import ProvenanceState
 
 
 class Concern(BaseSchema):
-    concern_id: str = Field(default_factory=lambda: str(uuid4()))
+    """
+    Die Sorgen/Beschwerden des Patienten werden kategorisiert und
+    nach Dringlichkeit eingestuft.
+    """
 
-    description: str
+    model_config = ConfigDict(validate_assignment=True)
 
-    category: str | None = None
+    concern_id: str = Field(
+        default_factory=lambda: str(uuid4()),
+        description="Eindeutige, automatisch generierte ID der Beschwerde."
+    )
 
-    priority: str | None = None
+    description: str = Field(
+        ...,
+        description="Die detaillierte Beschreibung der Sorge oder Beschwerde im Freitext."
+    )
 
-    provenance: Provenance = Field(default_factory=Provenance)
+    category: str | None = Field(
+        default=None,
+        description="Die medizinische Kategorie der Beschwerde (z. B. 'Kardiologie', 'Neurologie')."
+    )
 
-    audit: AuditInfo = Field(default_factory=AuditInfo)
+    priority: str | None = Field(
+        default=None,
+        description="Die Priorität oder Dringlichkeitsstufe der Beschwerde (z. B. 'low', 'medium', 'high')."
+    )
+
+    provenance: ProvenanceState = Field(
+        default_factory=ProvenanceState,
+        description="Herkunftsnachweis (Provenance), der die Beschwerde mit der Quellnachricht verknüpft."
+    )
+
+    audit: AuditInfo = Field(
+        default_factory=AuditInfo,
+        description="Automatische Zeitstempel und Komponenten-Protokolle für diese Beschwerde."
+    )

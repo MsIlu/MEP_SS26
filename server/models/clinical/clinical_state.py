@@ -1,17 +1,36 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from .base import BaseSchema
-from .symptom import Symptom
-from .concern import Concern
-from .clinical_fact import ClinicalFact
-from .recommendation import Recommendation
+# Umstellung auf absolute Imports zur Vermeidung von Pylance-Fehlern
+from models.base.base import BaseSchema
+from models.clinical.symptom import Symptom
+from models.clinical.concern import Concern
+from models.clinical.clinical_fact import ClinicalFact
+from models.clinical.recommendation import Recommendation
 
 
 class ClinicalState(BaseSchema):
-    active_symptoms: list[Symptom] = Field(default_factory=list)
+    """
+    Repräsentiert den gesamten klinischen Zustand einer Session.
+    Dient dem Backend als Übersicht über den aktuellen Patientenstatus.
+    """
+    model_config = ConfigDict(validate_assignment=True)
 
-    concerns: list[Concern] = Field(default_factory=list)
+    active_symptoms: list[Symptom] = Field(
+        default_factory=list,
+        description="Liste aller aktiv erfassten Symptome des Patienten."
+    )
 
-    extracted_facts: list[ClinicalFact] = Field(default_factory=list)
+    concerns: list[Concern] = Field(
+        default_factory=list,
+        description="Liste der Kernbeschwerden oder medizinischen Sorgen des Nutzers."
+    )
 
-    recommendation: Recommendation | None = None
+    extracted_facts: list[ClinicalFact] = Field(
+        default_factory=list,
+        description="Sammlung aller atomar aus dem Chat extrahierten klinischen Fakten."
+    )
+
+    recommendation: Recommendation | None = Field(
+        default=None,
+        description="Die aus den Symptomen generierte klinische Handlungsempfehlung (falls vorhanden)."
+    )

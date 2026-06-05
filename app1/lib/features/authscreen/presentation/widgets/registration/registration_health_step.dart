@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../../data/registration_condition_options.dart';
@@ -146,7 +145,7 @@ class _RegistrationHealthDataStepState
           const SizedBox(height: 8),
           Text(
             'Wähle alle zutreffenden aus.',
-            style: GoogleFonts.nunito(color: helperTextColor),
+            style: TextStyle(color: helperTextColor),
           ),
           const SizedBox(height: 10),
           _ConditionChips(

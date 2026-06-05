@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chatscreen/presentation/themes/app_colors.dart';
 
@@ -133,7 +132,7 @@ class _StepItem extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
+                style: const TextStyle(
                   fontSize: 13,
                   height: 1.12,
                   fontWeight: FontWeight.w700,

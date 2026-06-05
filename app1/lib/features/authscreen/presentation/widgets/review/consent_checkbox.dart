@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chatscreen/presentation/themes/app_colors.dart';
 
@@ -65,7 +64,7 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaPrimary;
 
-    final baseStyle = GoogleFonts.nunito(
+    final baseStyle = TextStyle(
       height: 1.35,
       color: textColor,
     );

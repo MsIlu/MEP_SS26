@@ -19,21 +19,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBoot(externalChatController: chatController);
+    return _AppBoot(externalChatController: chatController);
   }
 }
 
 
-class AppBoot extends StatefulWidget {
+class _AppBoot extends StatefulWidget {
   final ChatController? externalChatController;
 
-  const AppBoot({this.externalChatController});
+  const _AppBoot({this.externalChatController});
 
   @override
-  State<AppBoot> createState() => AppBootState();
+  State<_AppBoot> createState() => _AppBootState();
 }
 
-class AppBootState extends State<AppBoot> {
+class _AppBootState extends State<_AppBoot> {
   late final AppDependencies? _ownedDependencies;
   late final ChatController _chatController;
   late final ThemeController _themeController;

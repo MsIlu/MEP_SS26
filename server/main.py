@@ -16,7 +16,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-#from database.connection import create_db_and_tables
+from database.connection import create_db_and_tables
 from chat.logic import ChatLogic
 from extraction.core.extraction_engine import ExtractionEngine
 from extraction.pipeline.extraction_pipeline import ExtractionPipeline
@@ -100,6 +100,6 @@ def pipetest():
 # Editor: Ilu
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
-#@app.on_event("startup")
-#def on_startup():
-#    create_db_and_tables()
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()

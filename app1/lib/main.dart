@@ -1,3 +1,4 @@
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
@@ -18,21 +19,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _AppDependencyScope(externalChatController: chatController);
+    return AppBoot(externalChatController: chatController);
   }
 }
 
-/// Keeps long-lived dependencies out of widget build methods.
-class _AppDependencyScope extends StatefulWidget {
+
+class AppBoot extends StatefulWidget {
   final ChatController? externalChatController;
 
-  const _AppDependencyScope({this.externalChatController});
+  const AppBoot({this.externalChatController});
 
   @override
-  State<_AppDependencyScope> createState() => _AppDependencyScopeState();
+  State<AppBoot> createState() => AppBootState();
 }
 
-class _AppDependencyScopeState extends State<_AppDependencyScope> {
+class AppBootState extends State<AppBoot> {
   late final AppDependencies? _ownedDependencies;
   late final ChatController _chatController;
   late final ThemeController _themeController;
@@ -60,24 +61,27 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _themeController,
-      builder: (context, _) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Careena',
-          locale: const Locale('de', 'DE'),
-          supportedLocales: const [Locale('de', 'DE')],
-          localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: _themeController.themeMode,
-          home: OnboardingScreen(
-            chatController: _chatController,
-            themeController: _themeController,
-          ),
-        );
-      },
+    return AppDependenciesScope(
+      dependencies: _ownedDependencies!, 
+      child: AnimatedBuilder(
+        animation: _themeController,
+        builder: (context, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Careena',
+            locale: const Locale('de', 'DE'),
+            supportedLocales: const [Locale('de', 'DE')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: _themeController.themeMode,
+            home: OnboardingScreen(
+              chatController: _chatController,
+              themeController: _themeController,
+            ),
+          );
+        },
+      ),
     );
   }
 }

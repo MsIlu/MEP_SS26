@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 
 /// Branding row shown at the top of the onboarding screen.
@@ -36,7 +35,7 @@ class OnboardingHeader extends StatelessWidget {
                   "MedBitAid v.1",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
+                  style: TextStyle(
                     fontSize: titleSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.careenaBrand,

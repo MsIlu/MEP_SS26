@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../models/auth_review_item.dart';
@@ -111,7 +110,7 @@ class _ReviewRow extends StatelessWidget {
           width: 148,
           child: Text(
             item.label,
-            style: GoogleFonts.nunito(
+            style: TextStyle(
               fontWeight: FontWeight.w800,
               color: labelColor,
             ),
@@ -121,7 +120,7 @@ class _ReviewRow extends StatelessWidget {
         Expanded(
           child: Text(
             item.value,
-            style: GoogleFonts.nunito(color: valueColor),
+            style: TextStyle(color: valueColor),
           ),
         ),
       ],

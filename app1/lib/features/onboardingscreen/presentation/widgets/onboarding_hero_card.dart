@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
@@ -48,7 +47,7 @@ class OnboardingHeroCard extends StatelessWidget {
               children: [
                 Text(
                   "Die richtige Hilfe,\nzum richtigen\nZeitpunkt.",
-                  style: GoogleFonts.nunito(
+                  style: TextStyle(
                     fontSize: isCompact ? 24 : 28,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
@@ -165,7 +164,7 @@ class _HeroDescription extends StatelessWidget {
 
     return Text(
       "Beschreibe deine Beschwerden\nund erhalte deine persönliche\nHandlungsempfehlung.",
-      style: GoogleFonts.nunito(
+      style: TextStyle(
         fontSize: 12,
         color: isDarkMode ? colorScheme.onSurfaceVariant : Colors.black87,
         height: 1.3,

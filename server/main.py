@@ -14,7 +14,11 @@
 # or
 # <bash> python -m uvicorn main:app --reload
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlmodel import Session
+from auth.security import get_current_account, get_session
+from database.models import User
+from profiles.service import get_profile_access_role
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
@@ -61,15 +65,32 @@ pipeline = ExtractionPipeline(engine)
 
 # Model
 class ChatRequest(BaseModel):
+    """
+    Request body for sending a chat message within a selected medical profile.
+    """
+
     message: str
     session_id: str
+    profile_id: int
 
 # Routes
 @app.post("/chatscreen")
-def chat(req: ChatRequest):
+def chat(
+        req: ChatRequest,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
     """
-    Handle incoming chat messages for a given session.
+    Handle incoming chat messages for a selected medical profile.
+
+    The authenticated account must have access to the requested profile.
     """
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=req.profile_id,
+        session=session,
+    )
+
     return chat_logic.handle_message(req.session_id, req.message)
 
 @app.post("/warmup")

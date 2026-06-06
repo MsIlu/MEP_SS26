@@ -6,6 +6,10 @@ import 'package:pdf/widgets.dart' as pw;
 class RecommendationPdfService {
   static const String _logoPath = 'assets/images/logo.png';
 
+  static const double _noticeTitleSize = 13;
+  static const double _noticeBodySize = 10;
+  static const double _noticeLineSpacing = 2.5;
+
   static final PdfColor _primaryColor = PdfColor.fromInt(0xFF00897B);
   static final PdfColor _primaryLight = PdfColor.fromInt(0xFFE0F2F1);
   static final PdfColor _warningColor = PdfColor.fromInt(0xFFE65100);
@@ -15,6 +19,8 @@ class RecommendationPdfService {
   static final PdfColor _borderColor = PdfColor.fromInt(0xFFE0E0E0);
   static final PdfColor _pageBackground = PdfColor.fromInt(0xFFFAFAFA);
   static final PdfColor _cardBackground = PdfColor.fromInt(0xFFFFFFFF);
+  static final PdfColor _infoColor = PdfColor.fromInt(0xFF1565C0);
+  static final PdfColor _infoLight = PdfColor.fromInt(0xFFE3F2FD);
 
   Future<Uint8List> buildRecommendationPdf({
     required String title,
@@ -64,6 +70,9 @@ class RecommendationPdfService {
                   pw.SizedBox(height: 18),
 
                   _buildEmergencyNotice(),
+                  pw.SizedBox(height: 20),
+
+                  _buildAiNotice(),
                   pw.SizedBox(height: 20),
 
                   _buildDisclaimer(),
@@ -300,7 +309,7 @@ class RecommendationPdfService {
 
   pw.Widget _buildEmergencyNotice() {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(16),
+      padding: const pw.EdgeInsets.all(14),
       decoration: pw.BoxDecoration(
         color: _warningLight,
         borderRadius: pw.BorderRadius.circular(14),
@@ -313,7 +322,7 @@ class RecommendationPdfService {
             'Wichtiger Hinweis',
             style: pw.TextStyle(
               color: _warningColor,
-              fontSize: 14,
+              fontSize: _noticeTitleSize,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
@@ -324,8 +333,45 @@ class RecommendationPdfService {
                 'aufgesucht werden.',
             style: pw.TextStyle(
               color: _textColor,
-              fontSize: 10.5,
-              lineSpacing: 3,
+              fontSize: _noticeBodySize,
+              lineSpacing: _noticeLineSpacing,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildAiNotice() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: _infoLight,
+        borderRadius: pw.BorderRadius.circular(14),
+        border: pw.Border.all(
+          color: _infoColor,
+          width: 1,
+        ),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'KI-generierter Inhalt',
+            style: pw.TextStyle(
+              color: _infoColor,
+              fontSize: _noticeTitleSize,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'Die Inhalte dieses Dokuments wurden mithilfe künstlicher Intelligenz (KI) erstellt. '
+            'Sie dienen ausschließlich der medizinischen Ersteinschätzung und ersetzen keine ärztliche Diagnose.',
+            style: pw.TextStyle(
+              color: _textColor,
+              fontSize: _noticeBodySize,
+              lineSpacing: _noticeLineSpacing,
             ),
           ),
         ],

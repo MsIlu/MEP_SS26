@@ -110,7 +110,10 @@ class _FakeChatApi extends ChatApi {
   Future<void> warmup() async {}
 
   @override
-  Future<ChatResponse> sendMessage(String text, String sessionId) async {
+  Future<ChatResponse> sendMessage(
+      String text,
+      String sessionId,
+      ) async {
     return const ChatResponse(text: 'Testantwort', redFlag: false);
   }
 }

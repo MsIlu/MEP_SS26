@@ -16,7 +16,10 @@ class ChatApi {
   /// Sends a user message to the backend and returns the full chat response.
   ///
   /// The response may contain a normal chat message or red flag metadata.
-  Future<ChatResponse> sendMessage(String text, String sessionId) async {
+  Future<ChatResponse> sendMessage(
+      String text,
+      String sessionId,
+      ) async {
     final data = await client.post("/chatscreen", {
       "message": text,
       "session_id": sessionId,

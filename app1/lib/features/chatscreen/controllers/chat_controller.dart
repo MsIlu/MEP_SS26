@@ -90,7 +90,10 @@ class ChatController {
     _addMessage(message: Message(text: '', isUser: false, isLoading: true, isStreaming: true,));
 
     try {
-      final response = await chatApi.sendMessage(trimmed, _sessionId!);
+      final response = await chatApi.sendMessage(
+        trimmed,
+        _sessionId!,
+      );
 
       // Remove the loading bubble before handling the response.
       _setMessages(chatService.removeLastBotMessage(messages.value));

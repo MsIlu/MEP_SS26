@@ -128,6 +128,7 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => LoginScreen(
           chatController: chatController,
           themeController: themeController,
+          authSession: authSession,
         ),
       ),
     );
@@ -140,6 +141,7 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => RegistrationScreen(
           chatController: chatController,
           themeController: themeController,
+          authSession: authSession,
         ),
       ),
     );

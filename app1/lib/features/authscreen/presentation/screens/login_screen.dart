@@ -8,16 +8,19 @@ import '../widgets/common/auth_fields.dart';
 import '../widgets/common/auth_layout.dart';
 import 'registration_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
+import '../../state/auth_session.dart';
 
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
   final ChatController chatController;
   final ThemeController themeController;
+  final AuthSession authSession;
 
   const LoginScreen({
     super.key,
     required this.chatController,
     required this.themeController,
+    required this.authSession,
   });
 
   @override
@@ -104,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context) => RegistrationScreen(
           chatController: widget.chatController,
           themeController: widget.themeController,
+          authSession: widget.authSession,
         ),
       ),
     );

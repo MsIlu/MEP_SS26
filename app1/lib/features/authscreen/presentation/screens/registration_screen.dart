@@ -11,16 +11,19 @@ import '../widgets/registration/registration_review_step.dart';
 import '../widgets/registration/registration_step_indicator.dart';
 import 'login_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
+import '../../state/auth_session.dart';
 
 /// Multi-step registration flow based on the prototype screens.
 class RegistrationScreen extends StatefulWidget {
   final ChatController chatController;
   final ThemeController themeController;
+  final AuthSession authSession;
 
   const RegistrationScreen({
     super.key,
     required this.chatController,
     required this.themeController,
+    required this.authSession,
   });
 
   @override
@@ -136,6 +139,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         builder: (context) => LoginScreen(
           chatController: widget.chatController,
           themeController: widget.themeController,
+          authSession: widget.authSession,
         ),
       ),
     );

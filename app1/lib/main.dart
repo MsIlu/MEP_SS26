@@ -5,6 +5,7 @@ import 'core/themes/app_theme.dart';
 import 'core/themes/theme_controller.dart';
 import 'features/chatscreen/controllers/chat_controller.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
+import 'features/authscreen/state/auth_session.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,6 +37,7 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
   late final AppDependencies? _ownedDependencies;
   late final ChatController _chatController;
   late final ThemeController _themeController;
+  late final AuthSession _authSession;
 
   @override
   void initState() {
@@ -49,11 +51,14 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
         widget.externalChatController ?? _ownedDependencies!.chatController;
 
     _themeController = ThemeController();
+
+    _authSession = AuthSession();
   }
 
   @override
   void dispose() {
     _themeController.dispose();
+    _authSession.dispose();
     _ownedDependencies?.dispose();
     super.dispose();
   }
@@ -75,6 +80,7 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
           home: OnboardingScreen(
             chatController: _chatController,
             themeController: _themeController,
+            authSession: _authSession,
           ),
         );
       },

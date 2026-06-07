@@ -57,8 +57,12 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
   void initState() {
     super.initState();
 
-    _ownedDependencies = widget.externalChatController == null && widget.externalAuthApiService == null
-        ? AppDependencies()
+    _authSession = AuthSession();
+
+    _ownedDependencies =
+    widget.externalChatController == null &&
+        widget.externalAuthApiService == null
+        ? AppDependencies(authSession: _authSession)
         : null;
 
     _chatController =
@@ -68,8 +72,6 @@ class _AppDependencyScopeState extends State<_AppDependencyScope> {
         widget.externalAuthApiService ?? _ownedDependencies!.authApiService;
 
     _themeController = ThemeController();
-
-    _authSession = AuthSession();
   }
 
   @override

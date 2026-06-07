@@ -4,6 +4,7 @@ import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:app1/features/authscreen/state/auth_session.dart';
 
 /// Unit tests for chat controller state.
 void main() {
@@ -16,6 +17,7 @@ void main() {
       final controller = ChatController(
         chatApi: chatApi,
         chatService: ChatService(),
+        authSession: AuthSession(),
       );
       addTearDown(controller.dispose);
       addTearDown(httpClient.close);

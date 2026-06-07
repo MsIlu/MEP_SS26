@@ -11,6 +11,7 @@ import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/warningscreen/presentation/screens/warning_page.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 
 void main() {
   late ChatController chatController;
@@ -20,6 +21,7 @@ void main() {
     chatController = ChatController(
       chatApi: _FakeChatApi(),
       chatService: ChatService(),
+      authSession: AuthSession(),
     );
     themeController = ThemeController();
   });
@@ -113,6 +115,7 @@ class _FakeChatApi extends ChatApi {
   Future<ChatResponse> sendMessage(
       String text,
       String sessionId,
+      int profileId,
       ) async {
     return const ChatResponse(text: 'Testantwort', redFlag: false);
   }

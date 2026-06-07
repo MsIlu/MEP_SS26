@@ -5,6 +5,7 @@ import '../features/chatscreen/controllers/chat_controller.dart';
 import '../features/chatscreen/data/chat_api.dart';
 import '../features/chatscreen/services/chat_service.dart';
 import '../features/authscreen/data/auth_api_service.dart';
+import '../features/authscreen/state/auth_session.dart';
 
 /// Composition root for services shared across multiple screens.
 class AppDependencies {
@@ -13,13 +14,17 @@ class AppDependencies {
   late final ChatController chatController;
   late final AuthApiService authApiService;
 
-  AppDependencies({http.Client? httpClient})
+  AppDependencies({
+    http.Client? httpClient,
+    required AuthSession authSession,
+  })
     : _httpClient = httpClient ?? http.Client() {
     apiClient = ApiClient(_httpClient);
     authApiService = AuthApiService(apiClient);
     chatController = ChatController(
       chatApi: ChatApi(apiClient),
       chatService: ChatService(),
+      authSession: authSession,
     );
   }
 

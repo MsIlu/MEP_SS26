@@ -19,10 +19,12 @@ class ChatApi {
   Future<ChatResponse> sendMessage(
       String text,
       String sessionId,
+      int profileId,
       ) async {
     final data = await client.post("/chatscreen", {
       "message": text,
       "session_id": sessionId,
+      "profile_id": profileId,
     });
 
     return ChatResponse.fromJson(data);

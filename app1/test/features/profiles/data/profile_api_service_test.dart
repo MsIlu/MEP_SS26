@@ -71,5 +71,96 @@ void main() {
       expect(profiles[1].relevantMedicationsSummary, 'Salbutamol bei Bedarf');
       expect(profiles[1].role, 'guardian');
     });
+
+    test('createProfile sends profile data and parses created profile', () async {
+      String? authorizationHeader;
+
+      final mockHttpClient = MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, contains('/profiles'));
+
+        authorizationHeader = request.headers['Authorization'];
+
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['display_name'], 'Ben');
+        expect(body['date_of_birth'], '2015-08-20');
+        expect(body['biological_sex'], 'male');
+        expect(body['profile_type'], 'child');
+        expect(body['relevant_preconditions_summary'], 'Asthma');
+        expect(body['relevant_medications_summary'], 'Salbutamol bei Bedarf');
+        expect(body['symptom_diary_summary'], null);
+
+        return http.Response(
+          jsonEncode({
+            'id': 11,
+            'display_name': 'Ben',
+            'date_of_birth': '2015-08-20',
+            'biological_sex': 'male',
+            'profile_type': 'child',
+            'relevant_preconditions_summary': 'Asthma',
+            'relevant_medications_summary': 'Salbutamol bei Bedarf',
+            'symptom_diary_summary': null,
+            'role': 'guardian',
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(mockHttpClient);
+      apiClient.setAccessToken('test-token');
+
+      final profileApiService = ProfileApiService(apiClient);
+
+      final profile = await profileApiService.createProfile(
+        displayName: 'Ben',
+        dateOfBirth: '2015-08-20',
+        biologicalSex: 'male',
+        profileType: 'child',
+        relevantPreconditionsSummary: 'Asthma',
+        relevantMedicationsSummary: 'Salbutamol bei Bedarf',
+      );
+
+      expect(authorizationHeader, 'Bearer test-token');
+
+      expect(profile.id, 11);
+      expect(profile.displayName, 'Ben');
+      expect(profile.dateOfBirth, '2015-08-20');
+      expect(profile.biologicalSex, 'male');
+      expect(profile.profileType, 'child');
+      expect(profile.relevantPreconditionsSummary, 'Asthma');
+      expect(profile.relevantMedicationsSummary, 'Salbutamol bei Bedarf');
+      expect(profile.role, 'guardian');
+    });
+
+    test('deleteProfile sends delete request with authorization header', () async {
+      String? authorizationHeader;
+      String? requestedPath;
+
+      final mockHttpClient = MockClient((request) async {
+        expect(request.method, 'DELETE');
+
+        requestedPath = request.url.path;
+        authorizationHeader = request.headers['Authorization'];
+
+        return http.Response(
+          jsonEncode({
+            'message': 'Profile deleted successfully.',
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final apiClient = ApiClient(mockHttpClient);
+      apiClient.setAccessToken('test-token');
+
+      final profileApiService = ProfileApiService(apiClient);
+
+      await profileApiService.deleteProfile(11);
+
+      expect(requestedPath, contains('/profiles/11'));
+      expect(authorizationHeader, 'Bearer test-token');
+    });
   });
 }

@@ -36,6 +36,8 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _form = RegistrationFormController();
   int _step = 0;
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -67,6 +69,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             duration: const Duration(milliseconds: 180),
             child: KeyedSubtree(key: ValueKey<int>(_step), child: _buildStep()),
           ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 16),
           SwitchAuthMode(
             label: 'Du hast bereits ein Konto?',
@@ -123,7 +136,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         onConsentChanged: _updateConsent,
         onEditPersonalData: () => _goToCompletedStep(0),
         onEditHealthData: () => _goToCompletedStep(1),
-        onSubmit: _finishRegistration,
+        onSubmit: _isSubmitting ? () {} : _finishRegistration,
       ),
     };
   }
@@ -175,20 +188,59 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  void _finishRegistration() {
+  Future<void> _finishRegistration() async {
     if (!_form.hasAcceptedConsent) {
+      setState(() {
+        _errorMessage = 'Bitte akzeptiere die Einwilligung, um fortzufahren.';
+      });
       return;
     }
 
-    // TODO(backend): Submit registration data, consent timestamp, and health
-    // TODO: profile to the API before creating the authenticated Home session.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: widget.chatController,
-          themeController: widget.themeController,
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final displayName =
+      '${_form.firstNameController.text.trim()} ${_form.lastNameController.text.trim()}'
+          .trim();
+
+      final authResponse = await widget.authApiService.register(
+        email: _form.emailController.text.trim(),
+        password: _form.passwordController.text,
+        displayName: displayName,
+        dateOfBirth: _form.birthDateController.text.trim().isEmpty
+            ? null
+            : _form.birthDateController.text.trim(),
+        biologicalSex: _form.sex,
+      );
+
+      widget.authSession.setAuthResponse(authResponse);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            controller: widget.chatController,
+            themeController: widget.themeController,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage =
+        'Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

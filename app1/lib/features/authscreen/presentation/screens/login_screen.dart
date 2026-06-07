@@ -175,11 +175,11 @@ class _LoginScreenState extends State<LoginScreen> {
         'Anmeldung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
       });
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isSubmitting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 }

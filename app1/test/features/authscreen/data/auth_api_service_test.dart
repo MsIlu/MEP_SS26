@@ -82,5 +82,88 @@ void main() {
         'Bearer test-token',
       );
     });
+
+    test('register parses auth response and stores token in ApiClient', () async {
+      String? authorizationHeaderForProtectedRequest;
+
+      final mockHttpClient = MockClient((request) async {
+        if (request.url.path.endsWith('/auth/register')) {
+          expect(request.method, 'POST');
+
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          expect(body['email'], 'new@example.com');
+          expect(body['password'], '12345678');
+          expect(body['display_name'], 'Anna');
+          expect(body['date_of_birth'], '2000-04-12');
+          expect(body['biological_sex'], 'female');
+
+          return http.Response(
+            jsonEncode({
+              'access_token': 'register-token',
+              'token_type': 'bearer',
+              'account': {
+                'id': 2,
+                'email': 'new@example.com',
+              },
+              'profiles': [
+                {
+                  'id': 20,
+                  'display_name': 'Anna',
+                  'profile_type': 'self',
+                  'role': 'owner',
+                }
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+
+        if (request.url.path.endsWith('/auth/me')) {
+          expect(request.method, 'GET');
+
+          authorizationHeaderForProtectedRequest =
+          request.headers['Authorization'];
+
+          return http.Response(
+            jsonEncode({
+              'id': 2,
+              'email': 'new@example.com',
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+
+        return http.Response('Not found', 404);
+      });
+
+      final apiClient = ApiClient(mockHttpClient);
+      final authApiService = AuthApiService(apiClient);
+
+      final response = await authApiService.register(
+        email: 'new@example.com',
+        password: '12345678',
+        displayName: 'Anna',
+        dateOfBirth: '2000-04-12',
+        biologicalSex: 'female',
+      );
+
+      expect(response.accessToken, 'register-token');
+      expect(response.account.id, 2);
+      expect(response.account.email, 'new@example.com');
+      expect(response.profiles.length, 1);
+      expect(response.profiles.first.id, 20);
+      expect(response.profiles.first.displayName, 'Anna');
+      expect(response.profiles.first.profileType, 'self');
+      expect(response.profiles.first.role, 'owner');
+
+      await apiClient.get('/auth/me');
+
+      expect(
+        authorizationHeaderForProtectedRequest,
+        'Bearer register-token',
+      );
+    });
   });
 }

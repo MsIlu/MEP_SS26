@@ -34,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -79,10 +81,24 @@ class _LoginScreenState extends State<LoginScreen> {
               obscurePassword: _obscurePassword,
               onPressed: _togglePasswordVisibility,
             ),
-            onFieldSubmitted: (_) => _goHome(),
+            onFieldSubmitted: (_) => _login(),
           ),
           const SizedBox(height: 28),
-          CareenaButton(text: 'Anmelden', onPressed: _goHome),
+          CareenaButton(
+            text: _isSubmitting ? 'Anmeldung läuft...' : 'Anmelden',
+            onPressed: _isSubmitting ? null : _login,
+          ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 16),
           TextButton(
             // TODO(backend): Connect password reset flow once email delivery is available.
@@ -117,16 +133,53 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _goHome() {
-    // TODO(backend): Authenticate credentials, persist the user session, and
-    // TODO: surface backend validation errors before navigating to HomeScreen.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: widget.chatController,
-          themeController: widget.themeController,
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Bitte E-Mail-Adresse und Passwort eingeben.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authResponse = await widget.authApiService.login(
+        email: email,
+        password: password,
+      );
+
+      widget.authSession.setAuthResponse(authResponse);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            controller: widget.chatController,
+            themeController: widget.themeController,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage =
+        'Anmeldung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+      });
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
   }
 }

@@ -56,14 +56,14 @@ class RecommendationPdfService {
 
                   _buildSectionCard(
                     title: 'Versorgungsempfehlung',
-                    text: recommendation,
+                    text: _extractRecommendationText(recommendation),
                     highlighted: true,
                   ),
                   pw.SizedBox(height: 14),
 
                   _buildSectionCard(
                     title: 'Nächste Schritte',
-                    text: nextSteps,
+                    text: _formatNextSteps(nextSteps),
                   ),
                   pw.SizedBox(height: 18),
 
@@ -332,6 +332,15 @@ class RecommendationPdfService {
               lineSpacing: _noticeLineSpacing,
             ),
           ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.',
+            style: pw.TextStyle(
+              color: _textColor,
+              fontSize: 10.5,
+              lineSpacing: 3,
+            ),
+          ),
         ],
       ),
     );
@@ -383,6 +392,65 @@ class RecommendationPdfService {
         ],
       ),
     );
+  }
+
+  String _extractRecommendationText(String recommendation) {
+    final lines = recommendation
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+
+    final filteredLines = <String>[];
+    var skipNextLine = false;
+
+    for (final line in lines) {
+      if (skipNextLine) {
+        skipNextLine = false;
+        continue;
+      }
+
+      final lowerLine = line.toLowerCase();
+
+      if (lowerLine.startsWith('wichtiger hinweis')) {
+        skipNextLine = true;
+        continue;
+      }
+
+      if (lowerLine.startsWith('hinweis')) {
+        skipNextLine = true;
+        continue;
+      }
+
+      filteredLines.add(line);
+    }
+
+    final cleanedText = filteredLines.join('\n');
+
+    if (cleanedText.isEmpty) {
+      return 'Bitte beachten Sie die nächsten Schritte und den wichtigen Hinweis.';
+    }
+
+    return cleanedText;
+  }
+
+  String _formatNextSteps(String nextSteps) {
+    final trimmed = nextSteps.trim();
+
+    switch (trimmed) {
+      case 'call_112':
+        return 'Notruf 112 kontaktieren';
+      case 'see_doctor':
+        return 'Ärztliche Abklärung vereinbaren';
+      case 'urgent_doctor':
+        return 'Zeitnah ärztliche Hilfe aufsuchen';
+      case 'self_care':
+        return 'Selbsthilfemaßnahmen beachten';
+      case '':
+        return 'Keine Angabe';
+      default:
+        return trimmed;
+    }
   }
 
   String _formatDate(DateTime date) {

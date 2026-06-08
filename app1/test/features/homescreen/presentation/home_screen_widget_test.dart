@@ -7,6 +7,7 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:app1/features/authscreen/state/auth_session.dart';
 
 /// Widget tests for the home screen presentation layer.
 void main() {
@@ -20,6 +21,7 @@ void main() {
       final controller = ChatController(
         chatApi: chatApi,
         chatService: ChatService(),
+        authSession: AuthSession(),
       );
       final themeController = ThemeController();
       addTearDown(controller.dispose);

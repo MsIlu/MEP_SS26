@@ -47,26 +47,28 @@ class FunctionMenuTile extends StatelessWidget {
         : AppColors.careenaTeal;
 
     return Container(
-      margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-
-        border: Border.all(color: borderColor, width: 1.2),
-
-        borderRadius: BorderRadius.circular(20),
-
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.20 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  margin: EdgeInsets.zero,
+  decoration: BoxDecoration(
+    border: Border.all(color: borderColor, width: 1.2),
+    borderRadius: BorderRadius.circular(20),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: isDarkMode ? 0.20 : 0.08),
+        blurRadius: 12,
+        offset: const Offset(0, 4),
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        minVerticalPadding: 12,
+    ],
+  ),
+  child: Material(
+    color: Theme.of(context).cardColor,
+    borderRadius: BorderRadius.circular(20),
+    child: ListTile(
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 15,
+        vertical: 5,
+      ),
+      minVerticalPadding: 12,
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -83,6 +85,7 @@ class FunctionMenuTile extends StatelessWidget {
         ),
         trailing: Icon(Icons.chevron_right, color: trailingColor),
       ),
+    ),
     );
   }
 }

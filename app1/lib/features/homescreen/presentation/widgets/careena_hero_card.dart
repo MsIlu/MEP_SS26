@@ -33,6 +33,16 @@ class CareenaHeroCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.careenaGlow, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.careenaGlow.withValues(
+                  alpha: isDarkMode ? 0.15 : 0.08,
+                ),
+                blurRadius: isDarkMode ? 12 : 8,
+                spreadRadius: 1,
+              ),
+            ],
           ),
           child: isCompact
               ? Column(
@@ -106,6 +116,8 @@ class _HeroTextAndAction extends StatelessWidget {
           borderRadius: 20,
           height: 44,
           fontSize: 13,
+
+          side: BorderSide(color: AppColors.careenaGlow, width: 4),
         ),
       ],
     );

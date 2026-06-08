@@ -31,7 +31,7 @@ class CareenaChatBubble extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(30, 18, 18, 18),
         child: Text(
-          'Ich bin Careena!\nDeine persönliche\nKI-Gesundheitsassistentin.',
+          'Ich bin Careena!\nDeine persönliche\nKI-Gesundheits-\nassistentin.',
           style: TextStyle(
             fontSize: 12,
             height: 1.25,

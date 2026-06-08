@@ -22,10 +22,6 @@ class OnboardingHeroCard extends StatelessWidget {
 
         final cardColor = isDarkMode ? const Color(0xFF222A35) : Colors.white;
 
-        final shadowColor = isDarkMode
-            ? Colors.black.withValues(alpha: 0.18)
-            : Colors.black.withValues(alpha: 0.08);
-
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
           child: Container(
@@ -34,11 +30,18 @@ class OnboardingHeroCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(20),
+
+              border: Border.all(
+                color: AppColors.careenaGlow,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: shadowColor,
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+                  color: AppColors.careenaGlow.withValues(
+                    alpha: isDarkMode ? 0.15 : 0.08,
+                  ),
+                  blurRadius: isDarkMode ? 12 : 8,
+                  spreadRadius: 1,
                 ),
               ],
             ),
@@ -71,11 +74,7 @@ class OnboardingHeroCard extends StatelessWidget {
                   borderRadius: 40,
                   height: 58,
                   side: BorderSide(
-                    color: isDarkMode
-                        ? AppColors.toolbarButtonBackgroundDark.withValues(
-                            alpha: 0.35,
-                          )
-                        : AppColors.careenaGlow,
+                    color: AppColors.careenaGlow,
                     width: 3,
                   ),
                 ),
@@ -106,7 +105,7 @@ class _RegularHeroBody extends StatelessWidget {
               Positioned(
                 left: 0,
                 top: 6,
-                width: constraints.maxWidth * 0.48,
+                width: constraints.maxWidth * 0.58,
                 child: const _HeroDescription(),
               ),
               Positioned(
@@ -163,9 +162,10 @@ class _HeroDescription extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Text(
-      "Beschreibe deine Beschwerden\nund erhalte deine persönliche\nHandlungsempfehlung.",
+      "Beschreibe deine Beschwerden\nund erhalte deine\npersönliche\nHandlungsempfehlung.",
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
         color: isDarkMode ? colorScheme.onSurfaceVariant : Colors.black87,
         height: 1.3,
       ),

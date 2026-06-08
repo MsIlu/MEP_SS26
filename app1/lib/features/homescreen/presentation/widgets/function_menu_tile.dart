@@ -29,12 +29,10 @@ class FunctionMenuTile extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final borderColor = isDarkMode
-        ? colorScheme.outlineVariant.withValues(alpha: 0.55)
-        : Colors.grey[200]!;
+        ? Colors.grey.shade700
+        : Colors.grey.shade300;
 
-    final iconBackgroundColor = isDarkMode
-        ? const Color(0xFF222A35)
-        : bgColor;
+    final iconBackgroundColor = isDarkMode ? const Color(0xFF222A35) : bgColor;
 
     final iconColor = isDarkMode
         ? AppColors.toolbarButtonBackgroundDark
@@ -51,8 +49,19 @@ class FunctionMenuTile extends StatelessWidget {
     return Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
+        color: Theme.of(context).cardColor,
+
+        border: Border.all(color: borderColor, width: 1.2),
+
         borderRadius: BorderRadius.circular(20),
+
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.20 : 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ListTile(
         onTap: onTap,
@@ -70,10 +79,7 @@ class FunctionMenuTile extends StatelessWidget {
           title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: titleColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: titleColor),
         ),
         trailing: Icon(Icons.chevron_right, color: trailingColor),
       ),

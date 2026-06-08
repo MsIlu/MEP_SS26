@@ -275,7 +275,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+  backgroundColor: widget.themeController.isDarkMode
+      ? Theme.of(context).scaffoldBackgroundColor
+      : const Color(0xFFF7F9FA),
       appBar: ChatAppBar(
         onToggleTheme: widget.themeController.toggleTheme,
         isDarkMode: widget.themeController.isDarkMode,

@@ -138,7 +138,9 @@ class _ChatInputFieldState extends State<ChatInputField>
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final outerBackground = isDarkMode ? const Color(0xFF1A2029) : Colors.white;
+    final outerBackground = isDarkMode
+        ? Theme.of(context).scaffoldBackgroundColor
+        : const Color(0xFFF7F9FA);
 
     final inputBackground = isDarkMode
         ? const Color(0xFF242B36)
@@ -186,6 +188,19 @@ class _ChatInputFieldState extends State<ChatInputField>
                         decoration: BoxDecoration(
                           color: inputBackground,
                           borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: AppColors.careenaTeal.withValues(
+                              alpha: 0.25,
+                            ),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -203,7 +218,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                   onSelected: widget.onSmartReplySelected,
                                 ),
                               ),
-
+                              
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [

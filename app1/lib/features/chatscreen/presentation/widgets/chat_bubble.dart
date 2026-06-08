@@ -33,18 +33,18 @@ class ChatBubble extends StatelessWidget {
     final bubbleColor = isUser
         ? AppColors.careenaTeal
         : isDarkMode
-          ? colorScheme.surface
-          : Colors.white;
+        ? colorScheme.surface
+        : Colors.white;
 
     final textColor = isUser
         ? Colors.white
         : isDarkMode
-          ? colorScheme.onSurface
-          : AppColors.careenaDark;
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
 
     final shadowColor = isDarkMode
         ? Colors.black.withValues(alpha: 0.15)
-        : Colors.black.withValues(alpha: 0.05);
+        : Colors.black.withValues(alpha: 0.10);
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -67,10 +67,16 @@ class ChatBubble extends StatelessWidget {
             children: [
               // Assistant avatar.
               if (!isUser) ...[
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.careenaBubbleBackground,
-                  backgroundImage: AssetImage(AppAssets.careenaDoctor),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Image.asset(
+                      AppAssets.careenaProfil,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -89,11 +95,16 @@ class ChatBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
+
+                    border: !isUser && !isDarkMode
+                        ? Border.all(color: Colors.grey.shade200, width: 1)
+                        : null,
+
                     boxShadow: [
                       BoxShadow(
                         color: shadowColor,
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -102,20 +113,20 @@ class ChatBubble extends StatelessWidget {
                     children: [
                       Text(
                         message.text,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 15),
                       ),
                       if (medicalTerm != null)
                         MedicalTermInfoBox(term: medicalTerm),
-                      if (!isUser && message.canExportPdf && !message.isStreaming) ...[
+                      if (!isUser &&
+                          message.canExportPdf &&
+                          !message.isStreaming) ...[
                         const SizedBox(height: 12),
                         ExportRecommendationPdfButton(
                           title: message.exportTitle ?? 'Handlungsempfehlung',
                           patientSummary:
-                          'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                          recommendation: message.exportRecommendation ?? message.text,
+                              'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                          recommendation:
+                              message.exportRecommendation ?? message.text,
                           nextSteps: message.exportNextSteps ?? '',
                         ),
                       ],

@@ -18,26 +18,32 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
+      leadingWidth: 72,
       elevation: 0,
       backgroundColor: colorScheme.surface,
       leading: IconButton(
-        icon: Icon(
-          Icons.chevron_left,
-          color: colorScheme.onSurface,
-          size: 30,
+        tooltip: 'Zurück',
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.toolbarButtonBackgroundDark,
+          foregroundColor: Colors.white,
+          fixedSize: const Size.square(44),
         ),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.west, size: 22),
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Avatar that visually connects the app bar to assistant messages.
           CircleAvatar(
-            radius: 18,
+            radius: 22,
             backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage: const AssetImage(AppAssets.careenaDoctor),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Image.asset(AppAssets.careenaProfil, fit: BoxFit.contain),
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 15),
           // Name and simple status indicator for the assistant persona.
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,17 +82,21 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: false,
       actions: [
-        IconButton(
-          tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.toolbarButtonBackgroundDark,
-            foregroundColor: Colors.white,
-            fixedSize: const Size.square(48),
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+
+          child: IconButton(
+            tooltip: isDarkMode
+                ? 'Lightmode aktivieren'
+                : 'Darkmode aktivieren',
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.toolbarButtonBackgroundDark,
+              foregroundColor: Colors.white,
+              fixedSize: const Size.square(44),
+            ),
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: onToggleTheme,
           ),
-          icon: Icon(
-            isDarkMode ? Icons.light_mode : Icons.dark_mode,
-          ),
-          onPressed: onToggleTheme,
         ),
       ],
     );

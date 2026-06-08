@@ -17,5 +17,6 @@ class WarningCopy {
       'Bitte wählen Sie 112 auf Ihrem Telefon.';
   static const String reasonPrefix = 'Erkannte Warnzeichen';
   static const String noDiagnosis =
-      'Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.';
+      'Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.\n'
+      'Bei Unsicherheit oder einer Verschlechterung Ihrer Beschwerden wenden Sie sich bitte an einen Arzt oder medizinisches Fachpersonal.';
 }

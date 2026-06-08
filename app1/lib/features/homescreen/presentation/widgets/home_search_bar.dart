@@ -16,7 +16,7 @@ class HomeSearchBar extends StatelessWidget {
 
     final fillColor = isDarkMode
         ? const Color(0xFF222A35)
-        : AppColors.background;
+        : const Color.fromARGB(255, 255, 255, 255);
 
     final iconColor = isDarkMode
         ? colorScheme.onSurfaceVariant
@@ -35,17 +35,42 @@ class HomeSearchBar extends StatelessWidget {
         horizontal: isCompact ? 16 : 20,
         vertical: 15,
       ),
-      child: TextField(
-        style: TextStyle(color: textColor),
-        decoration: InputDecoration(
-          hintText: 'Suchen...',
-          hintStyle: TextStyle(color: hintColor),
-          prefixIcon: Icon(Icons.search, color: iconColor),
-          filled: true,
-          fillColor: fillColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
+
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.15 : 0.06),
+
+              blurRadius: 10,
+
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: TextField(
+          style: TextStyle(color: textColor),
+          decoration: InputDecoration(
+            hintText: 'Suchen...',
+            hintStyle: TextStyle(color: hintColor),
+            prefixIcon: Icon(Icons.search, color: iconColor),
+            filled: true,
+            fillColor: fillColor,
+
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide(
+                color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                width: 1.3,
+              ),
+            ),
+
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide(color: AppColors.careenaTeal, width: 2),
+            ),
           ),
         ),
       ),

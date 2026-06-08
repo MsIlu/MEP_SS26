@@ -2,6 +2,7 @@
 class AppAssets {
   /// Careena illustration displayed in onboarding and hero areas.
   static const careenaDoctor = 'assets/images/careena_doctor.png';
+  static const String careenaProfil = 'assets/images/careena_profil.png';
 
   const AppAssets._();
 }

@@ -39,3 +39,13 @@ jobs:
           LITELLM_API_KEY: dummy
           LITELLM_MODEL: dummy
         run: python -c "import main"
+
+      # Run Backend tests
+      - name: Run backend tests
+        env:
+          SECRET_KEY: test-secret-key
+          DATABASE_URL: sqlite://
+          LITELLM_BASE_URL: dummy
+          LITELLM_API_KEY: dummy
+          LITELLM_MODEL: dummy
+        run: python -m pytest tests -q

@@ -68,7 +68,9 @@ void main() {
   testWidgets('Chat screen opens with controller-backed UI', (
     WidgetTester tester,
   ) async {
-    final dependencies = AppDependencies();
+    final authSession = AuthSession();
+
+    final dependencies = AppDependencies(authSession: authSession);
 
     await tester.pumpWidget(
       AppDependenciesScope(

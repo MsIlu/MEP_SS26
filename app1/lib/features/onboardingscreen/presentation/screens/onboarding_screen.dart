@@ -10,6 +10,8 @@ import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
 import '../../../chatscreen/presentation/themes/app_colors.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../../../authscreen/data/auth_api_service.dart';
 
 /// Entry screen that introduces Careena and routes users into chat or home.
 class OnboardingScreen extends StatelessWidget {
@@ -19,10 +21,16 @@ class OnboardingScreen extends StatelessWidget {
   /// Shared theme controller used to switch between light and dark mode.
   final ThemeController themeController;
 
+  final AuthSession authSession;
+
+  final AuthApiService authApiService;
+
   const OnboardingScreen({
     super.key,
     required this.chatController,
     required this.themeController,
+    required this.authSession,
+    required this.authApiService,
   });
 
   @override
@@ -190,6 +198,8 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => LoginScreen(
           chatController: chatController,
           themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
         ),
       ),
     );
@@ -202,6 +212,8 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => RegistrationScreen(
           chatController: chatController,
           themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
         ),
       ),
     );

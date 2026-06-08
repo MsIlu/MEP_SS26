@@ -4,6 +4,7 @@ import '../data/chat_api.dart';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
+import '../../authscreen/state/auth_session.dart';
 
 /// Coordinates chat state, backend sessions, and message-list updates.
 class ChatController {
@@ -13,7 +14,14 @@ class ChatController {
   /// Pure message helper used to keep list transformations testable.
   final ChatService chatService;
 
-  ChatController({required this.chatApi, required this.chatService});
+  /// Session state used to access the currently selected medical profile.
+  final AuthSession authSession;
+
+  ChatController({
+    required this.chatApi,
+    required this.chatService,
+    required this.authSession,
+  });
 
   final ValueNotifier<List<Message>> messages = ValueNotifier<List<Message>>(
     [],
@@ -90,7 +98,17 @@ class ChatController {
     _addMessage(message: Message(text: '', isUser: false, isLoading: true, isStreaming: true,));
 
     try {
-      final response = await chatApi.sendMessage(trimmed, _sessionId!);
+      final activeProfileId = authSession.activeProfileId;
+
+      if (activeProfileId == null) {
+        throw Exception("No active profile selected.");
+      }
+
+      final response = await chatApi.sendMessage(
+        trimmed,
+        _sessionId!,
+        activeProfileId,
+      );
 
       // Remove the loading bubble before handling the response.
       _setMessages(chatService.removeLastBotMessage(messages.value));

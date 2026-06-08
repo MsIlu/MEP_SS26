@@ -98,6 +98,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return 'Erstelle ein Konto, um Careena, deine virtuelle Gesundheitsassistentin, optimal zu nutzen.';
   }
 
+  String? _normalizeBirthDate(String rawValue) {
+    final value = rawValue.trim();
+
+    if (value.isEmpty) {
+      return null;
+    }
+
+    // Already backend-compatible: YYYY-MM-DD
+    final backendFormat = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    if (backendFormat.hasMatch(value)) {
+      return value;
+    }
+
+    // German UI format: DD.MM.YYYY -> YYYY-MM-DD
+    final germanFormat = RegExp(r'^(\d{2})\.(\d{2})\.(\d{4})$');
+    final match = germanFormat.firstMatch(value);
+
+    if (match == null) {
+      return value;
+    }
+
+    final day = match.group(1)!;
+    final month = match.group(2)!;
+    final year = match.group(3)!;
+
+    return '$year-$month-$day';
+  }
+
   Widget _buildStep() {
     return switch (_step) {
       0 => RegistrationPersonalDataStep(
@@ -210,9 +238,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         email: _form.emailController.text.trim(),
         password: _form.passwordController.text,
         displayName: displayName,
-        dateOfBirth: _form.birthDateController.text.trim().isEmpty
-            ? null
-            : _form.birthDateController.text.trim(),
+        dateOfBirth: _normalizeBirthDate(_form.birthDateController.text),
         biologicalSex: _form.sex,
       );
 

@@ -45,7 +45,7 @@ class CaseObservation(PipelineModel):
         "recurrent",
         "unknown",
     ] | None = None
-    measurement: dict[str, str | int | float | bool] = Field(default_factory=dict)
+    measurement: dict[str, str | bool] = Field(default_factory=dict)
     subject_ref: str | None = None
     details: dict[str, str] = Field(default_factory=dict)
     symptom_data: SymptomObservationData | None = None
@@ -136,7 +136,7 @@ class CaseObservation(PipelineModel):
 
     def merge_measurement_values(
         self,
-        values: dict[str, str | int | float | bool],
+        values: dict[str, str | bool],
         *,
         overwrite: bool = False,
     ) -> None:
@@ -371,10 +371,7 @@ class CaseObservation(PipelineModel):
         if self.measurement_data is None:
             if not self.measurement and not self.temporality:
                 return
-            numeric_value = None
-            raw_numeric = self.measurement.get("numeric_value")
-            if isinstance(raw_numeric, int | float):
-                numeric_value = float(raw_numeric)
+            numeric_value = _string_or_none(self.measurement.get("numeric_value"))
             raw_value = self.measurement.get("value")
             value = str(raw_value) if raw_value is not None else None
             self._set_field(

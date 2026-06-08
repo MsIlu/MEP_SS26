@@ -2,8 +2,11 @@ from dataclasses import dataclass
 
 from careena_pipeline.models import DialogueState, MedicalCase, MessageUpdate
 from careena_pipeline.observability import log_case_snapshot
-from careena_pipeline.state import CaseMerger, DialogueStateManager
-from careena_pipeline.state.requirement_case_projector import RequirementCaseProjector
+from careena_pipeline.state import (
+    CaseMerger,
+    DialogueStateManager,
+    StateProgressionService,
+)
 
 
 @dataclass
@@ -25,12 +28,10 @@ class MessageTransitionService:
         *,
         case_merger: CaseMerger,
         dialogue_state_manager: DialogueStateManager,
-        requirement_case_projector: RequirementCaseProjector | None = None,
     ):
-        self.case_merger = case_merger
-        self.dialogue_state_manager = dialogue_state_manager
-        self.requirement_case_projector = (
-            requirement_case_projector or RequirementCaseProjector()
+        self.state_progression = StateProgressionService(
+            case_merger=case_merger,
+            dialogue_state_manager=dialogue_state_manager,
         )
 
     def apply(
@@ -40,19 +41,13 @@ class MessageTransitionService:
         dialogue_state: DialogueState,
         message_update: MessageUpdate,
     ) -> AppliedMessageTransition:
-        case = self.case_merger.merge_update(existing_case, message_update)
-        self.requirement_case_projector.project_transitional_signals(
-            case,
-            message_update,
-        )
-        dialogue_state = self.dialogue_state_manager.apply_message_update(
-            dialogue_state,
-            message_update,
-            case,
-        )
-        self.dialogue_state_manager.sync_case(case, dialogue_state)
-        log_case_snapshot(case)
-        return AppliedMessageTransition(
-            case=case,
+        progression = self.state_progression.apply(
+            existing_case=existing_case,
             dialogue_state=dialogue_state,
+            message_update=message_update,
+        )
+        log_case_snapshot(progression.case)
+        return AppliedMessageTransition(
+            case=progression.case,
+            dialogue_state=progression.dialogue_state,
         )

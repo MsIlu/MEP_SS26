@@ -32,6 +32,7 @@ class RequirementState:
     resolved_fields: dict[str, RequirementRef]
     blocking_requirements: list[RequirementRef]
     confidence_gaps: list[str]
+    deferred_requirements: list[RequirementRef]
 
 
 @dataclass
@@ -59,22 +60,33 @@ def build_requirement_state(
         active_modules=active_modules,
         message_update=message_update,
     )
+    focused_required_fields = _focused_required_fields(
+        case=case,
+        dialogue_state=dialogue_state,
+        required_fields=required_fields,
+    )
     resolved_fields = _resolved_fields(
         case=case,
         dialogue_state=dialogue_state,
     )
     blocking_requirements = _blocking_requirements(
         case=case,
-        required_fields=required_fields,
+        required_fields=focused_required_fields,
         resolved_fields=resolved_fields,
     )
+    deferred_requirements = [
+        field
+        for field in required_fields
+        if field.key not in {item.key for item in focused_required_fields}
+    ]
     confidence_gaps = _confidence_gaps(blocking_requirements)
     return RequirementState(
         active_modules=active_modules,
-        required_fields=required_fields,
+        required_fields=focused_required_fields,
         resolved_fields=resolved_fields,
         blocking_requirements=blocking_requirements,
         confidence_gaps=confidence_gaps,
+        deferred_requirements=deferred_requirements,
     )
 
 
@@ -258,17 +270,6 @@ def _required_fields(
     active_modules: list[str],
     message_update: MessageUpdate | None,
 ) -> list[RequirementRef]:
-    focused_observation = _focused_requirement_observation(
-        case=case,
-        dialogue_state=dialogue_state,
-    )
-    if focused_observation is not None and focused_observation.type in {"symptom", "injury"}:
-        active_modules = [
-            module
-            for module in active_modules
-            if module not in {"symptom", "injury"} or module == focused_observation.type
-        ]
-
     return resolve_required_fields(
         explicit_fields=(
             list(message_update.requirement_hints.required_fields)
@@ -277,6 +278,27 @@ def _required_fields(
         ),
         active_modules=active_modules,
     )
+
+
+def _focused_required_fields(
+    *,
+    case: MedicalCase,
+    dialogue_state: DialogueState | None,
+    required_fields: list[RequirementRef],
+) -> list[RequirementRef]:
+    focused_observation = _focused_requirement_observation(
+        case=case,
+        dialogue_state=dialogue_state,
+    )
+    if focused_observation is None or focused_observation.type not in {"symptom", "injury"}:
+        return required_fields
+
+    focused_modules = {"subject", focused_observation.type}
+    return [
+        field
+        for field in required_fields
+        if field.module in focused_modules or field.module not in {"symptom", "injury"}
+    ]
 
 
 def _resolved_fields(

@@ -10,6 +10,13 @@ from careena_pipeline.models.common.types import (
 )
 
 
+class StagedFollowupAnswer(PipelineModel):
+    requirement_key: str
+    raw_text: str
+    slot: str | None = None
+    focus_observation_id: str | None = None
+
+
 class DialogueState(PipelineModel):
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
     active_case_id: str | None = None
@@ -19,6 +26,7 @@ class DialogueState(PipelineModel):
     open_requirements: list[RequirementRef] = Field(default_factory=list)
     resolved_requirements: list[RequirementRef] = Field(default_factory=list)
     pending_followup: RequirementRef | None = None
+    staged_followup_answers: list[StagedFollowupAnswer] = Field(default_factory=list)
     awaiting_confirmation: bool = False
     recommendation_requested: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)

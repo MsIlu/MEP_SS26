@@ -2,6 +2,7 @@ from pydantic import Field
 
 from careena_pipeline.models.common.base import PipelineModel
 from careena_pipeline.models.common.types import DialogueTopicStatus, PlannerModule
+from careena_pipeline.models.domain.dialogue import StagedFollowupAnswer
 from careena_pipeline.models.workflow.intent_gateway import IntentGateway
 
 
@@ -36,6 +37,7 @@ class DialogueSummary(PipelineModel):
     active_modules: list[str] = Field(default_factory=list)
     open_requirements: list[str] = Field(default_factory=list)
     pending_followup: str | None = None
+    staged_followup_answers: list[StagedFollowupAnswer] = Field(default_factory=list)
     awaiting_confirmation: bool = False
     recommendation_requested: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)

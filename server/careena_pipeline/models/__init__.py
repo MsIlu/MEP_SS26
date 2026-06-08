@@ -18,7 +18,7 @@ from careena_pipeline.models.common.types import (
 )
 from careena_pipeline.state.module_registry import ModuleName, RequirementRef
 from careena_pipeline.models.domain.case import MedicalCase
-from careena_pipeline.models.domain.dialogue import DialogueState
+from careena_pipeline.models.domain.dialogue import DialogueState, StagedFollowupAnswer
 from careena_pipeline.models.domain.observation import CaseObservation
 from careena_pipeline.models.domain.observation_data import (
     DiagnosisObservationData,
@@ -44,6 +44,7 @@ from careena_pipeline.models.workflow.message_update import (
     MessageIntentSignals,
     MessagePlannerHints,
     MessageRequirementHints,
+    MessageStagingHints,
     MessageTraceSignals,
     MessageUpdate,
 )
@@ -77,6 +78,7 @@ __all__ = [
     "MessageIntentSignals",
     "MessagePlannerHints",
     "MessageRequirementHints",
+    "MessageStagingHints",
     "MessageTraceSignals",
     "MessageUpdate",
     "MeasurementObservationData",
@@ -96,6 +98,7 @@ __all__ = [
     "ResponseMode",
     "SafetyResult",
     "Specialty",
+    "StagedFollowupAnswer",
     "Subject",
     "SubjectRelation",
     "SymptomObservationData",

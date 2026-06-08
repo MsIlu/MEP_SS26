@@ -1,17 +1,5 @@
 from careena_pipeline.models import CaseObservation, MedicalCase, MessageUpdate
-
-
-def _same_observation_identity(
-    left: CaseObservation,
-    right: CaseObservation,
-) -> bool:
-    return (
-        left.type == right.type
-        and (left.concept or left.label) == (right.concept or right.label)
-        and left.source_span == right.source_span
-        and left.subject_ref == right.subject_ref
-        and left.negated == right.negated
-    )
+from careena_pipeline.state.case_merge_policy import CaseMergePolicy
 
 
 def _pick_text(
@@ -54,6 +42,13 @@ class CaseMerger:
     the existing focus unless the case did not have one yet.
     """
 
+    def __init__(
+        self,
+        *,
+        merge_policy: CaseMergePolicy | None = None,
+    ):
+        self.merge_policy = merge_policy or CaseMergePolicy()
+
     def merge_update(
         self,
         existing_case: MedicalCase | None,
@@ -73,7 +68,11 @@ class CaseMerger:
                 existing_case.subject = case_payload.subject
 
         for observation in case_payload.observations_added:
-            target = self._merge_target(existing_case, update, observation)
+            target = self.merge_policy.merge_target(
+                case=existing_case,
+                update=update,
+                observation=observation,
+            )
             if target is not None:
                 self._merge_observation(
                     target,
@@ -82,7 +81,10 @@ class CaseMerger:
                 )
                 merged_any = True
                 continue
-            if self._already_present(existing_case, observation):
+            if self.merge_policy.already_present(
+                case=existing_case,
+                observation=observation,
+            ):
                 continue
             observation.status = self._status_for_new_observation(
                 intent_signals.message_role,
@@ -92,7 +94,11 @@ class CaseMerger:
             merged_any = True
 
         for observation in case_payload.negated_observations_added:
-            target = self._merge_target(existing_case, update, observation)
+            target = self.merge_policy.merge_target(
+                case=existing_case,
+                update=update,
+                observation=observation,
+            )
             if target is not None:
                 self._merge_observation(
                     target,
@@ -101,7 +107,10 @@ class CaseMerger:
                 )
                 merged_any = True
                 continue
-            if self._already_present(existing_case, observation):
+            if self.merge_policy.already_present(
+                case=existing_case,
+                observation=observation,
+            ):
                 continue
             observation.status = self._status_for_new_observation(
                 intent_signals.message_role,
@@ -113,7 +122,10 @@ class CaseMerger:
         self._apply_message_role(existing_case, intent_signals.message_role, merged_any=merged_any)
 
         if intent_signals.possible_new_topic:
-            primary = self._latest_focus_candidate(existing_case, update)
+            primary = self.merge_policy.latest_focus_candidate(
+                case=existing_case,
+                update=update,
+            )
             if primary is not None:
                 existing_case.set_primary_observation(primary)
         elif existing_case.primary_problem_id is None:
@@ -122,48 +134,8 @@ class CaseMerger:
         return existing_case
 
     @staticmethod
-    def _already_present(case: MedicalCase, observation: CaseObservation) -> bool:
-        return any(
-            _same_observation_identity(existing, observation)
-            for existing in case.observations
-        )
-
-    @staticmethod
     def _append(case: MedicalCase, observation: CaseObservation) -> None:
         case.observations.append(observation)
-
-    @classmethod
-    def _merge_target(
-        cls,
-        case: MedicalCase,
-        update: MessageUpdate,
-        observation: CaseObservation,
-    ) -> CaseObservation | None:
-        by_id = cls._existing_by_id(case, observation.id)
-        if by_id is not None:
-            return by_id
-
-        exact = cls._exact_match(case, observation)
-        if exact is not None:
-            return exact
-
-        same_focus = cls._same_focus_target(case, update, observation)
-        if same_focus is not None:
-            return same_focus
-
-        primary = case.primary_observation()
-        if primary is None:
-            return None
-
-        resolved_keys = {item.key for item in update.resolved_fields}
-        if cls._can_merge_into_primary_injury(
-            update=update,
-            primary=primary,
-            incoming=observation,
-            resolved_keys=resolved_keys,
-        ):
-            return primary
-        return None
 
     @staticmethod
     def _merge_observation(
@@ -270,155 +242,3 @@ class CaseMerger:
             return
         if message_role == "confirmation" and not merged_any:
             primary.status = "user_confirmed"
-
-    @staticmethod
-    def _same_focus(left: CaseObservation, right: CaseObservation) -> bool:
-        left_key = (
-            (left.concept or left.label or "").strip().lower(),
-            (left.runtime_value("body_site") or "").strip().lower(),
-        )
-        right_key = (
-            (right.concept or right.label or "").strip().lower(),
-            (right.runtime_value("body_site") or "").strip().lower(),
-        )
-        return left_key == right_key
-
-    @staticmethod
-    def _existing_by_id(case: MedicalCase, observation_id: str | None) -> CaseObservation | None:
-        if not observation_id:
-            return None
-        for existing in case.observations:
-            if existing.id == observation_id:
-                return existing
-        return None
-
-    @classmethod
-    def _exact_match(
-        cls,
-        case: MedicalCase,
-        observation: CaseObservation,
-    ) -> CaseObservation | None:
-        for existing in case.observations:
-            if _same_observation_identity(existing, observation):
-                return existing
-        return None
-
-    @classmethod
-    def _same_focus_target(
-        cls,
-        case: MedicalCase,
-        update: MessageUpdate,
-        observation: CaseObservation,
-    ) -> CaseObservation | None:
-        intent_signals = update.intent_signals
-        if intent_signals.possible_new_topic or intent_signals.message_role == "topic_shift":
-            return None
-
-        primary = case.primary_observation()
-        if primary is None or primary.type != observation.type:
-            return None
-        if not cls._same_focus(primary, observation):
-            return None
-        if cls._can_merge_same_focus(
-            update=update,
-            existing=primary,
-            incoming=observation,
-        ):
-            return primary
-        return None
-
-    @classmethod
-    def _can_merge_same_focus(
-        cls,
-        *,
-        update: MessageUpdate,
-        existing: CaseObservation,
-        incoming: CaseObservation,
-    ) -> bool:
-        if cls._has_conflicting_qualifiers(existing, incoming):
-            return False
-        if update.intent_signals.message_role in {"answer_to_followup", "confirmation", "correction"}:
-            return True
-        return True
-
-    @classmethod
-    def _can_merge_into_primary_injury(
-        cls,
-        *,
-        update: MessageUpdate,
-        primary: CaseObservation,
-        incoming: CaseObservation,
-        resolved_keys: set[str],
-    ) -> bool:
-        if update.intent_signals.possible_new_topic:
-            return False
-        if update.intent_signals.message_role not in {"answer_to_followup", "correction"}:
-            return False
-        if incoming.type != "injury" or primary.type != "injury":
-            return False
-        if not any(key.startswith("injury.") for key in resolved_keys):
-            return False
-        if cls._has_conflicting_qualifiers(primary, incoming):
-            return False
-
-        incoming_focus = (
-            (incoming.concept or incoming.label or "").strip().lower(),
-            (incoming.runtime_value("body_site") or "").strip().lower(),
-        )
-        primary_focus = (
-            (primary.concept or primary.label or "").strip().lower(),
-            (primary.runtime_value("body_site") or "").strip().lower(),
-        )
-        if incoming_focus != ("", "") and incoming_focus != primary_focus:
-            return False
-        return True
-
-    @staticmethod
-    def _has_conflicting_qualifiers(
-        existing: CaseObservation,
-        incoming: CaseObservation,
-    ) -> bool:
-        if (
-            existing.laterality is not None
-            and incoming.laterality is not None
-            and existing.laterality != incoming.laterality
-        ):
-            return True
-        if (
-            existing.subject_ref
-            and incoming.subject_ref
-            and existing.subject_ref != incoming.subject_ref
-        ):
-            return True
-        if existing.negated != incoming.negated:
-            return True
-
-        overlapping_details = set(existing.details).intersection(incoming.details)
-        if any(
-            existing.details[key] != incoming.details[key]
-            for key in overlapping_details
-        ):
-            return True
-
-        overlapping_measurements = set(existing.measurement).intersection(
-            incoming.measurement
-        )
-        if any(
-            existing.measurement[key] != incoming.measurement[key]
-            for key in overlapping_measurements
-        ):
-            return True
-
-        return False
-
-    @staticmethod
-    def _latest_focus_candidate(
-        case: MedicalCase,
-        update: MessageUpdate,
-    ) -> CaseObservation | None:
-        candidates = update.case_payload.all_observations
-        for observation in candidates:
-            for existing in case.observations:
-                if existing.id == observation.id:
-                    return existing
-        return None

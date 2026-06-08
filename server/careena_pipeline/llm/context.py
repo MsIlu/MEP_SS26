@@ -16,6 +16,7 @@ from careena_pipeline.models import (
     DialogueSummary,
     IntentGateway,
     MedicalCase,
+    StagedFollowupAnswer,
 )
 
 
@@ -47,6 +48,7 @@ def build_case_update_context(
     dialogue_state: DialogueState | None = None,
     pending_slot: str | None = None,
     intent_gateway: IntentGateway | None = None,
+    staged_followup_answers: list[StagedFollowupAnswer] | None = None,
     messages: list[dict[str, str]] | None = None,
 ) -> CaseUpdateContext:
     return _build_shared_message_context(
@@ -55,6 +57,7 @@ def build_case_update_context(
         dialogue_state=dialogue_state,
         pending_slot=pending_slot,
         intent_gateway=intent_gateway,
+        staged_followup_answers=staged_followup_answers,
         messages=messages,
     )
 
@@ -66,6 +69,7 @@ def _build_shared_message_context(
     dialogue_state: DialogueState | None = None,
     pending_slot: str | None = None,
     intent_gateway: IntentGateway | None = None,
+    staged_followup_answers: list[StagedFollowupAnswer] | None = None,
     messages: list[dict[str, str]] | None = None,
 ) -> CaseUpdateContext:
     recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
@@ -78,7 +82,11 @@ def _build_shared_message_context(
         recent_turns=recent_turns,
         intent_gateway=intent_gateway,
         case_summary=_summarize_case(existing_case, dialogue_state),
-        dialogue_summary=_summarize_dialogue(dialogue_state, existing_case),
+        dialogue_summary=_summarize_dialogue(
+            dialogue_state,
+            existing_case,
+            staged_followup_answers=staged_followup_answers,
+        ),
     )
 
 
@@ -172,6 +180,8 @@ def _summarize_case(
 def _summarize_dialogue(
     dialogue_state: DialogueState | None,
     existing_case: MedicalCase | None,
+    *,
+    staged_followup_answers: list[StagedFollowupAnswer] | None = None,
 ) -> DialogueSummary | None:
     if dialogue_state is None and existing_case is None:
         return None
@@ -201,6 +211,15 @@ def _summarize_dialogue(
             requirement_key(dialogue_state.pending_followup)
             if dialogue_state is not None
             else None
+        ),
+        staged_followup_answers=(
+            list(staged_followup_answers)
+            if staged_followup_answers is not None
+            else (
+                list(dialogue_state.staged_followup_answers)
+                if dialogue_state is not None
+                else []
+            )
         ),
         awaiting_confirmation=(
             dialogue_state.awaiting_confirmation

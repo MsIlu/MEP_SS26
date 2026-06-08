@@ -8,6 +8,7 @@ from careena_pipeline.models.common.types import (
     MessageRole,
     PlannerModule,
 )
+from careena_pipeline.models.domain.dialogue import StagedFollowupAnswer
 from careena_pipeline.models.domain.observation import CaseObservation
 from careena_pipeline.models.domain.subject import Subject
 from careena_pipeline.models.workflow.intent_gateway import IntentGateway
@@ -99,6 +100,16 @@ class MessageTraceSignals:
         )
 
 
+@dataclass(frozen=True)
+class MessageStagingHints:
+    staged_followup_answers: list[StagedFollowupAnswer]
+    clear_staged_followup_answers: bool
+
+    @property
+    def has_signals(self) -> bool:
+        return self.clear_staged_followup_answers or bool(self.staged_followup_answers)
+
+
 class MessageUpdate(PipelineModel):
     """
     Bridging result of the message-processing path.
@@ -136,6 +147,81 @@ class MessageUpdate(PipelineModel):
     required_fields: list[RequirementRef] = Field(default_factory=list)
     resolved_fields: list[RequirementRef] = Field(default_factory=list)
     recommended_modules: list[PlannerModule] = Field(default_factory=list)
+    staged_followup_answers: list[StagedFollowupAnswer] = Field(default_factory=list)
+    clear_staged_followup_answers: bool = False
+
+    @classmethod
+    def from_parts(
+        cls,
+        *,
+        raw_text: str,
+        case_payload: MessageCasePayload | None = None,
+        intent_signals: MessageIntentSignals | None = None,
+        requirement_hints: MessageRequirementHints | None = None,
+        planner_hints: MessagePlannerHints | None = None,
+        trace_signals: MessageTraceSignals | None = None,
+        staging_hints: MessageStagingHints | None = None,
+    ) -> "MessageUpdate":
+        case_payload = case_payload or MessageCasePayload(
+            subject=None,
+            observations_added=[],
+            negated_observations_added=[],
+        )
+        intent_signals = intent_signals or MessageIntentSignals(
+            intent_category=None,
+            is_medical=False,
+            extraction_required=False,
+            intent_confidence=0.0,
+            message_role="new_information",
+            possible_new_topic=False,
+        )
+        requirement_hints = requirement_hints or MessageRequirementHints(
+            active_modules=[],
+            required_fields=[],
+            resolved_fields=[],
+        )
+        planner_hints = planner_hints or MessagePlannerHints(
+            recommended_modules=[],
+            recommendation_requested=False,
+        )
+        trace_signals = trace_signals or MessageTraceSignals(
+            notes=[],
+            intent_gateway=None,
+            llm_intent_category=None,
+            llm_is_medical=None,
+            llm_extraction_required=None,
+            llm_message_role=None,
+        )
+        staging_hints = staging_hints or MessageStagingHints(
+            staged_followup_answers=[],
+            clear_staged_followup_answers=False,
+        )
+
+        return cls(
+            raw_text=raw_text,
+            intent_category=intent_signals.intent_category,
+            is_medical=intent_signals.is_medical,
+            extraction_required=intent_signals.extraction_required,
+            intent_confidence=intent_signals.intent_confidence,
+            subject=case_payload.subject,
+            observations_added=list(case_payload.observations_added),
+            negated_observations_added=list(case_payload.negated_observations_added),
+            user_requests_recommendation=planner_hints.recommendation_requested,
+            possible_new_topic=intent_signals.possible_new_topic,
+            notes=list(trace_signals.notes),
+            message_role=intent_signals.message_role,
+            intent_gateway=trace_signals.intent_gateway,
+            llm_intent_category=trace_signals.llm_intent_category,
+            llm_is_medical=trace_signals.llm_is_medical,
+            llm_extraction_required=trace_signals.llm_extraction_required,
+            llm_message_role=trace_signals.llm_message_role,
+            active_modules=list(requirement_hints.active_modules),
+            required_fields=list(requirement_hints.required_fields),
+            resolved_fields=list(requirement_hints.resolved_fields),
+            recommended_modules=list(planner_hints.recommended_modules),
+            staged_followup_answers=list(staging_hints.staged_followup_answers),
+            clear_staged_followup_answers=staging_hints.clear_staged_followup_answers,
+        )
 
     @property
     def subject_update(self) -> Subject | None:
@@ -184,6 +270,13 @@ class MessageUpdate(PipelineModel):
             llm_is_medical=self.llm_is_medical,
             llm_extraction_required=self.llm_extraction_required,
             llm_message_role=self.llm_message_role,
+        )
+
+    @property
+    def staging_hints(self) -> MessageStagingHints:
+        return MessageStagingHints(
+            staged_followup_answers=list(self.staged_followup_answers),
+            clear_staged_followup_answers=self.clear_staged_followup_answers,
         )
 
     @property

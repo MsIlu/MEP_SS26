@@ -17,8 +17,15 @@ from careena_pipeline.models import (
     DialogueState,
     IntentGateway,
     MedicalCase,
+    MessageCasePayload,
+    MessageIntentSignals,
+    MessagePlannerHints,
+    MessageRequirementHints,
+    MessageStagingHints,
+    MessageTraceSignals,
     MessageUpdate,
     Provenance,
+    StagedFollowupAnswer,
     Subject,
 )
 from careena_pipeline.models.llm.case_update_result import (
@@ -64,6 +71,7 @@ class LLMCaseUpdateExtractor:
         dialogue_state: DialogueState | None = None,
         pending_slot: str | None = None,
         intent_gateway: IntentGateway | None = None,
+        staged_followup_answers: list[StagedFollowupAnswer] | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
     ) -> MessageUpdate:
         system_prompt = build_case_update_system_prompt(
@@ -75,6 +83,7 @@ class LLMCaseUpdateExtractor:
             dialogue_state=dialogue_state,
             pending_slot=pending_slot,
             intent_gateway=intent_gateway,
+            staged_followup_answers=staged_followup_answers,
             messages=conversation_messages,
         )
         log_json(
@@ -118,35 +127,53 @@ class LLMCaseUpdateExtractor:
             pending_slot=pending_slot,
             resolved_fields=resolved_fields,
         )
+        clear_staged_followup_answers = _should_clear_staged_followup_answers(
+            llm_result=llm_result,
+            staged_followup_answers=staged_followup_answers,
+        )
 
-        return MessageUpdate(
+        return MessageUpdate.from_parts(
             raw_text=text,
-            intent_category=resolved_intent.category,
-            is_medical=resolved_intent.is_medical,
-            extraction_required=resolved_intent.extraction_required,
-            intent_confidence=llm_result.intent.confidence,
-            subject=self._adapt_subject(llm_result.subject),
-            observations_added=[
-                self._adapt_observation(item)
-                for item in llm_result.observations_added
-            ],
-            negated_observations_added=[
-                self._adapt_observation(item)
-                for item in llm_result.negated_observations_added
-            ],
-            user_requests_recommendation=llm_result.user_requests_recommendation,
-            possible_new_topic=llm_result.possible_new_topic,
-            message_role=resolved_intent.message_role,
-            intent_gateway=intent_gateway,
-            llm_intent_category=llm_result.intent.category,
-            llm_is_medical=llm_result.intent.is_medical,
-            llm_extraction_required=llm_result.intent.extraction_required,
-            llm_message_role=llm_result.message_role,
-            active_modules=active_modules,
-            required_fields=required_fields,
-            resolved_fields=resolved_fields,
-            recommended_modules=llm_result.recommended_modules,
-            notes=llm_result.notes or [],
+            case_payload=MessageCasePayload(
+                subject=self._adapt_subject(llm_result.subject),
+                observations_added=[
+                    self._adapt_observation(item)
+                    for item in llm_result.observations_added
+                ],
+                negated_observations_added=[
+                    self._adapt_observation(item)
+                    for item in llm_result.negated_observations_added
+                ],
+            ),
+            intent_signals=MessageIntentSignals(
+                intent_category=resolved_intent.category,
+                is_medical=resolved_intent.is_medical,
+                extraction_required=resolved_intent.extraction_required,
+                intent_confidence=llm_result.intent.confidence,
+                message_role=resolved_intent.message_role,
+                possible_new_topic=llm_result.possible_new_topic,
+            ),
+            requirement_hints=MessageRequirementHints(
+                active_modules=active_modules,
+                required_fields=required_fields,
+                resolved_fields=resolved_fields,
+            ),
+            planner_hints=MessagePlannerHints(
+                recommended_modules=llm_result.recommended_modules,
+                recommendation_requested=llm_result.user_requests_recommendation,
+            ),
+            trace_signals=MessageTraceSignals(
+                notes=llm_result.notes or [],
+                intent_gateway=intent_gateway,
+                llm_intent_category=llm_result.intent.category,
+                llm_is_medical=llm_result.intent.is_medical,
+                llm_extraction_required=llm_result.intent.extraction_required,
+                llm_message_role=llm_result.message_role,
+            ),
+            staging_hints=MessageStagingHints(
+                staged_followup_answers=[],
+                clear_staged_followup_answers=clear_staged_followup_answers,
+            ),
         )
 
     @staticmethod
@@ -261,4 +288,23 @@ def _has_structured_update(
             bool(llm_result.active_modules),
             bool(llm_result.required_fields),
         )
+    )
+
+
+def _should_clear_staged_followup_answers(
+    *,
+    llm_result: LLMCaseUpdateResult,
+    staged_followup_answers: list[StagedFollowupAnswer] | None,
+) -> bool:
+    if not staged_followup_answers:
+        return False
+
+    # Conservative rule:
+    # keep staged follow-up answers until Call 2 produced actual case payload
+    # that can carry them into canonical case truth. Resolved requirement flags
+    # alone are not enough, because they can otherwise claim completion while
+    # the MedicalCase still has no anchored value.
+    return bool(
+        llm_result.observations_added
+        or llm_result.negated_observations_added
     )

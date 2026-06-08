@@ -280,6 +280,10 @@ def _dialogue_summary(dialogue_state: Any) -> dict[str, Any] | None:
         "pending_followup": requirement_key(
             getattr(dialogue_state, "pending_followup", None)
         ),
+        "staged_followup_answers": [
+            _dump(item)
+            for item in getattr(dialogue_state, "staged_followup_answers", [])
+        ],
         "awaiting_confirmation": getattr(dialogue_state, "awaiting_confirmation", None),
         "recommendation_requested": getattr(dialogue_state, "recommendation_requested", None),
         "recommended_modules": getattr(dialogue_state, "recommended_modules", []),
@@ -295,6 +299,7 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
     requirement_hints = getattr(message_update, "requirement_hints", None)
     planner_hints = getattr(message_update, "planner_hints", None)
     trace_signals = getattr(message_update, "trace_signals", None)
+    staging_hints = getattr(message_update, "staging_hints", None)
 
     return {
         "intent_signals": {
@@ -362,6 +367,23 @@ def _message_update_summary(message_update: Any) -> dict[str, Any] | None:
                 else getattr(message_update, "recommended_modules", [])
             ),
         },
+        "staged_followup_answers": [
+            _dump(item)
+            for item in (
+                staging_hints.staged_followup_answers
+                if staging_hints is not None
+                else getattr(message_update, "staged_followup_answers", [])
+            )
+        ],
+        "clear_staged_followup_answers": (
+            staging_hints.clear_staged_followup_answers
+            if staging_hints is not None
+            else getattr(
+                message_update,
+                "clear_staged_followup_answers",
+                None,
+            )
+        ),
         "trace_signals": {
             "gateway_category": (
                 trace_signals.intent_gateway.category

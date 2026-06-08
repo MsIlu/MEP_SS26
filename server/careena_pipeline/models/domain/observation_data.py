@@ -31,7 +31,7 @@ class InjuryObservationData(PipelineModel):
 class MeasurementObservationData(PipelineModel):
     kind: str | None = None
     value: str | None = None
-    numeric_value: float | None = None
+    numeric_value: str | None = None
     unit: str | None = None
     measured_at: str | None = None
 

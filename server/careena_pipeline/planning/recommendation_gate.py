@@ -56,14 +56,6 @@ class RecommendationGate:
                 activated_modules=activated_modules,
             )
 
-        if expected_action == "confirm_information":
-            return RecommendationGateDecision(
-                action="confirm_information",
-                reasons=["confirmation_needed"],
-                missing_information=[],
-                activated_modules=activated_modules,
-            )
-
         return RecommendationGateDecision(
             action="recommend",
             reasons=["ready_requested" if user_requests_recommendation else "ready"],
@@ -107,16 +99,6 @@ class RecommendationGate:
                 activated_modules=activated_modules,
             )
 
-        if expected_action == "confirm_information":
-            return RecommendationGateDecision(
-                action="confirm_information",
-                reasons=reasons,
-                question=None,
-                missing_information=[],
-                can_recommend_with_uncertainty=False,
-                activated_modules=activated_modules,
-            )
-
         return RecommendationGateDecision(
             action="recommend",
             reasons=reasons,
@@ -155,8 +137,9 @@ def _expected_action_for(readiness: AssessmentReadiness) -> str:
         return "ask_followup"
     if readiness.missing_information:
         return "ask_followup"
-    if readiness.confirmation_needed:
-        return "confirm_information"
+    # Confirmation is intentionally not part of the active chat contract for
+    # the current refactor stage. Keep the field for compatibility, but do not
+    # route turns into a dormant confirmation branch.
     return "recommend"
 
 
@@ -172,8 +155,6 @@ def _default_reasons_for(
         if readiness.blocking_requirements:
             return ["blocking_requirements"]
         return ["missing_information"]
-    if action == "confirm_information":
-        return ["confirmation_needed"]
     return ["ready_requested" if user_requests_recommendation else "ready"]
 
 
@@ -188,12 +169,8 @@ def _activated_modules(
         modules.append("topic_disambiguation")
     if action == "ask_followup" and (readiness.blocking_requirements or readiness.missing_information):
         modules.extend(["requirement_resolution", "single_followup_generation"])
-    if action == "confirm_information":
-        modules.append("confirmation_check")
     if action == "recommend":
         modules.extend(["recommendation_readiness", "routing_recommendation"])
-        if user_requests_recommendation:
-            modules.append("recommendation_requested")
 
     seen: set[str] = set()
     return [module for module in modules if not (module in seen or seen.add(module))]

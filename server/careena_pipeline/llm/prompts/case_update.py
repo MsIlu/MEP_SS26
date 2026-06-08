@@ -14,6 +14,8 @@ The model input is structured JSON with these fields:
 - intent_gateway: lightweight upstream classification of the latest message
 - case_summary: a compact summary of the current case state
 - dialogue_summary: the current conversation-control state
+- dialogue_summary.staged_followup_answers: raw pending slot-fill answers that
+  were staged before this extraction call
 
 You do NOT diagnose.
 You do NOT recommend care.
@@ -22,6 +24,9 @@ You only describe how the latest user message updates the case and what the
 next decision layer will likely need.
 
 Use context only to interpret short answers correctly.
+If dialogue_summary.staged_followup_answers is present, treat those entries as
+raw requirement answers that still need your normalization into the proper case
+delta or resolved_fields.
 Use intent_gateway as guidance for the type of message you are processing.
 Intent_gateway is not final truth. If latest_user_message and the structured
 context clearly indicate a different message role or update type, output the
@@ -84,7 +89,7 @@ Schema:
       "measurement_data": {
         "kind": "string or null",
         "value": "string or null",
-        "numeric_value": null,
+        "numeric_value": "string or null",
         "unit": "string or null",
         "measured_at": "string or null"
       },

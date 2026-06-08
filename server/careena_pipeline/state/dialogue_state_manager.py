@@ -1,4 +1,5 @@
 from careena_pipeline.planning.requirement_state import (
+    build_requirement_state,
     first_requirement,
     merge_requirements,
     remove_requirements,
@@ -11,6 +12,7 @@ from careena_pipeline.models import (
     MedicalCase,
     MessageUpdate,
     RecommendationGateDecision,
+    StagedFollowupAnswer,
 )
 from careena_pipeline.state.dialogue_focus_sync import DialogueFocusSync
 
@@ -53,6 +55,7 @@ class DialogueStateManager:
         state.recommended_modules = list(planner_hints.recommended_modules)
         if requirement_hints.active_modules:
             state.active_modules = list(requirement_hints.active_modules)
+        self._apply_staged_followup_answers(state, message_update)
 
         if intent_signals.possible_new_topic:
             state.current_topic_status = "possible_topic_shift"
@@ -65,20 +68,51 @@ class DialogueStateManager:
                 requirement_hints.required_fields,
             )
 
-        if requirement_hints.resolved_fields:
-            state.resolved_requirements = merge_requirements(
-                state.resolved_requirements,
-                requirement_hints.resolved_fields,
-            )
-            state.open_requirements = remove_requirements(
-                state.open_requirements,
-                requirement_hints.resolved_fields,
-            )
-            if requirement_key(state.pending_followup) in set(
-                requirement_keys(requirement_hints.resolved_fields)
-            ):
-                state.pending_followup = None
-                state.last_question_key = None
+        return self.focus_sync.sync_state_from_case(state, case)
+
+    @staticmethod
+    def _apply_staged_followup_answers(
+        state: DialogueState,
+        message_update: MessageUpdate,
+    ) -> None:
+        staging_hints = message_update.staging_hints
+        if staging_hints.clear_staged_followup_answers:
+            state.staged_followup_answers = []
+
+        if not staging_hints.staged_followup_answers:
+            return
+
+        staged_by_key: dict[tuple[str, str | None], StagedFollowupAnswer] = {
+            (item.requirement_key, item.focus_observation_id): item
+            for item in state.staged_followup_answers
+        }
+        for item in staging_hints.staged_followup_answers:
+            staged_by_key[(item.requirement_key, item.focus_observation_id)] = item
+        state.staged_followup_answers = list(staged_by_key.values())
+
+    def sync_requirement_progress(
+        self,
+        state: DialogueState,
+        *,
+        case: MedicalCase,
+        message_update: MessageUpdate | None = None,
+    ) -> DialogueState:
+        requirement_state = build_requirement_state(
+            case=case,
+            dialogue_state=state,
+            message_update=message_update,
+        )
+        blocking_requirements = list(requirement_state.blocking_requirements)
+        resolved_requirements = list(requirement_state.resolved_fields.values())
+
+        state.active_modules = list(requirement_state.active_modules)
+        state.open_requirements = blocking_requirements
+        state.resolved_requirements = resolved_requirements
+
+        pending_key = requirement_key(state.pending_followup)
+        if pending_key not in set(requirement_keys(blocking_requirements)):
+            state.pending_followup = None
+            state.last_question_key = None
 
         return self.focus_sync.sync_state_from_case(state, case)
 
@@ -88,22 +122,26 @@ class DialogueStateManager:
         readiness: AssessmentReadiness,
         case: MedicalCase | None = None,
     ) -> DialogueState:
-        requirements = merge_requirements(
-            None,
-            readiness.blocking_requirements or readiness.missing_information
-        )
-        state.open_requirements = requirements
-        if requirements:
-            state.resolved_requirements = remove_requirements(
-                state.resolved_requirements,
-                requirements,
+        if case is not None:
+            self.sync_requirement_progress(state, case=case)
+            requirements = list(state.open_requirements)
+        else:
+            requirements = merge_requirements(
+                None,
+                readiness.blocking_requirements or readiness.missing_information
             )
-        if (
-            state.pending_followup is not None
-            and requirement_key(state.pending_followup) not in set(requirement_keys(requirements))
-        ):
-            state.pending_followup = None
-            state.last_question_key = None
+            state.open_requirements = requirements
+            if requirements:
+                state.resolved_requirements = remove_requirements(
+                    state.resolved_requirements,
+                    requirements,
+                )
+            if (
+                state.pending_followup is not None
+                and requirement_key(state.pending_followup) not in set(requirement_keys(requirements))
+            ):
+                state.pending_followup = None
+                state.last_question_key = None
         if readiness.disambiguation_needed:
             state.current_topic_status = "ambiguous"
         elif state.current_topic_status != "possible_topic_shift":

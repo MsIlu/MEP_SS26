@@ -55,7 +55,7 @@ class LLMCaseUpdateObservation(BaseSchema):
     body_site: str | None = None
     laterality: Literal["left", "right", "bilateral", "unknown"] | None = None
     course: Literal["worsening", "improving", "stable", "sudden", "recurrent", "unknown"] | None = None
-    measurement: dict[str, str | int | float | bool] = Field(default_factory=dict)
+    measurement: dict[str, str | bool] = Field(default_factory=dict)
     subject_ref: str | None = None
     details: dict[str, str] = Field(default_factory=dict)
     symptom_data: SymptomObservationData | None = None
@@ -64,7 +64,6 @@ class LLMCaseUpdateObservation(BaseSchema):
     medication_data: MedicationObservationData | None = None
     diagnosis_data: DiagnosisObservationData | None = None
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
-
 
 class LLMCaseUpdateResult(BaseSchema):
     intent: LLMCaseUpdateIntent

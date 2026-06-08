@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../themes/app_colors.dart';
 
 class ChatWarningDialog extends StatelessWidget {
   const ChatWarningDialog({super.key});
@@ -15,6 +16,10 @@ class ChatWarningDialog extends StatelessWidget {
       ),
       actions: [
         FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.careenaTeal,
+            foregroundColor: Colors.white,
+          ),
           onPressed: () {
             Navigator.of(context).pop();
           },

@@ -65,7 +65,10 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaPrimary;
 
-    final baseStyle = GoogleFonts.nunito(height: 1.35, color: textColor);
+    final baseStyle = TextStyle(
+      height: 1.35,
+      color: textColor,
+    );
 
     final linkStyle = baseStyle.copyWith(
       color: linkColor,

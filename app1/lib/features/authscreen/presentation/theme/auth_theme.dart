@@ -11,7 +11,7 @@ class AuthTheme {
   static TextStyle titleStyle(BuildContext context, bool isCompact) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GoogleFonts.nunito(
+    return TextStyle(
       fontSize: isCompact ? 28 : 32,
       fontWeight: FontWeight.w800,
       color: colorScheme.onSurface,
@@ -21,7 +21,7 @@ class AuthTheme {
   static TextStyle bodyStyle(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GoogleFonts.nunito(
+    return TextStyle(
       fontSize: 16,
       height: 1.35,
       color: colorScheme.onSurfaceVariant,
@@ -31,7 +31,7 @@ class AuthTheme {
   static TextStyle sectionTitleStyle(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GoogleFonts.nunito(
+    return TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w800,
       color: colorScheme.onSurface,

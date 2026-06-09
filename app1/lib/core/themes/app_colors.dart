@@ -9,7 +9,7 @@ class AppColors {
   static const Color accent = Color(0xFF2ECC71);
 
   // Light mode
-  static const Color lightBackground = Color(0xFFF2F5FA);
+  static const Color lightBackground = Colors.white;
   static const Color lightCard = Colors.white;
   static const Color lightTextPrimary = Color(0xFF1F2D3D);
   static const Color lightTextSecondary = Colors.grey;

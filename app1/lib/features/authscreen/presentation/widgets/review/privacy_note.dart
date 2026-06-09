@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:app1/core/themes/app_colors.dart';
 
@@ -39,7 +38,7 @@ class PrivacyNote extends StatelessWidget {
             Expanded(
               child: Text(
                 'Deine Daten sind bei uns sicher und werden vertraulich behandelt.',
-                style: GoogleFonts.nunito(
+                style: TextStyle(
                   color: contentColor,
                   fontWeight: FontWeight.w700,
                 ),

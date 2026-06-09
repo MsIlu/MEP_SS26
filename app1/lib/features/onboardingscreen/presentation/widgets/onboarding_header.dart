@@ -36,7 +36,7 @@ class OnboardingHeader extends StatelessWidget {
                   "MedBitAid v.1",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
+                  style: TextStyle(
                     fontSize: titleSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.careenaBrand,

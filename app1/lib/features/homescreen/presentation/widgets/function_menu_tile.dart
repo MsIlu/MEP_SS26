@@ -29,8 +29,8 @@ class FunctionMenuTile extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final borderColor = isDarkMode
-        ? colorScheme.outlineVariant.withValues(alpha: 0.55)
-        : Colors.grey[200]!;
+        ? Colors.grey.shade700
+        : Colors.grey.shade300;
 
     final iconBackgroundColor = isDarkMode
         ? AppColors.darkElevatedSurface
@@ -70,7 +70,10 @@ class FunctionMenuTile extends StatelessWidget {
           title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontWeight: FontWeight.bold, color: titleColor),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: titleColor,
+          ),
         ),
         trailing: Icon(Icons.chevron_right, color: trailingColor),
       ),

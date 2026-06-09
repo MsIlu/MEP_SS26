@@ -110,7 +110,7 @@ class _ReviewRow extends StatelessWidget {
           width: 148,
           child: Text(
             item.label,
-            style: GoogleFonts.nunito(
+            style: TextStyle(
               fontWeight: FontWeight.w800,
               color: labelColor,
             ),
@@ -120,7 +120,7 @@ class _ReviewRow extends StatelessWidget {
         Expanded(
           child: Text(
             item.value,
-            style: GoogleFonts.nunito(color: valueColor),
+            style: TextStyle(color: valueColor),
           ),
         ),
       ],

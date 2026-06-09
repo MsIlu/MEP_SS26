@@ -51,7 +51,7 @@ class CareenaButton extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             text,
-            style: GoogleFonts.nunito(
+            style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
               color: foregroundColor,
@@ -88,7 +88,7 @@ class AuthDivider extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
               text,
-              style: GoogleFonts.nunito(
+              style: TextStyle(
                 fontSize: 14,
                 color: textColor,
               ),
@@ -125,7 +125,7 @@ class SwitchAuthMode extends StatelessWidget {
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(label, style: GoogleFonts.nunito(color: labelColor)),
+        Text(label, style: TextStyle(color: labelColor)),
         TextButton(onPressed: onPressed, child: Text(actionText)),
       ],
     );

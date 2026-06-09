@@ -60,16 +60,16 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
     } on FormatException catch (e) {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned invalid JSON: ${e.message}',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -87,16 +87,16 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
     } on FormatException catch (e) {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned invalid JSON: ${e.message}',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -128,19 +128,19 @@ class ApiClient {
 
       throw const ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned an invalid JSON list',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
     } on FormatException catch (e) {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned invalid JSON: ${e.message}',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -162,16 +162,16 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
     } on FormatException catch (e) {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned invalid JSON: ${e.message}',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -189,16 +189,16 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Server Timeout');
+      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
     } on FormatException catch (e) {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Server returned invalid JSON: ${e.message}',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Network Error: $e');
+      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -228,7 +228,7 @@ class ApiClient {
 
     throw const ApiException(
       ApiErrorType.invalidResponse,
-      'Server returned an invalid JSON object',
+      'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
     );
   }
 }

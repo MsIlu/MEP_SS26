@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../../core/widgets/responsive_frame.dart';
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
 /// Layout primitives shared by auth screens and form steps.
@@ -89,6 +88,7 @@ class AuthTopBar extends StatelessWidget {
             foregroundColor: isDarkTheme
                 ? AppColors.toolbarButtonForegroundDark
                 : AppColors.toolbarButtonForeground,
+            fixedSize: const Size.square(48),
           ),
           onPressed: onBack,
           icon: const Icon(Icons.arrow_back),
@@ -113,7 +113,9 @@ class AuthTopBar extends StatelessWidget {
           const Spacer(),
         if (onToggleTheme != null)
           IconButton(
-            tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+            tooltip: isDarkMode
+                ? 'Lightmode aktivieren'
+                : 'Darkmode aktivieren',
             style: IconButton.styleFrom(
               backgroundColor: isDarkTheme
                   ? AppColors.toolbarButtonBackgroundDark
@@ -121,6 +123,7 @@ class AuthTopBar extends StatelessWidget {
               foregroundColor: isDarkTheme
                   ? AppColors.toolbarButtonForegroundDark
                   : AppColors.toolbarButtonForeground,
+              fixedSize: const Size.square(48),
             ),
             icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: onToggleTheme,

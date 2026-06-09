@@ -1,4 +1,4 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_entry.dart';

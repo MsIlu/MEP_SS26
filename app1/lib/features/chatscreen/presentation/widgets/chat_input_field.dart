@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatelessWidget {
@@ -35,19 +35,19 @@ class ChatInputField extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final outerBackground = isDarkMode
-        ? const Color(0xFF1A2029)
+        ? AppColors.chatInputOuterDark
         : Colors.white;
 
     final inputBackground = isDarkMode
-        ? const Color(0xFF242B36)
+        ? AppColors.chatInputInnerDark
         : AppColors.lightBackground;
 
     final sendButtonColor = isDarkMode
-        ? const Color(0xFF3F8F87)
+        ? AppColors.chatInputAccentDark
         : AppColors.careenaTeal;
 
     final sendingButtonColor = isDarkMode
-        ? const Color(0xFF2F3A46)
+        ? AppColors.chatInputDisabledDark
         : AppColors.lightBackground;
 
     final sendingIconColor = isDarkMode
@@ -68,9 +68,7 @@ class ChatInputField extends StatelessWidget {
             isCompact ? 10 : 16,
             16,
           ),
-          decoration: BoxDecoration(
-            color: outerBackground,
-          ),
+          decoration: BoxDecoration(color: outerBackground),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -92,7 +90,12 @@ class ChatInputField extends StatelessWidget {
                           children: [
                             if (smartReplies.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  4,
+                                  12,
+                                  6,
+                                ),
                                 child: SmartReplyList(
                                   replies: smartReplies,
                                   onSelected: onSmartReplySelected,
@@ -100,10 +103,9 @@ class ChatInputField extends StatelessWidget {
                               ),
 
                             Row(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SizedBox(width: isCompact ? 8 : 10,),
+                                SizedBox(width: isCompact ? 8 : 10),
 
                                 Expanded(
                                   child: TextField(
@@ -138,16 +140,18 @@ class ChatInputField extends StatelessWidget {
                                       filled: false,
                                       fillColor: Colors.transparent,
                                       isDense: true,
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
                                     ),
                                   ),
                                 ),
 
                                 if (!isCompact) ...[
                                   Tooltip(
-                                    message:'Spracheingabe ist noch nicht verfügbar',
+                                    message:
+                                        'Spracheingabe ist noch nicht verfügbar',
                                     child: Icon(
                                       Icons.mic_none,
                                       color: colorScheme.onSurfaceVariant,
@@ -164,7 +168,7 @@ class ChatInputField extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(width: isCompact ? 6 : 10,),
+                  SizedBox(width: isCompact ? 6 : 10),
                   Semantics(
                     button: true,
                     enabled: !isSending,
@@ -172,8 +176,7 @@ class ChatInputField extends StatelessWidget {
                         ? 'Nachricht wird verarbeitet'
                         : 'Symptombeschreibung senden',
                     child: IconButton.filled(
-                      onPressed:
-                          isSending ? null : onSend,
+                      onPressed: isSending ? null : onSend,
                       style: IconButton.styleFrom(
                         backgroundColor: sendButtonColor,
                         disabledBackgroundColor: sendingButtonColor,

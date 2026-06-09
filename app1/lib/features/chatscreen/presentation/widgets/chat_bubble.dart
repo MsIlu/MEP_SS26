@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import '../../utils/medical_terms.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
@@ -33,14 +33,14 @@ class ChatBubble extends StatelessWidget {
     final bubbleColor = isUser
         ? AppColors.careenaTeal
         : isDarkMode
-          ? colorScheme.surface
-          : Colors.white;
+        ? colorScheme.surface
+        : Colors.white;
 
     final textColor = isUser
         ? Colors.white
         : isDarkMode
-          ? colorScheme.onSurface
-          : AppColors.careenaDark;
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
 
     final shadowColor = isDarkMode
         ? Colors.black.withValues(alpha: 0.15)
@@ -102,20 +102,20 @@ class ChatBubble extends StatelessWidget {
                     children: [
                       Text(
                         message.text,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 15),
                       ),
                       if (medicalTerm != null)
                         MedicalTermInfoBox(term: medicalTerm),
-                      if (!isUser && message.canExportPdf && !message.isStreaming) ...[
+                      if (!isUser &&
+                          message.canExportPdf &&
+                          !message.isStreaming) ...[
                         const SizedBox(height: 12),
                         ExportRecommendationPdfButton(
                           title: message.exportTitle ?? 'Handlungsempfehlung',
                           patientSummary:
-                          'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                          recommendation: message.exportRecommendation ?? message.text,
+                              'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                          recommendation:
+                              message.exportRecommendation ?? message.text,
                           nextSteps: message.exportNextSteps ?? '',
                         ),
                       ],

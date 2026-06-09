@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../data/registration_condition_options.dart';
 import '../../../utils/auth_validators.dart';
 import '../../../utils/bmi_utils.dart';
@@ -189,7 +189,7 @@ class _BirthSexSelector extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final containerColor = isDarkMode
-        ? const Color(0xFF222A35)
+        ? AppColors.darkElevatedSurface
         : Colors.white;
 
     final borderColor = isDarkMode
@@ -197,11 +197,11 @@ class _BirthSexSelector extends StatelessWidget {
         : AppColors.careenaBorder;
 
     final segmentedBackground = isDarkMode
-        ? const Color(0xFF26303C)
+        ? AppColors.segmentedControlBackgroundDark
         : AppColors.careenaNoteBackground;
 
     final segmentedSelectedBackground = isDarkMode
-        ? const Color(0xFF3F8F87)
+        ? AppColors.chatInputAccentDark
         : AppColors.careenaSoftAccent;
 
     final segmentedForeground = isDarkMode
@@ -304,21 +304,17 @@ class _ConditionChips extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final chipBackground = isDarkMode
-        ? const Color(0xFF222A35)
-        : null;
+    final chipBackground = isDarkMode ? AppColors.darkElevatedSurface : null;
 
     final selectedChipBackground = isDarkMode
-        ? const Color(0xFF3F8F87)
+        ? AppColors.chatInputAccentDark
         : AppColors.careenaSoftAccent;
 
     final chipTextColor = isDarkMode
         ? colorScheme.onSurface
         : AppColors.careenaDark;
 
-    final checkmarkColor = isDarkMode
-        ? Colors.white
-        : AppColors.careenaTitle;
+    final checkmarkColor = isDarkMode ? Colors.white : AppColors.careenaTitle;
 
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant
@@ -330,10 +326,7 @@ class _ConditionChips extends StatelessWidget {
       children: [
         for (final condition in registrationConditionOptions)
           FilterChip(
-            label: Text(
-              condition,
-              style: TextStyle(color: chipTextColor),
-            ),
+            label: Text(condition, style: TextStyle(color: chipTextColor)),
             selected: selectedConditions.contains(condition),
             backgroundColor: chipBackground,
             selectedColor: selectedChipBackground,

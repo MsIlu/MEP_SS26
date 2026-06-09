@@ -1,3 +1,4 @@
+import 'package:app1/core/widgets/careena_action_buttons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_entry.dart';
@@ -72,16 +73,12 @@ class _MedicationListDialogHeader extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
+        CareenaIconActionButton(
           tooltip: 'Medikament hinzufügen',
+          icon: Icons.add,
           onPressed: onAdd,
-          icon: const Icon(Icons.add),
         ),
-        IconButton(
-          tooltip: 'Schließen',
-          onPressed: onClose,
-          icon: const Icon(Icons.close),
-        ),
+        CareenaIconActionButton.close(tooltip: 'Schließen', onPressed: onClose),
       ],
     );
   }

@@ -1,4 +1,4 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_catalog_item.dart';
@@ -18,7 +18,7 @@ class MedicationCatalogDetails extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode
-            ? const Color(0xFF222A35)
+            ? AppColors.darkElevatedSurface
             : AppColors.careenaNoteBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(

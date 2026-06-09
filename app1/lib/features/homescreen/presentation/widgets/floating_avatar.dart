@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Animated floating avatar widget.
 ///

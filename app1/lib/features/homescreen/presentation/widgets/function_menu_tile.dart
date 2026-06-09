@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Single tappable row in the home feature list.
 class FunctionMenuTile extends StatelessWidget {
@@ -33,7 +33,7 @@ class FunctionMenuTile extends StatelessWidget {
         : Colors.grey[200]!;
 
     final iconBackgroundColor = isDarkMode
-        ? const Color(0xFF222A35)
+        ? AppColors.darkElevatedSurface
         : bgColor;
 
     final iconColor = isDarkMode
@@ -70,10 +70,7 @@ class FunctionMenuTile extends StatelessWidget {
           title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: titleColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: titleColor),
         ),
         trailing: Icon(Icons.chevron_right, color: trailingColor),
       ),

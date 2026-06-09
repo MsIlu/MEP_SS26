@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Shared color tokens used by chat and home UI components
-/// (for consistent color usage across the entire application).
+/// Shared color tokens for consistent color usage across the application.
 class AppColors {
   AppColors._();
 
@@ -18,6 +17,8 @@ class AppColors {
   // Darkmode
   static const Color darkBackground = Color(0xFF101820);
   static const Color darkCard = Color(0xFF1B2733);
+  static const Color darkElevatedSurface = Color(0xFF222A35);
+  static const Color darkMutedSurface = Color(0xFF22323D);
   static const Color darkTextPrimary = Color(0xFFF2F5FA);
   static const Color darkTextSecondary = Color(0xFFB0BEC5);
 
@@ -46,6 +47,41 @@ class AppColors {
   static const Color careenaBrand = Color(0xFF43B8BE);
   static const Color onboardingButtonText = Color(0xFF1D2B34);
   static const Color careenaGlow = Color(0xFF00F0FF);
+
+  // Home
+  static const Color notificationIcon = Color(0xFF8BB5BC);
+
+  // Chat
+  static const Color chatInputOuterDark = Color(0xFF1A2029);
+  static const Color chatInputInnerDark = Color(0xFF242B36);
+  static const Color chatInputAccentDark = Color(0xFF3F8F87);
+  static const Color chatInputDisabledDark = Color(0xFF2F3A46);
+  static const Color smartReplySurfaceDark = Color(0xFF233338);
+  static const Color smartReplyChipDark = Color(0xFF263D40);
+  static const Color smartReplyBorderDark = Color(0xFF6FA6A0);
+  static const Color smartReplyMutedTextDark = Color(0xFF9DBDBA);
+
+  // Onboarding
+  static const Color onboardingBubbleDark = Color(0xFFDDE2E3);
+  static const Color onboardingBubbleBorderDark = Color(0xFFBCC7C9);
+
+  // Auth and registration
+  static const Color authInfoBackgroundDark = Color(0xFF263436);
+  static const Color authPrivacyBackgroundDark = Color(0xFF243638);
+  static const Color segmentedControlBackgroundDark = Color(0xFF26303C);
+
+  // Warning
+  static const Color warningRed = Color(0xFFFF3045);
+  static const Color warningBackground = Color(0xFFFFF1F3);
+  static const Color warningIconBackground = Color(0xFFFFDCE1);
+  static const Color warningEmergencyBackgroundDark = Color(0xFF2F2529);
+  static const Color warningReasonBackgroundDark = Color(0xFF3A2A2F);
+
+  // Symptom intensity
+  static const Color symptomIntensityNone = Color(0xFF90A4AE);
+  static const Color symptomIntensityLow = Color(0xFF3CB878);
+  static const Color symptomIntensityMedium = Color(0xFFFFB74D);
+  static const Color symptomIntensityHigh = Color(0xFFE57373);
 
   // Shared toolbar/action button colors
   static const Color toolbarButtonBackground = careenaBrand;

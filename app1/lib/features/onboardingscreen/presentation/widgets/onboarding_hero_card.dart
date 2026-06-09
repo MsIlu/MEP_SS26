@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
 
 /// Large onboarding card that presents the primary chat call to action.
@@ -21,7 +21,9 @@ class OnboardingHeroCard extends StatelessWidget {
         final horizontalMargin = isCompact ? 12.0 : 13.0;
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-        final cardColor = isDarkMode ? const Color(0xFF222A35) : Colors.white;
+        final cardColor = isDarkMode
+            ? AppColors.darkElevatedSurface
+            : Colors.white;
 
         final shadowColor = isDarkMode
             ? Colors.black.withValues(alpha: 0.18)

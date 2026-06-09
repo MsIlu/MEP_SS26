@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../../utils/auth_validators.dart';
 import '../../../theme/auth_theme.dart';
 
@@ -159,7 +159,9 @@ class _DateSeparator extends StatelessWidget {
       child: Text(
         '.',
         style: TextStyle(
-          color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.careenaTitle,
+          color: isDarkMode
+              ? colorScheme.onSurfaceVariant
+              : AppColors.careenaTitle,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),

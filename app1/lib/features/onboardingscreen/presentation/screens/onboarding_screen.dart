@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/presentation/screens/login_screen.dart';
@@ -9,7 +9,7 @@ import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Entry screen that introduces Careena and routes users into chat or home.
 class OnboardingScreen extends StatelessWidget {

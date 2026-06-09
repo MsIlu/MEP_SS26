@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Required consent control for terms, privacy, health data, and emergency limits.
 class ConsentCheckbox extends StatefulWidget {
@@ -65,10 +65,7 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaPrimary;
 
-    final baseStyle = GoogleFonts.nunito(
-      height: 1.35,
-      color: textColor,
-    );
+    final baseStyle = GoogleFonts.nunito(height: 1.35, color: textColor);
 
     final linkStyle = baseStyle.copyWith(
       color: linkColor,

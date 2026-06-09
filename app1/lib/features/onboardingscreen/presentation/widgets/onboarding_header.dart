@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Branding row shown at the top of the onboarding screen.
 class OnboardingHeader extends StatelessWidget {
@@ -44,7 +44,9 @@ class OnboardingHeader extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+                tooltip: isDarkMode
+                    ? 'Lightmode aktivieren'
+                    : 'Darkmode aktivieren',
                 style: IconButton.styleFrom(
                   backgroundColor: isDarkTheme
                       ? AppColors.toolbarButtonBackgroundDark

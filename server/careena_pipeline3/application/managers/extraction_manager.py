@@ -12,7 +12,13 @@ from careena_pipeline3.models.turn import (
 
 
 class ExtractionManager:
-    """Produces extraction payloads when the entry decision requires it."""
+    """
+    Produces transitional extraction outputs for the turn orchestrator.
+
+    The manager may still carry the historical `message_delta` bridge, but it
+    should also expose the small orchestration signals that upstream callers
+    need without forcing them to inspect bridge internals directly.
+    """
 
     def __init__(
         self,
@@ -61,6 +67,8 @@ class ExtractionManager:
 
         return ExtractionPayload(
             active_modules=active_modules,
+            recommendation_requested=message_delta.planner_signals.recommendation_requested,
+            recommended_modules=list(message_delta.planner_signals.recommended_modules),
             trace_notes=["extraction_manager_completed", *extraction_result.trace_notes],
             extraction_result=extraction_result,
             message_delta=message_delta,

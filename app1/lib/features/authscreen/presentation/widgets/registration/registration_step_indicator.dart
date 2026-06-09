@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 /// Visual progress indicator for the registration flow.
@@ -134,7 +133,7 @@ class _StepItem extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.12,
                   fontWeight: FontWeight.w700,

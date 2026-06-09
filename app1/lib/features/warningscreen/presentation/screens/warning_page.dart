@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../theme/warning_theme.dart';

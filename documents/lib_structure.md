@@ -13,7 +13,7 @@ Verantwortlichkeiten der einzelnen Bereiche.
 eine Chat-Session über Onboarding, Home und Chat hinweg und öffnet bei einer
 medizinischen Red-Flag-Antwort des Backends einen eigenen Warning-Flow. Über
 das Home ist außerdem `Meine Medikamente` mit lokalen täglichen Erinnerungen
-erreichbar.
+und `Symptomtagebuch` für tägliches Symptomtracking erreichbar.
 
 ## Ordnerstruktur
 
@@ -65,6 +65,13 @@ app1/lib/
     |   |       |-- list/
     |   |       `-- summary/
     |   `-- services/
+    |-- symptom_diary/
+    |   |-- data/
+    |   `-- presentation/
+    |       |-- controllers/
+    |       |-- screens/
+    |       |-- utils/
+    |       `-- widgets/
     |-- onboardingscreen/
     |   `-- presentation/
     `-- warningscreen/
@@ -186,6 +193,25 @@ Die Verantwortlichkeiten sind getrennt in:
 - `presentation/widgets/summary`: zusammenfassende Darstellungen für gespeicherte
   Medikamente
 
+## Symptom-Diary-Feature
+
+`features/symptom_diary` enthält das `Symptomtagebuch` für kurze tägliche
+Symptomeinträge. Nutzer erfassen Symptom, betroffene Körperstelle, Intensität
+von 1 bis 10 und optional eine Notiz. Die Einträge werden lokal gespeichert und
+pro Kalendertag angezeigt.
+
+Die Verantwortlichkeiten sind getrennt in:
+
+- `data`: `SymptomEntry` und `SymptomRepository` für lokale Persistenz über
+  `SharedPreferences`
+- `presentation/controllers`: `SymptomDiaryController` für Laden, Speichern,
+  Löschen, Tagesfilterung und Durchschnittsberechnung
+- `presentation/screens`: `SymptomDiaryPage` als Scaffold-, Datums- und
+  State-Orchestrierung
+- `presentation/utils`: deutsche Datumslabels und Kalendervergleich
+- `presentation/widgets`: Tageskopf, Tageszusammenfassung, Eingabeformular und
+  Eintragsliste
+
 ## Warning-Feature
 
 `features/warningscreen` rendert die Handlungsempfehlung bei Red-Flag-Antworten.
@@ -269,6 +295,8 @@ Das Frontend enthält jetzt fokussierte Tests für:
 - Medikamentenplan-Widgets unter
   `test/features/medication_plan/presentation/widgets`, unter anderem
   Tagesplan, `Eingenommen`-Status und untere Aktionen
+- Symptomtagebuch-Controller unter
+  `test/features/symptom_diary/presentation/controllers`
 
 Sinnvolle nächste Testziele sind Controller-Fehlerpfade, API-Exceptions und die
 Red-Flag-Navigation.

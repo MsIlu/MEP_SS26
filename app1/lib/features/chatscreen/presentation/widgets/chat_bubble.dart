@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import '../../utils/medical_terms.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';

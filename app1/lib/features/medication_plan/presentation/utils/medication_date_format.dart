@@ -1,59 +1,23 @@
-const _weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-const _months = [
-  'Januar',
-  'Februar',
-  'März',
-  'April',
-  'Mai',
-  'Juni',
-  'Juli',
-  'August',
-  'September',
-  'Oktober',
-  'November',
-  'Dezember',
-];
-
-const _shortMonths = [
-  'Jan',
-  'Feb',
-  'Mär',
-  'Apr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Dez',
-];
+import 'package:app1/core/widgets/shared_day_selector.dart';
 
 /// Returns true when both values point to the same calendar day.
 bool isSameMedicationDay(DateTime first, DateTime second) {
-  return first.year == second.year &&
-      first.month == second.month &&
-      first.day == second.day;
+  return isSameCalendarDay(first, second);
 }
 
 /// Formats the large selected date label above the medication day strip.
 String formatMedicationDateTitle(DateTime selectedDate, DateTime today) {
-  final month = _months[selectedDate.month - 1];
-  if (isSameMedicationDay(selectedDate, today)) {
-    return 'Heute, ${selectedDate.day}. $month';
-  }
-
-  return '${formatMedicationWeekday(selectedDate)}., ${selectedDate.day}. $month';
+  return formatSharedDateTitle(selectedDate, today);
 }
 
 /// Formats compact German weekday labels for the day selector.
 String formatMedicationWeekday(DateTime date) {
-  return _weekdays[date.weekday - 1];
+  return formatSharedWeekday(date);
 }
 
 /// Formats compact German month labels for separators in the day strip.
 String formatMedicationShortMonth(DateTime date) {
-  return _shortMonths[date.month - 1];
+  return formatSharedShortMonth(date);
 }
 
 /// Returns a stable date key for per-day medication intake state.

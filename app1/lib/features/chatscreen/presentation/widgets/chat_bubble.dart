@@ -30,6 +30,10 @@ class ChatBubble extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    final avatarBackground = isDarkMode
+        ? const Color(0xFF86B2B2)
+        : const Color(0xFFC3E7E7);
+
     final bubbleColor = isUser
         ? AppColors.careenaTeal
         : isDarkMode
@@ -69,7 +73,7 @@ class ChatBubble extends StatelessWidget {
               if (!isUser) ...[
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: AppColors.careenaBubbleBackground,
+                  backgroundColor: avatarBackground,
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Image.asset(

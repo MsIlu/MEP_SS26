@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
 /// Shared info icon that shows the same explanation on hover and tap.
@@ -73,7 +73,7 @@ class AuthCalculatedField extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final fillColor = isDarkMode
-        ? const Color(0xFF263436)
+        ? AppColors.authInfoBackgroundDark
         : AppColors.careenaNoteBackground;
 
     final borderColor = isDarkMode
@@ -84,26 +84,25 @@ class AuthCalculatedField extends StatelessWidget {
       controller: controller,
       readOnly: true,
       enableInteractiveSelection: false,
-      style: TextStyle(
-        color: colorScheme.onSurface,
-      ),
-      decoration: AuthTheme.inputDecoration(
-        context: context,
-        label: label,
-        hint: hint,
-      ).copyWith(
-        filled: true,
-        fillColor: fillColor,
-        suffixIcon: AuthInfoButton(title: label, message: infoText),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: BorderSide(color: borderColor),
-        ),
-      ),
+      style: TextStyle(color: colorScheme.onSurface),
+      decoration:
+          AuthTheme.inputDecoration(
+            context: context,
+            label: label,
+            hint: hint,
+          ).copyWith(
+            filled: true,
+            fillColor: fillColor,
+            suffixIcon: AuthInfoButton(title: label, message: infoText),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
+              borderSide: BorderSide(color: borderColor),
+            ),
+          ),
     );
   }
 }

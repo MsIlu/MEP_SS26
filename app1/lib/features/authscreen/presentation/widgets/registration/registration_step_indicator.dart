@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
-
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Visual progress indicator for the registration flow.
 class RegistrationStepIndicator extends StatelessWidget {
   final int currentStep;
+  final List<String> labels;
   final ValueChanged<int>? onStepSelected;
 
   const RegistrationStepIndicator({
     super.key,
     required this.currentStep,
+    this.labels = const [
+      'Persönliche\nDaten',
+      'Gesundheits-\nangaben',
+      'Überprüfung',
+    ],
     this.onStepSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    const labels = [
-      'Persönliche\nDaten',
-      'Gesundheits-\nangaben',
-      'Überprüfung',
-    ];
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final stepWidth = _stepWidthFor(constraints.maxWidth);
@@ -95,6 +94,8 @@ class _StepItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = index <= currentStep;
     final isPastStep = index < currentStep;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Tooltip(
       message: isPastStep ? '$label bearbeiten' : label.replaceAll('\n', ' '),
@@ -132,11 +133,13 @@ class _StepItem extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.careenaTitle,
+                  color: isDarkMode
+                      ? colorScheme.onSurface
+                      : AppColors.careenaTitle,
                 ),
               ),
             ],

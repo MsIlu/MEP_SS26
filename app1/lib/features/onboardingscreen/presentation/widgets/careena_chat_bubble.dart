@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Small speech bubble shown on the onboarding hero card.
 class CareenaChatBubble extends StatelessWidget {
@@ -11,7 +11,7 @@ class CareenaChatBubble extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final bubbleColor = isDarkMode
-        ? const Color(0xFFDDE2E3)
+        ? AppColors.onboardingBubbleDark
         : Colors.white;
 
     final textColor = isDarkMode
@@ -19,7 +19,7 @@ class CareenaChatBubble extends StatelessWidget {
         : AppColors.careenaBody;
 
     final borderColor = isDarkMode
-        ? const Color(0xFFBCC7C9)
+        ? AppColors.onboardingBubbleBorderDark
         : AppColors.careenaBorder;
 
     return CustomPaint(
@@ -62,11 +62,9 @@ class _SpeechBubblePainter extends CustomPainter {
 
     final path = Path()
       ..moveTo(leftInset + radius, 0)
-
       // top
       ..lineTo(size.width - radius, 0)
       ..quadraticBezierTo(size.width, 0, size.width, radius)
-
       // right
       ..lineTo(size.width, size.height - radius)
       ..quadraticBezierTo(
@@ -75,11 +73,14 @@ class _SpeechBubblePainter extends CustomPainter {
         size.width - radius,
         size.height,
       )
-
       // bottom
       ..lineTo(leftInset + radius, size.height)
-      ..quadraticBezierTo(leftInset, size.height, leftInset, size.height - radius)
-
+      ..quadraticBezierTo(
+        leftInset,
+        size.height,
+        leftInset,
+        size.height - radius,
+      )
       // softer, rounded tail on the left
       ..lineTo(leftInset, size.height * 0.68)
       ..quadraticBezierTo(
@@ -94,7 +95,6 @@ class _SpeechBubblePainter extends CustomPainter {
         leftInset,
         size.height * 0.78,
       )
-
       // left side back up
       ..lineTo(leftInset, radius)
       ..quadraticBezierTo(leftInset, 0, leftInset + radius, 0)

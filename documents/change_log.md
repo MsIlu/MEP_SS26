@@ -34,6 +34,20 @@ und Abgabe.
 - Appweite Textauswahl über `SelectionArea` im gemeinsamen
   `ResponsivePageBody` ergänzt, damit Nutzer sichtbare Seitentexte markieren
   und kopieren können.
+- `Symptomtagebuch` als neues Home-Feature ergänzt. Nutzer können Symptome
+  täglich mit Intensität, optionaler Notiz und lokaler Verlaufsspeicherung
+  erfassen.
+- Symptomtagebuch übersichtlicher gestaltet: klarerer Tageskopf, Heute-Sprung,
+  farbige Intensitätsstufen, ausgewählte Symptom-Chips und besser lesbare
+  Eintragskarten.
+- Symptom-Eingabe im Symptomtagebuch auf einen kleinen `+`-Button umgestellt,
+  passend zur Bedienlogik des Medikamentenplans.
+- `+`-Buttons und Light-/Darkmode-Buttons explizit auf dieselbe Größe gesetzt;
+  im Symptomtagebuch steht das `+` nun unten rechts unter dem Theme-Button.
+- Symptomtagebuch um eine Körperstellen-Auswahl im Eintragsdialog ergänzt,
+  inklusive einfacher Körpergrafik und Speicherung der betroffenen Stelle.
+- Körpergrafik im Symptomtagebuch ist jetzt antippbar und erscheint nur bei
+  Schmerz-/körperbezogenen Symptomen.
 
 ### Changed
 

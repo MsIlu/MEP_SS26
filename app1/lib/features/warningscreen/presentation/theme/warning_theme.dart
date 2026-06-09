@@ -1,12 +1,13 @@
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Color tokens used by the warning screen.
 class WarningColors {
-  static const Color warningRed = Color(0xFFFF3045);
-  static const Color warningBackground = Color(0xFFFFF1F3);
-  static const Color warningIconBackground = Color(0xFFFFDCE1);
-  static const Color darkText = Color(0xFF2C5358);
-  static const Color teal = Color(0xFF26A69A);
+  static const Color warningRed = AppColors.warningRed;
+  static const Color warningBackground = AppColors.warningBackground;
+  static const Color warningIconBackground = AppColors.warningIconBackground;
+  static const Color darkText = AppColors.careenaDark;
+  static const Color teal = AppColors.careenaTeal;
 }
 
 /// Text styles shared across warning widgets.
@@ -71,7 +72,7 @@ class WarningDecorations {
 
     return BoxDecoration(
       color: isDarkMode
-          ? const Color(0xFF2F2529)
+          ? AppColors.warningEmergencyBackgroundDark
           : WarningColors.warningBackground,
       borderRadius: BorderRadius.circular(14),
       border: Border.all(
@@ -95,7 +96,7 @@ class WarningDecorations {
 
     return BoxDecoration(
       color: isDarkMode
-          ? const Color(0xFF3A2A2F)
+          ? AppColors.warningReasonBackgroundDark
           : Colors.white.withValues(alpha: 0.72),
       borderRadius: BorderRadius.circular(10),
       border: Border.all(

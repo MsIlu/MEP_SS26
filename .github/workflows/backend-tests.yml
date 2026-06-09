@@ -31,11 +31,12 @@ jobs:
       - name: Check Python syntax
         run: python -m compileall .
 
-      # Import Test FastAPI
-      - name: Test FastAPI import
+      # Run Backend tests
+      - name: Run backend tests
         env:
-          DATABASE_URL: postgresql+psycopg://dummy:dummy@localhost:5433/dummy
+          SECRET_KEY: test-secret-key
+          DATABASE_URL: sqlite://
           LITELLM_BASE_URL: dummy
           LITELLM_API_KEY: dummy
           LITELLM_MODEL: dummy
-        run: python -c "import main"
+        run: python -m pytest tests -q

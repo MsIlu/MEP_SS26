@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/services/speech_service.dart';
 
 /// Bottom input area for composing and sending chat messages.
@@ -139,19 +139,19 @@ class _ChatInputFieldState extends State<ChatInputField>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final outerBackground = isDarkMode
-        ? Theme.of(context).scaffoldBackgroundColor
-        : const Color(0xFFF7F9FA);
+        ? AppColors.chatInputOuterDark
+        : Colors.white;
 
     final inputBackground = isDarkMode
-        ? const Color(0xFF242B36)
+        ? AppColors.chatInputInnerDark
         : AppColors.lightBackground;
 
     final sendButtonColor = isDarkMode
-        ? const Color(0xFF3F8F87)
+        ? AppColors.chatInputAccentDark
         : AppColors.careenaTeal;
 
     final sendingButtonColor = isDarkMode
-        ? const Color(0xFF2F3A46)
+        ? AppColors.chatInputDisabledDark
         : AppColors.lightBackground;
 
     final sendingIconColor = isDarkMode
@@ -172,7 +172,9 @@ class _ChatInputFieldState extends State<ChatInputField>
             isCompact ? 10 : 16,
             16,
           ),
-          decoration: BoxDecoration(color: outerBackground),
+          decoration: BoxDecoration(
+            color: outerBackground,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -218,9 +220,10 @@ class _ChatInputFieldState extends State<ChatInputField>
                                   onSelected: widget.onSmartReplySelected,
                                 ),
                               ),
-                              
+
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.center,
                               children: [
                                 SizedBox(width: isCompact ? 8 : 10),
 

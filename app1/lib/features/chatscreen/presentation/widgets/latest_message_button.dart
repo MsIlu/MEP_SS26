@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Floating shortcut that returns the user to the newest chat message.
 class LatestMessageButton extends StatelessWidget {

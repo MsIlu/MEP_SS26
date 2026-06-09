@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {

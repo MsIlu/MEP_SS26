@@ -28,6 +28,7 @@ IntentCategory = Literal[
 ]
 ResponseMode = Literal[
     "emergency",
+    "safety_clarification",
     "confirm_case",
     "ask_followup",
     "recommend",
@@ -548,6 +549,8 @@ class SafetyResult(PipelineModel):
 class PipelineResult(PipelineModel):
     raw_text: str
     safety: SafetyResult
+    medical_context: MedicalContextStatus | None = None
+    red_flag_status: RedFlagStatus | None = None
     case: MedicalCase | None = None
     dialogue_state: DialogueState | None = None
     message_update: MessageUpdate | None = None
@@ -564,3 +567,30 @@ class ConfirmationUpdate(PipelineModel):
     added_observations: list[CaseObservation] = Field(default_factory=list)
     confirm_subject: bool = False
     corrected_subject: Subject | None = None
+
+# --- Context and safety status models ---------------------------------------
+# These models keep raw text checks, structured checks and final decisions
+# separated. This avoids turning an early keyword hit directly into a final
+# emergency decision.
+
+class MedicalContextStatus(PipelineModel):
+    """Represents whether the current user message is medically relevant."""
+
+    raw_status: str = "unclear"
+    structured_status: str = "not_checked"
+    final_status: str = "unclear"
+    confidence: float = 0.0
+    reason_tags: list[str] = Field(default_factory=list)
+
+
+class RedFlagStatus(PipelineModel):
+    """Represents the combined red flag result from raw and structured checks."""
+
+    raw_red_flag: bool = False
+    structured_red_flag: bool | None = None
+    final_status: str = "none"
+    red_flag: bool = False
+    requires_safety_question: bool = False
+    safety_question: str | None = None
+    reason_tags: list[str] = Field(default_factory=list)
+    matched_keywords: list[str] = Field(default_factory=list)

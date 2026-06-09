@@ -74,6 +74,8 @@ def pipeline_result_to_chat_response(result: PipelineResult) -> dict:
         return _emergency_response(result)
     if result.response_mode == "confirm_case":
         return _text_response(_confirmation_text(result))
+    if result.response_mode == "safety_clarification":
+        return _text_response(_safety_clarification_text(result))
     if result.response_mode == "ask_followup":
         return _text_response(_followup_text(result))
     if result.response_mode == "recommend" and result.recommendation is not None:
@@ -274,3 +276,23 @@ def _observation_summary(observation) -> str:
         details.append(f"Belastbarkeit: {limitation}")
     suffix = f" ({'; '.join(details)})" if details else ""
     return f"{observation.patient_label}{suffix}"
+
+def _safety_clarification_text(result: PipelineResult) -> str:
+    """Build a user-facing safety clarification message."""
+    question = result.followup_question
+
+    if result.red_flag_status and result.red_flag_status.safety_question:
+        question = result.red_flag_status.safety_question
+
+    if not question:
+        question = (
+            "Bestehen die genannten Beschwerden aktuell noch, "
+            "oder haben sie sich inzwischen gebessert?"
+        )
+
+    return (
+        "Ihre Angaben enthalten mögliche Warnzeichen. "
+        "Ich kann noch nicht sicher einschätzen, ob ein Notfall vorliegt. "
+        "Bitte beantworten Sie deshalb zuerst diese Sicherheitsfrage:\n\n"
+        f"{question}"
+    )

@@ -144,7 +144,8 @@ Nächster Schritt:
 [Konkrete Handlungsempfehlung.]
 
 Hinweis:
-Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.
+Diese Einschätzung ist KI-generiert, kann Fehler enthalten 
+und ersetzt keine ärztliche Untersuchung oder Diagnose.
 
 Verbotene Formulierungen:
 - „Das ist harmlos.“

@@ -1,3 +1,5 @@
+import 'package:app1/app/app_dependencies.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -66,11 +68,18 @@ void main() {
   testWidgets('Chat screen opens with controller-backed UI', (
     WidgetTester tester,
   ) async {
+    final authSession = AuthSession();
+
+    final dependencies = AppDependencies(authSession: authSession);
+
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChatScreen(
-          controller: chatController,
-          themeController: themeController,
+      AppDependenciesScope(
+        dependencies: dependencies, 
+        child: MaterialApp(
+          home: ChatScreen(
+            controller: chatController,
+            themeController: themeController,
+          ),
         ),
       ),
     );

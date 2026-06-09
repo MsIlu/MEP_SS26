@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
+import '../../controllers/chat_warning_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
@@ -10,10 +11,11 @@ import '../../../warningscreen/presentation/screens/warning_page.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
+import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
-
+import 'package:app1/app/app_dependencies_scope.dart';
 /// Main conversational UI for Careena.
 ///
 /// This screen owns only presentation state such as input focus, scrolling,
@@ -42,6 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // rebuilds and be disposed manually.
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final ChatWarningController _warningController;
   final FocusNode _inputFocusNode = FocusNode();
   final _speechService = SpeechService();
 
@@ -64,12 +67,33 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Wait for the first frame before requesting focus so Flutter has attached
     // the input field to the widget tree.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      _warningController = AppDependenciesScope.of(context).chatWarningController;
+      
+      await _runWarningFlow();
+      
       if (!mounted) return;
 
       _inputFocusNode.requestFocus();
     });
   }
+
+  Future<void> _runWarningFlow() async {
+    // Checks whether the warning has already been accepted by the user
+    final shouldShow = await _warningController.shouldShowWarning();
+
+    if (!mounted || !shouldShow) return;
+
+    // Shows a mandatory dialog that blocks interaction until confirmed
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ChatWarningDialog(),
+    );
+
+    await _warningController.acceptWarning();
+  }
+
 
   Future<void> _handleSend() async {
     // Ignore double-submits while the current request is still in flight.

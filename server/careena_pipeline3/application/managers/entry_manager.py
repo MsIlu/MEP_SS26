@@ -11,7 +11,24 @@ from careena_pipeline3.models.turn import EntryDecision, TurnContext, TurnInput
 
 
 class EntryManager:
-    """Classifies the incoming turn and decides whether extraction is needed."""
+    """
+    Role:
+    - maps the Call-1 scout result into the smaller turn-entry contract used
+      by the orchestrator.
+
+    Input contract:
+    - latest turn input plus current turn context
+    - grouped Call-1 signals from the intent gateway
+
+    Output contract:
+    - small entry-stage steering signals for extraction, person context, and
+      recommendation-request intent
+
+    Does not decide:
+    - case truth
+    - merge semantics
+    - recommendation readiness
+    """
 
     def __init__(
         self,
@@ -83,17 +100,20 @@ class EntryManager:
                 recommendation_requested=recommendation_requested,
                 response_mode_hint=response_mode_hint,
                 message_role=gateway.message_role,
-                person_reference_present=gateway.signals.person_reference_present,
-                multi_person_context=gateway.signals.multi_person_context,
-                subject_relation_unclear=gateway.signals.subject_relation_unclear,
+                person_reference_present=gateway.person_reference_present,
+                multi_person_context=gateway.multi_person_context,
+                subject_relation_unclear=gateway.subject_relation_unclear,
                 call2_tasks=list(gateway.call2_tasks),
                 call2_operation_mode=call2_operation_mode,
                 trace_notes=[
                     f"intent_gateway:{gateway.category}",
                     f"message_role:{gateway.message_role}",
+                    f"profile:{gateway.profile}",
+                    f"next_step:{gateway.next_step or 'none'}",
                     f"recommendation_requested:{recommendation_requested}",
                     f"call2_mode:{call2_operation_mode}",
                     f"call2_tasks:{','.join(gateway.call2_tasks) if gateway.call2_tasks else 'none'}",
+                    *gateway.trace_notes,
                 ],
             )
 
@@ -101,16 +121,19 @@ class EntryManager:
             extraction_required=True,
             recommendation_requested=recommendation_requested,
             message_role=gateway.message_role,
-            person_reference_present=gateway.signals.person_reference_present,
-            multi_person_context=gateway.signals.multi_person_context,
-            subject_relation_unclear=gateway.signals.subject_relation_unclear,
+            person_reference_present=gateway.person_reference_present,
+            multi_person_context=gateway.multi_person_context,
+            subject_relation_unclear=gateway.subject_relation_unclear,
             call2_tasks=list(gateway.call2_tasks),
             call2_operation_mode=call2_operation_mode,
             trace_notes=[
                 f"intent_gateway:{gateway.category}" if gateway is not None else "entry_manager_scaffold",
                 f"message_role:{gateway.message_role}",
+                f"profile:{gateway.profile}",
+                f"next_step:{gateway.next_step or 'none'}",
                 f"recommendation_requested:{recommendation_requested}",
                 f"call2_mode:{call2_operation_mode}",
                 f"call2_tasks:{','.join(gateway.call2_tasks) if gateway.call2_tasks else 'none'}",
+                *gateway.trace_notes,
             ],
         )

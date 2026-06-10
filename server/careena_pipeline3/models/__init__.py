@@ -58,7 +58,6 @@ from careena_pipeline3.models.workflow import (
     ConversationTurn,
     DialogueSummary,
     IntentGateway,
-    IntentGatewaySignals,
     IntentGatewayContext,
     RecommendationResult,
 )
@@ -90,7 +89,6 @@ __all__ = [
     "InjuryObservationData",
     "IntentCategory",
     "IntentGateway",
-    "IntentGatewaySignals",
     "IntentGatewayContext",
     "MeasurementObservationData",
     "MedicalCase",

@@ -16,5 +16,5 @@ class RecommendationRequestService:
             return False
         return (
             gateway.message_role == "recommendation_request"
-            or gateway.signals.recommendation_request
+            or gateway.recommendation_request
         )

@@ -3,7 +3,10 @@ import 'package:app1/core/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
-  const CustomBottomNav({super.key});
+  final ValueChanged<int>? onTap;
+  final bool isSimpleView;
+
+  const CustomBottomNav({super.key, this.onTap, this.isSimpleView = false});
 
   @override
   Widget build(BuildContext context) {
@@ -58,27 +61,40 @@ class CustomBottomNav extends StatelessWidget {
                 type: BottomNavigationBarType.fixed,
                 selectedItemColor: selectedColor,
                 unselectedItemColor: unselectedColor,
-                selectedFontSize: 11,
-                unselectedFontSize: 11,
+                selectedFontSize: isSimpleView ? 16 : 11,
+                unselectedFontSize: isSimpleView ? 16 : 11,
+                iconSize: isSimpleView ? 32 : 24,
                 currentIndex: 0,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    label: "Startseite",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today_outlined),
-                    label: "Kalender",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.chat_bubble_outline),
-                    label: "Nachrichten",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined),
-                    label: "Einstellungen",
-                  ),
-                ],
+                onTap: onTap,
+                items: isSimpleView
+                    ? const [
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.home_outlined),
+                          label: "Startseite",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.settings_outlined),
+                          label: "Einstellungen",
+                        ),
+                      ]
+                    : const [
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.home_outlined),
+                          label: "Startseite",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.calendar_today_outlined),
+                          label: "Kalender",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.chat_bubble_outline),
+                          label: "Nachrichten",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.settings_outlined),
+                          label: "Einstellungen",
+                        ),
+                      ],
               ),
             ),
           ),

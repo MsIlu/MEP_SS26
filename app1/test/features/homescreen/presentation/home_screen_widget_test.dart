@@ -40,5 +40,34 @@ void main() {
       expect(find.textContaining('Ich bin Careena!'), findsOneWidget);
       expect(find.text('Medikamentenplan'), findsOneWidget);
     });
+
+    testWidgets('simple view removes distractions and enlarges navigation', (
+      WidgetTester tester,
+    ) async {
+      final apiClient = ApiClient(http.Client());
+      final controller = ChatController(
+        chatApi: ChatApi(apiClient),
+        chatService: ChatService(),
+        authSession: AuthSession(),
+      );
+      final themeController = ThemeController()..setSimpleView(true);
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+          ),
+        ),
+      );
+
+      expect(find.text('Suchen...'), findsNothing);
+      expect(find.text('Was möchtest du tun?'), findsOneWidget);
+      expect(find.text('Kalender'), findsNothing);
+      expect(find.text('Nachrichten'), findsNothing);
+      expect(find.text('Einstellungen'), findsOneWidget);
+    });
   });
 }

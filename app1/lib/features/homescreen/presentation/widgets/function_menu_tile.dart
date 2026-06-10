@@ -14,6 +14,7 @@ class FunctionMenuTile extends StatelessWidget {
 
   /// Action executed when the tile is selected.
   final VoidCallback onTap;
+  final bool isSimpleView;
 
   const FunctionMenuTile({
     super.key,
@@ -21,6 +22,7 @@ class FunctionMenuTile extends StatelessWidget {
     required this.title,
     required this.bgColor,
     required this.onTap,
+    this.isSimpleView = false,
   });
 
   @override
@@ -56,15 +58,18 @@ class FunctionMenuTile extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        minVerticalPadding: 12,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isSimpleView ? 18 : 15,
+          vertical: isSimpleView ? 14 : 5,
+        ),
+        minVerticalPadding: isSimpleView ? 18 : 12,
         leading: Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(isSimpleView ? 14 : 10),
           decoration: BoxDecoration(
             color: iconBackgroundColor,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: iconColor),
+          child: Icon(icon, color: iconColor, size: isSimpleView ? 34 : 24),
         ),
         title: Text(
           title,
@@ -72,10 +77,15 @@ class FunctionMenuTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            fontSize: isSimpleView ? 19 : null,
             color: titleColor,
           ),
         ),
-        trailing: Icon(Icons.chevron_right, color: trailingColor),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: trailingColor,
+          size: isSimpleView ? 34 : 24,
+        ),
       ),
     );
   }

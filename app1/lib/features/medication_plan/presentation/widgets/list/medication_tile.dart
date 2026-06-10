@@ -1,4 +1,4 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_entry.dart';
@@ -44,7 +44,7 @@ class MedicationTile extends StatelessWidget {
                 height: 46,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? const Color(0xFF222A35)
+                      ? AppColors.darkElevatedSurface
                       : AppColors.careenaInfoBorder,
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -105,7 +105,7 @@ class MedicationTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isDarkMode
-                  ? const Color(0xFF222A35)
+                  ? AppColors.darkElevatedSurface
                   : AppColors.careenaBubbleBackground,
               borderRadius: BorderRadius.circular(14),
             ),

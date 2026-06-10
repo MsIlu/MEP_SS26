@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onBackPressed;
@@ -17,6 +17,10 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkModeTheme = Theme.of(context).brightness == Brightness.dark;
+    final avatarBackground = isDarkModeTheme
+        ? const Color(0xFF86B2B2)
+        : const Color(0xFFC3E7E7);
 
     return AppBar(
       leadingWidth: 72,
@@ -37,7 +41,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundColor: avatarBackground,
             child: Padding(
               padding: const EdgeInsets.all(4),
               child: Image.asset(AppAssets.careenaProfil, fit: BoxFit.contain),

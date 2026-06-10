@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'floating_avatar.dart';
 
 /// Home-screen card that invites the user into a Careena chat.
@@ -21,7 +21,7 @@ class CareenaHeroCard extends StatelessWidget {
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
         final cardColor = isDarkMode
-            ? const Color(0xFF222A35)
+            ? AppColors.darkElevatedSurface
             : AppColors.careenaInfoBorder;
 
         return Container(

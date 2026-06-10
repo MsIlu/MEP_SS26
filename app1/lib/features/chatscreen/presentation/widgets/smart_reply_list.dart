@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// wrapping list of suggested next user messages.
 class SmartReplyList extends StatefulWidget {
@@ -20,7 +20,7 @@ class SmartReplyList extends StatefulWidget {
 }
 
 class _SmartRepliesState extends State<SmartReplyList> {
-  static bool isExpanded = true;
+  bool expanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +32,24 @@ class _SmartRepliesState extends State<SmartReplyList> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final containerColor = isDarkMode
-        ? const Color(0xFF233338)
+        ? AppColors.smartReplySurfaceDark
         : AppColors.careenaNoteBackground;
 
     final chipColor = isDarkMode
-        ? const Color(0xFF263D40)
+        ? AppColors.smartReplyChipDark
         : AppColors.careenaBubbleBackground;
 
     final borderColor = isDarkMode
-        ? const Color(0xFF6FA6A0)
+        ? AppColors.smartReplyBorderDark
         : AppColors.careenaTeal;
 
     final textColor = isDarkMode
-        ? const Color(0xFFEAF8F8)
+        ? AppColors.careenaNoteBackground
         : AppColors.careenaDark;
 
     final mutedIconColor = isDarkMode
-        ? const Color(0xFF9DBDBA)
-        : AppColors.careenaDark.withValues(alpha: isExpanded ? 1 : 0.5);
+        ? AppColors.smartReplyMutedTextDark
+        : AppColors.careenaDark.withValues(alpha: expanded ? 1 : 0.5);
 
     return Align(
       alignment: Alignment.centerRight,
@@ -73,7 +73,7 @@ class _SmartRepliesState extends State<SmartReplyList> {
                   borderRadius: BorderRadius.circular(10),
                   onTap: () {
                     setState(() {
-                      isExpanded = !isExpanded;
+                      expanded = !expanded;
                     });
                   },
                   child: Row(
@@ -92,14 +92,14 @@ class _SmartRepliesState extends State<SmartReplyList> {
                         Icons.expand_more,
                         size: 20,
                         color: mutedIconColor.withValues(
-                          alpha: isExpanded ? 1 : 0.5,
+                          alpha: expanded ? 1 : 0.5,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                if (isExpanded) ...[
+                if (expanded) ...[
                   const SizedBox(height: 8),
 
                   for (final reply in widget.replies) ...[

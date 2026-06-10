@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import '../../utils/medical_terms.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
@@ -29,6 +29,10 @@ class ChatBubble extends StatelessWidget {
     final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final avatarBackground = isDarkMode
+        ? const Color(0xFF86B2B2)
+        : const Color(0xFFC3E7E7);
 
     final bubbleColor = isUser
         ? AppColors.careenaTeal
@@ -69,7 +73,7 @@ class ChatBubble extends StatelessWidget {
               if (!isUser) ...[
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: AppColors.careenaBubbleBackground,
+                  backgroundColor: avatarBackground,
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Image.asset(

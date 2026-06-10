@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'notification_badge_icon.dart';
 
 /// Top row with greeting text and notification badge for the home screen.
@@ -45,7 +45,9 @@ class HomeHeader extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           IconButton(
-            tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
+            tooltip: isDarkMode
+                ? 'Lightmode aktivieren'
+                : 'Darkmode aktivieren',
             style: IconButton.styleFrom(
               backgroundColor: isDarkTheme
                   ? AppColors.toolbarButtonBackgroundDark
@@ -53,6 +55,7 @@ class HomeHeader extends StatelessWidget {
               foregroundColor: isDarkTheme
                   ? AppColors.toolbarButtonForegroundDark
                   : AppColors.toolbarButtonForeground,
+              fixedSize: const Size.square(48),
             ),
             icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: onToggleTheme,

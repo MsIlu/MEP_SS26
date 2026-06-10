@@ -1,4 +1,4 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Small side arrow used for mouse-free day strip navigation.
@@ -26,7 +26,7 @@ class DayStripArrow extends StatelessWidget {
         padding: EdgeInsets.zero,
         style: IconButton.styleFrom(
           backgroundColor: isDarkMode
-              ? const Color(0xFF222A35)
+              ? AppColors.darkElevatedSurface
               : AppColors.lightBackground,
           foregroundColor: isDarkMode
               ? AppColors.toolbarButtonBackgroundDark

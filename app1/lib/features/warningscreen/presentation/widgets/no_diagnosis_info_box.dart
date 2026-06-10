@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_theme.dart';
 
@@ -32,11 +32,7 @@ class NoDiagnosisInfoBox extends StatelessWidget {
           Expanded(
             child: Text(
               WarningCopy.noDiagnosis,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 12,
-                height: 1.35,
-              ),
+              style: TextStyle(color: textColor, fontSize: 12, height: 1.35),
             ),
           ),
         ],

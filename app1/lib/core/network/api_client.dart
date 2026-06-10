@@ -44,18 +44,14 @@ class ApiClient {
 
   /// Sends a POST request to the given [path] with a JSON-encoded [body].
   Future<Map<String, dynamic>> post(
-      String path,
-      Map<String, dynamic> body,
-      ) async {
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final uri = Uri.parse("${AppConfig.baseUrl}$path");
 
     try {
       final response = await _client
-          .post(
-        uri,
-        headers: _buildHeaders(),
-        body: jsonEncode(body),
-      )
+          .post(uri, headers: _buildHeaders(), body: jsonEncode(body))
           .timeout(const Duration(minutes: 3));
 
       return _handleJsonObjectResponse(response);
@@ -79,10 +75,7 @@ class ApiClient {
 
     try {
       final response = await _client
-          .get(
-        uri,
-        headers: _buildHeaders(),
-      )
+          .get(uri, headers: _buildHeaders())
           .timeout(const Duration(minutes: 3));
 
       return _handleJsonObjectResponse(response);
@@ -106,10 +99,7 @@ class ApiClient {
 
     try {
       final response = await _client
-          .get(
-        uri,
-        headers: _buildHeaders(),
-      )
+          .get(uri, headers: _buildHeaders())
           .timeout(const Duration(minutes: 3));
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -146,18 +136,14 @@ class ApiClient {
 
   /// Sends a PATCH request to the given [path] with a JSON-encoded [body].
   Future<Map<String, dynamic>> patch(
-      String path,
-      Map<String, dynamic> body,
-      ) async {
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final uri = Uri.parse("${AppConfig.baseUrl}$path");
 
     try {
       final response = await _client
-          .patch(
-        uri,
-        headers: _buildHeaders(),
-        body: jsonEncode(body),
-      )
+          .patch(uri, headers: _buildHeaders(), body: jsonEncode(body))
           .timeout(const Duration(minutes: 3));
 
       return _handleJsonObjectResponse(response);
@@ -181,10 +167,7 @@ class ApiClient {
 
     try {
       final response = await _client
-          .delete(
-        uri,
-        headers: _buildHeaders(),
-      )
+          .delete(uri, headers: _buildHeaders())
           .timeout(const Duration(minutes: 3));
 
       return _handleJsonObjectResponse(response);
@@ -215,7 +198,7 @@ class ApiClient {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(
         ApiErrorType.http,
-        response.body.isEmpty ? 'HTTP request failed' : response.body,
+        _errorMessage(response.body),
         statusCode: response.statusCode,
       );
     }
@@ -230,5 +213,20 @@ class ApiClient {
       ApiErrorType.invalidResponse,
       'Server returned an invalid JSON object',
     );
+  }
+
+  String _errorMessage(String responseBody) {
+    if (responseBody.isEmpty) return 'HTTP request failed';
+
+    try {
+      final decoded = jsonDecode(responseBody);
+      if (decoded is Map<String, dynamic> && decoded['detail'] is String) {
+        return decoded['detail'] as String;
+      }
+    } on FormatException {
+      // Plain-text backend errors are already readable.
+    }
+
+    return responseBody;
   }
 }

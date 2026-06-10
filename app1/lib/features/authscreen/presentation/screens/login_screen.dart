@@ -10,6 +10,7 @@ import 'registration_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../state/auth_session.dart';
 import '../../data/auth_api_service.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
@@ -48,15 +49,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return AuthPageScaffold(
       maxWidth: AuthTheme.loginMaxWidth,
+      fixedHeader: CareenaPageHeader(
+        title: 'Anmelden',
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(
-            onBack: () => Navigator.of(context).pop(),
-            onToggleTheme: widget.themeController.toggleTheme,
-            isDarkMode: widget.themeController.isDarkMode,
-          ),
-          const SizedBox(height: 26),
           const AuthIntro(
             title: 'Willkommen zurück!',
             subtitle:
@@ -172,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       setState(() {
         _errorMessage =
-        'Anmeldung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+            'Anmeldung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
       });
     } finally {
       if (mounted) {

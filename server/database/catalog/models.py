@@ -56,7 +56,6 @@ class ConsultationReason(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
-
 class ConsultationReasonAssessmentCriterion(SQLModel, table=True):
     """
     Assessment criterion linked to one STS consultation reason.
@@ -81,11 +80,11 @@ class ConsultationReasonAssessmentCriterion(SQLModel, table=True):
     # Examples: symptom, observation, duration, severity, onset, risk_factor, vital_sign, context.
     criterion_type: str = Field(max_length=80)
 
-    # User-facing question that could later be used by the dialogue system.
-    question_de: Optional[str] = Field(default=None)
+    # User-facing question texts by language, for example {"de": "...", "en": "..."}.
+    question_texts_json: str = Field(default="{}")
 
-    # JSON string with everyday German expressions, for example ["Luftnot", "schlecht Luft bekommen"].
-    lay_terms_de_json: str = Field(default="[]")
+    # Everyday expressions by language, for example {"de": ["Luftnot"], "en": ["shortness of breath"]}.
+    lay_terms_json: str = Field(default="{}")
 
     # Examples: yes_no, free_text, number, duration, choice, observed_sign.
     expected_answer_type: str = Field(default="yes_no", max_length=80)

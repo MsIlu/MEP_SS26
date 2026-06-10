@@ -11,21 +11,35 @@ Future<bool> showLeaveChatDialog(BuildContext context) async {
       return AlertDialog(
         backgroundColor: isDarkMode
             ? colorScheme.surface
-            : const Color(0xFFF7FAF9),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: isDarkMode
+                ? Colors.transparent
+                : AppColors.careenaInfoBorder,
+            width: 1,
+          ),
+        ),
         title: Text(
           'Chat verlassen?',
           style: TextStyle(
-            color: isDarkMode ? colorScheme.onSurface : AppColors.careenaDark,
+            color: isDarkMode
+                ? colorScheme.onSurface
+                : AppColors.careenaTitle,
             fontWeight: FontWeight.bold,
             fontSize: 28,
           ),
         ),
         content: Text(
           'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
-          'Der aktuelle Chat wird nicht gespeichert.',
+              'Der aktuelle Chat wird nicht gespeichert.',
           style: TextStyle(
-            color: isDarkMode ? colorScheme.onSurface : AppColors.careenaDark,
+            color: isDarkMode
+                ? colorScheme.onSurface
+                : AppColors.careenaBody,
             fontSize: 16,
             height: 1.4,
           ),
@@ -42,7 +56,7 @@ Future<bool> showLeaveChatDialog(BuildContext context) async {
                   : AppColors.careenaDark,
               textStyle: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             child: const Text('Abbrechen'),
@@ -54,17 +68,25 @@ Future<bool> showLeaveChatDialog(BuildContext context) async {
             style: ElevatedButton.styleFrom(
               backgroundColor: isDarkMode
                   ? AppColors.toolbarButtonBackgroundDark
-                  : AppColors.careenaDark,
-              foregroundColor: Colors.white,
+                  : AppColors.careenaBrand,
+              foregroundColor: isDarkMode
+                  ? AppColors.toolbarButtonForegroundDark
+                  : AppColors.toolbarButtonForeground,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
             child: const Text(
               'Zum Homescreen',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

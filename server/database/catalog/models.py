@@ -55,3 +55,57 @@ class ConsultationReason(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+class ConsultationReasonAssessmentCriterion(SQLModel, table=True):
+    """
+    Assessment criterion linked to one STS consultation reason.
+
+    This table stores structured, reviewable medical assessment features
+    derived from the STS consultation reason context. It does not make
+    runtime triage decisions by itself.
+    """
+    __tablename__ = "catalog_consultation_reason_assessment_criteria"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    consultation_reason_id: int = Field(
+        foreign_key="catalog_consultation_reasons.id",
+        index=True,
+    )
+
+    criterion_key: str = Field(index=True, max_length=160)
+    label_de: str = Field(max_length=255)
+    description_de: Optional[str] = Field(default=None)
+
+    # Examples: symptom, observation, duration, severity, onset, risk_factor, vital_sign, context.
+    criterion_type: str = Field(max_length=80)
+
+    # User-facing question that could later be used by the dialogue system.
+    question_de: Optional[str] = Field(default=None)
+
+    # JSON string with everyday German expressions, for example ["Luftnot", "schlecht Luft bekommen"].
+    lay_terms_de_json: str = Field(default="[]")
+
+    # Examples: yes_no, free_text, number, duration, choice, observed_sign.
+    expected_answer_type: str = Field(default="yes_no", max_length=80)
+
+    # Safety relevance means the criterion may influence safety clarification or urgency checks.
+    is_safety_relevant: bool = Field(default=False)
+
+    # Red flag candidate means this criterion may become a red flag after validation.
+    is_red_flag_candidate: bool = Field(default=False)
+
+    # Defines whether this can be self-reported, observed by others, or both.
+    observation_context: str = Field(default="self_report_or_observed", max_length=80)
+
+    # Source traceability for review, for example STS wording or internal mapping notes.
+    source_note: Optional[str] = Field(default=None)
+
+    mapping_status: str = Field(default="draft", max_length=80)
+    mapping_notes: Optional[str] = Field(default=None)
+
+    is_active: bool = Field(default=True)
+
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

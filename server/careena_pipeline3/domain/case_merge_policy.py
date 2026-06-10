@@ -5,7 +5,7 @@ from careena_pipeline3.domain.observation_identity_resolver import (
 )
 from careena_pipeline3.domain.observation_normalizer import ObservationNormalizer
 from careena_pipeline3.models.domain import CaseObservation, MedicalCase
-from careena_pipeline3.models.turn.message_delta import MessageDelta
+from careena_pipeline3.models.turn.case_update_bridge import CaseUpdateBridge
 
 
 """
@@ -18,7 +18,7 @@ Decides how an incoming observation should update canonical case truth.
 It consumes normalized identity matches and returns explicit update decisions with dialogue consequences.
 """
 class CaseMergePolicy:
-    """Target selection policy for applying a message delta to a medical case."""
+    """Target selection policy for applying a truth-edge bridge to a medical case."""
 
     def __init__(
         self,
@@ -33,7 +33,7 @@ class CaseMergePolicy:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
         observation: CaseObservation,
     ) -> ObservationUpdateDecision:
         observation = self.observation_normalizer.normalize(observation)
@@ -68,7 +68,7 @@ class CaseMergePolicy:
                 notes=["case_update:fallback_create_observation"],
             )
 
-        if delta.intent_signals.possible_new_topic and target.id != observation.id:
+        if delta.merge_hints.possible_new_topic and target.id != observation.id:
             return ObservationUpdateDecision(
                 match_status=match.status,
                 change_kind="new_instance",
@@ -76,7 +76,7 @@ class CaseMergePolicy:
                 notes=[*match.notes, "case_update:create_due_to_topic_shift_signal"],
             )
 
-        if delta.intent_signals.message_role == "correction":
+        if delta.merge_hints.message_role == "correction":
             return ObservationUpdateDecision(
                 match_status=match.status,
                 change_kind="correction",
@@ -120,7 +120,7 @@ class CaseMergePolicy:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
         observation: CaseObservation,
     ):
         return self.identity_resolver.match_observation(
@@ -133,7 +133,7 @@ class CaseMergePolicy:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
     ) -> CaseObservation | None:
         return self.identity_resolver.latest_focus_candidate(case=case, delta=delta)
 

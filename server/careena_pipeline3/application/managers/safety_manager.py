@@ -15,7 +15,7 @@ class SafetyManager:
         checked_sources = []
         if extraction_payload.extraction_result is not None:
             checked_sources.append("extraction_result")
-        if extraction_payload.message_delta is not None:
+        if extraction_payload.case_update_bridge is not None:
             checked_sources.append("normalized_extraction")
         elif extraction_payload.extracted_fields:
             checked_sources.append("normalized_extraction")

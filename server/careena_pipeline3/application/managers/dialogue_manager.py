@@ -13,7 +13,6 @@ from careena_pipeline3.application.services import (
 from careena_pipeline3.models.turn import (
     ConfirmationDecision,
     EntryDecision,
-    ExtractionPayload,
     ProcessStateUpdate,
     ReadinessStateUpdate,
     ResponsePlan,
@@ -105,10 +104,6 @@ class DialogueManager:
             context=context,
             extraction_payload=extraction_payload,
         )
-        self._apply_extraction_contract(
-            context=context,
-            extraction_payload=extraction_payload,
-        )
 
         # Derive process-state consequences from the updated case truth.
         process_state_update = self.dialogue_state_service.sync_after_case_update(
@@ -189,28 +184,6 @@ class DialogueManager:
             or entry_decision.recommendation_requested
         )
         context.trace_notes.extend(entry_decision.trace_notes)
-
-    def _apply_extraction_contract(
-        self,
-        *,
-        context: TurnContext,
-        extraction_payload: ExtractionPayload,
-    ) -> None:
-        """
-        Apply only the extraction-stage signals that orchestration should read.
-
-        The heavier `message_delta` remains a transitional case-update bridge,
-        but `DialogueManager` should not need to inspect its planner internals
-        directly for recommendation flow control.
-        """
-        context.dialogue_state.recommendation_requested = (
-            context.dialogue_state.recommendation_requested
-            or extraction_payload.recommendation_requested
-        )
-        if extraction_payload.recommended_modules:
-            context.dialogue_state.recommended_modules = list(
-                extraction_payload.recommended_modules
-            )
 
     def _apply_process_state_update(
         self,

@@ -15,9 +15,9 @@ class ExtractionManager:
     """
     Produces transitional extraction outputs for the turn orchestrator.
 
-    The manager may still carry the historical `message_delta` bridge, but it
-    should also expose the small orchestration signals that upstream callers
-    need without forcing them to inspect bridge internals directly.
+    The manager may still carry a transitional truth-update bridge, but it
+    should expose neighboring orchestration signals directly instead of
+    hiding them inside that bridge contract.
     """
 
     def __init__(
@@ -55,21 +55,19 @@ class ExtractionManager:
             operation_mode=entry_decision.call2_operation_mode,
             conversation_messages=turn_input.conversation_messages,
         )
-        message_delta = self.extraction_result_mapper.to_message_delta(
+        case_update_bridge = self.extraction_result_mapper.to_case_update_bridge(
             extraction_result,
             message_role=entry_decision.message_role,
             possible_new_topic=(entry_decision.message_role == "topic_shift"),
         )
         active_modules = list(entry_decision.active_modules)
-        for module in message_delta.requirement_signals.active_modules:
+        for module in self.extraction_result_mapper.active_modules(extraction_result):
             if module not in active_modules:
                 active_modules.append(module)
 
         return ExtractionPayload(
             active_modules=active_modules,
-            recommendation_requested=message_delta.planner_signals.recommendation_requested,
-            recommended_modules=list(message_delta.planner_signals.recommended_modules),
             trace_notes=["extraction_manager_completed", *extraction_result.trace_notes],
             extraction_result=extraction_result,
-            message_delta=message_delta,
+            case_update_bridge=case_update_bridge,
         )

@@ -47,10 +47,10 @@ class CaseStateManager:
         context = self.ensure_case_context(context=context)
         if extraction_payload.active_modules:
             context.active_modules = list(extraction_payload.active_modules)
-        if extraction_payload.message_delta is not None:
+        if extraction_payload.case_update_bridge is not None:
             update_outcome = self.case_merger.merge_delta(
                 context.medical_case,
-                extraction_payload.message_delta,
+                extraction_payload.case_update_bridge,
             )
             context.medical_case = update_outcome.medical_case
             context.case_update_dialogue_consequences = list(

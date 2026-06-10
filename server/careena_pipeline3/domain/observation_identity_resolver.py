@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from careena_pipeline3.domain.case_update import ObservationMatchResult
 from careena_pipeline3.models.domain import CaseObservation, MedicalCase
-from careena_pipeline3.models.turn.message_delta import MessageDelta
+from careena_pipeline3.models.turn.case_update_bridge import CaseUpdateBridge
 
 
 """
@@ -21,7 +21,7 @@ class ObservationIdentityResolver:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
         observation: CaseObservation,
     ) -> ObservationMatchResult:
         by_id = self.existing_by_id(case, observation.id)
@@ -91,15 +91,15 @@ class ObservationIdentityResolver:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
         observation: CaseObservation,
     ) -> list[CaseObservation]:
-        intent_signals = delta.intent_signals
+        merge_hints = delta.merge_hints
         candidates: list[CaseObservation] = []
         for existing in case.active_observations(include_rejected=False):
             if existing.type != observation.type:
                 continue
-            if intent_signals.possible_new_topic or intent_signals.message_role == "topic_shift":
+            if merge_hints.possible_new_topic or merge_hints.message_role == "topic_shift":
                 continue
             if identity_token(existing) != identity_token(observation):
                 continue
@@ -123,9 +123,9 @@ class ObservationIdentityResolver:
         self,
         *,
         case: MedicalCase,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
     ) -> CaseObservation | None:
-        for observation in delta.case_delta.all_observations:
+        for observation in delta.claims.all_observations:
             for existing in case.observations:
                 if existing.id == observation.id:
                     return existing

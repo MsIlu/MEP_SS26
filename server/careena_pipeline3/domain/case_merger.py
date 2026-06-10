@@ -2,7 +2,7 @@ from careena_pipeline3.domain.case_merge_policy import CaseMergePolicy
 from careena_pipeline3.domain.case_update_applier import CaseUpdateApplier
 from careena_pipeline3.domain.case_update import CaseUpdateOutcome
 from careena_pipeline3.models.domain import MedicalCase
-from careena_pipeline3.models.turn.message_delta import MessageDelta
+from careena_pipeline3.models.turn.case_update_bridge import CaseUpdateBridge
 
 
 """
@@ -11,11 +11,11 @@ Last changed: 2026-06-08
 Author: workbench@freddy
 
 Short description:
-Coordinates turn-wise case updates from one message delta into the canonical medical case.
+Coordinates turn-wise case updates from one truth-edge bridge into the canonical medical case.
 It orchestrates policy decisions, mutation application, and primary-focus updates.
 """
 class CaseMerger:
-    """Merges a message delta into an existing medical case."""
+    """Merges a truth-edge bridge into an existing medical case."""
 
     def __init__(
         self,
@@ -29,13 +29,13 @@ class CaseMerger:
     def merge_delta(
         self,
         existing_case: MedicalCase | None,
-        delta: MessageDelta,
+        delta: CaseUpdateBridge,
     ) -> CaseUpdateOutcome:
         if existing_case is None:
             existing_case = MedicalCase()
 
-        intent_signals = delta.intent_signals
-        case_payload = delta.case_delta
+        merge_hints = delta.merge_hints
+        case_payload = delta.claims
         merged_any = False
         trace_notes: list[str] = []
         dialogue_consequences: list[str] = []
@@ -67,7 +67,7 @@ class CaseMerger:
                 case=existing_case,
                 observation=observation,
                 decision=decision,
-                message_role=intent_signals.message_role,
+                message_role=merge_hints.message_role,
                 already_present=already_present,
             )
             if not applied:
@@ -82,11 +82,11 @@ class CaseMerger:
 
         self.update_applier.finalize_case(
             case=existing_case,
-            message_role=intent_signals.message_role,
+            message_role=merge_hints.message_role,
             merged_any=merged_any,
         )
 
-        if intent_signals.possible_new_topic:
+        if merge_hints.possible_new_topic:
             primary = self.merge_policy.latest_focus_candidate(case=existing_case, delta=delta)
             if primary is not None:
                 existing_case.set_primary_observation(primary)

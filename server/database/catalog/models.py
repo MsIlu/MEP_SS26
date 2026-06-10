@@ -55,3 +55,61 @@ class ConsultationReason(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+class SymptomCluster(SQLModel, table=True):
+    """
+    Reference catalog entry for a normalized Careena symptom cluster.
+
+    A symptom cluster groups different medical and everyday descriptions
+    of similar complaints, for example chest pain, dyspnea, dizziness, or abdominal pain.
+    """
+    __tablename__ = "catalog_symptom_clusters"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    cluster_key: str = Field(index=True, max_length=120)
+    label_de: str = Field(max_length=255)
+    description_de: Optional[str] = Field(default=None)
+
+    # Optional broad grouping for later exports, for example respiratory, neurological, injury, skin.
+    cluster_group: Optional[str] = Field(default=None, max_length=120)
+
+    # Tracks how far this cluster has been reviewed for Careena use.
+    mapping_status: str = Field(default="draft", max_length=80)
+    mapping_notes: Optional[str] = Field(default=None)
+
+    is_active: bool = Field(default=True)
+
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
+class ConsultationReasonClusterLink(SQLModel, table=True):
+    """
+    Link table between STS consultation reasons and Careena symptom clusters.
+
+    One STS consultation reason can map to one or more symptom clusters.
+    One symptom cluster can also appear in multiple STS consultation reasons.
+    """
+    __tablename__ = "catalog_consultation_reason_cluster_links"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    consultation_reason_id: int = Field(
+        foreign_key="catalog_consultation_reasons.id",
+        index=True,
+    )
+    symptom_cluster_id: int = Field(
+        foreign_key="catalog_symptom_clusters.id",
+        index=True,
+    )
+
+    # primary = main cluster, secondary = relevant but not the main complaint group.
+    relevance: str = Field(default="primary", max_length=80)
+
+    mapping_status: str = Field(default="draft", max_length=80)
+    mapping_notes: Optional[str] = Field(default=None)
+
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

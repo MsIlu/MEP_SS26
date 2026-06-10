@@ -61,7 +61,7 @@ class ApiClient {
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
       throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException catch (e) {
+    } on FormatException  {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -88,7 +88,7 @@ class ApiClient {
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
       throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException catch (e) {
+    } on FormatException  {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -132,7 +132,7 @@ class ApiClient {
       );
     } on TimeoutException {
       throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException catch (e) {
+    } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -163,7 +163,7 @@ class ApiClient {
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
       throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException catch (e) {
+    } on FormatException  {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -190,7 +190,7 @@ class ApiClient {
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
       throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException catch (e) {
+    } on FormatException  {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',

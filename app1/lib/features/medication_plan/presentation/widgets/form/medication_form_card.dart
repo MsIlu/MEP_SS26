@@ -1,4 +1,5 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+﻿import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/demo_medication_catalog.dart';
@@ -84,10 +85,9 @@ class MedicationFormCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
+                CareenaIconActionButton.close(
                   tooltip: 'Abbrechen',
                   onPressed: onCancel,
-                  icon: const Icon(Icons.close),
                 ),
               ],
             ),
@@ -176,18 +176,10 @@ class MedicationFormCard extends StatelessWidget {
               onChanged: onReminderChanged,
             ),
             const SizedBox(height: 8),
-            FilledButton.icon(
+            CareenaPrimaryIconButton(
               onPressed: onSubmit,
-              icon: const Icon(Icons.add),
-              label: const Text('Eintrag speichern'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.toolbarButtonBackground,
-                foregroundColor: AppColors.toolbarButtonForeground,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
+              icon: Icons.add,
+              label: 'Eintrag speichern',
             ),
           ],
         ),

@@ -1,4 +1,4 @@
-import 'package:app1/features/chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_action_buttons.dart';
 import 'package:flutter/material.dart';
 
 /// Floating-style action button that opens the medication creation dialog.
@@ -9,15 +9,9 @@ class AddMedicationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton.filled(
+    return CareenaIconActionButton.add(
       tooltip: 'Medikament hinzufügen',
-      style: IconButton.styleFrom(
-        backgroundColor: AppColors.toolbarButtonBackground,
-        foregroundColor: AppColors.toolbarButtonForeground,
-        fixedSize: const Size(48, 48),
-      ),
       onPressed: onPressed,
-      icon: const Icon(Icons.add),
     );
   }
 }

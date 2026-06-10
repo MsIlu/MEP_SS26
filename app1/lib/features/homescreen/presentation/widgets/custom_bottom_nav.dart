@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
@@ -11,7 +11,7 @@ class CustomBottomNav extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final navBackgroundColor = isDarkMode
-        ? const Color(0xFF222A35)
+        ? AppColors.darkElevatedSurface
         : Colors.white;
 
     final borderColor = isDarkMode

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../utils/medical_terms.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Inline explanation box for a detected medical term in an assistant message.
 class MedicalTermInfoBox extends StatelessWidget {

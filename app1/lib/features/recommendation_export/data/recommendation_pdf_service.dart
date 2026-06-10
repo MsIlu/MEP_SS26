@@ -6,6 +6,10 @@ import 'package:pdf/widgets.dart' as pw;
 class RecommendationPdfService {
   static const String _logoPath = 'assets/images/logo.png';
 
+  static const double _noticeTitleSize = 13;
+  static const double _noticeBodySize = 10;
+  static const double _noticeLineSpacing = 2.5;
+
   static final PdfColor _primaryColor = PdfColor.fromInt(0xFF00897B);
   static final PdfColor _primaryLight = PdfColor.fromInt(0xFFE0F2F1);
   static final PdfColor _warningColor = PdfColor.fromInt(0xFFE65100);
@@ -300,7 +304,7 @@ class RecommendationPdfService {
 
   pw.Widget _buildEmergencyNotice() {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(16),
+      padding: const pw.EdgeInsets.all(14),
       decoration: pw.BoxDecoration(
         color: _warningLight,
         borderRadius: pw.BorderRadius.circular(14),
@@ -313,7 +317,7 @@ class RecommendationPdfService {
             'Wichtiger Hinweis',
             style: pw.TextStyle(
               color: _warningColor,
-              fontSize: 14,
+              fontSize: _noticeTitleSize,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
@@ -324,8 +328,8 @@ class RecommendationPdfService {
                 'aufgesucht werden.',
             style: pw.TextStyle(
               color: _textColor,
-              fontSize: 10.5,
-              lineSpacing: 3,
+              fontSize: _noticeBodySize,
+              lineSpacing: _noticeLineSpacing,
             ),
           ),
           pw.SizedBox(height: 8),
@@ -342,6 +346,7 @@ class RecommendationPdfService {
     );
   }
 
+
   pw.Widget _buildDisclaimer() {
     return pw.Container(
       padding: const pw.EdgeInsets.all(14),
@@ -350,7 +355,7 @@ class RecommendationPdfService {
         borderRadius: pw.BorderRadius.circular(12),
       ),
       child: pw.Text(
-        'Hinweis: Dieses Dokument wurde automatisch durch die MEP26-Anwendung '
+        'Hinweis: Dieses Dokument wurde mithilfe künstlicher Intelligenz (KI) durch die MEP26-Anwendung '
             'erstellt. Es ersetzt keine ärztliche, psychotherapeutische oder '
             'medizinische Beratung, Diagnose oder Behandlung. Die Empfehlung dient '
             'ausschließlich als unterstützende Orientierung.',

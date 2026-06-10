@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Short reassurance shown next to the explicit consent checkbox.
 class PrivacyNote extends StatelessWidget {
@@ -12,7 +12,7 @@ class PrivacyNote extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor = isDarkMode
-        ? const Color(0xFF243638)
+        ? AppColors.authPrivacyBackgroundDark
         : AppColors.careenaNoteBackground;
 
     final borderColor = isDarkMode

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Animated assistant bubble shown while a backend response is pending.
 class ThinkingBubble extends StatefulWidget {

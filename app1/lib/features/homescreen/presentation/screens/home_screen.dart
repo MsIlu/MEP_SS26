@@ -1,8 +1,9 @@
-import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+﻿import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
+import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
@@ -102,7 +103,7 @@ class HomeScreen extends StatelessWidget {
         icon: Icons.menu_book_outlined,
         title: "Symptomtagebuch",
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToSymptomDiary(context),
       ),
     ];
   }
@@ -113,6 +114,16 @@ class HomeScreen extends StatelessWidget {
       MaterialPageRoute(
         builder: (context) =>
             MedicationPlanPage(themeController: themeController),
+      ),
+    );
+  }
+
+  void _navigateToSymptomDiary(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            SymptomDiaryPage(themeController: themeController),
       ),
     );
   }

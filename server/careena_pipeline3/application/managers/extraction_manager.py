@@ -51,6 +51,7 @@ class ExtractionManager:
                 )
                 else None
             ),
+            profile=entry_decision.call2_profile,
             call2_tasks=entry_decision.call2_tasks,
             operation_mode=entry_decision.call2_operation_mode,
             conversation_messages=turn_input.conversation_messages,

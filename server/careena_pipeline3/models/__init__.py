@@ -33,6 +33,7 @@ from careena_pipeline3.models.domain import (
     SymptomObservationData,
 )
 from careena_pipeline3.models.extraction import (
+    Call2ExtractionResult,
     ExtractedCasePayload,
     ExtractedObservation,
     ExtractedSubject,
@@ -65,6 +66,7 @@ from careena_pipeline3.models.workflow import (
 __all__ = [
     "AssessmentReadiness",
     "Call2OperationMode",
+    "Call2ExtractionResult",
     "Call2Task",
     "CareLevel",
     "CaseObservation",

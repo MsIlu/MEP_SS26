@@ -13,6 +13,7 @@ class EntryDecision(PipelineModel):
     recommendation_requested: bool = False
     response_mode_hint: str | None = None
     message_role: MessageRole = "new_information"
+    call2_profile: str = "default"
     person_reference_present: bool = False
     multi_person_context: bool = False
     subject_relation_unclear: bool = False

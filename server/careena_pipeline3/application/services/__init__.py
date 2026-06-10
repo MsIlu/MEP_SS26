@@ -7,9 +7,15 @@ from careena_pipeline3.application.services.extraction_service import (
     ExtractionService,
     NoOpExtractionService,
 )
+from careena_pipeline3.application.services.extraction_failure_fallback_builder import (
+    ExtractionFailureFallbackBuilder,
+)
 from careena_pipeline3.application.services.extraction_result_mapper import ExtractionResultMapper
 from careena_pipeline3.application.services.intent_classification_service import (
     IntentClassificationService,
+)
+from careena_pipeline3.application.services.python_extraction_result_normalizer import (
+    PythonExtractionResultNormalizer,
 )
 from careena_pipeline3.application.services.readiness_evaluator import (
     AssessmentReadinessEvaluator,
@@ -34,11 +40,13 @@ __all__ = [
     "AssessmentReadinessEvaluator",
     "Call2OperationModeService",
     "DialogueStateService",
+    "ExtractionFailureFallbackBuilder",
     "ExtractionResultMapper",
     "ExtractionResultNormalizer",
     "ExtractionService",
     "IntentClassificationService",
     "NoOpExtractionService",
+    "PythonExtractionResultNormalizer",
     "RecommendationRequestService",
     "RecommendationResultBuilder",
     "RecommendationStateService",

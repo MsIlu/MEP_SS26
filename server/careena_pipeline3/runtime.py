@@ -8,6 +8,7 @@ import config
 from careena_pipeline3.application.managers import DialogueManager, EntryManager, ExtractionManager
 from careena_pipeline3.application.services import (
     IntentClassificationService,
+    PythonExtractionResultNormalizer,
     ResilientExtractionService,
 )
 from careena_pipeline3.core.client import LLMClient
@@ -17,7 +18,6 @@ from careena_pipeline3.server_log import configure_debug_logging
 from careena_pipeline3.llm.call_control import CallModelConfig, build_call_model_config
 from careena_pipeline3.llm import (
     LLMCaseExtractionExtractor,
-    LLMExtractionResultNormalizer,
     LLMIntentGatewayExtractor,
 )
 
@@ -39,7 +39,7 @@ class PipelineRuntimeServices:
     call_model_config: CallModelConfig
     intent_gateway_extractor: LLMIntentGatewayExtractor
     case_extraction_extractor: LLMCaseExtractionExtractor
-    extraction_result_normalizer: LLMExtractionResultNormalizer
+    extraction_result_normalizer: PythonExtractionResultNormalizer
     intent_classification_service: IntentClassificationService
     entry_manager: EntryManager
     extraction_manager: ExtractionManager
@@ -91,10 +91,7 @@ def build_pipeline_runtime(
         extraction_engine,
         call_models=call_model_config,
     )
-    extraction_result_normalizer = LLMExtractionResultNormalizer(
-        extraction_engine,
-        call_models=call_model_config,
-    )
+    extraction_result_normalizer = PythonExtractionResultNormalizer()
     intent_classification_service = IntentClassificationService(
         intent_gateway_extractor=intent_gateway_extractor,
     )

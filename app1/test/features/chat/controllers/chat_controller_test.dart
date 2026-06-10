@@ -46,10 +46,7 @@ void main() {
         AuthResponse(
           accessToken: 'test-token',
           tokenType: 'bearer',
-          account: const Account(
-            id: 1,
-            email: 'test@example.com',
-          ),
+          account: const Account(id: 1, email: 'test@example.com'),
           profiles: const [
             AuthProfile(
               id: 42,
@@ -89,18 +86,30 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<ChatResponse> sendMessage(
-      String text,
-      String sessionId,
-      int profileId,
-      ) async {
+    String text,
+    String sessionId,
+    int? profileId,
+  ) async {
     lastText = text;
     lastSessionId = sessionId;
     lastProfileId = profileId;
 
-    return ChatResponse(
-      text: 'Antwort',
-      redFlag: false,
-      action: null,
-    );
+    return ChatResponse(text: 'Antwort', redFlag: false, action: null);
   }
+
+  @override
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    return [];
+  }
+
+  @override
+  Future<List<String>> updateInputDraftSymptoms(
+    String sessionId,
+    List<String> symptoms,
+  ) async {
+    return symptoms;
+  }
+
+  @override
+  Future<void> cancelInputDraft(String sessionId) async {}
 }

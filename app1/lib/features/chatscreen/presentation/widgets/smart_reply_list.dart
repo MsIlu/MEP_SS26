@@ -91,8 +91,9 @@ class _SmartRepliesState extends State<SmartReplyList> {
                       Icon(
                         Icons.expand_more,
                         size: 20,
-                        color: mutedIconColor
-                            .withValues(alpha: isExpanded ? 1 : 0.5),
+                        color: mutedIconColor.withValues(
+                          alpha: isExpanded ? 1 : 0.5,
+                        ),
                       ),
                     ],
                   ),
@@ -130,4 +131,3 @@ class _SmartRepliesState extends State<SmartReplyList> {
     );
   }
 }
-

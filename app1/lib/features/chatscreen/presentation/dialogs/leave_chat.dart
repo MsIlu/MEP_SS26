@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 Future<bool> showLeaveChatDialog(BuildContext context) async {
   final colorScheme = Theme.of(context).colorScheme;

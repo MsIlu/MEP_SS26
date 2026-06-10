@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../../utils/auth_validators.dart';
 import '../../../theme/auth_theme.dart';
 
@@ -42,6 +42,7 @@ class BirthDateSegmentFields extends StatelessWidget {
 
         return InputDecorator(
           decoration: AuthTheme.inputDecoration(
+            context: context,
             label: 'Geburtsdatum',
             hint: 'TT.MM.JJJJ',
           ).copyWith(errorText: field.errorText ?? liveError),
@@ -126,7 +127,15 @@ class _BirthDateSegmentField extends StatelessWidget {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(maxLength),
       ],
-      decoration: InputDecoration.collapsed(hintText: hint),
+      decoration: InputDecoration.collapsed(
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
       onChanged: (value) {
         onChanged();
         if (value.length == maxLength) {
@@ -142,12 +151,17 @@ class _DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 4),
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         '.',
         style: TextStyle(
-          color: AppColors.careenaTitle,
+          color: isDarkMode
+              ? colorScheme.onSurfaceVariant
+              : AppColors.careenaTitle,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),

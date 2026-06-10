@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Animated assistant bubble shown while a backend response is pending.
 class ThinkingBubble extends StatefulWidget {
@@ -36,7 +36,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
   }
 
   /// Builds one animated dot with a phase offset from the other dots.
-  Widget _dot(double delay) {
+  Widget _dot(double delay, Color dotColor) {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -50,9 +50,9 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
           scale: scale,
           child: Opacity(
             opacity: opacity.clamp(0.3, 1),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 3),
-              child: CircleAvatar(radius: 3, backgroundColor: Colors.grey),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: CircleAvatar(radius: 3, backgroundColor: dotColor),
             ),
           ),
         );
@@ -62,6 +62,21 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final bubbleColor = isDarkMode ? colorScheme.surface : Colors.white;
+    final textColor = isDarkMode ? colorScheme.onSurface : Colors.grey;
+    final hintTextColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
+    final dotColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : Colors.grey;
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.06);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: Row(
@@ -79,11 +94,11 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: bubbleColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
+                    color: shadowColor,
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -96,23 +111,26 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _dot(0.0),
-                      _dot(0.2),
-                      _dot(0.4),
+                      _dot(0.0, dotColor),
+                      _dot(0.2, dotColor),
+                      _dot(0.4, dotColor),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'Careena schreibt...',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textColor,
+                        ),
                       ),
                     ],
                   ),
                   if (widget.showLongProcessingHint) ...[
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.careenaMuted,
+                        color: hintTextColor,
                       ),
                     ),
                   ],

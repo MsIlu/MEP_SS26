@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// wrapping list of suggested next user messages.
 class SmartReplyList extends StatefulWidget {
@@ -29,6 +29,28 @@ class _SmartRepliesState extends State<SmartReplyList> {
       return const SizedBox.shrink();
     }
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final containerColor = isDarkMode
+        ? AppColors.smartReplySurfaceDark
+        : AppColors.careenaNoteBackground;
+
+    final chipColor = isDarkMode
+        ? AppColors.smartReplyChipDark
+        : AppColors.careenaBubbleBackground;
+
+    final borderColor = isDarkMode
+        ? AppColors.smartReplyBorderDark
+        : AppColors.careenaTeal;
+
+    final textColor = isDarkMode
+        ? AppColors.careenaNoteBackground
+        : AppColors.careenaDark;
+
+    final mutedIconColor = isDarkMode
+        ? AppColors.smartReplyMutedTextDark
+        : AppColors.careenaDark.withValues(alpha: expanded ? 1 : 0.5);
+
     return Align(
       alignment: Alignment.centerRight,
       child: Padding(
@@ -37,10 +59,10 @@ class _SmartRepliesState extends State<SmartReplyList> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.careenaNoteBackground,
+              color: containerColor,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.careenaTeal.withValues(alpha: 0.15),
+                color: borderColor.withValues(alpha: isDarkMode ? 0.35 : 0.15),
               ),
             ),
             child: Column(
@@ -57,20 +79,21 @@ class _SmartRepliesState extends State<SmartReplyList> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Vorschläge',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.careenaDark,
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Icon(
                         Icons.expand_more,
                         size: 20,
-                        color: AppColors.careenaDark
-                            .withValues(alpha: expanded ? 1 : 0.5),
+                        color: mutedIconColor.withValues(
+                          alpha: expanded ? 1 : 0.5,
+                        ),
                       ),
                     ],
                   ),
@@ -87,11 +110,11 @@ class _SmartRepliesState extends State<SmartReplyList> {
                         visualDensity: VisualDensity.compact,
                         label: Text(
                           reply,
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(fontSize: 13, color: textColor),
                         ),
                         onPressed: () => widget.onSelected(reply),
-                        backgroundColor: AppColors.careenaBubbleBackground,
-                        side: const BorderSide(color: AppColors.careenaTeal,),
+                        backgroundColor: chipColor,
+                        side: BorderSide(color: borderColor),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -108,4 +131,3 @@ class _SmartRepliesState extends State<SmartReplyList> {
     );
   }
 }
-

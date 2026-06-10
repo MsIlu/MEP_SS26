@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Branding row shown at the top of the onboarding screen.
 class OnboardingHeader extends StatelessWidget {
-  const OnboardingHeader({super.key});
+  final VoidCallback onToggleTheme;
+  final bool isDarkMode;
+
+  const OnboardingHeader({
+    super.key,
+    required this.onToggleTheme,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // The logo and title scale down together so the row remains single-line
@@ -27,12 +35,27 @@ class OnboardingHeader extends StatelessWidget {
                   "MedBitAid v.1",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
+                  style: TextStyle(
                     fontSize: titleSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.careenaBrand,
                   ),
                 ),
+              ),
+              IconButton(
+                tooltip: isDarkMode
+                    ? 'Lightmode aktivieren'
+                    : 'Darkmode aktivieren',
+                style: IconButton.styleFrom(
+                  backgroundColor: isDarkTheme
+                      ? AppColors.toolbarButtonBackgroundDark
+                      : AppColors.toolbarButtonBackground,
+                  foregroundColor: isDarkTheme
+                      ? AppColors.toolbarButtonForegroundDark
+                      : AppColors.toolbarButtonForeground,
+                ),
+                icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                onPressed: onToggleTheme,
               ),
             ],
           ),

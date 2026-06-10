@@ -10,12 +10,24 @@ import '../widgets/registration/registration_personal_step.dart';
 import '../widgets/registration/registration_review_step.dart';
 import '../widgets/registration/registration_step_indicator.dart';
 import 'login_screen.dart';
+import '../../../../core/themes/theme_controller.dart';
+import '../../state/auth_session.dart';
+import '../../data/auth_api_service.dart';
 
 /// Multi-step registration flow based on the prototype screens.
 class RegistrationScreen extends StatefulWidget {
   final ChatController chatController;
+  final ThemeController themeController;
+  final AuthSession authSession;
+  final AuthApiService authApiService;
 
-  const RegistrationScreen({super.key, required this.chatController});
+  const RegistrationScreen({
+    super.key,
+    required this.chatController,
+    required this.themeController,
+    required this.authSession,
+    required this.authApiService,
+  });
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -24,6 +36,8 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _form = RegistrationFormController();
   int _step = 0;
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -37,7 +51,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(onBack: _goBack, showBrand: false),
+          AuthTopBar(
+            onBack: _goBack,
+            showBrand: false,
+            onToggleTheme: widget.themeController.toggleTheme,
+            isDarkMode: widget.themeController.isDarkMode,
+          ),
           const SizedBox(height: 22),
           AuthIntro(title: 'Konto erstellen', subtitle: _subtitle),
           const SizedBox(height: 22),
@@ -50,6 +69,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             duration: const Duration(milliseconds: 180),
             child: KeyedSubtree(key: ValueKey<int>(_step), child: _buildStep()),
           ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 16),
           SwitchAuthMode(
             label: 'Du hast bereits ein Konto?',
@@ -66,6 +96,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return 'Überprüfe deine Daten, um Fehler zu vermeiden.';
     }
     return 'Erstelle ein Konto, um Careena, deine virtuelle Gesundheitsassistentin, optimal zu nutzen.';
+  }
+
+  String? _normalizeBirthDate(String rawValue) {
+    final value = rawValue.trim();
+
+    if (value.isEmpty) {
+      return null;
+    }
+
+    // Already backend-compatible: YYYY-MM-DD
+    final backendFormat = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    if (backendFormat.hasMatch(value)) {
+      return value;
+    }
+
+    // German UI format: DD.MM.YYYY -> YYYY-MM-DD
+    final germanFormat = RegExp(r'^(\d{2})\.(\d{2})\.(\d{4})$');
+    final match = germanFormat.firstMatch(value);
+
+    if (match == null) {
+      return value;
+    }
+
+    final day = match.group(1)!;
+    final month = match.group(2)!;
+    final year = match.group(3)!;
+
+    return '$year-$month-$day';
   }
 
   Widget _buildStep() {
@@ -106,7 +164,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         onConsentChanged: _updateConsent,
         onEditPersonalData: () => _goToCompletedStep(0),
         onEditHealthData: () => _goToCompletedStep(1),
-        onSubmit: _finishRegistration,
+        onSubmit: _isSubmitting ? () {} : _finishRegistration,
       ),
     };
   }
@@ -122,8 +180,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _openLogin() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) =>
-            LoginScreen(chatController: widget.chatController),
+        builder: (context) => LoginScreen(
+          chatController: widget.chatController,
+          themeController: widget.themeController,
+          authSession: widget.authSession,
+          authApiService: widget.authApiService,
+        ),
       ),
     );
   }
@@ -154,17 +216,57 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  void _finishRegistration() {
+  Future<void> _finishRegistration() async {
     if (!_form.hasAcceptedConsent) {
+      setState(() {
+        _errorMessage = 'Bitte akzeptiere die Einwilligung, um fortzufahren.';
+      });
       return;
     }
 
-    // TODO(backend): Submit registration data, consent timestamp, and health
-    // TODO: profile to the API before creating the authenticated Home session.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(controller: widget.chatController),
-      ),
-    );
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final displayName =
+      '${_form.firstNameController.text.trim()} ${_form.lastNameController.text.trim()}'
+          .trim();
+
+      final authResponse = await widget.authApiService.register(
+        email: _form.emailController.text.trim(),
+        password: _form.passwordController.text,
+        displayName: displayName,
+        dateOfBirth: _normalizeBirthDate(_form.birthDateController.text),
+        biologicalSex: _form.sex,
+      );
+
+      widget.authSession.setAuthResponse(authResponse);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            controller: widget.chatController,
+            themeController: widget.themeController,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage =
+        'Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

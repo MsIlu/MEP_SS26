@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
@@ -7,6 +7,29 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final navBackgroundColor = isDarkMode
+        ? AppColors.darkElevatedSurface
+        : Colors.white;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant.withValues(alpha: 0.45)
+        : AppColors.careenaInfoBorder;
+
+    final selectedColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaTeal;
+
+    final unselectedColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaSoftAccent;
+
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : Colors.black.withValues(alpha: 0.05);
+
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(15, 0, 15, 12),
       child: Align(
@@ -16,12 +39,12 @@ class CustomBottomNav extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 560),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: navBackgroundColor,
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: AppColors.careenaInfoBorder),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: shadowColor,
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -30,13 +53,11 @@ class CustomBottomNav extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: BottomNavigationBar(
-                // The navigation is currently static; currentIndex keeps the
-                // home item selected until real tab routing is introduced.
                 elevation: 0,
                 backgroundColor: Colors.transparent,
                 type: BottomNavigationBarType.fixed,
-                selectedItemColor: AppColors.careenaTeal,
-                unselectedItemColor: AppColors.careenaSoftAccent,
+                selectedItemColor: selectedColor,
+                unselectedItemColor: unselectedColor,
                 selectedFontSize: 11,
                 unselectedFontSize: 11,
                 currentIndex: 0,

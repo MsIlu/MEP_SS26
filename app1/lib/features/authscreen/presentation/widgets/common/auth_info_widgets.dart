@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
 /// Shared info icon that shows the same explanation on hover and tap.
@@ -22,7 +22,12 @@ class AuthInfoButton extends StatelessWidget {
       child: IconButton(
         tooltip: message,
         visualDensity: visualDensity,
-        icon: const Icon(Icons.info_outline, color: AppColors.careenaTitle),
+        icon: Icon(
+          Icons.info_outline,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).colorScheme.onSurfaceVariant
+              : AppColors.careenaTitle,
+        ),
         onPressed: () => _showInfoDialog(context),
       ),
     );
@@ -64,23 +69,40 @@ class AuthCalculatedField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final fillColor = isDarkMode
+        ? AppColors.authInfoBackgroundDark
+        : AppColors.careenaNoteBackground;
+
+    final borderColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark.withValues(alpha: 0.55)
+        : AppColors.careenaBorder;
+
     return TextFormField(
       controller: controller,
       readOnly: true,
       enableInteractiveSelection: false,
-      decoration: AuthTheme.inputDecoration(label: label, hint: hint).copyWith(
-        filled: true,
-        fillColor: AppColors.careenaNoteBackground,
-        suffixIcon: AuthInfoButton(title: label, message: infoText),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: const BorderSide(color: AppColors.careenaBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-          borderSide: const BorderSide(color: AppColors.careenaBorder),
-        ),
-      ),
+      style: TextStyle(color: colorScheme.onSurface),
+      decoration:
+          AuthTheme.inputDecoration(
+            context: context,
+            label: label,
+            hint: hint,
+          ).copyWith(
+            filled: true,
+            fillColor: fillColor,
+            suffixIcon: AuthInfoButton(title: label, message: infoText),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
+              borderSide: BorderSide(color: borderColor),
+            ),
+          ),
     );
   }
 }

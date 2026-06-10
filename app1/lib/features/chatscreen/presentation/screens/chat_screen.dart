@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
+import '../../controllers/chat_warning_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
@@ -10,9 +11,11 @@ import '../../../warningscreen/presentation/screens/warning_page.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
+import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
-import '../themes/app_colors.dart';
-
+import '../../../../core/themes/theme_controller.dart';
+import 'package:app1/core/services/speech_service.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 /// Main conversational UI for Careena.
 ///
 /// This screen owns only presentation state such as input focus, scrolling,
@@ -22,7 +25,14 @@ class ChatScreen extends StatefulWidget {
   /// Controller that provides message state and sends requests to the backend.
   final ChatController controller;
 
-  const ChatScreen({super.key, required this.controller});
+  /// Shared theme controller used to switch between light and dark mode.
+  final ThemeController themeController;
+
+  const ChatScreen({
+    super.key,
+    required this.controller,
+    required this.themeController,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -34,7 +44,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // rebuilds and be disposed manually.
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final ChatWarningController _warningController;
   final FocusNode _inputFocusNode = FocusNode();
+  final _speechService = SpeechService();
 
   // Local UI-only state. The chat messages themselves live in ChatController.
   List<String> _smartReplies = [];
@@ -55,12 +67,33 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Wait for the first frame before requesting focus so Flutter has attached
     // the input field to the widget tree.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      _warningController = AppDependenciesScope.of(context).chatWarningController;
+      
+      await _runWarningFlow();
+      
       if (!mounted) return;
 
       _inputFocusNode.requestFocus();
     });
   }
+
+  Future<void> _runWarningFlow() async {
+    // Checks whether the warning has already been accepted by the user
+    final shouldShow = await _warningController.shouldShowWarning();
+
+    if (!mounted || !shouldShow) return;
+
+    // Shows a mandatory dialog that blocks interaction until confirmed
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ChatWarningDialog(),
+    );
+
+    await _warningController.acceptWarning();
+  }
+
 
   Future<void> _handleSend() async {
     // Ignore double-submits while the current request is still in flight.
@@ -68,6 +101,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final text = _textController.text.trim();
     if (text.isEmpty) return;
+
+    await _speechService.stop();
 
     // Clear input and smart replies immediately to make the UI feel responsive
     // before the network request starts.
@@ -124,6 +159,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _inputFocusNode.requestFocus();
   }
+
 
 
   void _onMessagesChanged() {
@@ -205,26 +241,24 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-void _handleSmartReplySelected(String reply) {
-  final currentText = _textController.text.trim();
+  void _handleSmartReplySelected(String reply) {
+    final currentText = _textController.text.trim();
+    final newText = currentText.isEmpty ? reply : '$currentText $reply';
 
-  final newText =
-      currentText.isEmpty ? reply : '$currentText $reply';
+    _textController.text = newText;
 
-  _textController.text = newText;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
 
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    if (!mounted) return;
+      _inputFocusNode.requestFocus();
 
-    _inputFocusNode.requestFocus();
+      await Future.delayed(Duration.zero);
 
-    await Future.delayed(Duration.zero);
-
-    _textController.selection = TextSelection.collapsed(
-      offset: _textController.text.length,
-    );
-  });
-}
+      _textController.selection = TextSelection.collapsed(
+        offset: _textController.text.length,
+      );
+    });
+  }
 
   /// Tracks whether the user is near the bottom and shows the jump button when
   /// new messages may otherwise arrive outside the visible area.
@@ -265,8 +299,13 @@ void _handleSmartReplySelected(String reply) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const ChatAppBar(),
+  backgroundColor: widget.themeController.isDarkMode
+      ? Theme.of(context).scaffoldBackgroundColor
+      : const Color(0xFFF7F9FA),
+      appBar: ChatAppBar(
+        onToggleTheme: widget.themeController.toggleTheme,
+        isDarkMode: widget.themeController.isDarkMode,
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 820,
@@ -276,12 +315,13 @@ void _handleSmartReplySelected(String reply) {
                 children: [
                   Expanded(child: _buildMessageList()),
                   ChatInputField(
-                  controller: _textController,
-                  focusNode: _inputFocusNode,
-                  isSending: _isSending,
-                  onSend: _handleSend,
-                  smartReplies: _smartReplies,
-                  onSmartReplySelected: _handleSmartReplySelected,
+                    controller: _textController,
+                    focusNode: _inputFocusNode,
+                    isSending: _isSending,
+                    onSend: _handleSend,
+                    smartReplies: _smartReplies,
+                    onSmartReplySelected: _handleSmartReplySelected,
+                    speechService: _speechService,
                   ),
                 ],
               ),

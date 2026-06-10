@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Die App benötigt das Mikrofon für die Spracheingabe im Chat.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Die App nutzt Spracherkennung, um Ihre Eingaben zu verstehen.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

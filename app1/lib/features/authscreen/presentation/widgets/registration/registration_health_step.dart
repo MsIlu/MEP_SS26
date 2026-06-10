@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../data/registration_condition_options.dart';
 import '../../../utils/auth_validators.dart';
 import '../../../utils/bmi_utils.dart';
@@ -88,6 +87,12 @@ class _RegistrationHealthDataStepState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final helperTextColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
+
     return Form(
       key: widget.formKey,
       child: Column(
@@ -135,12 +140,12 @@ class _RegistrationHealthDataStepState
           const SizedBox(height: 20),
           Text(
             'Vorerkrankungen (optional)',
-            style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+            style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             'Wähle alle zutreffenden aus.',
-            style: GoogleFonts.nunito(color: AppColors.careenaMuted),
+            style: TextStyle(color: helperTextColor),
           ),
           const SizedBox(height: 10),
           _ConditionChips(
@@ -179,10 +184,37 @@ class _BirthSexSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final containerColor = isDarkMode
+        ? AppColors.darkElevatedSurface
+        : Colors.white;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
+    final segmentedBackground = isDarkMode
+        ? AppColors.segmentedControlBackgroundDark
+        : AppColors.careenaNoteBackground;
+
+    final segmentedSelectedBackground = isDarkMode
+        ? AppColors.chatInputAccentDark
+        : AppColors.careenaSoftAccent;
+
+    final segmentedForeground = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    final segmentedSelectedForeground = isDarkMode
+        ? Colors.white
+        : AppColors.careenaTitle;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.careenaBorder),
+        color: containerColor,
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
       ),
       child: Padding(
@@ -214,11 +246,11 @@ class _BirthSexSelector extends StatelessWidget {
               selected: {selectedSex},
               showSelectedIcon: false,
               style: SegmentedButton.styleFrom(
-                backgroundColor: AppColors.careenaNoteBackground,
-                foregroundColor: AppColors.careenaBody,
-                selectedBackgroundColor: AppColors.careenaSoftAccent,
-                selectedForegroundColor: AppColors.careenaTitle,
-                side: const BorderSide(color: AppColors.careenaBorder),
+                backgroundColor: segmentedBackground,
+                foregroundColor: segmentedForeground,
+                selectedBackgroundColor: segmentedSelectedBackground,
+                selectedForegroundColor: segmentedSelectedForeground,
+                side: BorderSide(color: borderColor),
               ),
               onSelectionChanged: (selection) => onChanged(selection.first),
             ),
@@ -236,7 +268,7 @@ class _BirthSexLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Geburtsgeschlecht',
-      style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+      style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
     );
   }
 }
@@ -268,16 +300,37 @@ class _ConditionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final chipBackground = isDarkMode ? AppColors.darkElevatedSurface : null;
+
+    final selectedChipBackground = isDarkMode
+        ? AppColors.chatInputAccentDark
+        : AppColors.careenaSoftAccent;
+
+    final chipTextColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final checkmarkColor = isDarkMode ? Colors.white : AppColors.careenaTitle;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         for (final condition in registrationConditionOptions)
           FilterChip(
-            label: Text(condition),
+            label: Text(condition, style: TextStyle(color: chipTextColor)),
             selected: selectedConditions.contains(condition),
-            selectedColor: AppColors.careenaSoftAccent,
-            checkmarkColor: AppColors.careenaTitle,
+            backgroundColor: chipBackground,
+            selectedColor: selectedChipBackground,
+            checkmarkColor: checkmarkColor,
+            side: BorderSide(color: borderColor),
             onSelected: (selected) => onChanged(condition, selected),
           ),
       ],

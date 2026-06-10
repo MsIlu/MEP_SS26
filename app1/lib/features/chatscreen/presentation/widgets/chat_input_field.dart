@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/services/speech_service.dart';
 
 /// Bottom input area for composing and sending chat messages.
-class ChatInputField extends StatelessWidget {
+class ChatInputField extends StatefulWidget {
   /// Text controller owned by the chat screen.
   final TextEditingController controller;
 
@@ -16,6 +17,8 @@ class ChatInputField extends StatelessWidget {
   /// Disables submission while the previous message is still processing.
   final bool isSending;
 
+  final SpeechService speechService;
+
   final List<String> smartReplies;
   final ValueChanged<String> onSmartReplySelected;
 
@@ -27,10 +30,134 @@ class ChatInputField extends StatelessWidget {
     required this.isSending,
     required this.smartReplies,
     required this.onSmartReplySelected,
+    required this.speechService,
   });
 
   @override
+  State<ChatInputField> createState() => _ChatInputFieldState();
+}
+
+class _ChatInputFieldState extends State<ChatInputField>
+    with SingleTickerProviderStateMixin {
+  bool _isListening = false;
+
+  late final AnimationController _pulseController;
+
+  late final Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    widget.speechService.onListeningStopped = () {
+      if (!mounted) return;
+
+      _pulseController.stop();
+      _pulseController.reset();
+
+      setState(() => _isListening = false);
+    };
+  }
+
+  @override
+  void dispose() {
+    widget.speechService.onListeningStopped = null;
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  // ── Spracheingabe ────────────────────────────────────────────────────────────
+
+  Future<void> _toggleListening() async {
+    if (_isListening) {
+      await _stopListening();
+    } else {
+      await _startListening();
+    }
+  }
+
+  Future<void> _startListening() async {
+    final available = await widget.speechService.initialize();
+
+    if (!available) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Mikrofon nicht verfügbar oder keine Berechtigung erteilt.',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    await widget.speechService.stop();
+
+    widget.controller.clear();
+
+    setState(() => _isListening = true);
+
+    _pulseController.repeat(reverse: true);
+
+    await widget.speechService.listen(
+      onResult: (text) {
+        if (!widget.speechService.isListening) return;
+
+        // Erkannten Text live ins Eingabefeld schreiben
+        widget.controller.text = text;
+        widget.controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: text.length),
+        );
+      },
+    );
+
+    // Aufnahme automatisch beendet (Stille erkannt)
+    //if (mounted) setState(() => _isListening = false);
+  }
+
+  Future<void> _stopListening() async {
+    await widget.speechService.stop();
+    _pulseController.stop();
+    _pulseController.reset();
+    if (mounted) setState(() => _isListening = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final outerBackground = isDarkMode
+        ? AppColors.chatInputOuterDark
+        : Colors.white;
+
+    final inputBackground = isDarkMode
+        ? AppColors.chatInputInnerDark
+        : AppColors.lightBackground;
+
+    final sendButtonColor = isDarkMode
+        ? AppColors.chatInputAccentDark
+        : AppColors.careenaTeal;
+
+    final sendingButtonColor = isDarkMode
+        ? AppColors.chatInputDisabledDark
+        : AppColors.lightBackground;
+
+    final sendingIconColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // The mic icon is hidden on compact widths to reserve enough room for
@@ -45,8 +172,8 @@ class ChatInputField extends StatelessWidget {
             isCompact ? 10 : 16,
             16,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: outerBackground,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,13 +188,26 @@ class ChatInputField extends StatelessWidget {
                       hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
                       child: Container(
                         decoration: BoxDecoration(
-                          color: AppColors.background,
+                          color: inputBackground,
                           borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: AppColors.careenaTeal.withValues(
+                              alpha: 0.25,
+                            ),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (smartReplies.isNotEmpty)
+                            if (widget.smartReplies.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   12,
@@ -76,49 +216,100 @@ class ChatInputField extends StatelessWidget {
                                   6,
                                 ),
                                 child: SmartReplyList(
-                                  replies: smartReplies,
-                                  onSelected:onSmartReplySelected,)
-                                ,
+                                  replies: widget.smartReplies,
+                                  onSelected: widget.onSmartReplySelected,
+                                ),
                               ),
 
                             Row(
                               crossAxisAlignment:
                                   CrossAxisAlignment.center,
                               children: [
-                                SizedBox(width: isCompact ? 8 : 10,),
+                                SizedBox(width: isCompact ? 8 : 10),
 
                                 Expanded(
                                   child: TextField(
-                                    controller: controller,
-                                    focusNode: focusNode,
+                                    controller: widget.controller,
+                                    focusNode: widget.focusNode,
                                     autofocus: true,
-                                    textInputAction:TextInputAction.send,
-                                    keyboardType:TextInputType.text,
+                                    textInputAction: TextInputAction.send,
+                                    keyboardType: TextInputType.text,
                                     minLines: 1,
                                     maxLines: 4,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                      fontSize: 16,
+                                    ),
                                     onSubmitted: (_) {
                                       // Pressing Enter should behave
                                       // like tapping send.
-                                      if (!isSending) {
-                                        onSend();
+                                      if (!widget.isSending) {
+                                        widget.onSend();
                                       }
                                     },
-                                    decoration:
-                                        InputDecoration(
-                                      hintText: isCompact
-                                          ? 'Beschwerden beschreiben'
-                                          : 'Beschreiben Sie kurz Ihre Beschwerden',
-                                      border:
-                                          InputBorder.none,
+                                    decoration: InputDecoration(
+                                      hintText: _isListening
+                                          ? '🎤 Ich höre zu...'
+                                          : (isCompact
+                                                ? 'Beschwerden beschreiben'
+                                                : 'Beschreiben Sie kurz Ihre Beschwerden'),
+                                      hintStyle: TextStyle(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      filled: false,
+                                      fillColor: Colors.transparent,
+                                      isDense: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
                                     ),
                                   ),
                                 ),
 
                                 if (!isCompact) ...[
-                                  const Tooltip(
-                                    message:'Spracheingabe ist noch nicht verfügbar',
-                                    child: Icon(Icons.mic_none,color: Colors.grey,),
+                                  Semantics(
+                                    button: true,
+                                    label: _isListening
+                                        ? 'Sprachaufnahme stoppen'
+                                        : 'Spracheingabe starten',
+
+                                    child: GestureDetector(
+                                      onTap: _toggleListening,
+
+                                      child: AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+
+                                        child: ScaleTransition(
+                                          scale: _isListening
+                                              ? _pulseAnimation
+                                              : const AlwaysStoppedAnimation(
+                                                  1.0,
+                                                ),
+
+                                          child: Icon(
+                                            _isListening
+                                                ? Icons.mic
+                                                : Icons.mic_none,
+
+                                            key: ValueKey(_isListening),
+
+                                            color: _isListening
+                                                ? AppColors.careenaTeal
+                                                : colorScheme.onSurfaceVariant,
+
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
+
                                   const SizedBox(width: 15),
                                 ] else
                                   const SizedBox(width: 12),
@@ -130,26 +321,25 @@ class ChatInputField extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(width: isCompact ? 6 : 10,),
+                  SizedBox(width: isCompact ? 6 : 10),
                   Semantics(
                     button: true,
-                    enabled: !isSending,
-                    label: isSending
+                    enabled: !widget.isSending,
+                    label: widget.isSending
                         ? 'Nachricht wird verarbeitet'
                         : 'Symptombeschreibung senden',
                     child: IconButton.filled(
-                      onPressed:
-                          isSending ? null : onSend,
+                      onPressed: widget.isSending ? null : widget.onSend,
                       style: IconButton.styleFrom(
-                        backgroundColor:AppColors.careenaTeal,
-                        disabledBackgroundColor:Colors.grey[300],
-                        fixedSize: Size.square(isCompact ? 44 : 48,),
+                        backgroundColor: sendButtonColor,
+                        disabledBackgroundColor: sendingButtonColor,
+                        fixedSize: Size.square(isCompact ? 44 : 48),
                       ),
                       icon: Icon(
-                        isSending
-                            ? Icons.hourglass_top
-                            : Icons.send,
-                        color: Colors.white,
+                        widget.isSending ? Icons.hourglass_top : Icons.send,
+                        color: widget.isSending
+                            ? sendingIconColor
+                            : Colors.white,
                         size: 20,
                       ),
                     ),

@@ -1,8 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
 /// Required consent control for terms, privacy, health data, and emergency limits.
 class ConsentCheckbox extends StatefulWidget {
@@ -49,22 +48,39 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = GoogleFonts.nunito(
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final boxColor = isDarkMode ? colorScheme.surface : Colors.white;
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
+    final textColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    final linkColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaPrimary;
+
+    final baseStyle = TextStyle(
       height: 1.35,
-      color: AppColors.careenaBody,
+      color: textColor,
     );
+
     final linkStyle = baseStyle.copyWith(
-      color: AppColors.careenaPrimary,
+      color: linkColor,
       fontWeight: FontWeight.w800,
       decoration: TextDecoration.underline,
-      decorationColor: AppColors.careenaPrimary,
+      decorationColor: linkColor,
     );
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: boxColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.careenaBorder),
+        border: Border.all(color: borderColor),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -76,6 +92,7 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
             children: [
               Checkbox(
                 value: widget.value,
+                activeColor: AppColors.toolbarButtonBackgroundDark,
                 onChanged: (checked) => widget.onChanged(checked ?? false),
               ),
               const SizedBox(width: 6),

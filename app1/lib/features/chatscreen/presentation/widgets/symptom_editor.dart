@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app1/core/themes/app_colors.dart';
+import '../themes/app_colors.dart';
 
 /// Bottom sheet used to edit, remove and save detected symptoms.
 class SymptomEditor extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app1/core/themes/app_colors.dart';
+import '../themes/app_colors.dart';
 
 /// Displays detected symptoms as a single compact row below the message list.
 class SymptomList extends StatelessWidget {

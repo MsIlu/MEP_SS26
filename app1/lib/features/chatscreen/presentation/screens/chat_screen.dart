@@ -60,7 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     widget.controller.messages.addListener(_onMessagesChanged);
-    
+
     widget.controller.init();
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
@@ -160,20 +160,18 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocusNode.requestFocus();
   }
 
-
-
   void _onMessagesChanged() {
     // Get the current list of messages
     final messages = widget.controller.messages.value;
 
     if (messages.isEmpty) return;
-    
+
     final lastMessage = messages.last;
     if (lastMessage.isLoading) return;
-    if (lastMessage.isUser)  return;
+    if (lastMessage.isUser) return;
     if (lastMessage.isStreaming) return;
-    if (lastMessage.text.isEmpty) return;  
-    
+    if (lastMessage.text.isEmpty) return;
+
     // Generate smart replies from the latest assistant message
     setState(() {
       _smartReplies = SmartReplies.generate(lastMessage.text);
@@ -299,9 +297,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-  backgroundColor: widget.themeController.isDarkMode
-      ? Theme.of(context).scaffoldBackgroundColor
-      : const Color(0xFFF7F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: ChatAppBar(
         onToggleTheme: widget.themeController.toggleTheme,
         isDarkMode: widget.themeController.isDarkMode,

@@ -66,7 +66,7 @@ def test_register_rejects_duplicate_email(client):
     #print(second_response.status_code, second_response.json())
 
     assert first_response.status_code == 200
-    assert second_response.status_code == 400
+    assert second_response.status_code == 409
     assert second_response.json()["detail"] == "Email is already registered."
 
 def test_login_succeeds_with_valid_credentials(client):

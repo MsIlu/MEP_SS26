@@ -149,6 +149,62 @@ It is intended for medical/product review, not as runtime case state.
 | 1216 | Bisswunde | bite_wound_reported_or_observed | boolean | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | primary | True | False | readiness_requirement |
 | 1216 | Bisswunde | deep_wound_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | False | supporting_context |
 | 1216 | Bisswunde | wound_contamination_or_infection_risk_reported | free_text | free_text | True | conditional / self_report_or_observed | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1301 | Bluterbrechen, Teerstuhl (Melaena) | upper_gastrointestinal_bleeding_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1301 | Bluterbrechen, Teerstuhl (Melaena) | dizziness_or_near_syncope_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1301 | Bluterbrechen, Teerstuhl (Melaena) | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1302 | Frischblutabgang ab ano | fresh_rectal_bleeding_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1302 | Frischblutabgang ab ano | dizziness_or_near_syncope_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1302 | Frischblutabgang ab ano | severe_bleeding_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1303 | Bauchschmerzen | abdominal_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1303 | Bauchschmerzen | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1303 | Bauchschmerzen | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1303 | Bauchschmerzen | symptom_onset_or_duration | duration | duration_input | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1304 | Uebelkeit, Erbrechen | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1304 | Uebelkeit, Erbrechen | abdominal_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1304 | Uebelkeit, Erbrechen | dehydration_or_inability_to_keep_fluids_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1304 | Uebelkeit, Erbrechen | symptom_onset_or_duration | duration | duration_input | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1305 | Oberbauchschmerzen / Schmerzen im Epigastrium | epigastric_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1305 | Oberbauchschmerzen / Schmerzen im Epigastrium | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1305 | Oberbauchschmerzen / Schmerzen im Epigastrium | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1306 | Obstipation | constipation_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1306 | Obstipation | abdominal_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1306 | Obstipation | symptom_onset_or_duration | duration | duration_input | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1307 | Diarrhoe | diarrhea_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1307 | Diarrhoe | dehydration_or_inability_to_keep_fluids_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1307 | Diarrhoe | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1307 | Diarrhoe | symptom_onset_or_duration | duration | duration_input | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1308 | Brust / Brustwarze, Beschwerden im Bereich | breast_or_nipple_complaint_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1308 | Brust / Brustwarze, Beschwerden im Bereich | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1308 | Brust / Brustwarze, Beschwerden im Bereich | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1309 | Analschmerzen, Symptome in der Analregion | anal_pain_or_symptoms_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1309 | Analschmerzen, Symptome in der Analregion | fresh_rectal_bleeding_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1309 | Analschmerzen, Symptome in der Analregion | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1310 | Unterbauch-, Leistenschmerzen | lower_abdominal_or_groin_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1310 | Unterbauch-, Leistenschmerzen | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1310 | Unterbauch-, Leistenschmerzen | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1311 | Uteruskontraktionen, Geburt | uterine_contractions_or_labor_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1311 | Uteruskontraktionen, Geburt | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1311 | Uteruskontraktionen, Geburt | vaginal_bleeding_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1312 | Vaginale Blutung | vaginal_bleeding_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1312 | Vaginale Blutung | dizziness_or_near_syncope_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1312 | Vaginale Blutung | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1312 | Vaginale Blutung | severe_bleeding_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1313 | Vaginaler Ausfluss | vaginal_discharge_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1313 | Vaginaler Ausfluss | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1313 | Vaginaler Ausfluss | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1314 | Genitalprolaps | genital_prolapse_reported | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1314 | Genitalprolaps | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1315 | Nachlassen der fetalen Kindsbewegungen | decreased_fetal_movement_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1315 | Nachlassen der fetalen Kindsbewegungen | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1316 | Kontrolle der fetalen Vitalfunktionen | fetal_vitality_check_requested | boolean | yes_no_buttons | True | conditional / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1316 | Kontrolle der fetalen Vitalfunktionen | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1317 | Nabelschnurvorfall | umbilical_cord_prolapse_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1317 | Nabelschnurvorfall | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1317 | Nabelschnurvorfall | uterine_contractions_or_labor_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1318 | Fetale Tachykardie | fetal_heart_rate_user_provided | measurement | measurement_input | True | conditional / user_provided_measurement | accept_if_user_provided | primary | True | True | structured_safety_validator |
+| 1318 | Fetale Tachykardie | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1319 | Fetale Bradykardie | fetal_heart_rate_user_provided | measurement | measurement_input | True | conditional / user_provided_measurement | accept_if_user_provided | primary | True | True | structured_safety_validator |
+| 1319 | Fetale Bradykardie | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
 
 ## Review Notes
 

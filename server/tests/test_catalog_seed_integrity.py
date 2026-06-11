@@ -185,3 +185,24 @@ def test_traumatology_category_has_primary_criterion_links() -> None:
     missing_reason_ids = sorted(traumatology_reason_ids - reason_ids_with_primary_link)
 
     assert missing_reason_ids == []
+
+def test_gastrointestinal_gynecology_category_has_primary_criterion_links() -> None:
+    """Ensure every gastrointestinal/gynecology STS reason has at least one primary criterion link."""
+    reasons = load_seed(CONSULTATION_REASONS_PATH)
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    category_reason_ids = {
+        item["sts_id"]
+        for item in reasons["consultation_reasons"]
+        if item["source_category_de"] == "Magen - Darm - Gynaekologie"
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []

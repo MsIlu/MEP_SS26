@@ -205,6 +205,32 @@ It is intended for medical/product review, not as runtime case state.
 | 1318 | Fetale Tachykardie | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
 | 1319 | Fetale Bradykardie | fetal_heart_rate_user_provided | measurement | measurement_input | True | conditional / user_provided_measurement | accept_if_user_provided | primary | True | True | structured_safety_validator |
 | 1319 | Fetale Bradykardie | pregnancy_status_or_possible_pregnancy_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1401 | Flankenschmerzen | flank_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1401 | Flankenschmerzen | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1401 | Flankenschmerzen | gross_hematuria_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1401 | Flankenschmerzen | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1401 | Flankenschmerzen | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1402 | Blutbeimengung im Urin / Makrohaematurie | gross_hematuria_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1402 | Blutbeimengung im Urin / Makrohaematurie | dizziness_or_near_syncope_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1402 | Blutbeimengung im Urin / Makrohaematurie | flank_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1402 | Blutbeimengung im Urin / Makrohaematurie | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1403 | Anurie / Urinretention | anuria_or_urinary_retention_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1403 | Anurie / Urinretention | abdominal_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1403 | Anurie / Urinretention | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1404 | Brennen beim Urinieren / Pollakisurie | dysuria_or_pollakisuria_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1404 | Brennen beim Urinieren / Pollakisurie | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1404 | Brennen beim Urinieren / Pollakisurie | flank_pain_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1404 | Brennen beim Urinieren / Pollakisurie | gross_hematuria_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1405 | Hodenbeschwerden, Penisbeschwerden | testicular_or_penile_complaint_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1405 | Hodenbeschwerden, Penisbeschwerden | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1405 | Hodenbeschwerden, Penisbeschwerden | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1406 | Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie) | glucose_dysregulation_or_polyuria_polydipsia_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1406 | Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie) | blood_glucose_user_provided | measurement | measurement_input | True | conditional / user_provided_measurement | accept_if_user_provided | supporting | True | False | supporting_context |
+| 1406 | Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie) | consciousness_level_observed | observed_sign | choice_buttons | True | conditional / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1406 | Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie) | nausea_or_vomiting_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1407 | Urininkontinenz | urinary_incontinence_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
+| 1407 | Urininkontinenz | focal_neurological_deficit_self_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1407 | Urininkontinenz | spinal_trauma_neurological_deficit_reported | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
 
 ## Review Notes
 

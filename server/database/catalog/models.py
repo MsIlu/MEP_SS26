@@ -98,6 +98,30 @@ class ConsultationReasonAssessmentCriterion(SQLModel, table=True):
     # Defines whether this can be self-reported, observed by others, or both.
     observation_context: str = Field(default="self_report_or_observed", max_length=80)
 
+    # Defines whether Careena can responsibly capture this STS criterion.
+    # Examples: usable, conditional, not_usable, not_assessed.
+    careena_capture_status: str = Field(default="not_assessed", max_length=80)
+
+    # Defines how the criterion can be captured, if at all.
+    # Examples: self_report, observer_report, user_provided_measurement,
+    # observer_assisted_scale, clinician_assessment, lab_required, imaging_required.
+    careena_capture_method: str = Field(default="not_assessed", max_length=120)
+
+    # Defines whether Careena may ask for this criterion or only accept it if provided.
+    # Examples: ask_actively, ask_if_context_relevant, accept_if_user_provided,
+    # do_not_ask, do_not_use.
+    careena_use_policy: str = Field(default="not_assessed", max_length=120)
+
+    # Defines how this criterion may later influence Pipeline3 decisions.
+    # Examples: safety_clarification_trigger, structured_safety_validator,
+    # readiness_requirement, supporting_context, not_used_for_product_decision.
+    careena_decision_role: str = Field(default="not_assessed", max_length=120)
+
+    # Documents why an STS criterion is not usable or only conditionally usable in Careena.
+    # Examples: requires_clinician_assessment, requires_device_measurement,
+    # requires_lab_result, not_reliable_for_layperson.
+    not_usable_reason: Optional[str] = Field(default=None, max_length=255)
+
     # Source traceability for review, for example STS wording or internal mapping notes.
     source_note: Optional[str] = Field(default=None)
 

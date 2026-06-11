@@ -1,4 +1,4 @@
-﻿import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
@@ -37,12 +37,15 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // A very small width needs tighter horizontal spacing than the shared
     // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDarkMode
+          ? Theme.of(context).scaffoldBackgroundColor
+          : AppColors.headerBackgroundLight,
       appBar: CareenaPageHeader(
         title: 'Willkommen!',
         showBack: false,

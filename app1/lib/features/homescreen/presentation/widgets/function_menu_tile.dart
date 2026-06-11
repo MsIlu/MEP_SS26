@@ -30,7 +30,9 @@ class FunctionMenuTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final borderColor = colorScheme.outlineVariant;
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
 
     final iconBackgroundColor = isDarkMode
         ? AppColors.darkElevatedSurface
@@ -51,7 +53,12 @@ class FunctionMenuTile extends StatelessWidget {
     final tileRadius = BorderRadius.circular(isSimpleView ? 28 : 20);
 
     return Material(
-      color: colorScheme.surface,
+      key: ValueKey('home-feature-card-$title'),
+      color: isDarkMode ? colorScheme.surface : AppColors.lightCard,
+      elevation: 2,
+      shadowColor: isDarkMode
+          ? AppColors.darkBackground
+          : AppColors.careenaBorder,
       shape: RoundedRectangleBorder(
         borderRadius: tileRadius,
         side: BorderSide(color: borderColor),

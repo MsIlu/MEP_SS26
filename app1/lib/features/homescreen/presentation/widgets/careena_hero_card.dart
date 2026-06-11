@@ -127,7 +127,7 @@ class _HeroTextAndAction extends StatelessWidget {
           backgroundColor: buttonColor,
           foregroundColor: isDarkMode
               ? AppColors.toolbarButtonForegroundDark
-              : Colors.white,
+              : AppColors.toolbarButtonForeground,
           borderRadius: isSimpleView ? 26 : 20,
           height: isSimpleView ? 64 : 44,
           fontSize: isSimpleView ? 17 : 13,

@@ -81,12 +81,17 @@ def main() -> None:
                     "safety_relevant": link.is_safety_relevant,
                     "red_flag_candidate": link.is_red_flag_candidate,
                     "decision_role": link.careena_decision_role,
+                    "criterion_role": link.criterion_role,
+                    "target_sts_levels": format_list(load_json_field(link.target_sts_levels_json)),
+                    "urgency_effect": link.urgency_effect,
+                    "interim_care_guidance": link.interim_care_guidance_key,
+                    "mapping_status": link.mapping_status,
                     "lay_terms": format_list(load_json_field(criterion.lay_terms_json)),
                     "source_note": link.source_note or "",
                 }
             )
 
-    rows.sort(key=lambda item: (item["sts_id"], item["relevance"], item["criterion_key"]))
+    rows.sort(key=lambda item: (item["sts_id"], item["criterion_role"], item["relevance"], item["criterion_key"]))
 
     EXPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -109,8 +114,8 @@ def main() -> None:
         "",
         "## Review Table",
         "",
-        "| STS ID | STS reason | Criterion | Value type | Input mode | Free text | Capture | Use policy | Relevance | Safety | Red flag candidate | Decision role |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| STS ID | STS reason | Criterion | Value type | Input mode | Free text | Capture | Use policy | Criterion role | Target STS levels | Urgency effect | Interim care | Relevance | Safety | Red flag candidate | Decision role | Mapping status |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
 
     for row in rows:
@@ -124,10 +129,15 @@ def main() -> None:
             f"{row['free_text_allowed']} | "
             f"{row['capture_status']} / {row['capture_method']} | "
             f"{row['use_policy']} | "
+            f"{row['criterion_role']} | "
+            f"{row['target_sts_levels']} | "
+            f"{row['urgency_effect']} | "
+            f"{row['interim_care_guidance']} | "
             f"{row['relevance']} | "
             f"{row['safety_relevant']} | "
             f"{row['red_flag_candidate']} | "
-            f"{row['decision_role']} |"
+            f"{row['decision_role']} | "
+            f"{row['mapping_status']} |"
         )
 
     lines.extend(

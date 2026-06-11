@@ -35,6 +35,15 @@ def dump_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
 
+def dump_json_field(value: Any, default: Any) -> str:
+    """Serialize seed values for database text JSON fields."""
+    if value is None:
+        value = default
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, ensure_ascii=False)
+
+
 def seed_consultation_reasons() -> dict[str, int]:
     """Import or update STS consultation reasons."""
     data = load_json(CONSULTATION_REASONS_SEED_PATH)
@@ -175,6 +184,13 @@ def seed_consultation_reason_criteria_links() -> dict[str, int]:
                 "is_safety_relevant": item.get("is_safety_relevant", False),
                 "is_red_flag_candidate": item.get("is_red_flag_candidate", False),
                 "careena_decision_role": item.get("careena_decision_role", "supporting_context"),
+                "criterion_role": item.get("criterion_role", "supporting_criterion"),
+                "target_sts_levels_json": dump_json_field(
+                    item.get("target_sts_levels", item.get("target_sts_levels_json")),
+                    [],
+                ),
+                "urgency_effect": item.get("urgency_effect", "supporting_context_only"),
+                "interim_care_guidance_key": item.get("interim_care_guidance_key", "none"),
                 "source_note": item.get("source_note"),
                 "mapping_status": item.get("mapping_status", "draft"),
                 "mapping_notes": item.get("mapping_notes"),

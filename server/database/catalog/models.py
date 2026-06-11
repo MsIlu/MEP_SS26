@@ -166,6 +166,26 @@ class ConsultationReasonAssessmentCriterionLink(SQLModel, table=True):
     # readiness_requirement, supporting_context, not_used_for_product_decision.
     careena_decision_role: str = Field(default="supporting_context", max_length=120)
 
+    # Defines the medical modeling role of this criterion within this STS reason.
+    # Examples: entry_criterion, level_discriminator, supporting_criterion,
+    # anamnesis_context, measurement_if_available, clinical_if_reported,
+    # deescalation_guard, interim_care_guidance_trigger.
+    criterion_role: str = Field(default="supporting_criterion", max_length=80)
+
+    # Stores the STS urgency levels this link is relevant for, for example [1] or [2, 3].
+    target_sts_levels_json: str = Field(default="[]")
+
+    # Describes how this linked criterion affects downstream urgency reasoning.
+    # Examples: confirms_emergency, supports_higher_urgency,
+    # requires_safety_clarification, blocks_deescalation,
+    # supports_observation_if_absent, informs_interim_guidance,
+    # supporting_context_only.
+    urgency_effect: str = Field(default="supporting_context_only", max_length=120)
+
+    # Optional key for interim care advice triggered by this criterion.
+    # Examples: cpr_guidance, dependent_limb_positioning, stable_side_position, none.
+    interim_care_guidance_key: str = Field(default="none", max_length=120)
+
     # Source traceability for review, for example STS wording or internal mapping notes.
     source_note: Optional[str] = Field(default=None)
 

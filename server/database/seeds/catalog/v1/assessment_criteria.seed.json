@@ -10,6 +10,87 @@
   "usage_note": "Reusable assessment criteria derived from STS-relevant concepts. This seed documents whether Careena can capture each criterion in a lay-user chat context. It does not link criteria to specific STS consultation reasons and does not make runtime triage decisions.",
   "assessment_criteria": [
     {
+      "criterion_key": "abdominal_invasive_procedure_72h",
+      "label_de": "Abdominal-invasive Ma?nahme in den letzten 72 Stunden",
+      "description_de": "Punktion, Biopsie, Endoskopie oder ?hnliche Ma?nahme in den letzten 72 Stunden.",
+      "criterion_type": "procedure_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Punktion",
+          "Biopsie",
+          "Endoskopie",
+          "72 Stunden"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "abdominal_pain_reported",
+      "label_de": "Bauchschmerzen",
+      "description_de": "In der Bauchh?hle lokalisierte Schmerzen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bauchschmerzen",
+          "Bauchweh",
+          "Bauchkr?mpfe"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "abdominal_pain_reported",
+      "label_de": "Bauchschmerzen",
+      "description_de": "In der Bauchh?hle lokalisierte Schmerzen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bauchschmerzen",
+          "Bauchweh"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "abdominal_pain_self_reported",
       "label_de": "Bauchschmerzen selbst berichtet",
       "description_de": "Selbstberichtete Bauchschmerzen ohne spezifischere Lokalisation.",
@@ -30,22 +111,34 @@
     },
     {
       "criterion_key": "abdominal_trauma_reported",
-      "label_de": "Abdominaltrauma berichtet",
-      "description_de": "Berichtetes Trauma am Bauch oder Unterleib.",
-      "criterion_type": "trauma_location",
+      "label_de": "Abdominaltrauma",
+      "description_de": "Verletzung oder Beschwerden des Bauchs durch stumpfes oder spitzes Trauma.",
+      "criterion_type": "trauma",
       "suggested_question_texts_json": "{\"de\": [\"Wurde der Bauch oder Unterleib verletzt?\"]}",
       "lay_terms_json": "{\"de\": [\"Bauch verletzt\", \"Schlag in den Bauch\", \"Bauchtrauma\", \"Unterleib verletzt\", \"Bauchprellung\"]}",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1206.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bauchtrauma",
+          "Bauch verletzt",
+          "Schlag auf Bauch"
+        ],
+        "en": []
+      }
     },
     {
       "criterion_key": "abnormal_breathing_rate_reported",
@@ -65,6 +158,32 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "absent_fetal_movements",
+      "label_de": "Keine fetalen Kindsbewegungen",
+      "description_de": "G?nzliches Fehlen von Kindsbewegungen.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "keine Kindsbewegungen",
+          "Kind bewegt sich nicht"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -119,6 +238,33 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "active_bleeding_or_clots_pregnancy_22plus",
+      "label_de": "Aktive Blutung oder Koagula bei Schwangerschaft ab 22. SSW",
+      "description_de": "STS-Level-1-Kriterium bei vaginaler Blutung.",
+      "criterion_type": "obstetric_emergency",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "aktive Blutung",
+          "Blutkoagel",
+          "Schwangerschaft ab 22 SSW"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -212,6 +358,32 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "acute_onset_incontinence",
+      "label_de": "Akuter Beginn der Inkontinenz",
+      "description_de": "Akuter Beginn von Urininkontinenz.",
+      "criterion_type": "course",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "pl?tzlich inkontinent",
+          "neu aufgetreten"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "acute_psychiatric_crisis_self_reported_or_observed",
       "label_de": "Akute psychische Krise berichtet oder beobachtet",
       "description_de": "Akuter Angstzustand, Mutismus, akute psychische Dekompensation oder stark auff?lliger psychischer Zustand.",
@@ -293,6 +465,32 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "agitation_after_head_trauma",
+      "label_de": "Agitiertheit nach Kopfverletzung",
+      "description_de": "Unruhe oder Agitiertheit nach Sch?del-Hirn-Trauma.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "unruhig nach Kopfverletzung",
+          "agitiert"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -389,6 +587,34 @@
       "is_active": true
     },
     {
+      "criterion_key": "airway_or_breathing_impairment_face_neck_trauma",
+      "label_de": "Atemwegs- oder Atembeeintr?chtigung bei Gesichts-/Halstrauma",
+      "description_de": "Obstruktion der Atemwege, Dyspnoe, Heiserkeit oder Schluckst?rung nach Trauma der Hals-/Gesichtsregion.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Atemweg",
+          "Luftnot",
+          "Heiserkeit",
+          "Schluckst?rung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "alcohol_intoxication_reported",
       "label_de": "Alkoholintoxikation oder Alkoholmissbrauch berichtet",
       "description_de": "Zu viel Alkohol oder Alkoholintoxikation berichtet.",
@@ -483,6 +709,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "amniotic_fluid_loss_22plus",
+      "label_de": "Fruchtwasserabgang ab 22. SSW",
+      "description_de": "Fruchtwasserabgang bei Schwangerschaft ab 22. SSW.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fruchtwasser",
+          "Blasensprung",
+          "Wasser l?uft"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "amount_taken_reported",
       "label_de": "Menge berichtet",
       "description_de": "Menge der eingenommenen oder konsumierten Substanz.",
@@ -529,6 +782,60 @@
       "is_active": true
     },
     {
+      "criterion_key": "anal_pain_region_symptoms",
+      "label_de": "Analschmerzen oder Symptome in Analregion",
+      "description_de": "Beschwerden der Analregion.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Analschmerzen",
+          "After schmerzt",
+          "Analbereich"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "anal_swelling_redness_discharge",
+      "label_de": "Schwellung, R?tung oder Ausfluss im Analbereich",
+      "description_de": "Begleitsymptome im Analbereich.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schwellung",
+          "R?tung",
+          "Ausfluss"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "anticoagulant_medication",
       "label_de": "Gerinnungshemmende Medikamente",
       "description_de": "Einnahme von Blutverd?nnern oder gerinnungshemmenden Medikamenten.",
@@ -544,6 +851,34 @@
           "Marcumar",
           "Eliquis",
           "Xarelto"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "anticoagulation_or_hemophilia",
+      "label_de": "Antikoagulation oder bekannte H?mophilie",
+      "description_de": "Gerinnungshemmende Therapie oder bekannte H?mophilie gem?? STS-Hinweis.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blutverd?nner",
+          "Gerinnungshemmer",
+          "H?mophilie",
+          "Gerinnungsst?rung"
         ],
         "en": []
       },
@@ -608,6 +943,34 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "duration",
       "suggested_input_mode": "duration_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "anuria_or_urinary_retention_reported",
+      "label_de": "Anurie oder Urinretention",
+      "description_de": "Fehlende Harnproduktion oder Unverm?gen, die Blase ganz/teilweise zu entleeren.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kann nicht urinieren",
+          "kein Urin",
+          "Harnverhalt",
+          "Blase voll"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -870,6 +1233,115 @@
       "is_active": true
     },
     {
+      "criterion_key": "bite_inflammation_or_bleeding",
+      "label_de": "Entz?ndungszeichen oder Blutung bei Biss",
+      "description_de": "Entz?ndungszeichen im Umgebungsbereich oder Blutung bei Bisswunde.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "rot nach Biss",
+          "entz?ndet",
+          "Biss blutet"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "bite_neurovascular_damage",
+      "label_de": "Nerven- oder Gef??sch?digung bei Biss",
+      "description_de": "Sch?digung von Nerven und/oder Gef??en bei Bisswunde.",
+      "criterion_type": "wound_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "taub nach Biss",
+          "blutet stark",
+          "Gef?hl weg"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "bite_venom_risk",
+      "label_de": "Vergiftungsrisiko bei Biss",
+      "description_de": "Risiko einer Vergiftung, z. B. Schlangenbiss.",
+      "criterion_type": "wound_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schlangenbiss",
+          "giftig",
+          "Vergiftung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "bite_wound_reported",
+      "label_de": "Bisswunde",
+      "description_de": "Durch Z?hne oder Giftz?hne verursachte Hautsch?digung.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bisswunde",
+          "Hundebiss",
+          "Katzenbiss",
+          "Schlangenbiss"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "bite_wound_reported_or_observed",
       "label_de": "Bisswunde berichtet oder beobachtet",
       "description_de": "Berichtete oder beobachtete Bisswunde durch Mensch oder Tier.",
@@ -913,6 +1385,34 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "blood_glucose_home_or_device_value_if_available",
+      "label_de": "Blutzuckerwert zuhause oder aus Ger?t falls vorhanden",
+      "description_de": "Gemessener Blutzucker aus Blutzuckermessger?t, Pumpe oder CGM, falls vorhanden.",
+      "criterion_type": "measurement",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blutzuckerger?t",
+          "CGM",
+          "Pumpe",
+          "Messwert"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "measurement_if_available",
+      "careena_use_policy": "use_if_available",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
       "free_text_allowed": true
     },
     {
@@ -1167,6 +1667,61 @@
       "is_active": true
     },
     {
+      "criterion_key": "breast_or_nipple_complaints",
+      "label_de": "Brust- oder Brustwarzenbeschwerden",
+      "description_de": "Beschwerden im Bereich der Brust oder Brustwarze.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Brust schmerzt",
+          "Brustwarze",
+          "Knoten in Brust"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "breast_red_swelling_discharge_lump",
+      "label_de": "R?tung, Schwellung, Absonderung oder Knoten der Brust",
+      "description_de": "Begleitzeichen bei Brust-/Brustwarzenbeschwerden.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "R?tung",
+          "Schwellung",
+          "Ausfluss Brustwarze",
+          "Knoten"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "breathing_and_responsiveness_observed",
       "label_de": "Atmung und Ansprechbarkeit beobachtet",
       "description_de": "Laiennah beobachtbares Sicherheitskriterium zur Einsch?tzung, ob die betroffene Person ansprechbar ist und normal atmet.",
@@ -1240,6 +1795,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "burn_airway_suspicion",
+      "label_de": "Verdacht auf Atemwegsverbrennung",
+      "description_de": "Verdacht auf Verbrennung der Atemwege, z. B. verbrannte Nasenhaare, Heiserkeit oder Schluckbeschwerden.",
+      "criterion_type": "burn_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Rauch eingeatmet",
+          "verbrannte Nasenhaare",
+          "Heiserkeit",
+          "Atemwege"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "burn_extent_location_or_depth_reported",
       "label_de": "Ausdehnung, Lokalisation oder Tiefe der Verbrennung berichtet",
       "description_de": "Laienbericht zur Gr??e, Lokalisation, Blasenbildung, Hautver?nderung oder Tiefe einer Verbrennung oder Ver?tzung.",
@@ -1259,6 +1842,60 @@
       "is_active": true
     },
     {
+      "criterion_key": "burn_face_hands_feet_perineum_or_circular",
+      "label_de": "Verbrennung Gesicht, H?nde, F??e, Perineum oder zirkul?r",
+      "description_de": "STS-relevante Lokalisation oder zirkul?re Verbrennung.",
+      "criterion_type": "burn_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gesicht verbrannt",
+          "Hand verbrannt",
+          "Fu? verbrannt",
+          "zirkul?r"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "burn_large_surface_area",
+      "label_de": "Gro?e verbrannte K?rperoberfl?che",
+      "description_de": "Gro?e betroffene K?rperoberfl?che bei Verbrennung.",
+      "criterion_type": "burn_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "gro?e Fl?che",
+          "viel Haut verbrannt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "burn_or_chemical_exposure_reported",
       "label_de": "Verbrennung oder Ver?tzung berichtet",
       "description_de": "Berichtete Verbrennung, Verbr?hung oder chemische Ver?tzung.",
@@ -1276,6 +1913,88 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1214.",
       "is_active": true
+    },
+    {
+      "criterion_key": "burn_or_chemical_injury_reported",
+      "label_de": "Verbrennung oder Ver?tzung",
+      "description_de": "Gewebesch?digung nach thermischer, chemischer, mechanischer oder elektrischer Exposition.",
+      "criterion_type": "burn",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Verbrennung",
+          "Ver?tzung",
+          "verbrannt",
+          "chemisch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "burn_second_or_third_degree_reported",
+      "label_de": "Verbrennung Grad II oder III berichtet",
+      "description_de": "Blasenbildung, wei?licher Wundgrund, Sensibilit?tsverlust oder klinisch berichteter Grad II/III.",
+      "criterion_type": "burn",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blasen",
+          "wei?licher Wundgrund",
+          "kein Gef?hl",
+          "Grad 2",
+          "Grad 3"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "call_112_for_spine_trauma_product_guard",
+      "label_de": "Produktentscheidung: 112 bei Wirbels?ulentrauma nach Unfall",
+      "description_de": "Careena-Produktentscheidung: Bei Unfall mit R?cken-/WS-Trauma lieber 112, auch wenn STS 1204 Level 2?3 f?hrt.",
+      "criterion_type": "product_safety_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "112 bei R?ckenunfall"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "none",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "cancer_history",
@@ -1407,6 +2126,32 @@
       "is_active": true
     },
     {
+      "criterion_key": "chest_pain_deep_breath_after_trauma",
+      "label_de": "Schmerzen bei tiefer Einatmung nach Thoraxtrauma",
+      "description_de": "Schmerz bei tiefer Einatmung nach Brustkorbtrauma.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schmerz beim Einatmen",
+          "Rippenschmerz beim Atmen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "chest_pain_with_syncope",
       "label_de": "Thoraxschmerzen bei Synkope/Pr?synkope",
       "description_de": "Brust- oder Thoraxschmerzen im Zusammenhang mit Unwohlsein, Synkope oder Pr?synkope.",
@@ -1423,6 +2168,33 @@
         "en": []
       },
       "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "chest_wall_deformity_or_crepitus",
+      "label_de": "Deformierung oder Hautemphysem am Thorax",
+      "description_de": "Deformierung, Hautemphysem oder relevante ?u?ere Zeichen am Brustkorb.",
+      "criterion_type": "observed_sign",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "verformt",
+          "knistert unter Haut",
+          "Hautemphysem"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -1541,6 +2313,32 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "compartment_syndrome_suspected",
+      "label_de": "Verdacht auf Kompartmentsyndrom",
+      "description_de": "Anhaltend starke Schmerzen trotz Schmerzbehandlung oder andere Hinweise auf Kompartmentsyndrom.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "anhaltend starke Schmerzen",
+          "Kompartmentsyndrom"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "confusion_or_disorientation_observed",
       "label_de": "Verwirrtheit oder Desorientierung beobachtet",
       "description_de": "Beobachtete oder selbstberichtete Verwirrtheit, Desorientierung oder auff?lliges Verhalten.",
@@ -1634,6 +2432,33 @@
       "is_active": true
     },
     {
+      "criterion_key": "constipation_reported",
+      "label_de": "Obstipation",
+      "description_de": "Weniger als drei Stuhlentleerungen pro Woche.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Verstopfung",
+          "Obstipation",
+          "kein Stuhlgang"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "constipation_self_reported",
       "label_de": "Obstipation selbst berichtet",
       "description_de": "Selbstberichtete Verstopfung oder fehlender Stuhlgang.",
@@ -1670,6 +2495,32 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "contractions_over_two_minutes",
+      "label_de": "Kontraktionen l?nger als zwei Minuten",
+      "description_de": "Wehent?tigkeit mit Kontraktionen ?ber zwei Minuten anhaltend.",
+      "criterion_type": "obstetric_emergency",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Wehen ?ber zwei Minuten",
+          "Dauerwehe"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -2001,6 +2852,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "dangerous_trauma_mechanism",
+      "label_de": "Gef?hrlicher Unfallmechanismus",
+      "description_de": "STS-relevante Unfallkinetik: Todesfall im selben Fahrzeug, Sturz aus gro?er H?he oder lange Bergung.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "schwerer Unfall",
+          "Sturz aus H?he",
+          "eingeklemmt",
+          "Bergung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "decreased_fetal_movement_self_reported",
       "label_de": "Nachlassen der Kindsbewegungen selbst berichtet",
       "description_de": "Selbstberichtetes Nachlassen oder Ausbleiben fetaler Kindsbewegungen.",
@@ -2018,6 +2897,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1315.",
       "is_active": true
+    },
+    {
+      "criterion_key": "deep_wound_reported",
+      "label_de": "Tiefe Wunde",
+      "description_de": "Sch?digung der Haut und darunterliegender Strukturen.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "tiefe Wunde",
+          "klaffend",
+          "Schnitt tief"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "deep_wound_reported_or_observed",
@@ -2077,6 +2983,34 @@
       "is_active": true
     },
     {
+      "criterion_key": "dehydration_signs",
+      "label_de": "Hinweise auf Dehydrierung",
+      "description_de": "Hinweise auf Fl?ssigkeitsmangel.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "ausgetrocknet",
+          "wenig Urin",
+          "sehr durstig",
+          "trocken"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "dental_problem_self_reported",
       "label_de": "Zahnproblem selbst berichtet",
       "description_de": "Selbstberichtetes Zahnproblem wie Zahnschmerz, abgebrochener Zahn, Schwellung, Blutung oder Entz?ndung.",
@@ -2126,8 +3060,7 @@
       "lay_terms": {
         "de": [
           "Diabetes",
-          "Zuckerkrankheit",
-          "Blutzucker"
+          "Zuckerkrankheit"
         ],
         "en": []
       },
@@ -2139,6 +3072,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "diabetes_known_or_suspected",
+      "label_de": "Bekannter oder vermuteter Diabetes",
+      "description_de": "Bekannter oder vermuteter Diabetes als Kontext.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Diabetes",
+          "Zuckerkrankheit",
+          "Blutzucker"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
       "free_text_allowed": true
     },
     {
@@ -2195,6 +3155,59 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "diarrhea_recent_hours",
+      "label_de": "Durchf?lle in den letzten Stunden",
+      "description_de": "Durchf?lle im Verlauf der letzten Stunden.",
+      "criterion_type": "course",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "seit Stunden Durchfall",
+          "mehrmals Durchfall"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "diarrhea_reported",
+      "label_de": "Diarrhoe",
+      "description_de": "Sehr weicher oder fl?ssiger Stuhl mindestens dreimal pro Tag.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Durchfall",
+          "Diarrhoe",
+          "fl?ssiger Stuhl"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "diarrhea_self_reported",
       "label_de": "Durchfall selbst berichtet",
       "description_de": "Selbstberichteter Durchfall oder sehr h?ufiger fl?ssiger Stuhl.",
@@ -2214,6 +3227,33 @@
       "is_active": true
     },
     {
+      "criterion_key": "digestive_disease_history",
+      "label_de": "Bekannte oder behandelte Erkrankung der Verdauungsorgane",
+      "description_de": "Bekannte oder behandelte Erkrankung im Verdauungstrakt.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Darmkrankheit",
+          "Magenkrankheit",
+          "Verdauungserkrankung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "disorientation",
       "label_de": "Desorientiertheit",
       "description_de": "Desorientierung zu Ort, Zeit, Situation oder Person.",
@@ -2227,6 +3267,35 @@
           "desorientiert",
           "wei? nicht wo",
           "kennt sich nicht aus"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "distal_neurovascular_issue_after_extremity_trauma",
+      "label_de": "Durchblutungs-, Motorik- oder Sensibilit?tsproblem distal",
+      "description_de": "Risiko oder Hinweis auf Gef??-/Nervensch?digung nach Extremit?tentrauma.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "taub",
+          "kalt",
+          "blass",
+          "kein Gef?hl",
+          "kann nicht bewegen"
         ],
         "en": []
       },
@@ -2331,6 +3400,32 @@
       "mapping_status": "draft",
       "mapping_notes": "Reusable supporting safety/context criterion.",
       "is_active": true
+    },
+    {
+      "criterion_key": "dyspnea_after_trauma",
+      "label_de": "Atembeschwerden nach Trauma",
+      "description_de": "Dyspnoe oder Atembeschwerden im Zusammenhang mit Trauma.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Atemnot nach Unfall",
+          "schlecht Luft nach Sturz"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "dyspnea_or_shortness_of_breath_reported",
@@ -2440,6 +3535,33 @@
       "is_active": true
     },
     {
+      "criterion_key": "dysuria_or_pollakiuria_reported",
+      "label_de": "Brennen beim Urinieren oder Pollakisurie",
+      "description_de": "Brennender Schmerz beim Urinieren oder h?ufige Entleerung kleiner Urinmengen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Brennen beim Urinieren",
+          "st?ndig Wasserlassen",
+          "Pollakisurie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "ear_nose_throat_complaint_self_reported",
       "label_de": "HNO-Beschwerden selbst berichtet",
       "description_de": "Selbstberichtete Beschwerden an Ohr, Nase, Hals, Rachen oder Nebenh?hlen.",
@@ -2457,6 +3579,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1602.",
       "is_active": true
+    },
+    {
+      "criterion_key": "ear_or_nose_blood_or_clear_fluid_after_head_trauma",
+      "label_de": "Blut oder klare Fl?ssigkeit aus Ohr/Nase nach Kopftrauma",
+      "description_de": "Absonderung von Blut oder klarer Fl?ssigkeit aus Ohr oder Nase nach Kopfverletzung.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blut aus Ohr",
+          "klare Fl?ssigkeit aus Nase",
+          "Rhinorrhoe",
+          "Otorrhagie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "ecg_confirmed_arrhythmia_if_reported",
@@ -2555,6 +3705,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "measurement",
       "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "epigastric_pain_reported",
+      "label_de": "Oberbauchschmerzen / Schmerzen im Epigastrum",
+      "description_de": "Schmerzen in der Magenregion.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Oberbauchschmerzen",
+          "Magenschmerzen",
+          "Epigastrium"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -2677,6 +3854,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "expulsion_phase_or_child_born",
+      "label_de": "Austreibungsphase oder Kind schon geboren",
+      "description_de": "Austreibungsphase oder Kind ist bereits geboren.",
+      "criterion_type": "obstetric_emergency",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Presswehen",
+          "Kind kommt",
+          "Kind geboren"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "external_transfer_or_takeover_context_reported",
       "label_de": "Verlegung oder ?bernahme aus externer Institution berichtet",
       "description_de": "Berichteter Verlegungs-, ?bernahme- oder externer Institutionskontext.",
@@ -2694,6 +3898,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1908.",
       "is_active": true
+    },
+    {
+      "criterion_key": "extremity_deformity_shortening_twisting",
+      "label_de": "Verformung, Verk?rzung oder Verdrehung einer Extremit?t",
+      "description_de": "Verformung, Verk?rzung oder Verdrehung nach Extremit?tentrauma.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "verformt",
+          "verdreht",
+          "verk?rzt",
+          "steht falsch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "extremity_loss_or_amputation_observed",
@@ -2770,22 +4002,35 @@
     },
     {
       "criterion_key": "extremity_trauma_reported",
-      "label_de": "Extremit?tentrauma berichtet",
-      "description_de": "Berichtete Verletzung an Arm, Bein, Hand, Fu? oder Gelenk.",
-      "criterion_type": "trauma_location",
+      "label_de": "Extremit?tentrauma",
+      "description_de": "Verletzung oder traumatisch verursachte Beschwerden an Arm oder Bein.",
+      "criterion_type": "trauma",
       "suggested_question_texts_json": "{\"de\": [\"Ist ein Arm, Bein, eine Hand, ein Fu? oder ein Gelenk verletzt?\"]}",
       "lay_terms_json": "{\"de\": [\"Arm verletzt\", \"Bein verletzt\", \"Hand verletzt\", \"Fu? verletzt\", \"Gelenk verletzt\", \"Extremit?tentrauma\"]}",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1210.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Arm verletzt",
+          "Bein verletzt",
+          "verstaucht",
+          "Prellung"
+        ],
+        "en": []
+      }
     },
     {
       "criterion_key": "eye_complaint_self_reported",
@@ -2808,22 +4053,34 @@
     },
     {
       "criterion_key": "face_jaw_neck_trauma_reported",
-      "label_de": "Trauma an Kiefer, Gesicht oder Halsregion berichtet",
-      "description_de": "Berichtete Verletzung an Kiefer, Gesicht, Mund, Nase, Hals oder vorderer Halsregion.",
-      "criterion_type": "trauma_location",
+      "label_de": "Kiefer-, Gesichts- oder Halsregionstrauma",
+      "description_de": "Trauma von Kiefer, Gesicht oder Halsregion.",
+      "criterion_type": "trauma",
       "suggested_question_texts_json": "{\"de\": [\"Ist Kiefer, Gesicht, Mund, Nase oder Halsregion verletzt?\"]}",
       "lay_terms_json": "{\"de\": [\"Gesicht verletzt\", \"Kiefer verletzt\", \"Nase verletzt\", \"Hals verletzt\", \"Zahn ausgeschlagen\", \"Gesichtstrauma\"]}",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1211.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gesicht verletzt",
+          "Kiefer verletzt",
+          "Hals verletzt"
+        ],
+        "en": []
+      }
     },
     {
       "criterion_key": "face_lip_tongue_or_throat_swelling_observed",
@@ -2843,6 +4100,32 @@
       "mapping_status": "draft",
       "mapping_notes": "Supporting safety criterion for allergic reactions.",
       "is_active": true
+    },
+    {
+      "criterion_key": "facial_deformity_after_trauma",
+      "label_de": "Deutliche Gesichtsverformung nach Trauma",
+      "description_de": "Deutliche Verformung des Gesichts nach Trauma.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gesicht verformt",
+          "Kiefer schief"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "fall_in_older_person_reported",
@@ -2965,6 +4248,84 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "feculent_vomiting",
+      "label_de": "Kotartiges Erbrechen",
+      "description_de": "Kotartiges Erbrechen als STS-Dringlichkeitskriterium.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kotartiges Erbrechen",
+          "Erbrochenes riecht nach Stuhl"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "femur_shaft_fracture_suspected",
+      "label_de": "Femurschaftfraktur vermutet",
+      "description_de": "Verdacht auf Femurschaftfraktur.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Oberschenkelbruch",
+          "Femurbruch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "fetal_bradycardia_reported",
+      "label_de": "Fetale Bradykardie berichtet",
+      "description_de": "Fetale Herzfrequenz unter 110/min ab 22. SSW, wenn berichtet/gemessen.",
+      "criterion_type": "clinical_report",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "fetale Bradykardie",
+          "Herzt?ne zu langsam"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "clinical_report_if_available",
+      "careena_use_policy": "use_if_reported",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "fetal_heart_rate_user_provided",
       "label_de": "Fetale Herzfrequenz vom Nutzer angegeben",
       "description_de": "Vom Nutzer angegebene fetale Herzfrequenz oder gemessene Herzt?ne.",
@@ -2982,6 +4343,58 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1318 and 1319 when a value is user-provided.",
       "is_active": true
+    },
+    {
+      "criterion_key": "fetal_tachycardia_reported",
+      "label_de": "Fetale Tachykardie berichtet",
+      "description_de": "Fetale Herzfrequenz ?ber 160/min ab 22. SSW, wenn berichtet/gemessen.",
+      "criterion_type": "clinical_report",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "fetale Tachykardie",
+          "Herzt?ne zu schnell"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "clinical_report_if_available",
+      "careena_use_policy": "use_if_reported",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "fetal_vital_check_requested_or_reported",
+      "label_de": "Kontrolle fetaler Aktivit?t/Vitalfunktionen",
+      "description_de": "Kontrolle oder Bericht fetaler Aktivit?t beziehungsweise kindlicher Vitalfunktionen.",
+      "criterion_type": "clinical_report",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "fetale Vitalfunktionen",
+          "kindliche Herzt?ne"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "clinical_report_if_available",
+      "careena_use_policy": "use_if_reported",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "clinical_report",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "fetal_vitality_check_requested",
@@ -3014,8 +4427,7 @@
       "lay_terms": {
         "de": [
           "Fieber",
-          "Temperatur",
-          "erh?hte Temperatur"
+          "Temperatur"
         ],
         "en": []
       },
@@ -3076,6 +4488,32 @@
       "is_active": true
     },
     {
+      "criterion_key": "fever_with_pregnancy_12plus",
+      "label_de": "Fieber bei Schwangerschaft ?ber 12. SSW",
+      "description_de": "Fieber und Schwangerschaft ?ber 12. SSW.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber schwanger",
+          "?ber 12 SSW"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "fever_with_reduced_general_condition",
       "label_de": "Fieber mit reduziertem Allgemeinzustand",
       "description_de": "Fieber zusammen mit deutlich reduziertem Allgemeinzustand.",
@@ -3088,6 +4526,33 @@
         "de": [
           "Fieber und sehr schlapp",
           "Fieber und schlechter Zustand"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "flank_pain_reported",
+      "label_de": "Flankenschmerzen",
+      "description_de": "Nichttraumatische paravertebrale Schmerzen im Lumbalbereich.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Flankenschmerzen",
+          "Nierenschmerzen",
+          "seitlicher R?ckenschmerz"
         ],
         "en": []
       },
@@ -3186,6 +4651,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "fresh_rectal_bleeding_reported",
+      "label_de": "Frischblutabgang ab ano",
+      "description_de": "Austreten von frischem Blut durch den Anus.",
+      "criterion_type": "bleeding",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "frisches Blut aus After",
+          "Blut im Stuhl",
+          "Blut nach Stuhlgang"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "fresh_rectal_bleeding_self_reported",
       "label_de": "Frisches Blut ab ano selbst berichtet",
       "description_de": "Selbstberichteter frischer Blutabgang aus dem After oder Blutauflagerung am Stuhl.",
@@ -3205,6 +4697,32 @@
       "is_active": true
     },
     {
+      "criterion_key": "frostbite_controlled_rewarming_needed",
+      "label_de": "Kontrolliertes Aufw?rmen bei Erfrierung n?tig",
+      "description_de": "STS-Kriterium: Notwendigkeit kontrollierten Aufw?rmens.",
+      "criterion_type": "cold_injury",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kontrolliert aufw?rmen",
+          "starke Erfrierung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "frostbite_or_cold_injury_reported",
       "label_de": "Erfrierung oder K?lteschaden berichtet",
       "description_de": "Berichtete Erfrierung, K?lteschaden oder auff?llige Hautver?nderung nach K?lteexposition.",
@@ -3222,6 +4740,59 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1215.",
       "is_active": true
+    },
+    {
+      "criterion_key": "frostbite_reported",
+      "label_de": "Erfrierung",
+      "description_de": "Lokale Sch?digung durch K?lteeinwirkung.",
+      "criterion_type": "cold_injury",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Erfrierung",
+          "erfroren",
+          "Frost"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "gastric_bypass_history",
+      "label_de": "Magenbypass in Vorgeschichte",
+      "description_de": "Magenbypass-Operation in der Vorgeschichte.",
+      "criterion_type": "surgical_history",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Magenbypass",
+          "Bypass OP"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "general_condition_deterioration_self_reported_or_observed",
@@ -3263,22 +4834,59 @@
     },
     {
       "criterion_key": "genital_prolapse_reported",
-      "label_de": "Genitalprolaps berichtet",
-      "description_de": "Berichteter Vorfall oder Heraustreten von Gewebe im Genitalbereich.",
-      "criterion_type": "obstetric_or_gynecologic_sign",
+      "label_de": "Genitalprolaps",
+      "description_de": "Abnorme Verlagerung eines oder mehrerer weiblicher Beckenorgane nach unten/au?en.",
+      "criterion_type": "symptom",
       "suggested_question_texts_json": "{\"de\": [\"Ist Gewebe im Genitalbereich vorgefallen oder sichtbar herausgetreten?\"]}",
       "lay_terms_json": "{\"de\": [\"Prolaps\", \"Geb?rmuttervorfall\", \"etwas kommt raus\", \"Scheidenvorfall\", \"Genitalprolaps\"]}",
-      "expected_value_type": "observed_sign",
+      "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1314.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Prolaps",
+          "Senkung",
+          "etwas kommt raus"
+        ],
+        "en": []
+      }
+    },
+    {
+      "criterion_key": "genital_prolapse_with_poor_condition",
+      "label_de": "Genitalprolaps mit deutlich beeintr?chtigtem Wohlbefinden",
+      "description_de": "Deutlich beeintr?chtigtes Wohlbefinden in Verbindung mit Genitalprolaps.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Prolaps und schlechter Zustand"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "glasgow_coma_scale_clinical_if_reported",
@@ -3359,6 +4967,32 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1406.",
       "is_active": true
+    },
+    {
+      "criterion_key": "groin_pain_with_stool_retention",
+      "label_de": "Leistenschmerzen mit Stuhlverhalt",
+      "description_de": "Leistenschmerzen zusammen mit Stuhlverhalt.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Leiste und kein Stuhl",
+          "Leistenschmerz Stuhlverhalt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "gross_hematuria_self_reported",
@@ -3498,6 +5132,60 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1207.",
       "is_active": true
+    },
+    {
+      "criterion_key": "head_trauma_with_loss_of_consciousness_or_amnesia",
+      "label_de": "SHT mit Bewusstlosigkeit oder Amnesie",
+      "description_de": "Sch?del-Hirn-Trauma mit Bewusstlosigkeit oder Erinnerungsl?cke.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Kopf angeschlagen und bewusstlos",
+          "Erinnerungsl?cke",
+          "Amnesie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "head_trauma_without_loss_of_consciousness_or_amnesia",
+      "label_de": "SHT ohne Bewusstlosigkeit oder Amnesie",
+      "description_de": "Sch?deltrauma ohne Bewusstlosigkeit und ohne Erinnerungsl?cke.",
+      "criterion_type": "trauma",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Kopf gesto?en",
+          "Kopfverletzung",
+          "ohne bewusstlos"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "head_trauma_without_loss_of_consciousness_or_amnesia_reported",
@@ -3664,6 +5352,60 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "hearing_or_vision_disturbance_after_face_head_trauma",
+      "label_de": "H?r- oder Sehst?rung nach Gesichts-/Kopftrauma",
+      "description_de": "H?r- oder Sehst?rung im Zusammenhang mit Gesichts-/Kopftrauma.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "H?rst?rung",
+          "Sehst?rung",
+          "sieht schlecht",
+          "h?rt schlecht"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hematuria_after_trauma",
+      "label_de": "Blut im Urin nach Trauma",
+      "description_de": "H?maturie im Zusammenhang mit Trauma.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blut im Urin nach Unfall",
+          "roter Urin nach Sturz"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "hemoptysis_self_reported",
       "label_de": "Bluthusten selbst berichtet",
       "description_de": "Selbstberichtetes Husten von Blut oder blutigem Auswurf.",
@@ -3775,6 +5517,63 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "hyperglycemia_hypoglycemia_polyuria_polydipsia",
+      "label_de": "Hyperglyk?mie, Hypoglyk?mie, Polyurie oder Polydipsie",
+      "description_de": "Blutzucker au?erhalb Norm, gesteigerte Urinausscheidung oder gesteigertes Durstgef?hl.",
+      "criterion_type": "metabolic",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blutzucker",
+          "Unterzucker",
+          "?berzucker",
+          "viel Durst",
+          "viel Urin"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hyperglycemia_symptom_pattern",
+      "label_de": "Hyperglyk?mie-Symptommuster",
+      "description_de": "Polyurie, Polydipsie, starke M?digkeit, Dehydrierung, Verwirrtheit, Kussmaul-Atmung, ?belkeit/Erbrechen/Diarrhoe, Bauchschmerzen oder Infektzeichen.",
+      "criterion_type": "metabolic_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "?berzucker Symptome",
+          "tiefe Atmung",
+          "Kussmaul",
+          "viel Durst"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "hypoglycemia_if_available",
       "label_de": "Hinweis auf Hypoglyk?mie falls vorhanden",
       "description_de": "Niedriger Blutzucker oder Unterzuckerung, falls gemessen oder berichtet.",
@@ -3799,6 +5598,35 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "measurement",
       "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hypoglycemia_symptom_pattern",
+      "label_de": "Hypoglyk?mie-Symptommuster",
+      "description_de": "Hei?hunger, M?digkeit, Schwitzen, Kopfschmerzen, Desorientiertheit, Bewusstseinsst?rung, Aggressivit?t oder fokal-neurologische St?rungen.",
+      "criterion_type": "metabolic_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Unterzucker Symptome",
+          "Hei?hunger",
+          "Schwitzen",
+          "aggressiv",
+          "verwirrt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -3956,6 +5784,33 @@
       "is_active": true
     },
     {
+      "criterion_key": "immunosuppression_or_transplant_context",
+      "label_de": "Immunsuppression oder Transplantation",
+      "description_de": "Immunsuppression oder transplantierte Person als Dringlichkeitsfaktor.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "immunsupprimiert",
+          "Transplantation",
+          "Chemo"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "implanted_defibrillator_or_icd",
       "label_de": "Implantierter Defibrillator oder ICD",
       "description_de": "Vorhandener implantierter Defibrillator/ICD.",
@@ -4000,6 +5855,34 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "incontinence_exclusion_symptoms_present",
+      "label_de": "Ausschlusszeichen bei Urininkontinenz vorhanden",
+      "description_de": "Pollakisurie, Dysurie, H?maturie, Stuhlinkontinenz oder Fieber m?ssen laut STS ausgeschlossen werden.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Brennen",
+          "Blut im Urin",
+          "Stuhlinkontinenz",
+          "Fieber"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -4204,6 +6087,59 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "insulin_overdose_reported",
+      "label_de": "Insulin?berdosierung berichtet",
+      "description_de": "Absichtliche oder unabsichtliche Insulin?berdosierung.",
+      "criterion_type": "metabolic_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "zu viel Insulin",
+          "Insulin?berdosis"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "insulin_timing_dose_type",
+      "label_de": "Zeitpunkt, Dosis und Art der letzten Insulingabe",
+      "description_de": "Bei Insulinbehandlung: Zeitpunkt, Dosis und Art des letzten Insulins.",
+      "criterion_type": "medication",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Insulin",
+          "letzte Spritze",
+          "Dosis"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "irregular_heartbeat_or_arrhythmia_reported",
       "label_de": "Unregelm??iger Herzschlag berichtet",
       "description_de": "Unregelm??iger Herzschlag oder Rhythmusst?rung berichtet.",
@@ -4275,6 +6211,58 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1802.",
       "is_active": true
+    },
+    {
+      "criterion_key": "ketonemia_if_available",
+      "label_de": "Keton?mie falls vorhanden",
+      "description_de": "Gemessene Keton?mie, falls verf?gbar.",
+      "criterion_type": "measurement",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Ketone",
+          "Keton?mie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "measurement_if_available",
+      "careena_use_policy": "use_if_available",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "knocked_out_tooth",
+      "label_de": "Ausgeschlagener Zahn",
+      "description_de": "Verlorener oder ausgeschlagener Zahn nach Trauma.",
+      "criterion_type": "trauma",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Zahn ausgeschlagen",
+          "Zahn verloren"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "known_lung_disease",
@@ -4357,6 +6345,32 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "last_meal_timing",
+      "label_de": "Zeitpunkt der letzten Mahlzeit",
+      "description_de": "Zeitpunkt der letzten Mahlzeit.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "letzte Mahlzeit",
+          "gegessen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "duration",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "lateral_tongue_bite",
       "label_de": "Seitlicher Zungenbiss",
       "description_de": "Seitlicher Biss auf die Zunge nach einem m?glichen Krampfanfall.",
@@ -4369,6 +6383,33 @@
         "de": [
           "Zungenbiss",
           "auf Zunge gebissen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "life_threatening_breathing_or_circulation_signs_after_trauma",
+      "label_de": "Lebensbedrohliche Atem- oder Kreislaufzeichen nach Trauma",
+      "description_de": "Atem- oder Kreislaufst?rung im Zusammenhang mit Trauma.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Atemnot nach Unfall",
+          "Kreislauf nach Unfall",
+          "Schockzeichen"
         ],
         "en": []
       },
@@ -4400,6 +6441,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Starter criterion for STS 1007.",
       "is_active": true
+    },
+    {
+      "criterion_key": "liver_cirrhosis_or_varices_history",
+      "label_de": "Leberzirrhose oder ?sophagusvarizen in Vorgeschichte",
+      "description_de": "Relevante Vorgeschichte mit Leberzirrhose und/oder ?sophagusvarizen.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Leberzirrhose",
+          "Varizen",
+          "Speiser?hrenvarizen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "localized_infection_signs_self_reported_or_observed",
@@ -4465,7 +6533,7 @@
         ],
         "en": []
       },
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -4493,6 +6561,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary criterion for syncope/presyncope context.",
       "is_active": true
+    },
+    {
+      "criterion_key": "loss_or_destruction_of_extremity",
+      "label_de": "Verlust oder schwere Zerst?rung einer Extremit?t",
+      "description_de": "Abtrennung, Abrei?en oder starke Zerst?rung einer Gliedma?e oder eines Teils davon.",
+      "criterion_type": "trauma_pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Amputation",
+          "abgetrennt",
+          "abgerissen",
+          "Extremit?t verloren"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "low_blood_pressure_reported",
@@ -4575,6 +6671,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "lower_abdominal_or_groin_pain",
+      "label_de": "Unterbauch- oder Leistenschmerzen",
+      "description_de": "Schmerzen im Unterbauch, Becken oder der Leistenregion.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Unterbauchschmerzen",
+          "Leistenschmerzen",
+          "Beckenschmerzen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "lower_abdominal_or_groin_pain_self_reported",
       "label_de": "Unterbauch- oder Leistenschmerzen selbst berichtet",
       "description_de": "Selbstberichtete Schmerzen im Unterbauch, Beckenbereich oder in der Leiste.",
@@ -4592,6 +6715,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1310.",
       "is_active": true
+    },
+    {
+      "criterion_key": "macroscopic_hematuria_reported",
+      "label_de": "Sichtbares Blut im Urin / Makroh?maturie",
+      "description_de": "Sichtbare Blutbeimengung im Urin au?erhalb Menstruation.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blut im Urin",
+          "roter Urin",
+          "Makroh?maturie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "malaise",
@@ -4636,6 +6786,33 @@
           "Ohnmacht",
           "Synkope",
           "Kollaps"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "meconium_or_colored_amniotic_fluid",
+      "label_de": "Mekoniumhaltiges oder gef?rbtes Fruchtwasser",
+      "description_de": "Abgang mekoniumhaltigen oder gef?rbten Fruchtwassers.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "gr?nes Fruchtwasser",
+          "gef?rbtes Fruchtwasser",
+          "Mekonium"
         ],
         "en": []
       },
@@ -5016,6 +7193,60 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "multiple_life_threatening_injuries",
+      "label_de": "Mehrere Verletzungen mit mindestens einer lebensbedrohlichen Verletzung",
+      "description_de": "Polytrauma-Kontext gem?? STS: mehrere Verletzungen, mindestens eine lebensbedrohlich.",
+      "criterion_type": "trauma_pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "mehrere Verletzungen",
+          "schwer verletzt",
+          "lebensbedrohlich"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "multiple_pregnancy_context",
+      "label_de": "Mehrlingsschwangerschaft",
+      "description_de": "Bekannte Mehrlingsschwangerschaft.",
+      "criterion_type": "pregnancy_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Zwillinge",
+          "Drillinge",
+          "Mehrlinge"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "mutism_reported",
       "label_de": "Mutismus berichtet",
       "description_de": "Mutismus oder pl?tzliches Nichtsprechen.",
@@ -5058,6 +7289,59 @@
           "mir ist schlecht",
           "Erbrechen",
           "gekotzt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "nausea_or_vomiting_after_head_trauma",
+      "label_de": "?belkeit oder Erbrechen nach Kopftrauma",
+      "description_de": "?belkeit oder Erbrechen nach Sch?del-Hirn-Trauma.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Erbrechen nach Kopfsto?",
+          "?belkeit nach Sturz"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "nausea_or_vomiting_reported",
+      "label_de": "?belkeit oder Erbrechen",
+      "description_de": "Brechreiz oder Erbrechen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "?belkeit",
+          "Erbrechen",
+          "mir ist schlecht"
         ],
         "en": []
       },
@@ -5145,6 +7429,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "neurological_disturbance_after_head_trauma",
+      "label_de": "Neurologische St?rung nach Kopfverletzung",
+      "description_de": "Neue oder zunehmende neurologische St?rung nach Kopfverletzung.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "L?hmung",
+          "Sprachst?rung",
+          "Sehst?rung",
+          "neurologisch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "neurological_symptoms",
       "label_de": "Neurologische Symptome",
       "description_de": "Neurologische Auff?lligkeiten wie L?hmung, Sprachst?rung, Taubheit, Sehst?rung oder Verwirrtheit.",
@@ -5159,6 +7471,34 @@
           "Taubheit",
           "Sprachst?rung",
           "neurologisch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "neurological_symptoms_with_urinary_problem",
+      "label_de": "Neurologische Begleitsymptome bei Urinproblem",
+      "description_de": "Neurologische Begleitsymptome bei Urinretention/Inkontinenz.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Taubheit",
+          "L?hmung",
+          "Gef?hlsst?rung",
+          "R?ckenproblem"
         ],
         "en": []
       },
@@ -5389,6 +7729,61 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "nose_or_dental_bleeding_exclusion_context",
+      "label_de": "Nasen- oder Zahnblutung als m?gliche Blutquelle",
+      "description_de": "Ausschluss von Nasenbluten oder zahnbedingter Blutquelle.",
+      "criterion_type": "source_clarification",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Nasenbluten",
+          "Zahnblutung",
+          "Mundblutung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "nsaid_use",
+      "label_de": "NSAR-Einnahme",
+      "description_de": "Einnahme von NSAR/Schmerzmitteln als Kontext.",
+      "criterion_type": "medication",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Ibuprofen",
+          "Diclofenac",
+          "NSAR",
+          "Schmerzmittel"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "ongoing_or_recurrent_blood_coughing",
       "label_de": "Wiederholter oder anhaltender Bluthusten",
       "description_de": "Wiederholtes oder anhaltendes Husten von Blut.",
@@ -5467,6 +7862,60 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "open_fracture_or_dislocation_suspected",
+      "label_de": "Offene Fraktur oder Luxation vermutet",
+      "description_de": "Offene Fraktur und/oder Luxation nach Trauma.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "offener Bruch",
+          "ausgekugelt",
+          "Knochen sichtbar"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "opioid_preclinical_use",
+      "label_de": "Opiatgabe oder Opiateinnahme vor Konsultation",
+      "description_de": "Opiat-Einnahme oder -Verabreichung vor Vorstellung.",
+      "criterion_type": "medication",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Opiat",
+          "Morphin",
+          "starkes Schmerzmittel"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
       "free_text_allowed": true
     },
     {
@@ -6089,22 +8538,89 @@
     },
     {
       "criterion_key": "pelvic_trauma_reported",
-      "label_de": "Beckentrauma berichtet",
-      "description_de": "Berichtetes Trauma im Bereich Becken, H?fte oder Unterk?rper.",
-      "criterion_type": "trauma_location",
+      "label_de": "Beckentrauma",
+      "description_de": "Verletzung oder traumatisch verursachte Beschwerden des Beckeng?rtels.",
+      "criterion_type": "trauma",
       "suggested_question_texts_json": "{\"de\": [\"Wurde das Becken oder die H?fte verletzt?\"]}",
       "lay_terms_json": "{\"de\": [\"Becken verletzt\", \"H?fte verletzt\", \"Beckentrauma\", \"Sturz auf Becken\", \"Schmerzen im Becken\"]}",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1209.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Becken verletzt",
+          "H?fte/Becken nach Sturz",
+          "Beckentrauma"
+        ],
+        "en": []
+      }
+    },
+    {
+      "criterion_key": "penetrating_injury",
+      "label_de": "Penetrierende Verletzung",
+      "description_de": "Eindringende Verletzung, z. B. Stich- oder spitzes Trauma.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Stichverletzung",
+          "eingedrungen",
+          "Messerstich",
+          "durchbohrt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "penile_or_testicular_discharge_edema",
+      "label_de": "Ausfluss oder Begleit?dem bei Hoden-/Penisbeschwerden",
+      "description_de": "Ausfluss oder Begleit?dem bei Beschwerden an Hoden/Penis.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Ausfluss",
+          "Schwellung",
+          "?dem"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "peripheral_pulse_present_if_checked",
@@ -6130,6 +8646,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "observed_sign",
       "suggested_input_mode": "observed_sign_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "persistent_flank_pain",
+      "label_de": "Andauernde Flankenschmerzen",
+      "description_de": "Andauern der Schmerzsymptomatik bei Flankenschmerzen.",
+      "criterion_type": "course",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "h?lt an",
+          "geht nicht weg",
+          "andauernd"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -6254,6 +8797,59 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "polyuria_or_polydipsia_reported",
+      "label_de": "Polyurie oder Polydipsie",
+      "description_de": "Gesteigerte Urinausscheidung oder gesteigertes Durstgef?hl.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "viel trinken",
+          "viel Durst",
+          "viel Wasserlassen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "positive_pregnancy_test_before_first_ultrasound",
+      "label_de": "Positiver Schwangerschaftstest vor erstem Ultraschall",
+      "description_de": "STS-Kriterium bei Unterbauch-/Leistenschmerz.",
+      "criterion_type": "pregnancy_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schwangerschaftstest positiv",
+          "noch kein Ultraschall"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "possible_vomited_blood",
       "label_de": "M?gliches Bluterbrechen",
       "description_de": "Blutquelle k?nnte Erbrechen oder Magen-Darm-Trakt sein.",
@@ -6298,6 +8894,33 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "postpartum_bleeding_or_clots_10days",
+      "label_de": "Postpartale aktive Blutung oder Koagula bis 10 Tage",
+      "description_de": "Aktive Blutung oder Koagula postpartum bis 10 Tage.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blutung nach Geburt",
+          "Wochenbett Blutung",
+          "Koagel"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -6388,6 +9011,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "pregnancy_possible_context",
+      "label_de": "Schwangerschaft m?glich oder relevant",
+      "description_de": "Schwangerschaftskontext nur abfragen, wenn biologisch plausibel beziehungsweise nicht ausgeschlossen.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "schwanger",
+          "Schwangerschaft m?glich",
+          "geb?rf?hig"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "pregnancy_status_or_possible_pregnancy_self_reported",
       "label_de": "Schwangerschaft oder m?gliche Schwangerschaft selbst berichtet",
       "description_de": "Selbstberichtete Schwangerschaft, m?gliche Schwangerschaft oder geburtsbezogener Kontext.",
@@ -6407,6 +9057,58 @@
       "is_active": true
     },
     {
+      "criterion_key": "pregnancy_under_22w_with_abdominal_pain",
+      "label_de": "Schwangerschaft unter 22 SSW mit Bauch-/Unterbauchschmerz",
+      "description_de": "Kombination Schwangerschaft unter 22 SSW mit Bauch- oder Unterbauchschmerzen.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "schwanger und Bauchschmerz",
+          "unter 22 SSW"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "pregnancy_week_if_relevant",
+      "label_de": "Schwangerschaftswoche falls relevant",
+      "description_de": "Schwangerschaftsalter/SSW, falls Schwangerschaft m?glich oder bekannt.",
+      "criterion_type": "pregnancy_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "SSW",
+          "Schwangerschaftswoche"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "duration",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "presyncope_reported",
       "label_de": "Pr?synkope berichtet",
       "description_de": "Beinahe-Ohnmacht oder Kollapsgef?hl.",
@@ -6420,6 +9122,32 @@
           "fast ohnm?chtig",
           "schwarz vor Augen",
           "Kollapsgef?hl"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "priapism_reported",
+      "label_de": "Priapismus",
+      "description_de": "Anhaltende schmerzhafte Erektion als STS-Level-2-Kriterium.",
+      "criterion_type": "urology_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Priapismus",
+          "Dauererektion"
         ],
         "en": []
       },
@@ -6870,6 +9598,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "recent_pelvic_or_abdominal_surgery",
+      "label_de": "K?rzliche Becken- oder Bauchoperation",
+      "description_de": "K?rzlich erfolgte chirurgische Eingriffe im Bereich Becken/Abdomen.",
+      "criterion_type": "surgical_history",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Becken OP",
+          "Bauch OP",
+          "Operation"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "recent_surgery_or_intervention",
       "label_de": "K?rzliche Operation oder Intervention",
       "description_de": "K?rzliche Operation, Eingriff oder Intervention.",
@@ -6884,6 +9639,59 @@
           "OP",
           "Eingriff",
           "Intervention"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "reduced_fetal_movements",
+      "label_de": "Nachlassen der fetalen Kindsbewegungen",
+      "description_de": "Qualitative oder quantitative Verminderung der Bewegungen des F?tus.",
+      "criterion_type": "obstetric_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "weniger Kindsbewegungen",
+          "Kind bewegt sich weniger"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "reduced_general_condition",
+      "label_de": "Reduzierter Allgemeinzustand",
+      "description_de": "Deutlich reduzierter Allgemeinzustand.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "sehr schlecht",
+          "schwach",
+          "reduzierter Allgemeinzustand"
         ],
         "en": []
       },
@@ -6922,6 +9730,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "renal_colic_like_pain_pattern",
+      "label_de": "Kolikartiger Flankenschmerz",
+      "description_de": "Pl?tzlich beginnender, sehr starker und krampfartiger Schmerz.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kolikartig",
+          "krampfartig",
+          "pl?tzlich stark"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -7235,6 +10070,32 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "severe_headache_after_head_trauma",
+      "label_de": "Heftige Kopfschmerzen nach Kopftrauma",
+      "description_de": "Heftige Kopfschmerzen nach Sch?del-Hirn-Trauma.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "starke Kopfschmerzen nach Sturz",
+          "heftige Kopfschmerzen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "severe_or_unusual_headache",
       "label_de": "Heftige oder ungewohnte Kopfschmerzen",
       "description_de": "Heftige oder ungewohnte Kopfschmerzen.",
@@ -7275,6 +10136,32 @@
           "wird schlechter",
           "sehr krank",
           "stark schlapp"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "severe_testicular_pain_torsion_concern",
+      "label_de": "Starke Hodenschmerzen",
+      "description_de": "Starke Hodenschmerzen, die gem?? STS an Hodentorsion denken lassen.",
+      "criterion_type": "urology_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "starke Hodenschmerzen",
+          "pl?tzlicher Hodenschmerz"
         ],
         "en": []
       },
@@ -7441,6 +10328,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "significant_functional_loss_after_extremity_trauma",
+      "label_de": "Deutliche Funktionseinbu?e nach Extremit?tentrauma",
+      "description_de": "Deutlich beeintr?chtigtes Wohlbefinden oder deutliche Funktionseinbu?e nach Extremit?tentrauma.",
+      "criterion_type": "functional_impact",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kann nicht auftreten",
+          "kann nicht bewegen",
+          "funktioniert nicht"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "signs_of_dehydration_or_hypovolemia",
       "label_de": "Hinweise auf Dehydratation oder Volumenmangel",
       "description_de": "Hinweise auf Fl?ssigkeitsmangel, Blut-/Volumenverlust oder Austrocknung.",
@@ -7466,6 +10380,32 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "single_kidney",
+      "label_de": "Einzelniere",
+      "description_de": "Bekannte Einzelniere als Risikokontext.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Einzelniere",
+          "nur eine Niere"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -7740,6 +10680,88 @@
       "is_active": true
     },
     {
+      "criterion_key": "spine_trauma_neurological_deficit",
+      "label_de": "Wirbels?ulentrauma mit neurologischem Defizit",
+      "description_de": "R?cken-/WS-Trauma mit St?rung oder Ausfall von Motorik oder Sensibilit?t.",
+      "criterion_type": "trauma_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Taubheit nach Unfall",
+          "L?hmung nach Unfall",
+          "Gef?hlsst?rung",
+          "Kraftverlust"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "spine_trauma_reported",
+      "label_de": "R?cken- oder Wirbels?ulentrauma berichtet",
+      "description_de": "Unfall oder Trauma mit R?cken-, Nacken- oder Wirbels?ulenbeschwerden.",
+      "criterion_type": "trauma",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "R?cken verletzt",
+          "Nacken verletzt",
+          "Wirbels?ule",
+          "HWS"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "spine_trauma_without_neurological_deficit",
+      "label_de": "Wirbels?ulentrauma ohne neurologisches Defizit",
+      "description_de": "R?cken-/WS-Trauma ohne Motorik- oder Sensibilit?tsst?rung.",
+      "criterion_type": "trauma",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "R?ckenschmerz nach Unfall",
+          "Nackenschmerz nach Unfall"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "sputum_amount",
       "label_de": "Menge des Auswurfs",
       "description_de": "Menge des Auswurfs oder Blutanteils.",
@@ -7852,6 +10874,59 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "stabbing_or_penetrating_abdominal_pain",
+      "label_de": "Messerstichartiger oder durchdringender Bauchschmerz",
+      "description_de": "Messerstichartiger oder durchdringender Bauchschmerz.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "wie Messerstich",
+          "durchdringend"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "stool_and_wind_retention_over_24h",
+      "label_de": "Stuhl- und Windverhaltung ?ber 24 Stunden",
+      "description_de": "Stuhl- und Windverhaltung seit ?ber 24 Stunden.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kein Stuhl",
+          "keine Winde",
+          "24 Stunden"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "stridor",
       "label_de": "Stridor",
       "description_de": "Pfeifendes, ziehendes oder lautes Atemger?usch, besonders beim Einatmen.",
@@ -7869,6 +10944,59 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "strong_bleeding",
+      "label_de": "Starke Blutung",
+      "description_de": "Starke oder anhaltende Blutung.",
+      "criterion_type": "bleeding",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "blutet stark",
+          "starke Blutung",
+          "Blutung h?rt nicht auf"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "strong_gi_blood_loss",
+      "label_de": "Starker Blutverlust gastrointestinal",
+      "description_de": "Starker Blutverlust bei Eintritt oder bereits au?erhalb beobachtet.",
+      "criterion_type": "bleeding_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "viel Blut",
+          "starker Blutverlust"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -7961,6 +11089,60 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "sudden_lateral_radiating_pain_pregnancy_possible",
+      "label_de": "Pl?tzlich seitlich ausstrahlender Schmerz bei m?glicher Schwangerschaft",
+      "description_de": "Pl?tzlich einsetzender, seitlich ausstrahlender Schmerz bei Person mit m?glicher Schwangerschaft.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "pl?tzlich seitlich",
+          "ausstrahlend",
+          "geb?rf?hig"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "sudden_or_rapidly_increasing_abdominal_pain",
+      "label_de": "Pl?tzlich einsetzende oder schnell zunehmende Bauchschmerzen",
+      "description_de": "Pl?tzlicher, unvermittelter oder rasch zunehmender Bauchschmerz.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "pl?tzlich",
+          "auf einmal",
+          "schnell schlimmer"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "suicidal_context_with_substance_use",
       "label_de": "Suizidbezug bei Substanzkonsum",
       "description_de": "Einnahme oder Konsum im Zusammenhang mit Selbstgef?hrdung oder Suizidgedanken.",
@@ -8032,6 +11214,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "superficial_wound_reported",
+      "label_de": "Oberfl?chliche Wunde",
+      "description_de": "Sch?digung der Haut ohne Beteiligung darunterliegender Strukturen.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "oberfl?chliche Wunde",
+          "Kratzer",
+          "Sch?rfwunde"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -8244,6 +11453,32 @@
       "is_active": true
     },
     {
+      "criterion_key": "tense_abdomen_after_trauma",
+      "label_de": "Gespanntes Abdomen nach Trauma",
+      "description_de": "Gespannt wirkender Bauch nach Trauma.",
+      "criterion_type": "observed_sign",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bauch hart",
+          "gespannter Bauch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "testicular_or_penile_complaint_self_reported",
       "label_de": "Hoden- oder Penisbeschwerden selbst berichtet",
       "description_de": "Selbstberichtete Schmerzen, Schwellung, Verletzung oder andere Beschwerden an Hoden oder Penis.",
@@ -8261,6 +11496,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1405.",
       "is_active": true
+    },
+    {
+      "criterion_key": "testicular_or_penile_complaints",
+      "label_de": "Hoden- oder Penisbeschwerden",
+      "description_de": "Beschwerden oder Funktionsst?rungen an Hoden und/oder Penis.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Hodenschmerzen",
+          "Penisschmerzen",
+          "Hoden",
+          "Penis"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "third_party_imminent_self_harm",
@@ -8318,22 +11581,35 @@
     },
     {
       "criterion_key": "thorax_trauma_reported",
-      "label_de": "Thoraxtrauma berichtet",
-      "description_de": "Berichtetes Trauma am Brustkorb, zum Beispiel Prellung, Schlag, Sturz oder Unfall mit Brustkorb-Beteiligung.",
-      "criterion_type": "trauma_location",
+      "label_de": "Thoraxtrauma oder Thoraxkontusion",
+      "description_de": "Verletzung oder Beschwerden des Brustkorbs durch stumpfes oder spitzes Trauma.",
+      "criterion_type": "trauma",
       "suggested_question_texts_json": "{\"de\": [\"Wurde der Brustkorb verletzt oder geprellt?\"]}",
       "lay_terms_json": "{\"de\": [\"Brustkorb verletzt\", \"Rippen verletzt\", \"Thoraxtrauma\", \"Brustkorbprellung\", \"Schlag auf Brust\"]}",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true,
-      "observation_context": "self_report_or_observed",
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
-      "careena_capture_method": "self_report_or_observed",
+      "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": "",
-      "mapping_status": "draft",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Primary draft criterion for STS 1205.",
-      "is_active": true
+      "is_active": true,
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Brustkorb verletzt",
+          "Rippen",
+          "Thoraxtrauma",
+          "Brustkorbprellung"
+        ],
+        "en": []
+      }
     },
     {
       "criterion_key": "threatening_hallucinations",
@@ -8390,6 +11666,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "tourniquet_or_bleeding_control_preclinical",
+      "label_de": "Blutsperre oder pr?klinische Blutstillung",
+      "description_de": "Blutsperre, Stauschlauch oder pr?klinische Blutstillung wurde angelegt.",
+      "criterion_type": "first_aid",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blutsperre",
+          "Stauschlauch",
+          "Tourniquet"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "toxic_substance_exposure_reported",
       "label_de": "Toxische Substanz oder Vergiftung berichtet",
       "description_de": "Berichtete Einnahme, Inhalation oder Exposition gegen?ber potenziell toxischer Substanz.",
@@ -8436,6 +11739,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "trauma_event_context",
+      "label_de": "Unfall- oder Verletzungshergang",
+      "description_de": "Umst?nde und Mechanismus eines Unfalls oder Traumas.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Unfall",
+          "Sturz",
+          "Trauma",
+          "Verletzung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "tremor",
       "label_de": "Zittern",
       "description_de": "Zittern als m?gliches Entzugssymptom oder Angstzeichen.",
@@ -8475,6 +11806,32 @@
         "de": [
           "TBC",
           "Tuberkulose"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "umbilical_cord_prolapse_reported",
+      "label_de": "Nabelschnurvorfall",
+      "description_de": "Austritt der Nabelschnur vor dem F?tus bei Geburt.",
+      "criterion_type": "obstetric_emergency",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Nabelschnurvorfall",
+          "Nabelschnur drau?en"
         ],
         "en": []
       },
@@ -8609,6 +11966,60 @@
       "is_active": true
     },
     {
+      "criterion_key": "urinary_catheter_problem",
+      "label_de": "Blasenkatheterproblem",
+      "description_de": "Blasenkatheter vorhanden, herausgerissen, k?rzlich eingelegt oder nicht durchg?ngig.",
+      "criterion_type": "device_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Katheter",
+          "Blasenkatheter",
+          "herausgerissen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "urinary_incontinence_reported",
+      "label_de": "Urininkontinenz",
+      "description_de": "Unwillk?rlicher Urinabgang.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Urininkontinenz",
+          "Urin verloren",
+          "kann Urin nicht halten"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "urinary_incontinence_self_reported",
       "label_de": "Urininkontinenz selbst berichtet",
       "description_de": "Selbstberichteter ungewollter Urinverlust oder fehlende Kontrolle ?ber Wasserlassen.",
@@ -8655,6 +12066,141 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "urinary_retention_or_anuria_reported",
+      "label_de": "Anurie oder Urinretention",
+      "description_de": "Fehlende Harnproduktion oder Harnverhaltung.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kein Urin",
+          "Harnverhalt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "urinary_retention_with_sepsis_suspicion",
+      "label_de": "Harnretention mit Verdacht auf Sepsis",
+      "description_de": "STS-Level-2-Kriterium bei Anurie/Urinretention.",
+      "criterion_type": "urology_warning",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Harnverhalt und Fieber",
+          "krank und kein Urin"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "urinary_symptoms_with_flank_pain",
+      "label_de": "Urinbeschwerden bei Flankenschmerz",
+      "description_de": "Brennen, Pollakisurie, Makroh?maturie oder dunkler/?belriechender Urin bei Flankenschmerz.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Brennen",
+          "h?ufig urinieren",
+          "Blut im Urin",
+          "dunkler Urin"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "urinary_tract_infection_symptoms",
+      "label_de": "Symptome eines Harnwegsinfekts",
+      "description_de": "Brennen, Pollakisurie, Fieber oder weitere HWI-Zeichen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "HWI",
+          "Blasenentz?ndung",
+          "Brennen",
+          "Fieber"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "uterine_contractions_or_birth",
+      "label_de": "Uteruskontraktionen oder Geburt",
+      "description_de": "Kontraktionen der Geb?rmuttermuskulatur oder Geburt.",
+      "criterion_type": "pregnancy_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Wehen",
+          "Geburt",
+          "Kontraktionen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "uterine_contractions_or_labor_reported",
       "label_de": "Uteruskontraktionen oder Geburt berichtet",
       "description_de": "Berichtete Wehen, Uteruskontraktionen oder beginnende Geburt.",
@@ -8674,6 +12220,33 @@
       "is_active": true
     },
     {
+      "criterion_key": "vaginal_bleeding_reported",
+      "label_de": "Vaginale Blutung",
+      "description_de": "Blutverlust aus der Scheiden?ffnung.",
+      "criterion_type": "bleeding",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "vaginale Blutung",
+          "Blutung aus Scheide",
+          "Scheidenblutung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "vaginal_bleeding_self_reported",
       "label_de": "Vaginale Blutung selbst berichtet",
       "description_de": "Selbstberichtete vaginale Blutung, auch in Schwangerschaft oder gyn?kologischem Kontext.",
@@ -8691,6 +12264,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1312.",
       "is_active": true
+    },
+    {
+      "criterion_key": "vaginal_discharge_reported",
+      "label_de": "Vaginaler Ausfluss",
+      "description_de": "Nichtblutiger Ausfluss der Vulvo-vaginal-Region.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "vaginaler Ausfluss",
+          "Ausfluss",
+          "Scheidenausfluss"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "vaginal_discharge_self_reported",
@@ -8853,6 +12453,60 @@
         "de": [
           "nach Tablette erbrochen",
           "Medikament erbrochen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "vomiting_blood_or_melena_reported",
+      "label_de": "Bluterbrechen oder Teerstuhl",
+      "description_de": "Erbrechen von Blut oder schwarzer, ?belriechender Stuhlgang.",
+      "criterion_type": "bleeding",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blut erbrochen",
+          "schwarzer Stuhl",
+          "Teerstuhl",
+          "Mel?na"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "vomiting_recent_hours",
+      "label_de": "Erbrechen in den letzten Stunden",
+      "description_de": "Erbrechen im Verlauf der letzten Stunden.",
+      "criterion_type": "course",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "seit Stunden erbrochen",
+          "mehrfach erbrochen"
         ],
         "en": []
       },
@@ -9120,6 +12774,61 @@
       "mapping_status": "draft",
       "mapping_notes": "Supporting criterion for wounds and bite injuries.",
       "is_active": true
+    },
+    {
+      "criterion_key": "wound_location_high_risk",
+      "label_de": "Hochrisiko-Lokalisation der Wunde",
+      "description_de": "Wunde an Hals, Thorax, Abdomen oder Perineum gem?? STS.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Halswunde",
+          "Brustkorbwunde",
+          "Bauchwunde",
+          "Damm"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "wound_needs_suture",
+      "label_de": "Wunde muss gen?ht werden",
+      "description_de": "Oberfl?chliche Wunde, die gen?ht werden muss.",
+      "criterion_type": "wound",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "muss gen?ht werden",
+          "klafft",
+          "Naht"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     }
   ]
 }

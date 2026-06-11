@@ -14,7 +14,7 @@ void main() {
         MockClient(
           (_) async => http.Response(
             jsonEncode({'detail': 'Email is already registered.'}),
-            400,
+            409,
             headers: {'content-type': 'application/json'},
           ),
         ),
@@ -24,11 +24,11 @@ void main() {
         client.post('/auth/register', const {}),
         throwsA(
           isA<ApiException>()
-              .having((error) => error.statusCode, 'statusCode', 400)
+              .having((error) => error.statusCode, 'statusCode', 409)
               .having(
                 (error) => error.message,
                 'message',
-                'Email is already registered.',
+                'Diese E-Mail-Adresse wurde schon registriert.',
               ),
         ),
       );

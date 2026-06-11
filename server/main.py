@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
 from auth.router import router as auth_router
 from profiles.router import router as profiles_router
+from medications.router import router as medications_router
 from chat.logic import ChatLogic
 from extraction.core.extraction_engine import ExtractionEngine
 from extraction.pipeline.extraction_pipeline import ExtractionPipeline
@@ -36,6 +37,7 @@ app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
+app.include_router(medications_router)
 
 # CORS (for Flutter)
 app.add_middleware(

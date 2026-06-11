@@ -144,3 +144,23 @@ def test_cardiovascular_respiratory_category_has_primary_criterion_links() -> No
     missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
 
     assert missing_reason_ids == []
+
+def test_neurology_psychiatry_category_has_primary_criterion_links() -> None:
+    """Ensure every neurology/psychiatry STS reason has at least one primary criterion link."""
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    neurology_psychiatry_reason_ids = {
+        "1101", "1102", "1103", "1104", "1105",
+        "1106", "1107", "1108", "1109", "1110",
+        "1111", "1112", "1113", "1114", "1115",
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(neurology_psychiatry_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []

@@ -1,4 +1,3 @@
-import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/features/medication_plan/data/medication_entry.dart';
 import 'package:app1/features/medication_plan/presentation/widgets/layout/medication_plan_content.dart';
 import 'package:flutter/material.dart';
@@ -9,13 +8,9 @@ void main() {
     testWidgets('renders the page title and bottom medication actions', (
       WidgetTester tester,
     ) async {
-      final themeController = ThemeController();
-      addTearDown(themeController.dispose);
-
       await tester.pumpWidget(
         _TestShell(
           child: MedicationPlanContent(
-            themeController: themeController,
             selectedDate: DateTime(2026, 6, 2),
             today: DateTime(2026, 6, 2),
             entries: const [],
@@ -27,7 +22,6 @@ void main() {
         ),
       );
 
-      expect(find.text('Medikamentenplan'), findsOneWidget);
       expect(find.text('Meine Medikamente'), findsOneWidget);
       expect(find.byTooltip('Medikament hinzufügen'), findsOneWidget);
     });
@@ -36,13 +30,9 @@ void main() {
       // The bottom actions are the primary entry points for editing medication.
       var openedMedicationList = false;
       var openedMedicationForm = false;
-      final themeController = ThemeController();
-      addTearDown(themeController.dispose);
-
       await tester.pumpWidget(
         _TestShell(
           child: MedicationPlanContent(
-            themeController: themeController,
             selectedDate: DateTime(2026, 6, 2),
             today: DateTime(2026, 6, 2),
             entries: [_entry()],

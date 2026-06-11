@@ -6,6 +6,7 @@ import '../controllers/medication_plan_controller.dart';
 import '../widgets/form/medication_form_dialog.dart';
 import '../widgets/list/medication_list_dialog.dart';
 import '../widgets/layout/medication_plan_content.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 
 /// Page for managing personal medications and daily intake reminders.
 class MedicationPlanPage extends StatefulWidget {
@@ -46,6 +47,13 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: CareenaPageHeader(
+        title: 'Medikamentenplan',
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+      ),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -60,7 +68,6 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
                 14,
               ),
               child: MedicationPlanContent(
-                themeController: widget.themeController,
                 selectedDate: _selectedDate,
                 today: _today,
                 entries: _controller.entries,

@@ -6,8 +6,13 @@ import 'function_menu_tile.dart';
 class HomeFunctionList extends StatelessWidget {
   /// Features rendered below the list heading.
   final List<HomeFeature> features;
+  final bool isSimpleView;
 
-  const HomeFunctionList({super.key, required this.features});
+  const HomeFunctionList({
+    super.key,
+    required this.features,
+    this.isSimpleView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +31,18 @@ class HomeFunctionList extends StatelessWidget {
           12,
         ),
         itemCount: features.length + 1,
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
+        separatorBuilder: (context, index) =>
+            SizedBox(height: isSimpleView ? 14 : 8),
         itemBuilder: (context, index) {
           // The heading is part of the same ListView so it scrolls naturally
           // with the feature rows on short screens.
           if (index == 0) {
-            return const Text(
-              "Deine Funktionen...",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            return Text(
+              isSimpleView ? "Was möchtest du tun?" : "Deine Funktionen...",
+              style: TextStyle(
+                fontSize: isSimpleView ? 20 : 16,
+                fontWeight: FontWeight.bold,
+              ),
             );
           }
 
@@ -44,6 +53,7 @@ class HomeFunctionList extends StatelessWidget {
             title: feature.title,
             bgColor: feature.backgroundColor,
             onTap: feature.onTap,
+            isSimpleView: isSimpleView,
           );
         },
       ),

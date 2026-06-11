@@ -1,6 +1,7 @@
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
+import 'package:app1/core/widgets/careena_page_header.dart';
 
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
@@ -45,6 +46,13 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: CareenaPageHeader(
+        title: 'Symptomtagebuch',
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+      ),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -59,7 +67,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 22,
               ),
               child: SymptomDiaryContent(
-                themeController: widget.themeController,
                 selectedDate: _selectedDate,
                 today: _today,
                 isLoading: _controller.isLoading,

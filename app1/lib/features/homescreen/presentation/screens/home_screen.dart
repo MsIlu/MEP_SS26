@@ -2,6 +2,7 @@
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
+import '../../../appointmentscreen/presentation/screens/appointment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -19,7 +20,7 @@ class HomeScreen extends StatelessWidget {
   final ChatController controller;
 
   /// Shared theme controller used to switch between light and dark mode.
-  final ThemeController themeController;
+  final ThemeController themeController; 
 
   const HomeScreen({
     super.key,
@@ -79,7 +80,7 @@ class HomeScreen extends StatelessWidget {
         icon: Icons.access_time,
         title: "Terminplanung",
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToAppointments(context),
       ),
       HomeFeature(
         icon: Icons.medication,
@@ -127,4 +128,13 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _navigateToAppointments(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AppointmentScreen(),
+),
+  );
+}
 }

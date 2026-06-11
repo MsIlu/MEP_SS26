@@ -14021,15 +14021,206 @@
     },
     {
       "consultation_reason_source_id": "1501",
+      "criterion_key": "immunosuppression_or_transplant_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "pregnancy_or_postpartum_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "very_young_child_or_high_risk_age",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_with_breathing_difficulty",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_with_consciousness_change",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_with_petechiae_or_purpura",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_with_reduced_general_condition",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "fever_with_seizure",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
+      "criterion_key": "high_or_persistent_fever",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1501",
       "criterion_key": "consciousness_level_observed",
       "relevance": "supporting",
       "is_safety_relevant": true,
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1501",
@@ -14039,9 +14230,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1501",
@@ -14051,9 +14242,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1501",
@@ -14063,8 +14254,121 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "fever_with_breathing_difficulty",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "fever_with_reduced_general_condition",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "high_or_persistent_fever",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "immunosuppression_or_transplant_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "flu_like_or_common_cold_symptoms",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1502",
+      "criterion_key": "cold_symptoms_without_warning_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14075,9 +14379,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1502",
@@ -14087,9 +14391,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1502",
@@ -14099,9 +14403,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1502",
@@ -14111,8 +14415,64 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1503",
+      "criterion_key": "hypothermia_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1503",
+      "criterion_key": "hypothermia_with_consciousness_change",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1503",
+      "criterion_key": "cold_exposure_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14123,9 +14483,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1503",
@@ -14135,9 +14495,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1503",
@@ -14147,9 +14507,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1503",
@@ -14159,8 +14519,66 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft infection symptoms category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during infection symptoms category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1601",
+      "criterion_key": "neurological_deficit_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Reference to 1105 neurological deficit pathway.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1601",
+      "criterion_key": "vertigo_with_neurological_warning_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1105 or another safety reason instead of 1601-final.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1601",
+      "criterion_key": "vertigo_likely_peripheral_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14171,9 +14589,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1601",
@@ -14183,9 +14601,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1601",
@@ -14195,9 +14613,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1601",
@@ -14207,8 +14625,84 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1602",
+      "criterion_key": "airway_or_swallowing_impairment_ent",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1602",
+      "criterion_key": "ent_symptoms_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1602",
+      "criterion_key": "ent_foreign_body_or_bleeding",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1602",
+      "criterion_key": "fever_with_reduced_general_condition",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14219,9 +14713,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1602",
@@ -14231,9 +14725,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1602",
@@ -14243,9 +14737,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1602",
@@ -14255,8 +14749,119 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "anticoagulation_or_hemophilia",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "epistaxis_after_trauma",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "epistaxis_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "epistaxis_persistent_or_heavy",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "epistaxis_with_circulatory_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1603",
+      "criterion_key": "epistaxis_frequent_harmless_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Known frequent epistaxis can be harmless, but must not override current heavy/persistent bleeding or risk context.",
       "is_active": true
     },
     {
@@ -14267,9 +14872,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1603",
@@ -14279,9 +14884,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1603",
@@ -14291,8 +14896,82 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1701",
+      "criterion_key": "allergic_reaction_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1701",
+      "criterion_key": "allergy_airway_swelling",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_anaphylaxis_or_airway_swelling",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1701",
+      "criterion_key": "allergy_circulatory_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1701",
+      "criterion_key": "allergy_rapid_spread_or_generalized",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14303,9 +14982,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1701",
@@ -14315,9 +14994,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1701",
@@ -14327,9 +15006,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1701",
@@ -14339,8 +15018,84 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1702",
+      "criterion_key": "biological_sex_relevance_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Ask anatomically only where relevant; avoid assumptions about male/female anatomy.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1702",
+      "criterion_key": "genital_area_severe_pain_fever_swelling",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1702",
+      "criterion_key": "urinary_retention_or_anuria_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1702",
+      "criterion_key": "genital_area_symptoms_derm",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14351,9 +15106,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1702",
@@ -14363,9 +15118,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1702",
@@ -14375,9 +15130,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1702",
@@ -14387,8 +15142,139 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "immunosuppression_or_transplant_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "fever_with_reduced_general_condition",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "skin_soft_tissue_complaint_or_infection",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "skin_face_eye_involvement",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "skin_necrosis_blisters_black_skin",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "skin_rapid_spread_or_red_streak",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1703",
+      "criterion_key": "localized_stable_skin_problem",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14399,9 +15285,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1703",
@@ -14411,9 +15297,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1703",
@@ -14423,9 +15309,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1703",
@@ -14435,8 +15321,121 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "back_pain_after_trauma_guard",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Back/neck pain after accident belongs to trauma pathway, not final 1801.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "back_pain_with_bladder_bowel_saddle_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "back_pain_with_fever_or_risk_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "back_pain_with_neurological_deficit",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "nontraumatic_back_or_neck_pain",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1801",
+      "criterion_key": "chronic_stable_musculoskeletal_pain",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14447,9 +15446,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1801",
@@ -14459,9 +15458,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1801",
@@ -14471,9 +15470,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1801",
@@ -14483,8 +15482,103 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1802",
+      "criterion_key": "immunosuppression_or_transplant_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1802",
+      "criterion_key": "fever_with_reduced_general_condition",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1802",
+      "criterion_key": "joint_muscle_nerve_pain",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1802",
+      "criterion_key": "hot_swollen_joint_or_severe_function_loss",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1802",
+      "criterion_key": "chronic_stable_musculoskeletal_pain",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14495,9 +15589,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1802",
@@ -14507,9 +15601,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1802",
@@ -14519,8 +15613,83 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft HNO/dermatology/rheumatology category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during HNO/dermatology/rheumatology category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1901",
+      "criterion_key": "eye_trauma_or_chemical_exposure",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "urgent_eye_evaluation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1901",
+      "criterion_key": "eye_complaint_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1901",
+      "criterion_key": "red_eye_with_vision_change",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1901",
+      "criterion_key": "sudden_vision_loss_or_severe_eye_pain",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "urgent_eye_evaluation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14531,9 +15700,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1901",
@@ -14543,9 +15712,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1901",
@@ -14555,8 +15724,45 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1902",
+      "criterion_key": "diving_accident_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "urgent_diving_accident_evaluation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1902",
+      "criterion_key": "diving_accident_with_neuro_breathing_or_chest_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_diving_accident",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14567,9 +15773,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1902",
@@ -14579,9 +15785,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1902",
@@ -14591,9 +15797,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1902",
@@ -14603,8 +15809,84 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1903",
+      "criterion_key": "suicidal_context_with_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1903",
+      "criterion_key": "toxic_exposure_unknown_or_child_or_caustic",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1903",
+      "criterion_key": "toxic_substance_exposure",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "poison_control_or_medical_advice",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1903",
+      "criterion_key": "toxic_exposure_with_critical_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14615,9 +15897,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1903",
@@ -14627,9 +15909,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1903",
@@ -14639,9 +15921,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1903",
@@ -14651,8 +15933,64 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1904",
+      "criterion_key": "foreign_body_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1904",
+      "criterion_key": "foreign_body_airway_or_breathing_problem",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_airway_foreign_body",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1904",
+      "criterion_key": "foreign_body_high_risk_object",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14663,9 +16001,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1904",
@@ -14675,9 +16013,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1904",
@@ -14687,9 +16025,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1904",
@@ -14699,8 +16037,27 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1905",
+      "criterion_key": "electrical_accident_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_electrical_accident",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Product decision: electrical accident should be treated as emergency 112 pathway.",
       "is_active": true
     },
     {
@@ -14711,9 +16068,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1905",
@@ -14723,9 +16080,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1905",
@@ -14735,9 +16092,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1905",
@@ -14747,8 +16104,46 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1906",
+      "criterion_key": "bodypacking_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_bodypacking",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Product decision: bodypacking should be treated as 112/emergency pathway despite STS listing level 3.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1906",
+      "criterion_key": "bodypacking_with_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_bodypacking",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14759,9 +16154,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1906",
@@ -14771,9 +16166,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1906",
@@ -14783,9 +16178,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1906",
@@ -14795,8 +16190,26 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1907",
+      "criterion_key": "social_hospitalization_need",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "social_support_phone_guidance",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Not emergency and not out-of-scope; show suitable support contact/care navigation later.",
       "is_active": true
     },
     {
@@ -14807,9 +16220,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1907",
@@ -14819,9 +16232,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1907",
@@ -14831,8 +16244,28 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1908",
+      "criterion_key": "external_transfer_or_takeover_context",
+      "relevance": "source_only",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "not_used_for_product_decision",
+      "criterion_role": "non_lay_or_clinical_only",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "STS source reason exists, but this is not suitable for direct Careena user triage.",
       "is_active": true
     },
     {
@@ -14843,9 +16276,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1908",
@@ -14855,9 +16288,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1908",
@@ -14867,8 +16300,48 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1909",
+      "criterion_key": "doctor_or_report_urgency_instruction",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1909",
+      "criterion_key": "pathological_test_result_context",
+      "relevance": "source_only",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "not_used_for_product_decision",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Pathological result alone is not a Careena triage reason; ask for report urgency/symptoms/source.",
       "is_active": true
     },
     {
@@ -14879,9 +16352,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1909",
@@ -14891,9 +16364,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1909",
@@ -14903,8 +16376,46 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1910",
+      "criterion_key": "dental_problem_with_face_swelling_or_systemic_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "urgent_dental_or_maxillofacial_evaluation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1910",
+      "criterion_key": "dental_problem_reported",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14915,9 +16426,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1910",
@@ -14927,9 +16438,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1910",
@@ -14939,9 +16450,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1910",
@@ -14951,8 +16462,47 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1911",
+      "criterion_key": "rapid_general_deterioration_or_red_flags",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1911",
+      "criterion_key": "general_condition_worsening",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -14963,9 +16513,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1911",
@@ -14975,9 +16525,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1911",
@@ -14987,9 +16537,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1911",
@@ -14999,8 +16549,65 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1912",
+      "criterion_key": "anticoagulation_or_hemophilia",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1912",
+      "criterion_key": "older_person_fall_risk_features",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1912",
+      "criterion_key": "older_person_fall_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "medical_evaluation_after_older_person_fall",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Product decision: older person fall should always be medically clarified; do not treat as pure self-observation.",
       "is_active": true
     },
     {
@@ -15011,9 +16618,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1912",
@@ -15023,9 +16630,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1912",
@@ -15035,9 +16642,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1912",
@@ -15047,8 +16654,27 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1913",
+      "criterion_key": "planned_transplantation_context",
+      "relevance": "source_only",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "not_used_for_product_decision",
+      "criterion_role": "non_lay_or_clinical_only",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Specialized clinical process; not suitable for direct Careena triage unless acute symptoms are reported.",
       "is_active": true
     },
     {
@@ -15059,9 +16685,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1913",
@@ -15071,9 +16697,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1913",
@@ -15083,8 +16709,26 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1914",
+      "criterion_key": "administrative_medical_request",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "primary_care_administrative_contact",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -15095,9 +16739,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1914",
@@ -15107,8 +16751,26 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1915",
+      "criterion_key": "post_exposure_prophylaxis_or_biological_fluid_exposure",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "time_sensitive_pep_medical_contact",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Time-sensitive, no pure self-observation.",
       "is_active": true
     },
     {
@@ -15119,9 +16781,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1915",
@@ -15131,8 +16793,46 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1916",
+      "criterion_key": "sexual_assault_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "sensitive_support_path",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "sexual_assault_sensitive_support",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "No cold generic warning page unless acute danger/injury is present.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1916",
+      "criterion_key": "sexual_assault_acute_danger_or_injury",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "sexual_assault_emergency_or_safe_support",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -15143,9 +16843,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1916",
@@ -15155,9 +16855,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1916",
@@ -15167,20 +16867,26 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
-      "consultation_reason_source_id": "1916",
-      "criterion_key": "sexual_assault_reported",
+      "consultation_reason_source_id": "1917",
+      "criterion_key": "violence_forensic_documentation_request",
       "relevance": "primary",
       "is_safety_relevant": true,
-      "is_red_flag_candidate": true,
-      "careena_decision_role": "structured_safety_validator",
-      "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "sensitive_support_path",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "forensic_documentation_or_violence_support",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If acute danger or injury is present, route to acute medical/safety pathway.",
       "is_active": true
     },
     {
@@ -15191,9 +16897,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1917",
@@ -15203,9 +16909,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1917",
@@ -15215,9 +16921,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1917",
@@ -15227,8 +16933,46 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1918",
+      "criterion_key": "hiccups_with_warning_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1918",
+      "criterion_key": "hiccups_reported",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -15239,9 +16983,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1918",
@@ -15251,9 +16995,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1918",
@@ -15263,8 +17007,27 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1919",
+      "criterion_key": "medical_technical_procedure_or_pregnancy_dating",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Planned care/process reason; ask for purpose unless acute symptoms are reported.",
       "is_active": true
     },
     {
@@ -15275,9 +17038,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1919",
@@ -15287,9 +17050,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1919",
@@ -15299,8 +17062,44 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1920",
+      "criterion_key": "planned_consultation_request",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "care_navigation",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "ask_reason_for_planned_consultation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Not direct out-of-scope; ask what the planned consultation is about for routing/terminservice.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1920",
+      "criterion_key": "planned_consultation_reason_missing",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "ask_reason_for_planned_consultation",
+      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -15311,9 +17110,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1920",
@@ -15323,9 +17122,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft miscellaneous consultation motives category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during miscellaneous consultation motives category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_remaining_sts_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated remaining STS cluster draft.",
+      "is_active": false
     }
   ]
 }

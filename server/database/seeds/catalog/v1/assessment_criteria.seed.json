@@ -422,6 +422,34 @@
       "is_active": true
     },
     {
+      "criterion_key": "administrative_medical_request",
+      "label_de": "Beratung, Arztzeugnis oder Rezept",
+      "description_de": "Administratives medizinisches Anliegen ohne akute Beschwerde.",
+      "criterion_type": "administrative",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Rezept",
+          "Arztzeugnis",
+          "Beratung",
+          "Attest"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "administrative_medical_request_reported",
       "label_de": "Beratung, Arztzeugnis oder Rezeptwunsch berichtet",
       "description_de": "Berichteter Wunsch nach Beratung, Arztzeugnis, Rezept, administrativer medizinischer Leistung oder planbarer Auskunft.",
@@ -615,6 +643,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "airway_or_swallowing_impairment_ent",
+      "label_de": "Atemwegs- oder Schluckbeeintr?chtigung bei HNO-Beschwerden",
+      "description_de": "Atemwegsenge, Schluckunf?higkeit, Speichelfluss, Heiserkeit oder starke Schwellung.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kann nicht schlucken",
+          "Speichel l?uft",
+          "Hals schwillt",
+          "Atemnot"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "alcohol_intoxication_reported",
       "label_de": "Alkoholintoxikation oder Alkoholmissbrauch berichtet",
       "description_de": "Zu viel Alkohol oder Alkoholintoxikation berichtet.",
@@ -662,6 +718,34 @@
       "is_active": true
     },
     {
+      "criterion_key": "allergic_reaction_reported",
+      "label_de": "Allergische Reaktion",
+      "description_de": "Allergische Reaktion oder Verdacht darauf.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Allergie",
+          "allergische Reaktion",
+          "Ausschlag nach Kontakt",
+          "Insektenstich"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "allergic_reaction_self_reported_or_observed",
       "label_de": "Allergische Reaktion berichtet oder beobachtet",
       "description_de": "Berichtete oder beobachtete allergische Reaktion wie Hautreaktion, Schwellung, Juckreiz oder Atembeschwerden nach Kontakt mit m?glichem Ausl?ser.",
@@ -679,6 +763,89 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1701.",
       "is_active": true
+    },
+    {
+      "criterion_key": "allergy_airway_swelling",
+      "label_de": "Allergie mit Atemwegs-/Gesichts-/Zungenschwellung",
+      "description_de": "Schwellung von Lippen, Zunge, Hals oder Gesicht oder Atemwegsbeteiligung bei Allergie.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Zunge schwillt",
+          "Lippen schwellen",
+          "Hals schwillt",
+          "Atemnot"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "allergy_circulatory_symptoms",
+      "label_de": "Allergie mit Kreislaufzeichen",
+      "description_de": "Kollapsgef?hl, Schwindel, Schw?che oder Kreislaufprobleme bei Allergie.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Kollaps",
+          "Schwindel",
+          "Kreislauf",
+          "ohnm?chtig"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "allergy_rapid_spread_or_generalized",
+      "label_de": "Rasch ausbreitende oder generalisierte allergische Reaktion",
+      "description_de": "Rasche Ausbreitung oder generalisierte Haut-/Systemreaktion.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "breitet sich schnell aus",
+          "?berall Ausschlag",
+          "ganzer K?rper"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "altered_consciousness",
@@ -1160,6 +1327,117 @@
       "is_active": true
     },
     {
+      "criterion_key": "back_pain_after_trauma_guard",
+      "label_de": "R?ckenschmerz nach Unfall geh?rt in Trauma-Cluster",
+      "description_de": "Produktguard: R?ckenschmerzen nach Unfall d?rfen nicht als 1801 finalisiert werden.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "nach Unfall",
+          "nach Sturz",
+          "Trauma"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "back_pain_with_bladder_bowel_saddle_symptoms",
+      "label_de": "R?ckenschmerz mit Blasen-/Darm- oder Sattelbereichsymptomen",
+      "description_de": "Blasen-/Darmst?rung oder Taubheit im Schritt bei R?ckenschmerzen.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Blase",
+          "Darm",
+          "Sattelgef?hl",
+          "Taubheit im Schritt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "back_pain_with_fever_or_risk_context",
+      "label_de": "R?ckenschmerz mit Fieber oder Risikokontext",
+      "description_de": "R?cken-/Nackenschmerz mit Fieber, Immunsuppression, Krebsanamnese oder schlechtem Zustand.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber",
+          "Krebs",
+          "immunsupprimiert",
+          "schlechter Zustand"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "back_pain_with_neurological_deficit",
+      "label_de": "R?ckenschmerz mit neurologischem Defizit",
+      "description_de": "R?cken-/Nackenschmerz mit L?hmung, Taubheit, Kraftverlust oder neurologischem Ausfall.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "L?hmung",
+          "taub",
+          "Kraftverlust",
+          "Gef?hlsst?rung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "balance_disturbance",
       "label_de": "Gleichgewichtsst?rung",
       "description_de": "St?rung von Gleichgewicht, Koordination oder Gang.",
@@ -1231,6 +1509,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1915.",
       "is_active": true
+    },
+    {
+      "criterion_key": "biological_sex_relevance_context",
+      "label_de": "Biologisch relevante Geschlechts-/Anatomie-Kontextfrage",
+      "description_de": "Kontextfrage zu betroffener Anatomie, wenn sie f?r Genital-/Gyn-/Uro-Logik notwendig ist.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "m?nnlich",
+          "weiblich",
+          "Anatomie",
+          "betroffene Region"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "choice",
+      "suggested_input_mode": "choice_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "bite_inflammation_or_bleeding",
@@ -1645,6 +1951,60 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "measurement",
       "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "bodypacking_reported",
+      "label_de": "Bodypacking",
+      "description_de": "Verschluckte oder im K?rper transportierte Drogenp?ckchen.",
+      "criterion_type": "tox_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bodypacking",
+          "Drogenp?ckchen",
+          "P?ckchen geschluckt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "bodypacking_with_symptoms",
+      "label_de": "Bodypacking mit Symptomen",
+      "description_de": "Bodypacking mit Schmerzen, Erbrechen, Bewusstseins?nderung oder Intoxikationszeichen.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Bodypacking und Schmerzen",
+          "P?ckchen und Erbrechen",
+          "Intoxikation"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -2232,6 +2592,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "chronic_stable_musculoskeletal_pain",
+      "label_de": "Chronische stabile Muskel-/Gelenk-/Nervenschmerzen",
+      "description_de": "L?nger bestehende stabile muskuloskelettale Beschwerden ohne Warnzeichen.",
+      "criterion_type": "deescalation_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "chronisch",
+          "schon l?nger",
+          "stabil"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "circulatory_instability",
       "label_de": "Kreislaufinstabilit?t",
       "description_de": "Kreislaufzeichen wie Kollaps, starke Schw?che, Schockgef?hl oder sehr niedriger Blutdruck.",
@@ -2286,6 +2673,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "cold_exposure_context",
+      "label_de": "K?lteexposition",
+      "description_de": "Exposition gegen?ber K?lte, N?sse oder kalter Umgebung.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "K?lte",
+          "drau?en gelegen",
+          "nass und kalt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "cold_extremity",
       "label_de": "Kalte Extremit?t",
       "description_de": "Auff?llig kalte Extremit?t.",
@@ -2303,6 +2717,33 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "cold_symptoms_without_warning_signs",
+      "label_de": "Erk?ltungssymptome ohne Warnzeichen",
+      "description_de": "Stabile Erk?ltungssymptome ohne Atemnot, starken Zustandseinbruch oder andere Red Flags.",
+      "criterion_type": "deescalation_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "leichte Erk?ltung",
+          "stabil",
+          "keine Warnzeichen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -3011,6 +3452,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "dental_problem_reported",
+      "label_de": "Zahnproblem",
+      "description_de": "Zahnschmerz oder Zahn-/Mundproblem.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Zahnschmerz",
+          "Zahnproblem",
+          "Zahn",
+          "Backe geschwollen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "dental_problem_self_reported",
       "label_de": "Zahnproblem selbst berichtet",
       "description_de": "Selbstberichtetes Zahnproblem wie Zahnschmerz, abgebrochener Zahn, Schwellung, Blutung oder Entz?ndung.",
@@ -3028,6 +3497,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1910.",
       "is_active": true
+    },
+    {
+      "criterion_key": "dental_problem_with_face_swelling_or_systemic_signs",
+      "label_de": "Zahnproblem mit Gesichtsschwellung oder Systemzeichen",
+      "description_de": "Zahnproblem mit Gesichtsschwellung, Fieber, Schluck-/Atemproblem oder schlechtem Zustand.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Backe geschwollen",
+          "Fieber",
+          "kann nicht schlucken",
+          "Atemnot"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "depressive_symptoms_self_reported",
@@ -3356,6 +3853,61 @@
       "is_active": true
     },
     {
+      "criterion_key": "diving_accident_reported",
+      "label_de": "Tauchunfall",
+      "description_de": "Dekompressions- oder Barotrauma nach Tauchen.",
+      "criterion_type": "accident",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Tauchunfall",
+          "Dekompression",
+          "Barotrauma",
+          "Tauchen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "diving_accident_with_neuro_breathing_or_chest_symptoms",
+      "label_de": "Tauchunfall mit Neuro-, Atem- oder Thoraxsymptomen",
+      "description_de": "Tauchunfall mit neurologischen Symptomen, Atemnot, Brustschmerz oder Bewusstseinsver?nderung.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Taubheit nach Tauchen",
+          "Atemnot nach Tauchen",
+          "Brustschmerz nach Tauchen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "dizziness",
       "label_de": "Schwindel",
       "description_de": "Schwindelgef?hl als Begleitzeichen.",
@@ -3400,6 +3952,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Reusable supporting safety/context criterion.",
       "is_active": true
+    },
+    {
+      "criterion_key": "doctor_or_report_urgency_instruction",
+      "label_de": "?rztliche oder Befund-Dringlichkeitsanweisung",
+      "description_de": "Im Befund oder durch medizinisches Personal genannte Dringlichkeit.",
+      "criterion_type": "clinical_report",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "sofort abkl?ren",
+          "Notfall",
+          "dringend",
+          "Arzt hat gesagt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "clinical_report_if_available",
+      "careena_use_policy": "use_if_reported",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "clinical_report",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "dyspnea_after_trauma",
@@ -3662,6 +4242,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "electrical_accident_reported",
+      "label_de": "Elektrounfall",
+      "description_de": "Elektrounfall, Stromschlag oder Blitzunfall.",
+      "criterion_type": "accident",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Stromschlag",
+          "Elektrounfall",
+          "Blitz",
+          "Hochspannung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "electrical_injury_reported",
       "label_de": "Elektrounfall berichtet",
       "description_de": "Berichteter Stromschlag, Elektrounfall, Blitzschlag oder elektrische Verbrennung.",
@@ -3705,6 +4313,62 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "measurement",
       "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "ent_foreign_body_or_bleeding",
+      "label_de": "Fremdk?rper oder Blutung im HNO-Bereich",
+      "description_de": "Fremdk?rper oder Blutung im Ohr-, Nasen- oder Halsbereich.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fremdk?rper",
+          "Blutung",
+          "etwas steckt fest"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "ent_symptoms_reported",
+      "label_de": "HNO-Beschwerden",
+      "description_de": "Beschwerden an Ohr, Nase oder Hals.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Ohrenschmerzen",
+          "Halsschmerzen",
+          "Nase",
+          "Hals",
+          "HNO"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -3780,6 +4444,114 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "epistaxis_after_trauma",
+      "label_de": "Nasenbluten nach Trauma",
+      "description_de": "Nasenbluten nach Unfall, Sturz oder Schlag.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "nach Sturz",
+          "nach Schlag",
+          "Trauma"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "epistaxis_frequent_harmless_context",
+      "label_de": "H?ufiges bekanntes Nasenbluten als Kontext",
+      "description_de": "Bekannt h?ufiges Nasenbluten, das stabil und selbstlimitierend sein kann.",
+      "criterion_type": "context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "habe ich ?fter",
+          "h?ufig Nasenbluten",
+          "geht sonst weg"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "epistaxis_persistent_or_heavy",
+      "label_de": "Starkes oder anhaltendes Nasenbluten",
+      "description_de": "Starkes, lang anhaltendes oder nicht stoppendes Nasenbluten.",
+      "criterion_type": "bleeding_red_flag",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "blutet stark",
+          "h?rt nicht auf",
+          "viel Blut"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "epistaxis_reported",
+      "label_de": "Nasenbluten",
+      "description_de": "Blutung aus der Nase.",
+      "criterion_type": "bleeding",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Nasenbluten",
+          "Epistaxis",
+          "Blut aus der Nase"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "epistaxis_self_reported_or_observed",
       "label_de": "Nasenbluten berichtet oder beobachtet",
       "description_de": "Berichtetes oder beobachtetes Nasenbluten.",
@@ -3797,6 +4569,32 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1603.",
       "is_active": true
+    },
+    {
+      "criterion_key": "epistaxis_with_circulatory_symptoms",
+      "label_de": "Nasenbluten mit Kreislaufzeichen",
+      "description_de": "Nasenbluten zusammen mit Schwindel, Schw?che, Kollapsgef?hl oder Kreislaufproblemen.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Nasenbluten und Schwindel",
+          "Nasenbluten und Kreislauf"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "event_duration",
@@ -3878,6 +4676,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "external_transfer_or_takeover_context",
+      "label_de": "Verlegung oder ?bernahme aus externem Spital / Institution",
+      "description_de": "Klinikprozess einer Verlegung oder ?bernahme aus externer Institution.",
+      "criterion_type": "clinical_process",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Verlegung",
+          "?bernahme",
+          "externes Spital"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "not_suitable_for_careena",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "source_only",
+      "capture_limitation_reason": "Clinical process reason, not suitable for direct Careena user decision.",
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "none",
       "free_text_allowed": true
     },
     {
@@ -4033,6 +4858,34 @@
       }
     },
     {
+      "criterion_key": "eye_complaint_reported",
+      "label_de": "Augenbeschwerden",
+      "description_de": "Beschwerden am Auge oder Sehproblem.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Auge",
+          "Augenschmerzen",
+          "rotes Auge",
+          "Sehproblem"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "eye_complaint_self_reported",
       "label_de": "Augenbeschwerden selbst berichtet",
       "description_de": "Selbstberichtete Beschwerden am Auge, zum Beispiel Schmerzen, R?tung, Fremdk?rpergef?hl, Sehst?rung oder Verletzung.",
@@ -4050,6 +4903,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1901.",
       "is_active": true
+    },
+    {
+      "criterion_key": "eye_trauma_or_chemical_exposure",
+      "label_de": "Augenverletzung oder chemische Exposition",
+      "description_de": "Augentrauma, Fremdk?rper oder chemische Exposition am Auge.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Auge verletzt",
+          "Chemikalie im Auge",
+          "Fremdk?rper im Auge"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "face_jaw_neck_trauma_reported",
@@ -4469,6 +5349,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "fever_reported",
+      "label_de": "Fieber berichtet",
+      "description_de": "Fieber oder erh?hte K?rpertemperatur.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "Wie hoch ist die Temperatur, falls gemessen?",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber",
+          "Temperatur",
+          "erh?hte Temperatur"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "measurement_or_boolean",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "fever_self_reported",
       "label_de": "Fieber selbst berichtet",
       "description_de": "Selbstberichtetes Fieber oder erh?hte Temperatur.",
@@ -4486,6 +5393,86 @@
       "mapping_status": "draft",
       "mapping_notes": "Reusable supporting criterion for respiratory/infectious contexts.",
       "is_active": true
+    },
+    {
+      "criterion_key": "fever_with_breathing_difficulty",
+      "label_de": "Fieber mit Atembeschwerden",
+      "description_de": "Fieber zusammen mit Dyspnoe, Atemnot oder Atemproblemen.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber und Atemnot",
+          "Fieber und schlecht Luft"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "fever_with_consciousness_change",
+      "label_de": "Fieber mit Bewusstseinsver?nderung",
+      "description_de": "Fieber zusammen mit Benommenheit, Verwirrtheit oder Bewusstseinsminderung.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber und verwirrt",
+          "Fieber und benommen",
+          "Fieber und nicht richtig da"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "fever_with_petechiae_or_purpura",
+      "label_de": "Fieber mit Petechien oder Purpura",
+      "description_de": "Fieber zusammen mit punktf?rmigen roten/violetten Hautflecken oder Unterhautblutungen.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieber und rote Punkte",
+          "Fieber und Einblutungen",
+          "Fieber und Purpura"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "fever_with_pregnancy_12plus",
@@ -4526,6 +5513,32 @@
         "de": [
           "Fieber und sehr schlapp",
           "Fieber und schlechter Zustand"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "fever_with_seizure",
+      "label_de": "Fieber mit Krampfanfall",
+      "description_de": "Fieber zusammen mit Krampfanfall oder krampfartigen Bewegungen.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fieberkrampf",
+          "Fieber und Krampfanfall"
         ],
         "en": []
       },
@@ -4586,6 +5599,35 @@
       "is_active": true
     },
     {
+      "criterion_key": "flu_like_or_common_cold_symptoms",
+      "label_de": "Grippales Syndrom oder Erk?ltungssymptome",
+      "description_de": "Erk?ltungssymptome oder grippales Syndrom.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Erk?ltung",
+          "grippal",
+          "Schnupfen",
+          "Husten",
+          "Gliederschmerzen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "focal_neurological_deficit_self_reported_or_observed",
       "label_de": "Fokales neurologisches Defizit berichtet oder beobachtet",
       "description_de": "Pl?tzlich aufgetretene St?rung von Sprache, Sehen, Gleichgewicht, Motorik, Sensibilit?t oder Gesichtsfeld.",
@@ -4605,6 +5647,61 @@
       "is_active": true
     },
     {
+      "criterion_key": "foreign_body_airway_or_breathing_problem",
+      "label_de": "Fremdk?rper mit Atemwegsproblem",
+      "description_de": "Fremdk?rper mit Atemnot, Hustenattacke, Erstickungsgef?hl oder Atemwegsverschluss.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "verschluckt und keine Luft",
+          "eingeatmet",
+          "erstickt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "foreign_body_high_risk_object",
+      "label_de": "Hochrisiko-Fremdk?rper",
+      "description_de": "Batterie, Magnet, scharfer Gegenstand oder ?tzender Stoff als Fremdk?rper.",
+      "criterion_type": "foreign_body",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Batterie",
+          "Magnet",
+          "scharf",
+          "?tzend"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "foreign_body_ingestion_inhalation_or_insertion_reported",
       "label_de": "Fremdk?rper-Einnahme, -Inhalation oder -Einf?hren berichtet",
       "description_de": "Berichteter verschluckter, eingeatmeter oder eingef?hrter Fremdk?rper.",
@@ -4622,6 +5719,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1904.",
       "is_active": true
+    },
+    {
+      "criterion_key": "foreign_body_reported",
+      "label_de": "Fremdk?rper: Einnahme, Inhalation oder Einf?hren",
+      "description_de": "Fremdk?rper durch Verschlucken, Einatmen oder Einf?hren.",
+      "criterion_type": "foreign_body",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Fremdk?rper",
+          "verschluckt",
+          "eingeatmet",
+          "eingef?hrt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "found_unconscious_context",
@@ -4814,6 +5939,61 @@
       "is_active": true
     },
     {
+      "criterion_key": "general_condition_worsening",
+      "label_de": "Verschlechterung des Allgemeinzustands",
+      "description_de": "Unspezifische Verschlechterung des Allgemeinzustands.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "geht schlechter",
+          "Allgemeinzustand schlechter",
+          "f?hle mich sehr krank"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "genital_area_severe_pain_fever_swelling",
+      "label_de": "Genitalbereich mit starken Schmerzen, Fieber oder Schwellung",
+      "description_de": "Warnzeichen bei Symptomen im Genitalbereich.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "starke Schmerzen",
+          "Fieber",
+          "Schwellung",
+          "schwarz"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "genital_area_symptom_self_reported",
       "label_de": "Beschwerden im Genitalbereich selbst berichtet",
       "description_de": "Selbstberichtete Beschwerden im Genitalbereich, zum Beispiel Schmerzen, Juckreiz, Schwellung, Hautver?nderung, Ausfluss oder Verletzung.",
@@ -4831,6 +6011,34 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1702.",
       "is_active": true
+    },
+    {
+      "criterion_key": "genital_area_symptoms_derm",
+      "label_de": "Symptome im Genitalbereich dermatologisch",
+      "description_de": "Dermatologische oder unklare Symptome im Genitalbereich.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Genitalbereich",
+          "Intimbereich",
+          "Ausschlag genital",
+          "Juckreiz genital"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "genital_prolapse_reported",
@@ -5425,6 +6633,32 @@
       "is_active": true
     },
     {
+      "criterion_key": "hiccups_reported",
+      "label_de": "Schluckauf / Singultus",
+      "description_de": "Schluckauf als Konsultationsgrund.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schluckauf",
+          "Singultus"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "hiccups_self_reported",
       "label_de": "Schluckauf selbst berichtet",
       "description_de": "Selbstberichteter Schluckauf oder anhaltender Singultus.",
@@ -5442,6 +6676,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1918.",
       "is_active": true
+    },
+    {
+      "criterion_key": "hiccups_with_warning_signs",
+      "label_de": "Schluckauf mit Warnzeichen",
+      "description_de": "Schluckauf mit Brustschmerz, Atemnot, neurologischen Symptomen, nach OP/Trauma oder schlechtem Zustand.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schluckauf und Brustschmerz",
+          "Schluckauf und Atemnot",
+          "neurologisch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "high_energy_trauma_mechanism_reported",
@@ -5503,6 +6764,33 @@
           "Heimsauerstoff",
           "Sauerstoff zuhause",
           "Sauerstoffger?t"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hot_swollen_joint_or_severe_function_loss",
+      "label_de": "Hei?es geschwollenes Gelenk oder deutliche Funktionseinschr?nkung",
+      "description_de": "Akut hei?es/geschwollenes Gelenk, starke Schmerzen oder deutlicher Funktionsverlust.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "hei?es Gelenk",
+          "geschwollenes Gelenk",
+          "kann nicht bewegen"
         ],
         "en": []
       },
@@ -5681,6 +6969,60 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "measurement_or_free_text",
       "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hypothermia_reported",
+      "label_de": "Hypothermie oder Unterk?hlung",
+      "description_de": "Unterk?hlung oder stark erniedrigte K?rpertemperatur.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Unterk?hlung",
+          "Hypothermie",
+          "stark ausgek?hlt",
+          "K?lteexposition"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "hypothermia_with_consciousness_change",
+      "label_de": "Hypothermie mit Bewusstseinsver?nderung",
+      "description_de": "Unterk?hlung zusammen mit Verwirrtheit, Benommenheit oder Bewusstseinsminderung.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "unterk?hlt und verwirrt",
+          "ausgek?hlt und benommen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -6194,6 +7536,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "joint_muscle_nerve_pain",
+      "label_de": "Gelenk-, Muskel- oder Nervenschmerzen",
+      "description_de": "Arthralgie, Myalgie oder Neuralgie.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gelenkschmerzen",
+          "Muskelschmerzen",
+          "Nervenschmerzen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "joint_muscle_or_nerve_pain_self_reported",
       "label_de": "Gelenk-, Muskel- oder Nervenschmerzen selbst berichtet",
       "description_de": "Selbstberichtete Gelenkschmerzen, Muskelschmerzen oder Nervenschmerzen.",
@@ -6487,6 +7856,33 @@
       "mapping_status": "draft",
       "mapping_notes": "Reusable supporting criterion for localized infection contexts.",
       "is_active": true
+    },
+    {
+      "criterion_key": "localized_stable_skin_problem",
+      "label_de": "Lokal begrenztes stabiles Hautproblem",
+      "description_de": "Stabiles lokal begrenztes Hautproblem ohne Warnzeichen.",
+      "criterion_type": "deescalation_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "kleine Stelle",
+          "stabil",
+          "nicht schlimmer"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "long_travel",
@@ -6851,6 +8247,33 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "medical_technical_procedure_or_pregnancy_dating",
+      "label_de": "Medizinisch-technische Verrichtung, Untersuchung oder Schwangerschaftsdatierung",
+      "description_de": "Geplante medizinisch-technische Verrichtung, Untersuchung oder Schwangerschaftsdatierung.",
+      "criterion_type": "clinical_process",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Untersuchung",
+          "Schwangerschaftsdatierung",
+          "technische Verrichtung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -7676,6 +9099,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "nontraumatic_back_or_neck_pain",
+      "label_de": "R?cken- oder Nackenschmerzen ohne Unfall",
+      "description_de": "R?cken- oder Nackenschmerzen ohne traumatischen Ausl?ser.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "R?ckenschmerzen",
+          "Nackenschmerzen",
+          "Hexenschuss"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "nontraumatic_extremity_pain",
       "label_de": "Nichttraumatischer Extremit?tenschmerz",
       "description_de": "Schmerzen an Arm oder Bein ohne Unfall/Trauma als prim?re Ursache.",
@@ -7781,6 +9231,61 @@
       "mapping_status": "draft_cluster_calibrated",
       "expected_value_type": "free_text",
       "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "older_person_fall_reported",
+      "label_de": "Sturz einer ?lteren Person",
+      "description_de": "Sturzereignis bei ?lterer Person.",
+      "criterion_type": "accident",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "?ltere Person gest?rzt",
+          "Senior gest?rzt",
+          "Sturz im Alter"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "older_person_fall_risk_features",
+      "label_de": "Risikomerkmale nach Sturz ?lterer Person",
+      "description_de": "Kopfverletzung, Blutverd?nner, Schmerzen, Verwirrtheit, Synkope, nicht aufstehen k?nnen oder unklarer Hergang.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Kopf getroffen",
+          "Blutverd?nner",
+          "kann nicht aufstehen",
+          "verwirrt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
     },
     {
@@ -8491,6 +9996,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "pathological_test_result_context",
+      "label_de": "Pathologische Untersuchungsergebnisse",
+      "description_de": "Auff?llige Labor-, Bildgebungs- oder Untersuchungsbefunde.",
+      "criterion_type": "clinical_report",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "auff?lliger Befund",
+          "Laborwert auff?llig",
+          "Befund pathologisch"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "clinical_report_if_available",
+      "careena_use_policy": "source_only_or_if_reported",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "clinical_report",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "pathological_test_result_reported",
       "label_de": "Pathologischer Untersuchungsbefund berichtet",
       "description_de": "Berichteter auff?lliger Labor-, Bildgebungs-, Mess- oder Untersuchungsbefund.",
@@ -8751,6 +10283,61 @@
       "is_active": true
     },
     {
+      "criterion_key": "planned_consultation_reason_missing",
+      "label_de": "Grund der geplanten Konsultation fehlt",
+      "description_de": "F?r Weiterleitung/Terminpfad fehlen medizinischer Anlass oder Ziel der Konsultation.",
+      "criterion_type": "process_requirement",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "worum geht es",
+          "Anlass fehlt",
+          "Grund fehlt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "planned_consultation_request",
+      "label_de": "Geplante Konsultation",
+      "description_de": "Geplanter Termin- oder Konsultationswunsch ohne ausreichende medizinische Angaben.",
+      "criterion_type": "care_path_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Termin",
+          "geplante Konsultation",
+          "weiterleiten",
+          "Arzttermin"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "planned_transplant_or_transplant_related_context_reported",
       "label_de": "Geplante Transplantation oder transplantationsbezogener Kontext berichtet",
       "description_de": "Berichtete geplante Transplantation oder transplantationsbezogener Versorgungsanlass.",
@@ -8768,6 +10355,32 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1913.",
       "is_active": true
+    },
+    {
+      "criterion_key": "planned_transplantation_context",
+      "label_de": "Geplante Transplantation",
+      "description_de": "Geplante Transplantation als klinisch-spezialisierter Prozess.",
+      "criterion_type": "clinical_process",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Transplantation",
+          "geplant"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "not_suitable_for_careena",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "source_only",
+      "capture_limitation_reason": "Specialized clinical process reason, not suitable for direct Careena user decision.",
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "none",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "pneumothorax_diagnosed_or_strongly_suspected",
@@ -8877,6 +10490,35 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "post_exposure_prophylaxis_or_biological_fluid_exposure",
+      "label_de": "PEP / Exposition mit biologischen Fl?ssigkeiten",
+      "description_de": "Postexpositionsprophylaxe oder Exposition mit Blut/biologischen Fl?ssigkeiten.",
+      "criterion_type": "exposure",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Nadelstich",
+          "Blutkontakt",
+          "PEP",
+          "biologische Fl?ssigkeit",
+          "sexuelle Exposition"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "postictal_phase",
       "label_de": "Postiktale Phase",
       "description_de": "Phase nach einem Krampfanfall mit Benommenheit, M?digkeit oder Bewusstseinsminderung.",
@@ -8969,6 +10611,34 @@
         "de": [
           "schwanger",
           "Schwangerschaft"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "pregnancy_or_postpartum_context",
+      "label_de": "Schwangerschaft oder Wochenbett",
+      "description_de": "Schwangerschaft oder k?rzlich erfolgte Geburt als Risikokontext.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "schwanger",
+          "Schwangerschaft",
+          "Wochenbett",
+          "nach Geburt"
         ],
         "en": []
       },
@@ -9443,6 +11113,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "rapid_general_deterioration_or_red_flags",
+      "label_de": "Rasche Verschlechterung oder Red Flags",
+      "description_de": "Rasche Verschlechterung mit Bewusstseins-, Atem-, Kreislauf-, Schmerz- oder Fieberzeichen.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "rasch schlechter",
+          "Atemnot",
+          "Kreislauf",
+          "benommen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "rash_or_skin_eruption_self_reported_or_observed",
       "label_de": "Ausschlag oder Hauteruption berichtet oder beobachtet",
       "description_de": "Berichteter oder beobachteter Ausschlag, Flecken, Pusteln, Bl?schen oder andere akute Hautver?nderung.",
@@ -9639,6 +11337,32 @@
           "OP",
           "Eingriff",
           "Intervention"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "red_eye_with_vision_change",
+      "label_de": "Rotes Auge mit Sehverschlechterung",
+      "description_de": "Rotes Auge zusammen mit Sehverschlechterung.",
+      "criterion_type": "pattern",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "rotes Auge und schlechter sehen",
+          "Auge rot und Sehproblem"
         ],
         "en": []
       },
@@ -10230,6 +11954,34 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "sexual_assault_acute_danger_or_injury",
+      "label_de": "Sexuelle Gewalt mit akuter Gefahr oder Verletzung",
+      "description_de": "Sexuelle Gewalt mit aktueller Gefahr, T?ter noch da, Verletzung, Blutung oder Bewusstseinsproblem.",
+      "criterion_type": "sensitive_safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "T?ter noch da",
+          "verletzt",
+          "Blutung",
+          "akute Gefahr"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "sexual_assault_reported",
       "label_de": "Sexuelle Aggression berichtet",
       "description_de": "Berichtete sexuelle Aggression, sexualisierte Gewalt oder entsprechender Unterst?tzungs-/Versorgungsanlass.",
@@ -10409,6 +12161,117 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "skin_face_eye_involvement",
+      "label_de": "Gesicht oder Auge betroffen",
+      "description_de": "Haut-/Weichteilprozess im Gesicht oder am Auge.",
+      "criterion_type": "location",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gesicht",
+          "Auge",
+          "am Auge",
+          "im Gesicht"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "skin_necrosis_blisters_black_skin",
+      "label_de": "Nekrose, Blasen oder schwarze Haut",
+      "description_de": "Schwarze Haut, Blasen, Nekrose oder schwer wirkende Hautver?nderung.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "schwarze Haut",
+          "Blasen",
+          "Nekrose",
+          "absterbend"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "skin_rapid_spread_or_red_streak",
+      "label_de": "Rasche Ausbreitung oder roter Streifen",
+      "description_de": "Rasche Ausbreitung, roter Streifen oder Lymphangitis-Verdacht.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "breitet sich aus",
+          "roter Streifen",
+          "wird schnell gr??er"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "skin_soft_tissue_complaint_or_infection",
+      "label_de": "Haut-/Weichteilbeschwerden oder Infekt",
+      "description_de": "Beschwerden oder Infekt der Haut oder Weichteile.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Hautentz?ndung",
+          "Ausschlag",
+          "Wunde entz?ndet",
+          "Abszess"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "skin_soft_tissue_complaint_self_reported_or_observed",
       "label_de": "Haut- oder Weichteilbeschwerden berichtet oder beobachtet",
       "description_de": "Berichtete oder beobachtete Beschwerden an Haut oder Weichteilen, zum Beispiel R?tung, Schwellung, Schmerz, Ausschlag oder Infektzeichen.",
@@ -10468,6 +12331,34 @@
           "kleiner Blutstreifen",
           "einmal wenig Blut",
           "nur ein Faden Blut"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "social_hospitalization_need",
+      "label_de": "Soziale Hospitalisation / sozialer Unterst?tzungsbedarf",
+      "description_de": "Sozialer Unterst?tzungs- oder Unterbringungsbedarf ohne vordergr?ndigen medizinischen Notfall.",
+      "criterion_type": "social_care",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "soziale Hilfe",
+          "Unterbringung",
+          "Pflegeproblem",
+          "alleine nicht zurecht"
         ],
         "en": []
       },
@@ -11143,6 +13034,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "sudden_vision_loss_or_severe_eye_pain",
+      "label_de": "Pl?tzlicher Sehverlust oder starke Augenschmerzen",
+      "description_de": "Pl?tzlicher Sehverlust, Sehverschlechterung oder starke Augenschmerzen.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "pl?tzlich blind",
+          "Sehverlust",
+          "starke Augenschmerzen"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "suicidal_context_with_substance_use",
       "label_de": "Suizidbezug bei Substanzkonsum",
       "description_de": "Einnahme oder Konsum im Zusammenhang mit Selbstgef?hrdung oder Suizidgedanken.",
@@ -11683,6 +13601,90 @@
         "en": []
       },
       "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "toxic_exposure_unknown_or_child_or_caustic",
+      "label_de": "Toxische Exposition unbekannt, Kind oder ?tzend",
+      "description_de": "Unbekannte Substanz, Kind betroffen oder ?tzende Substanz.",
+      "criterion_type": "tox_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "unbekannte Substanz",
+          "Kind",
+          "?tzend",
+          "Batterie"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "toxic_exposure_with_critical_symptoms",
+      "label_de": "Toxische Exposition mit kritischen Symptomen",
+      "description_de": "Toxische Exposition mit Atemnot, Bewusstseins?nderung, Krampfanfall oder schwerem Zustand.",
+      "criterion_type": "safety",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gift und Atemnot",
+          "Gift und bewusstlos",
+          "Gift und Krampf"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "toxic_substance_exposure",
+      "label_de": "Toxische Substanz: Einnahme, Inhalation oder Exposition",
+      "description_de": "Exposition gegen?ber toxischer Substanz durch Einnahme, Inhalation oder Kontakt.",
+      "criterion_type": "tox_context",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Gift",
+          "toxisch",
+          "Chemikalie",
+          "eingeatmet",
+          "geschluckt"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
       "careena_capture_status": "usable",
       "careena_capture_method": "self_report",
       "careena_use_policy": "ask_if_context_relevant",
@@ -12340,6 +14342,33 @@
       "free_text_allowed": true
     },
     {
+      "criterion_key": "vertigo_likely_peripheral_reported",
+      "label_de": "Drehschwindel mit wahrscheinlich peripherer Ursache",
+      "description_de": "Drehschwindel, bei dem laut STS eine periphere Ursache wahrscheinlich ist.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Drehschwindel",
+          "alles dreht sich",
+          "Schwindel"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
       "criterion_key": "vertigo_self_reported",
       "label_de": "Drehschwindel selbst berichtet",
       "description_de": "Selbstberichteter Drehschwindel oder Gef?hl, dass sich die Umgebung dreht.",
@@ -12357,6 +14386,88 @@
       "mapping_status": "draft",
       "mapping_notes": "Primary draft criterion for STS 1601.",
       "is_active": true
+    },
+    {
+      "criterion_key": "vertigo_with_neurological_warning_signs",
+      "label_de": "Schwindel mit neurologischen Warnzeichen",
+      "description_de": "Schwindel zusammen mit Sprach-, Seh-, Gleichgewichts-, Motorik- oder Sensibilit?tsst?rung.",
+      "criterion_type": "deescalation_guard",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Schwindel und L?hmung",
+          "Schwindel und Sprachst?rung",
+          "Schwindel und Sehst?rung"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "very_young_child_or_high_risk_age",
+      "label_de": "Sehr junges Kind oder altersbedingter Risikokontext",
+      "description_de": "Altersspezifischer Risikokontext, z. B. sehr junges Kind oder ?ltere fragile Person.",
+      "criterion_type": "risk_factor",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Baby",
+          "S?ugling",
+          "kleines Kind",
+          "?ltere Person"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "free_text",
+      "suggested_input_mode": "free_text",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "violence_forensic_documentation_request",
+      "label_de": "Befundaufnahme nach Gewaltdelikt",
+      "description_de": "Wunsch nach Dokumentation/Spurensicherung nach Gewaltdelikt.",
+      "criterion_type": "sensitive_care",
+      "suggested_question_texts": {
+        "de": "",
+        "en": ""
+      },
+      "lay_terms": {
+        "de": [
+          "Spurensicherung",
+          "Befundaufnahme",
+          "Gewalt dokumentieren"
+        ],
+        "en": []
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft_cluster_calibrated",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
     },
     {
       "criterion_key": "visible_vein_dilation",

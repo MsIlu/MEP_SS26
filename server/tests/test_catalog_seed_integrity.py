@@ -227,3 +227,18 @@ def test_urology_nephrology_category_has_primary_criterion_links() -> None:
     missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
 
     assert missing_reason_ids == []
+
+def test_infection_symptoms_category_has_primary_criterion_links() -> None:
+    """Ensure every infection-symptoms STS reason has at least one primary criterion link."""
+    infection_reason_ids = {"1501", "1502", "1503"}
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(infection_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []

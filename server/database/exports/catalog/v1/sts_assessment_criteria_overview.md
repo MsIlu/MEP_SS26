@@ -231,6 +231,18 @@ It is intended for medical/product review, not as runtime case state.
 | 1407 | Urininkontinenz | urinary_incontinence_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | False | False | readiness_requirement |
 | 1407 | Urininkontinenz | focal_neurological_deficit_self_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
 | 1407 | Urininkontinenz | spinal_trauma_neurological_deficit_reported | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1501 | Fieber | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1501 | Fieber | consciousness_level_observed | observed_sign | choice_buttons | True | conditional / self_report_or_observed | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1501 | Fieber | immunosuppression_or_high_risk_infection_context_self_reported | boolean | yes_no_buttons | True | conditional / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1501 | Fieber | systemic_infection_symptoms_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1502 | Grippales Syndrom / Erkaeltungssymptome | localized_infection_signs_self_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1502 | Grippales Syndrom / Erkaeltungssymptome | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1502 | Grippales Syndrom / Erkaeltungssymptome | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | supporting | False | False | supporting_context |
+| 1502 | Grippales Syndrom / Erkaeltungssymptome | systemic_infection_symptoms_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1503 | Hypothermie | rash_or_skin_eruption_self_reported_or_observed | observed_sign | yes_no_buttons | True | usable / self_report_or_observed | ask_if_context_relevant | primary | True | False | readiness_requirement |
+| 1503 | Hypothermie | fever_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1503 | Hypothermie | immunosuppression_or_high_risk_infection_context_self_reported | boolean | yes_no_buttons | True | conditional / self_report | ask_if_context_relevant | supporting | True | False | supporting_context |
+| 1503 | Hypothermie | systemic_infection_symptoms_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
 
 ## Review Notes
 

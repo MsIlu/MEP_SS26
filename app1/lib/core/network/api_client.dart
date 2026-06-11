@@ -253,6 +253,8 @@ class ApiClient {
     );
   }
 
+  /*
+  // In case a logger object is introduced, we could log errors from the HTTP body 
   String _errorMessage(String responseBody) {
     if (responseBody.isEmpty) return 'HTTP request failed';
 
@@ -267,4 +269,5 @@ class ApiClient {
 
     return responseBody;
   }
+  */
 }

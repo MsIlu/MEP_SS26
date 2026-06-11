@@ -15,7 +15,11 @@ class HomeSearchBar extends StatelessWidget {
 
     final fillColor = isDarkMode
         ? AppColors.darkElevatedSurface
-        : AppColors.background;
+        : AppColors.lightCard;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
 
     final iconColor = isDarkMode
         ? colorScheme.onSurfaceVariant
@@ -44,7 +48,18 @@ class HomeSearchBar extends StatelessWidget {
           fillColor: fillColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: const BorderSide(
+              color: AppColors.careenaTeal,
+              width: 2,
+            ),
           ),
         ),
       ),

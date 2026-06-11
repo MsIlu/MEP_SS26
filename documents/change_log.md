@@ -51,6 +51,35 @@ und Abgabe.
 
 ### Changed
 
+- Die Speicheraktionen für persönliche Daten und Gesundheitsangaben verwenden
+  nun denselben zentralen Toolbar-Farbton wie der Zurück-Button.
+- Die Darstellungsseite beginnt nun direkt mit den Aussehen-Optionen; der
+  doppelte einleitende Darstellungsabschnitt wurde entfernt.
+- Home-Funktionskarten behalten nun auch im Dark-Mode ihre leichte Erhöhung
+  und Schattenwirkung mit einer bestehenden dunklen `AppColors`-Farbe.
+- Der doppelte Haupteintrag `Gesundheitsangaben` wurde aus den Einstellungen
+  entfernt. Die Angaben bleiben über `Profile und persönliche Daten` erreichbar.
+- Haupt- und Detailseiten der Einstellungen verwenden nun dieselben zentralen
+  Navigations-Icons. Fachlich eigene Unterpunkte behalten passende eigene Icons.
+- Settings-Panels verwenden nun eine `Material`-Fläche statt eines dekorierten
+  Containers, damit ListTile-Hintergründe und Ink-Effekte sichtbar bleiben.
+- Home verwendet im Light-Mode eine ruhige, sehr helle Careena-Grundfläche.
+  Funktionskarten und Suchfeld sind weiß, dezent konturiert und die Karten
+  leicht hervorgehoben. Dafür werden ausschließlich bestehende `AppColors`
+  wiederverwendet; Dark-Mode und Layout bleiben unverändert.
+- Icon-Hintergründe der Home-Funktionskarten verwenden in der einfachen
+  Ansicht nun feste quadratische Abmessungen und ein eigenes Row-Layout. Damit
+  werden die vergrößerten, abgerundeten Icon-Flächen nicht mehr durch
+  `ListTile`-Leading-Constraints abgeschnitten.
+- Settings-Hauptseite wieder als übersichtliche, durchsuchbare Careena-Liste
+  aufgebaut. Komplexe Profil- und Darstellungsoptionen öffnen sich auf
+  wiederverwendbaren Detailseiten.
+- Abmelden als dauerhaft sichtbare, mittig ausgerichtete Bottom-Aktion
+  umgesetzt. Settings-Panels heben sich im Light-Mode mit bestehenden
+  `AppColors`-Farben dezent vom Hintergrund ab.
+- Doppelte Profilüberschrift entfernt. `SettingsDetailScaffold` kann seinen
+  einleitenden Abschnitt ausblenden, wenn der Inhalt bereits eine eigene
+  Überschrift besitzt.
 - Chat-Abhängigkeiten werden nicht mehr in `MyApp.build()` erstellt. Dadurch
   bleiben Controller, Session und HTTP-Client stabil über Rebuilds hinweg.
 - Der Composition Root liegt außerhalb von `core`, damit gemeinsame Core-Module

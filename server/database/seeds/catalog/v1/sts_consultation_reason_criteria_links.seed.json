@@ -4011,15 +4011,299 @@
     },
     {
       "consultation_reason_source_id": "1101",
+      "criterion_key": "diabetes_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "glasgow_coma_scale_clinical_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "pupil_status_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "unexplained_consciousness_deficit",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "petechiae_or_purpura",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "blood_pressure_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "body_temperature_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "pulse_rate_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "respiratory_rate_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "found_unconscious_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "injury_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
+      "criterion_key": "seizure_like_movements_before_unconsciousness",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1101",
       "criterion_key": "breathing_and_responsiveness_observed",
       "relevance": "supporting",
       "is_safety_relevant": true,
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1101",
@@ -4029,9 +4313,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1101",
@@ -4041,8 +4325,253 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "psychiatric_history_or_current_care",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "recent_injury_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "withdrawal_or_substance_misuse_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "glasgow_coma_scale_clinical_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "agitation_or_aggression_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "behavior_not_controllable_by_dialogue",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "safety_for_patient_and_environment",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "danger_to_self_or_others",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "safety_for_patient_and_environment",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released. Broad self/other danger uses the shared safety path for patient and environment.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "hypoglycemia_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "hypotension_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "hypoxemia_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1102",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4053,9 +4582,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1102",
@@ -4065,8 +4594,339 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "infection_signs_recent",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "somatic_or_psych_history_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "urinary_retention",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "withdrawal_or_substance_misuse_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "acute_confusion_behavior_change_or_cognitive_disturbance",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "danger_to_self_or_others",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "safety_for_patient_and_environment",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "known_memory_disorder_worsening",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "new_or_recent_behavior_change",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "attention_or_concentration_impairment",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "disorientation",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "hallucinations_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "incoherent_speech",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "short_term_memory_disturbance",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1103",
+      "criterion_key": "speech_disturbance",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4077,9 +4937,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1103",
@@ -4089,9 +4949,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1103",
@@ -4101,8 +4961,330 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "current_medication_therapy",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "diabetes_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "epilepsy_history",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "neurological_disease_history",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "withdrawal_or_substance_misuse_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "glasgow_coma_scale_clinical_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "seizure_or_involuntary_movements_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "ongoing_seizure",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "seizure_safety_positioning",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "postictal_phase",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "cyanosis_during_event",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "event_duration",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "injury_during_event",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "lateral_tongue_bite",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "loss_of_consciousness_during_event",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1104",
+      "criterion_key": "prodrome_or_aura",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4113,9 +5295,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1104",
@@ -4125,9 +5307,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1104",
@@ -4137,8 +5319,247 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "pupil_status_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "balance_disturbance",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "memory_disturbance",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "motor_deficit_or_weakness",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "neurological_deficit_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "sensory_deficit",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "speech_disturbance",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "visual_disturbance",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "visual_field_deficit",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "new_or_worsening_neurological_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1105",
+      "criterion_key": "blood_pressure_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4149,9 +5570,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1105",
@@ -4161,9 +5582,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1105",
@@ -4173,32 +5594,176 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1106",
-      "criterion_key": "focal_neurological_deficit_self_reported_or_observed",
+      "criterion_key": "anticoagulant_medication",
       "relevance": "supporting",
       "is_safety_relevant": true,
-      "is_red_flag_candidate": true,
-      "careena_decision_role": "structured_safety_validator",
-      "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
       "consultation_reason_source_id": "1106",
-      "criterion_key": "headache_severe_or_unusual_self_reported",
+      "criterion_key": "headache_medication_use",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "pregnancy_or_recent_postpartum",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "severe_or_unusual_headache",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "headache_with_consciousness_disturbance",
       "relevance": "primary",
       "is_safety_relevant": true,
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
-      "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "headache_with_neurological_symptoms",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "petechiae_or_purpura",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "blood_pressure_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4208,10 +5773,95 @@
       "is_safety_relevant": true,
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
-      "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "motor_deficit_or_weakness",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "speech_disturbance",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "visual_disturbance",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "focal_neurological_deficit_self_reported_or_observed",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "Draft neurology/psychiatry category mapping for review.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1106",
+      "criterion_key": "headache_severe_or_unusual_self_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "Draft neurology/psychiatry category mapping for review.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1106",
@@ -4221,8 +5871,119 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "headache_with_consciousness_disturbance",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1106/1101 instead of 1107.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "headache_with_neurological_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1106/1105 instead of 1107.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "severe_or_unusual_headache",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1106 instead of 1107.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "mild_or_chronic_headache",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "recent_change_in_chronic_headache",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1107",
+      "criterion_key": "pain_intensity_0_10",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4233,21 +5994,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
-    },
-    {
-      "consultation_reason_source_id": "1107",
-      "criterion_key": "pain_intensity_0_10",
-      "relevance": "supporting",
-      "is_safety_relevant": false,
-      "is_red_flag_candidate": false,
-      "careena_decision_role": "supporting_context",
-      "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1107",
@@ -4257,8 +6006,326 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "cardiac_history",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "diabetes_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "pregnancy_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "recent_medication_change",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "malaise_presyncope_or_syncope_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "presyncope_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "syncope_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "chest_pain_with_syncope",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "dyspnea_with_syncope",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "palpitations_before_malaise",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "syncope_during_exertion",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "syncope_in_lying_position",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "blood_pressure_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "pulse_rate_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "orthostatic_postprandial_or_dehydration_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1108",
+      "criterion_key": "prodrome_sweating_blackout_nausea_vomiting",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4269,9 +6336,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1108",
@@ -4281,9 +6348,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1108",
@@ -4293,8 +6360,176 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "psychosis_signs_to_exclude",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "acute_anxiety_state",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "mutism_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Mutism may be neurologic; route/clarify toward 1105 if unclear.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "passive_or_unclear_suicidal_ideation",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "No generic medical warning page; use empathic mental-health crisis support path.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "imminent_self_harm_action",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Self-reported imminent action: empathic crisis mode with immediate help.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "suicidal_intent_or_plan",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Concrete intent/plan: immediate crisis support, not generic medical warning UX.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "third_party_imminent_self_harm",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "call_112_for_third_party_imminent_danger",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Third-party imminent danger can use clear emergency instruction.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1109",
+      "criterion_key": "anxiety_limiting_eating_drinking_speaking",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4305,9 +6540,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1109",
@@ -4317,9 +6552,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1109",
@@ -4329,8 +6564,180 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "contact_refusal",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "passive_or_unclear_suicidal_ideation",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1109 instead of 1110.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "psychosis_signs_to_exclude",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If hallucinations/psychosis signs dominate, route toward 1114 or 1103.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If intoxication/withdrawal signs dominate, route toward 1111/1112/1113.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "suicidal_intent_or_plan",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "If present, route toward 1109 instead of 1110.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "withdrawal_or_substance_misuse_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "anxiety_depressive_symptoms",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "new_or_recently_changed_anxiety_depressive_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1110",
+      "criterion_key": "neurovegetative_anxiety_signs",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4341,9 +6748,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1110",
@@ -4353,9 +6760,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1110",
@@ -4365,8 +6772,288 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "breathing_problem_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "consciousness_change_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "injury_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "mixed_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "suicidal_context_with_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "medication_or_drug_overdose_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "poison_control_or_medical_advice",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "blood_pressure_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "pulse_rate_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "respiratory_rate_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "amount_taken_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "current_wellbeing_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "ingestion_time_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1111",
+      "criterion_key": "substance_name_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4377,9 +7064,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1111",
@@ -4389,9 +7076,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1111",
@@ -4401,8 +7088,231 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "regular_consumption_context",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "breathing_problem_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "consciousness_change_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "injury_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "mixed_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "suicidal_context_with_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "immediate_mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "alcohol_intoxication_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "blood_glucose_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "oxygen_saturation_spo2_if_available",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "measurement_if_available",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "amount_taken_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "current_wellbeing_after_substance_use",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1112",
+      "criterion_key": "ingestion_time_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4413,9 +7323,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1112",
@@ -4425,9 +7335,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1112",
@@ -4437,8 +7347,238 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "ciwa_ar_score_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "cows_score_if_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "clinical_if_reported",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "confusion_with_withdrawal",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "hallucinations_with_withdrawal",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "withdrawal_symptoms_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "withdrawal_wish_reported",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "mild_withdrawal_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "moderate_or_severe_withdrawal_symptoms",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "tremor",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "withdrawal_abdominal_pain",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "withdrawal_anxiety",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1113",
+      "criterion_key": "withdrawal_sweating",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        2,
+        3,
+        4
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4449,9 +7589,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1113",
@@ -4461,9 +7601,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1113",
@@ -4473,8 +7613,159 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "substance_medication_alcohol_use_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "withdrawal_or_substance_misuse_context",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "anamnesis_context",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "isolated_hallucinations_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        1,
+        2,
+        3
+      ],
+      "urgency_effect": "requires_safety_clarification",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "danger_to_self_or_others",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "safety_for_patient_and_environment",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "hallucination_driven_dangerous_behavior",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "confirms_emergency",
+      "interim_care_guidance_key": "safety_for_patient_and_environment",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "new_or_recent_hallucinations",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "non_threatening_hallucinations",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        2,
+        3
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1114",
+      "criterion_key": "threatening_hallucinations",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "level_discriminator",
+      "target_sts_levels": [
+        1
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "mental_health_crisis_support",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
       "is_active": true
     },
     {
@@ -4485,9 +7776,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1114",
@@ -4497,9 +7788,9 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1114",
@@ -4509,8 +7800,98 @@
       "is_red_flag_candidate": true,
       "careena_decision_role": "structured_safety_validator",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
+    },
+    {
+      "consultation_reason_source_id": "1115",
+      "criterion_key": "somatic_or_psych_symptoms_exclusion_needed",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "deescalation_guard",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "blocks_deescalation",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Level 4 does not mean automatic self-observation; other symptoms must route elsewhere.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1115",
+      "criterion_key": "fatigue_reported",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1115",
+      "criterion_key": "insomnia_reported",
+      "relevance": "primary",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "entry_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1115",
+      "criterion_key": "persistent_or_worsening_fatigue_insomnia",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supports_higher_urgency",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Calibrated neurology/psychiatry cluster draft; not runtime-released.",
+      "is_active": true
+    },
+    {
+      "consultation_reason_source_id": "1115",
+      "criterion_key": "primary_care_followup_for_nonurgent_fatigue_insomnia",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "criterion_role": "supporting_criterion",
+      "target_sts_levels": [
+        4
+      ],
+      "urgency_effect": "supporting_context_only",
+      "interim_care_guidance_key": "none",
+      "source_note": "Calibrated neurology/psychiatry STS 1101-1115 mapping based on STS source review and project medical modeling review. Not runtime-released.",
+      "mapping_status": "draft_cluster_calibrated",
+      "mapping_notes": "Later FA5 can route to primary care/facharzt instead of pure self-observation.",
       "is_active": true
     },
     {
@@ -4521,9 +7902,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "supporting_context",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1115",
@@ -4533,9 +7914,9 @@
       "is_red_flag_candidate": false,
       "careena_decision_role": "readiness_requirement",
       "source_note": "Draft neurology/psychiatry category mapping for review.",
-      "mapping_status": "draft",
-      "mapping_notes": "Added or updated during neurology/psychiatry category coverage pass.",
-      "is_active": true
+      "mapping_status": "superseded_by_neuro_psych_cluster_calibration",
+      "mapping_notes": "Superseded by calibrated neurology/psychiatry cluster draft.",
+      "is_active": false
     },
     {
       "consultation_reason_source_id": "1201",

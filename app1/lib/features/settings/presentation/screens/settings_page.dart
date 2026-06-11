@@ -5,11 +5,11 @@ import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../settings_icons.dart';
 import '../widgets/display_settings_section.dart';
 import '../widgets/profile_settings_section.dart';
 import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
-import 'health_data_settings_page.dart';
 import 'settings_text_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -110,7 +110,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return [
       _SettingsItem(
-        icon: Icons.people_outline,
+        icon: SettingsIcons.profiles,
         title: 'Profile und persönliche Daten',
         description: activeProfile == null
             ? 'Eigenes oder betreutes Profil verwalten'
@@ -121,22 +121,14 @@ class _SettingsPageState extends State<SettingsPage> {
           SettingsDetailScaffold(
             title: 'Profile',
             subtitle: 'Verwalte Profile und persönliche Angaben.',
-            icon: Icons.people_outline,
+            icon: SettingsIcons.profiles,
             showSectionHeader: false,
             child: ProfileSettingsSection(authSession: session),
           ),
         ),
       ),
       _SettingsItem(
-        icon: Icons.health_and_safety_outlined,
-        title: 'Gesundheitsangaben',
-        description: 'Körperdaten und medizinische Hinweise',
-        keywords: const ['gesundheit', 'medizin', 'körper'],
-        onTap: () =>
-            _open(context, HealthDataSettingsPage(authSession: session)),
-      ),
-      _SettingsItem(
-        icon: Icons.accessibility_new,
+        icon: SettingsIcons.simpleView,
         title: 'Einfache Ansicht',
         description: widget.themeController.isSimpleView
             ? 'Große Elemente und reduzierte Navigation'
@@ -151,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       _SettingsItem(
-        icon: Icons.palette_outlined,
+        icon: SettingsIcons.display,
         title: 'Darstellung',
         description: 'Hell, dunkel oder automatisch',
         keywords: const ['aussehen', 'darstellung', 'dark', 'light', 'theme'],
@@ -160,7 +152,8 @@ class _SettingsPageState extends State<SettingsPage> {
           SettingsDetailScaffold(
             title: 'Darstellung',
             subtitle: 'Wähle die Ansicht, die du gut erkennen kannst.',
-            icon: Icons.palette_outlined,
+            icon: SettingsIcons.display,
+            showSectionHeader: false,
             child: DisplaySettingsSection(
               themeController: widget.themeController,
               showSimpleView: false,
@@ -169,21 +162,21 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       _SettingsItem(
-        icon: Icons.lock_outline,
+        icon: SettingsIcons.privacy,
         title: 'Datenschutz und Sicherheit',
         description: 'Umgang mit deinen Daten',
         keywords: const ['datenschutz', 'privacy', 'sicherheit'],
         onTap: () => _open(context, const SettingsTextPage.privacy()),
       ),
       _SettingsItem(
-        icon: Icons.support_agent_outlined,
+        icon: SettingsIcons.help,
         title: 'Hilfe und Support',
         description: 'Antworten und Kontaktmöglichkeiten',
         keywords: const ['hilfe', 'support', 'kontakt'],
         onTap: () => _open(context, const SettingsTextPage.help()),
       ),
       _SettingsItem(
-        icon: Icons.info_outline,
+        icon: SettingsIcons.about,
         title: 'Über Careena',
         description: 'Impressum, Barrierefreiheit und App-Version',
         keywords: const ['über', 'about', 'impressum', 'barrierefreiheit'],
@@ -211,7 +204,7 @@ class _AboutSettingsPage extends StatelessWidget {
     return SettingsDetailScaffold(
       title: 'Über Careena',
       subtitle: 'Informationen und rechtliche Hinweise.',
-      icon: Icons.info_outline,
+      icon: SettingsIcons.about,
       child: SettingsPanel(
         children: [
           SettingsLinkTile(

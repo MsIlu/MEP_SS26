@@ -53,14 +53,12 @@ class SettingsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
+    return Material(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkElevatedSurface
-            : AppColors.careenaNoteBackground,
-        borderRadius: BorderRadius.circular(18),
-      ),
+      color: isDark
+          ? AppColors.darkElevatedSurface
+          : AppColors.careenaNoteBackground,
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         children: [
           for (var index = 0; index < children.length; index++) ...[

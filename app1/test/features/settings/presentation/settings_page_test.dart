@@ -238,16 +238,14 @@ void main() {
     await tester.pumpAndSettle();
 
     final logout = find.byKey(const ValueKey('settings-logout-button'));
-    final panelContainer = find.descendant(
+    final panelMaterial = find.descendant(
       of: find.byType(SettingsPanel).first,
-      matching: find.byType(Container),
+      matching: find.byType(Material),
     );
-    final decoration =
-        tester.widget<Container>(panelContainer.first).decoration
-            as BoxDecoration;
+    final material = tester.widget<Material>(panelMaterial.first);
 
     expect(tester.getCenter(logout).dx, closeTo(400, 0.1));
-    expect(decoration.color, AppColors.careenaNoteBackground);
+    expect(material.color, AppColors.careenaNoteBackground);
   });
 }
 

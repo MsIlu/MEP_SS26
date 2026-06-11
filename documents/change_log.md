@@ -61,6 +61,8 @@ und Abgabe.
   entfernt. Die Angaben bleiben über `Profile und persönliche Daten` erreichbar.
 - Haupt- und Detailseiten der Einstellungen verwenden nun dieselben zentralen
   Navigations-Icons. Fachlich eigene Unterpunkte behalten passende eigene Icons.
+- Settings-Panels verwenden nun eine `Material`-Fläche statt eines dekorierten
+  Containers, damit ListTile-Hintergründe und Ink-Effekte sichtbar bleiben.
 - Home verwendet im Light-Mode eine ruhige, sehr helle Careena-Grundfläche.
   Funktionskarten und Suchfeld sind weiß, dezent konturiert und die Karten
   leicht hervorgehoben. Dafür werden ausschließlich bestehende `AppColors`

@@ -135,9 +135,9 @@ def main() -> None:
             "",
             "## Review Notes",
             "",
-            "- `1001 Herzstillstand, Atemstillstand -> glasgow_coma_scale_observer_assisted` is a known review finding.",
-            "- It should later be replaced or supplemented with a lay-observable criterion such as `breathing_and_responsiveness_observed`.",
-            "- GCS should remain conditional/observer-assisted and is more suitable for neurologic, trauma, intoxication, or reduced-consciousness contexts.",
+            "- `1001 Herzstillstand, Atemstillstand` now uses `breathing_and_responsiveness_observed` as primary lay-observable safety criterion.",
+            "- `glasgow_coma_scale_observer_assisted` remains conditional/supporting and must not be used as the primary criterion for STS 1001.",
+            "- GCS is more suitable for neurologic, trauma, intoxication, or reduced-consciousness contexts.",
             "- Further criteria links should be reviewed iteratively before being treated as stable.",
             "",
         ]

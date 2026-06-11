@@ -302,6 +302,25 @@
       "expected_value_type": "boolean",
       "suggested_input_mode": "yes_no_buttons",
       "free_text_allowed": true
+    },
+    {
+      "criterion_key": "breathing_and_responsiveness_observed",
+      "label_de": "Atmung und Ansprechbarkeit beobachtet",
+      "description_de": "Laiennah beobachtbares Sicherheitskriterium zur Einsch?tzung, ob die betroffene Person ansprechbar ist und normal atmet.",
+      "criterion_type": "safety_observation",
+      "suggested_question_texts_json": "{\"de\": [\"Ist die betroffene Person ansprechbar und atmet sie normal?\"]}",
+      "lay_terms_json": "{\"de\": [\"nicht ansprechbar\", \"bewusstlos\", \"atmet nicht\", \"atmet nicht normal\", \"Schnappatmung\", \"keine normale Atmung\"]}",
+      "expected_value_type": "observed_sign",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true,
+      "observation_context": "observer_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "observer_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": "Only meaningful if the user reports about another person or can observe the affected person.",
+      "mapping_status": "draft",
+      "mapping_notes": "Added as lay-observable primary criterion for STS 1001. This avoids using GCS as the primary criterion for cardiac/respiratory arrest.",
+      "is_active": true
     }
   ]
 }

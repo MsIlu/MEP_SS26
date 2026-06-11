@@ -14,10 +14,11 @@
       "criterion_key": "glasgow_coma_scale_observer_assisted",
       "relevance": "supporting",
       "is_safety_relevant": true,
-      "is_red_flag_candidate": true,
-      "careena_decision_role": "structured_safety_validator",
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
       "source_note": "For cardiac or respiratory arrest, Careena should not ask for a formal GCS score, but observer-assisted responsiveness questions may help validate severe safety concerns.",
-      "mapping_status": "draft"
+      "mapping_status": "draft",
+      "mapping_notes": "Downgraded during review. GCS is conditional/observer-assisted and should not be the primary lay-observable criterion for STS 1001."
     },
     {
       "consultation_reason_source_id": "1002",
@@ -128,6 +129,18 @@
       "careena_decision_role": "not_used_for_product_decision",
       "source_note": "Pupil response may be clinically relevant in STS/vital assessment contexts, but Careena should not ask lay users to assess it.",
       "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1001",
+      "criterion_key": "breathing_and_responsiveness_observed",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "STS 1001 describes cardiac and/or respiratory arrest. For Careena, the primary lay-observable criterion is whether the person is responsive and breathing normally.",
+      "mapping_status": "draft",
+      "mapping_notes": "Primary lay-observable criterion for STS 1001.",
+      "is_active": true
     }
   ]
 }

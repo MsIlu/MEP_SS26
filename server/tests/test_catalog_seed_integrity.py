@@ -104,3 +104,22 @@ def test_user_provided_measurements_use_measurement_value_type() -> None:
         assert criterion["expected_value_type"] == "measurement"
         assert criterion["suggested_input_mode"] == "measurement_input"
         assert criterion["free_text_allowed"] is True
+
+def test_sts_1001_uses_lay_observable_primary_safety_criterion() -> None:
+    """Ensure STS 1001 does not use GCS as the primary lay-observable safety criterion."""
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    sts_1001_links = [
+        item
+        for item in links["consultation_reason_criteria_links"]
+        if item["consultation_reason_source_id"] == "1001"
+    ]
+
+    primary_keys = {
+        item["criterion_key"]
+        for item in sts_1001_links
+        if item["relevance"] == "primary"
+    }
+
+    assert "breathing_and_responsiveness_observed" in primary_keys
+    assert "glasgow_coma_scale_observer_assisted" not in primary_keys

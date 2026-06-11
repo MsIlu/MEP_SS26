@@ -18,7 +18,8 @@ It is intended for medical/product review, not as runtime case state.
 
 | STS ID | STS reason | Criterion | Value type | Input mode | Free text | Capture | Use policy | Relevance | Safety | Red flag candidate | Decision role |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1001 | Herzstillstand, Atemstillstand | glasgow_coma_scale_observer_assisted | observed_sign | observed_sign_input | True | conditional / observer_assisted_scale | ask_if_context_relevant | supporting | True | True | structured_safety_validator |
+| 1001 | Herzstillstand, Atemstillstand | breathing_and_responsiveness_observed | observed_sign | yes_no_buttons | True | conditional / observer_report | ask_if_context_relevant | primary | True | True | structured_safety_validator |
+| 1001 | Herzstillstand, Atemstillstand | glasgow_coma_scale_observer_assisted | observed_sign | observed_sign_input | True | conditional / observer_assisted_scale | ask_if_context_relevant | supporting | True | False | supporting_context |
 | 1002 | Thoraxschmerzen | pain_intensity_0_10 | number | scale_0_10 | True | usable / self_report | ask_if_context_relevant | primary | True | False | supporting_context |
 | 1002 | Thoraxschmerzen | symptom_onset_or_duration | duration | duration_input | True | usable / self_report | ask_if_context_relevant | primary | True | False | supporting_context |
 | 1002 | Thoraxschmerzen | dyspnea_self_reported | boolean | yes_no_buttons | True | usable / self_report | ask_if_context_relevant | supporting | True | True | safety_clarification_trigger |
@@ -33,7 +34,7 @@ It is intended for medical/product review, not as runtime case state.
 
 ## Review Notes
 
-- `1001 Herzstillstand, Atemstillstand -> glasgow_coma_scale_observer_assisted` is a known review finding.
-- It should later be replaced or supplemented with a lay-observable criterion such as `breathing_and_responsiveness_observed`.
-- GCS should remain conditional/observer-assisted and is more suitable for neurologic, trauma, intoxication, or reduced-consciousness contexts.
+- `1001 Herzstillstand, Atemstillstand` now uses `breathing_and_responsiveness_observed` as primary lay-observable safety criterion.
+- `glasgow_coma_scale_observer_assisted` remains conditional/supporting and must not be used as the primary criterion for STS 1001.
+- GCS is more suitable for neurologic, trauma, intoxication, or reduced-consciousness contexts.
 - Further criteria links should be reviewed iteratively before being treated as stable.

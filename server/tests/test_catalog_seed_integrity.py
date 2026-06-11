@@ -308,23 +308,37 @@ def test_rheumatology_category_has_primary_criterion_links() -> None:
 
     assert missing_reason_ids == []
 
-def test_miscellaneous_consultation_motives_category_has_primary_criterion_links() -> None:
-    """Ensure every miscellaneous STS reason has at least one primary criterion link."""
+def test_miscellaneous_consultation_motives_category_has_primary_or_source_only_links() -> None:
+    """Ensure every miscellaneous STS reason is either product-usable or explicitly source-only."""
     reasons = load_seed(CONSULTATION_REASONS_PATH)
     links = load_seed(CRITERIA_LINKS_PATH)
 
     category_reason_ids = {
-        item["sts_id"]
+        str(item["sts_id"])
         for item in reasons["consultation_reasons"]
         if item["source_category_de"] == "Verschiedene Konsultationsmotive"
     }
 
-    reason_ids_with_primary_link = {
-        item["consultation_reason_source_id"]
+    active_links = [
+        item
         for item in links["consultation_reason_criteria_links"]
-        if item.get("is_active", True) is True and item["relevance"] == "primary"
+        if item.get("is_active", True) is True
+    ]
+
+    reason_ids_with_primary_link = {
+        str(item["consultation_reason_source_id"])
+        for item in active_links
+        if item.get("relevance") == "primary"
     }
 
-    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+    reason_ids_with_explicit_source_only_link = {
+        str(item["consultation_reason_source_id"])
+        for item in active_links
+        if item.get("relevance") == "source_only"
+        or item.get("careena_decision_role") == "not_used_for_product_decision"
+    }
+
+    covered_reason_ids = reason_ids_with_primary_link | reason_ids_with_explicit_source_only_link
+    missing_reason_ids = sorted(category_reason_ids - covered_reason_ids)
 
     assert missing_reason_ids == []

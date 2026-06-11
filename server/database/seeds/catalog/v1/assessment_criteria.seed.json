@@ -65,32 +65,6 @@
       "free_text_allowed": true
     },
     {
-      "criterion_key": "abdominal_pain_reported",
-      "label_de": "Bauchschmerzen",
-      "description_de": "In der Bauchh?hle lokalisierte Schmerzen.",
-      "criterion_type": "symptom",
-      "suggested_question_texts": {
-        "de": "",
-        "en": ""
-      },
-      "lay_terms": {
-        "de": [
-          "Bauchschmerzen",
-          "Bauchweh"
-        ],
-        "en": []
-      },
-      "observation_context": "self_report",
-      "careena_capture_status": "usable",
-      "careena_capture_method": "self_report",
-      "careena_use_policy": "ask_if_context_relevant",
-      "capture_limitation_reason": null,
-      "mapping_status": "draft_cluster_calibrated",
-      "expected_value_type": "boolean",
-      "suggested_input_mode": "yes_no_buttons",
-      "free_text_allowed": true
-    },
-    {
       "criterion_key": "abdominal_pain_self_reported",
       "label_de": "Bauchschmerzen selbst berichtet",
       "description_de": "Selbstberichtete Bauchschmerzen ohne spezifischere Lokalisation.",

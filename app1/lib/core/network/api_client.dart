@@ -103,9 +103,28 @@ class ApiClient {
           .timeout(const Duration(minutes: 3));
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        String message;
+
+        switch (response.statusCode) {
+          case 400:
+            message = 'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+            break;
+          case 401:
+            message = 'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+            break;
+          case 403:
+            message = 'Sie haben keine Berechtigung für diese Aktion.';
+            break;
+          case 404:
+            message = 'Die angefragten Daten wurden nicht gefunden.';
+            break;
+          default:
+            message = 'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+        }
+
         throw ApiException(
           ApiErrorType.http,
-          response.body.isEmpty ? 'HTTP request failed' : response.body,
+          message,
           statusCode: response.statusCode,
         );
       }
@@ -196,9 +215,28 @@ class ApiClient {
   /// Validates an HTTP response and decodes it as a JSON object.
   Map<String, dynamic> _handleJsonObjectResponse(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message;
+
+      switch (response.statusCode) {
+        case 400:
+          message = 'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+          break;
+        case 401:
+          message = 'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+          break;
+        case 403:
+          message = 'Sie haben keine Berechtigung für diese Aktion.';
+          break;
+        case 404:
+          message = 'Die angefragten Daten wurden nicht gefunden.';
+          break;
+        default:
+          message = 'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+      }
+
       throw ApiException(
         ApiErrorType.http,
-        _errorMessage(response.body),
+        message,
         statusCode: response.statusCode,
       );
     }

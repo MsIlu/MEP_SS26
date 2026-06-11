@@ -69,11 +69,8 @@ void main() {
       expect(find.text('Nachrichten'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
 
-      await tester.ensureVisible(find.text('Präventive Angebote'));
-      await tester.pump();
-
       final iconBackground = find.byKey(
-        const ValueKey('feature-icon-background-Präventive Angebote'),
+        const ValueKey('feature-icon-background-Terminplanung'),
       );
       final iconBox = tester.getSize(iconBackground);
 

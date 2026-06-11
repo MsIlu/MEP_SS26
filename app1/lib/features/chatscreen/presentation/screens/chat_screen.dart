@@ -79,8 +79,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _runWarningFlow() async {
+    final activeProfile =
+        AppDependenciesScope.of(context).chatController.authSession.activeProfile;
+    final activeProfileId = activeProfile?.id;  
+    bool shouldShow = false;
+    if (activeProfileId == null) {
+          shouldShow = await _warningController.shouldShowWarning(null, null);
+    }
     // Checks whether the warning has already been accepted by the user
-    final shouldShow = await _warningController.shouldShowWarning();
+      else {
+        shouldShow = await _warningController.shouldShowWarning(
+        activeProfileId,
+        activeProfile?.aiDisclaimerAcceptedAt,
+      );
+    }
 
     if (!mounted || !shouldShow) return;
 
@@ -90,8 +102,15 @@ class _ChatScreenState extends State<ChatScreen> {
       barrierDismissible: false,
       builder: (_) => const ChatWarningDialog(),
     );
-
-    await _warningController.acceptWarning();
+    if (activeProfileId == null) {
+      await _warningController.acceptWarning(null);
+    } else {
+      final acceptedAt = await _warningController.acceptWarning(activeProfileId);
+      AppDependenciesScope.of(context)
+          .chatController
+          .authSession
+          .setActiveProfileAiDisclaimerAcceptedAt(acceptedAt);
+    }
   }
 
 

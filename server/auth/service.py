@@ -81,6 +81,7 @@ def register_account(request: RegisterRequest, session: Session) -> AuthResponse
                 id=profile.id,
                 display_name=profile.display_name,
                 profile_type=profile.profile_type,
+                ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
                 role=access.role,
             )
         ],
@@ -125,6 +126,7 @@ def login_account(request: LoginRequest, session: Session) -> AuthResponse:
             id=profile.id,
             display_name=profile.display_name,
             profile_type=profile.profile_type,
+            ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
             role=access.role,
         )
         for profile, access in profile_rows

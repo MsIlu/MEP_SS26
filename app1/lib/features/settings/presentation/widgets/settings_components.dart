@@ -312,3 +312,35 @@ class SettingsLogoutAction extends StatelessWidget {
     );
   }
 }
+
+class SettingsPrimaryButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const SettingsPrimaryButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        backgroundColor: isDark
+            ? AppColors.toolbarButtonBackgroundDark
+            : AppColors.toolbarButtonBackground,
+        foregroundColor: isDark
+            ? AppColors.toolbarButtonForegroundDark
+            : AppColors.toolbarButtonForeground,
+      ),
+    );
+  }
+}

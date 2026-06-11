@@ -4,6 +4,8 @@ import '../../../authscreen/data/registration_condition_options.dart';
 import '../../../authscreen/presentation/widgets/common/auth_fields.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../authscreen/utils/auth_validators.dart';
+import '../settings_icons.dart';
+import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
 
 class HealthDataSettingsPage extends StatefulWidget {
@@ -41,7 +43,7 @@ class _HealthDataSettingsPageState extends State<HealthDataSettingsPage> {
     return SettingsDetailScaffold(
       title: 'Gesundheitsangaben',
       subtitle: 'Medizinischer Kontext für $profileName.',
-      icon: Icons.health_and_safety_outlined,
+      icon: SettingsIcons.healthData,
       child: Form(
         key: _formKey,
         child: Column(
@@ -126,10 +128,11 @@ class _HealthDataSettingsPageState extends State<HealthDataSettingsPage> {
             const SizedBox(height: 18),
             const SettingsDraftNotice(),
             const SizedBox(height: 18),
-            FilledButton.icon(
+            SettingsPrimaryButton(
+              key: const ValueKey('settings-save-button'),
               onPressed: _saveDraft,
-              icon: const Icon(Icons.save_outlined),
-              label: const Text('Änderungen übernehmen'),
+              icon: Icons.save_outlined,
+              label: 'Änderungen übernehmen',
             ),
           ],
         ),

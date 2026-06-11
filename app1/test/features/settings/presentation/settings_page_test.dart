@@ -3,6 +3,7 @@ import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/features/authscreen/domain/models/account.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/settings/presentation/settings_icons.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
 import 'package:app1/features/settings/presentation/widgets/settings_components.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,50 @@ void main() {
       find.text('Große Elemente und reduzierte Navigation'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('display settings starts directly with appearance choices', (
+    tester,
+  ) async {
+    final themeController = ThemeController();
+    addTearDown(themeController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(home: SettingsPage(themeController: themeController)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Darstellung'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Darstellung'), findsOneWidget);
+    expect(
+      find.text('Wähle die Ansicht, die du gut erkennen kannst.'),
+      findsNothing,
+    );
+    expect(find.text('Aussehen'), findsOneWidget);
+  });
+
+  testWidgets('reuses settings icons on matching detail pages', (tester) async {
+    final themeController = ThemeController();
+    addTearDown(themeController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(home: SettingsPage(themeController: themeController)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);
+    await tester.tap(find.text('Datenschutz und Sicherheit'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Zurück'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(SettingsIcons.help), findsOneWidget);
+    await tester.tap(find.text('Hilfe und Support'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(SettingsIcons.help), findsOneWidget);
   });
 
   testWidgets('switches between own and managed profiles', (tester) async {
@@ -135,9 +180,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Anzeigename'), findsOneWidget);
     expect(find.text('E-Mail des angemeldeten Kontos'), findsOneWidget);
+    final saveButton = tester.widget<FilledButton>(
+      find.descendant(
+        of: find.byKey(const ValueKey('settings-save-button')),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    expect(
+      saveButton.style?.backgroundColor?.resolve(<WidgetState>{}),
+      AppColors.toolbarButtonBackground,
+    );
 
-    await tester.tap(find.byTooltip('Zurück'));
-    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Zurück'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Gesundheitsangaben'));

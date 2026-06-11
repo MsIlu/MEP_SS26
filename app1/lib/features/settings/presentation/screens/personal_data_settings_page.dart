@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../authscreen/utils/auth_validators.dart';
 import '../../../authscreen/presentation/widgets/common/auth_fields.dart';
+import '../settings_icons.dart';
 import '../widgets/settings_detail_scaffold.dart';
+import '../widgets/settings_components.dart';
 
 class PersonalDataSettingsPage extends StatefulWidget {
   final AuthSession? authSession;
@@ -45,7 +47,7 @@ class _PersonalDataSettingsPageState extends State<PersonalDataSettingsPage> {
     return SettingsDetailScaffold(
       title: 'Persönliche Daten',
       subtitle: 'Daten des aktuell ausgewählten Profils.',
-      icon: Icons.badge_outlined,
+      icon: SettingsIcons.personalData,
       child: Form(
         key: _formKey,
         child: Column(
@@ -80,10 +82,11 @@ class _PersonalDataSettingsPageState extends State<PersonalDataSettingsPage> {
             const SizedBox(height: 18),
             const SettingsDraftNotice(),
             const SizedBox(height: 18),
-            FilledButton.icon(
+            SettingsPrimaryButton(
+              key: const ValueKey('settings-save-button'),
               onPressed: _saveDraft,
-              icon: const Icon(Icons.save_outlined),
-              label: const Text('Änderungen übernehmen'),
+              icon: Icons.save_outlined,
+              label: 'Änderungen übernehmen',
             ),
           ],
         ),

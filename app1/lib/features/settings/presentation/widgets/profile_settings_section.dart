@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../settings_icons.dart';
 import '../screens/health_data_settings_page.dart';
 import '../screens/personal_data_settings_page.dart';
 import 'settings_components.dart';
@@ -20,7 +21,7 @@ class ProfileSettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SettingsSectionHeader(
-          icon: Icons.people_outline,
+          icon: SettingsIcons.profiles,
           title: 'Profile verwalten',
           subtitle: 'Wähle aus, für wen du die App verwendest.',
         ),
@@ -36,13 +37,13 @@ class ProfileSettingsSection extends StatelessWidget {
         SettingsPanel(
           children: [
             SettingsLinkTile(
-              icon: Icons.badge_outlined,
+              icon: SettingsIcons.personalData,
               title: 'Persönliche Daten',
               description: 'Name, Geburtsdatum und Kontodaten',
               page: PersonalDataSettingsPage(authSession: session),
             ),
             SettingsLinkTile(
-              icon: Icons.health_and_safety_outlined,
+              icon: SettingsIcons.healthData,
               title: 'Gesundheitsangaben',
               description: 'Körperdaten und medizinische Hinweise',
               page: HealthDataSettingsPage(authSession: session),

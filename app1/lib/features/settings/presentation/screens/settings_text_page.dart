@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../settings_icons.dart';
 import '../widgets/settings_detail_scaffold.dart';
 
 class SettingsTextPage extends StatelessWidget {
@@ -19,7 +19,7 @@ class SettingsTextPage extends StatelessWidget {
   const SettingsTextPage.help({super.key})
     : title = 'Hilfe und Kontakt',
       subtitle = 'Unterstützung bei Fragen zur App.',
-      icon = Icons.support_agent,
+      icon = SettingsIcons.help,
       paragraphs = const [
         'Bei Fragen zur Bedienung hilft dir unser Support weiter.',
         'In medizinischen Notfällen wende dich bitte direkt an den Rettungsdienst.',
@@ -28,7 +28,7 @@ class SettingsTextPage extends StatelessWidget {
   const SettingsTextPage.privacy({super.key})
     : title = 'Datenschutz',
       subtitle = 'Wie deine Daten geschützt werden.',
-      icon = Icons.privacy_tip_outlined,
+      icon = SettingsIcons.privacy,
       paragraphs = const [
         'Gesundheitsdaten werden vertraulich behandelt und nur für die vorgesehenen Funktionen verwendet.',
       ];

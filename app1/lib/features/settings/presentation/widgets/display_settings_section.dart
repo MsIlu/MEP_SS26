@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../../../core/themes/theme_controller.dart';
+import '../settings_icons.dart';
 import 'settings_components.dart';
 
 class DisplaySettingsSection extends StatelessWidget {
@@ -23,7 +24,7 @@ class DisplaySettingsSection extends StatelessWidget {
           const SizedBox(height: 22),
         ],
         const SettingsSectionHeader(
-          icon: Icons.palette_outlined,
+          icon: SettingsIcons.display,
           title: 'Aussehen',
           subtitle: 'Wähle die Einstellung, die du gut erkennen kannst.',
         ),

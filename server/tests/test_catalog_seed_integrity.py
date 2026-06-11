@@ -242,3 +242,68 @@ def test_infection_symptoms_category_has_primary_criterion_links() -> None:
     missing_reason_ids = sorted(infection_reason_ids - reason_ids_with_primary_link)
 
     assert missing_reason_ids == []
+
+def test_hno_category_has_primary_criterion_links() -> None:
+    """Ensure every HNO STS reason has at least one primary criterion link."""
+    reasons = load_seed(CONSULTATION_REASONS_PATH)
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    category_reason_ids = {
+        item["sts_id"]
+        for item in reasons["consultation_reasons"]
+        if item["source_category_de"] == "HNO"
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []
+
+
+def test_dermatology_category_has_primary_criterion_links() -> None:
+    """Ensure every dermatology STS reason has at least one primary criterion link."""
+    reasons = load_seed(CONSULTATION_REASONS_PATH)
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    category_reason_ids = {
+        item["sts_id"]
+        for item in reasons["consultation_reasons"]
+        if item["source_category_de"] == "Dermatologie"
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []
+
+
+def test_rheumatology_category_has_primary_criterion_links() -> None:
+    """Ensure every rheumatology STS reason has at least one primary criterion link."""
+    reasons = load_seed(CONSULTATION_REASONS_PATH)
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    category_reason_ids = {
+        item["sts_id"]
+        for item in reasons["consultation_reasons"]
+        if item["source_category_de"] == "Rheumatologie"
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []

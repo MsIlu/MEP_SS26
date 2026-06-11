@@ -68,6 +68,16 @@ void main() {
       expect(find.text('Kalender'), findsNothing);
       expect(find.text('Nachrichten'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Präventive Angebote'));
+      await tester.pump();
+
+      final iconBackground = find.byKey(
+        const ValueKey('feature-icon-background-Präventive Angebote'),
+      );
+      final iconBox = tester.getSize(iconBackground);
+
+      expect(iconBox, const Size.square(64));
     });
   });
 }

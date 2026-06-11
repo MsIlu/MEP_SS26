@@ -30,9 +30,7 @@ class FunctionMenuTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final borderColor = isDarkMode
-        ? Colors.grey.shade700
-        : Colors.grey.shade300;
+    final borderColor = colorScheme.outlineVariant;
 
     final iconBackgroundColor = isDarkMode
         ? AppColors.darkElevatedSurface
@@ -50,42 +48,85 @@ class FunctionMenuTile extends StatelessWidget {
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaTeal;
 
-    return Container(
-      margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(20),
+    final tileRadius = BorderRadius.circular(isSimpleView ? 28 : 20);
+
+    return Material(
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: tileRadius,
+        side: BorderSide(color: borderColor),
       ),
-      child: ListTile(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
         onTap: onTap,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: isSimpleView ? 18 : 15,
-          vertical: isSimpleView ? 14 : 5,
-        ),
-        minVerticalPadding: isSimpleView ? 18 : 12,
-        leading: Container(
-          padding: EdgeInsets.all(isSimpleView ? 14 : 10),
-          decoration: BoxDecoration(
-            color: iconBackgroundColor,
-            borderRadius: BorderRadius.circular(12),
+        borderRadius: tileRadius,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSimpleView ? 18 : 15,
+            vertical: isSimpleView ? 16 : 10,
           ),
-          child: Icon(icon, color: iconColor, size: isSimpleView ? 34 : 24),
-        ),
-        title: Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: isSimpleView ? 19 : null,
-            color: titleColor,
+          child: Row(
+            children: [
+              _FeatureIconBadge(
+                key: ValueKey('feature-icon-background-$title'),
+                icon: icon,
+                backgroundColor: iconBackgroundColor,
+                foregroundColor: iconColor,
+                isSimpleView: isSimpleView,
+              ),
+              SizedBox(width: isSimpleView ? 18 : 14),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isSimpleView ? 19 : null,
+                    color: titleColor,
+                  ),
+                ),
+              ),
+              SizedBox(width: isSimpleView ? 12 : 8),
+              Icon(
+                Icons.chevron_right,
+                color: trailingColor,
+                size: isSimpleView ? 34 : 24,
+              ),
+            ],
           ),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: trailingColor,
-          size: isSimpleView ? 34 : 24,
+      ),
+    );
+  }
+}
+
+class _FeatureIconBadge extends StatelessWidget {
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final bool isSimpleView;
+
+  const _FeatureIconBadge({
+    super.key,
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.isSimpleView,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = isSimpleView ? 64.0 : 48.0;
+
+    return SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(isSimpleView ? 18 : 12),
         ),
+        child: Icon(icon, color: foregroundColor, size: isSimpleView ? 34 : 24),
       ),
     );
   }

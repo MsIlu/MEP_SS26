@@ -10,12 +10,16 @@ class SettingsDetailScaffold extends StatelessWidget {
   final IconData icon;
   final Widget child;
 
+  /// Hides the introductory section when the child already provides one.
+  final bool showSectionHeader;
+
   const SettingsDetailScaffold({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.child,
+    this.showSectionHeader = true,
   });
 
   @override
@@ -29,8 +33,14 @@ class SettingsDetailScaffold extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SettingsSectionHeader(icon: icon, title: title, subtitle: subtitle),
-            const SizedBox(height: 18),
+            if (showSectionHeader) ...[
+              SettingsSectionHeader(
+                icon: icon,
+                title: title,
+                subtitle: subtitle,
+              ),
+              const SizedBox(height: 18),
+            ],
             child,
           ],
         ),

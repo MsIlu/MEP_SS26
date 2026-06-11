@@ -5,16 +5,23 @@ import 'settings_components.dart';
 
 class DisplaySettingsSection extends StatelessWidget {
   final ThemeController themeController;
+  final bool showSimpleView;
 
-  const DisplaySettingsSection({super.key, required this.themeController});
+  const DisplaySettingsSection({
+    super.key,
+    required this.themeController,
+    this.showSimpleView = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SimpleViewCard(themeController: themeController),
-        const SizedBox(height: 22),
+        if (showSimpleView) ...[
+          _SimpleViewCard(themeController: themeController),
+          const SizedBox(height: 22),
+        ],
         const SettingsSectionHeader(
           icon: Icons.palette_outlined,
           title: 'Aussehen',

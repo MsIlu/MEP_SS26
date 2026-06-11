@@ -1,0 +1,307 @@
+{
+  "schema_version": "1.0",
+  "catalog_type": "assessment_criteria_seed",
+  "source": {
+    "system": "Careena",
+    "basis": "STS",
+    "version": "0.1",
+    "language": "de"
+  },
+  "usage_note": "Reusable assessment criteria derived from STS-relevant concepts. This seed documents whether Careena can capture each criterion in a lay-user chat context. It does not link criteria to specific STS consultation reasons and does not make runtime triage decisions.",
+  "assessment_criteria": [
+    {
+      "criterion_key": "pain_intensity_0_10",
+      "label_de": "Schmerzstaerke 0 bis 10",
+      "description_de": "Subjektive Einschaetzung der Schmerzstaerke auf einer Skala von 0 bis 10.",
+      "criterion_type": "severity",
+      "suggested_question_texts": {
+        "de": "Wie stark sind die Schmerzen auf einer Skala von 0 bis 10?",
+        "en": "How severe is the pain on a scale from 0 to 10?"
+      },
+      "lay_terms": {
+        "de": [
+          "Schmerzstaerke",
+          "Schmerzskala",
+          "0 bis 10",
+          "starke Schmerzen"
+        ],
+        "en": [
+          "pain severity",
+          "pain scale",
+          "0 to 10",
+          "severe pain"
+        ]
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft",
+      "expected_value_type": "number",
+      "suggested_input_mode": "scale_0_10",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "symptom_onset_or_duration",
+      "label_de": "Beginn oder Dauer der Beschwerden",
+      "description_de": "Zeitpunkt des Beginns oder Dauer eines Symptoms oder Beschwerdebilds.",
+      "criterion_type": "onset_duration",
+      "suggested_question_texts": {
+        "de": "Seit wann bestehen die Beschwerden?",
+        "en": "How long have you had these symptoms?"
+      },
+      "lay_terms": {
+        "de": [
+          "seit wann",
+          "seit heute",
+          "seit gestern",
+          "Beginn",
+          "angefangen"
+        ],
+        "en": [
+          "since when",
+          "since today",
+          "since yesterday",
+          "started",
+          "began"
+        ]
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft",
+      "expected_value_type": "duration",
+      "suggested_input_mode": "duration_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "dyspnea_self_reported",
+      "label_de": "Atemnot selbst berichtet",
+      "description_de": "Subjektiv berichtete Atemnot oder das Gefuehl, schlecht Luft zu bekommen.",
+      "criterion_type": "symptom",
+      "suggested_question_texts": {
+        "de": "Haben Sie Atemnot oder bekommen Sie schlecht Luft?",
+        "en": "Do you feel short of breath or have trouble breathing?"
+      },
+      "lay_terms": {
+        "de": [
+          "Atemnot",
+          "Luftnot",
+          "bekomme keine Luft",
+          "schlecht Luft bekommen",
+          "kaum atmen"
+        ],
+        "en": [
+          "shortness of breath",
+          "can't breathe",
+          "trouble breathing",
+          "hard to breathe"
+        ]
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "oxygen_saturation_user_provided",
+      "label_de": "Vom Nutzer genannte Sauerstoffsaettigung",
+      "description_de": "SpO2-Wert, falls ein Pulsoximeter vorhanden ist und ein Messwert genannt wird.",
+      "criterion_type": "vital_sign",
+      "suggested_question_texts": {
+        "de": "Falls Sie ein Pulsoximeter verwendet haben: Welche Sauerstoffsaettigung wurde angezeigt?",
+        "en": "If you used a pulse oximeter: what oxygen saturation value was shown?"
+      },
+      "lay_terms": {
+        "de": [
+          "Sauerstoffsaettigung",
+          "SpO2",
+          "Pulsoximeter",
+          "Sauerstoffwert"
+        ],
+        "en": [
+          "oxygen saturation",
+          "SpO2",
+          "pulse oximeter",
+          "oxygen level"
+        ]
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "user_provided_measurement",
+      "careena_use_policy": "accept_if_user_provided",
+      "capture_limitation_reason": "requires_device_measurement",
+      "mapping_status": "draft",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "blood_pressure_user_provided",
+      "label_de": "Vom Nutzer genannter Blutdruckwert",
+      "description_de": "Blutdruckwert, falls er bereits mit einem Messgeraet gemessen und genannt wurde.",
+      "criterion_type": "vital_sign",
+      "suggested_question_texts": {
+        "de": "Falls Sie gemessen haben: Welchen Blutdruckwert zeigt das Geraet?",
+        "en": "If you measured it: what blood pressure value does the device show?"
+      },
+      "lay_terms": {
+        "de": [
+          "Blutdruck",
+          "zu hoch",
+          "Messwert",
+          "185 zu 105"
+        ],
+        "en": [
+          "blood pressure",
+          "too high",
+          "reading",
+          "185 over 105"
+        ]
+      },
+      "observation_context": "self_report",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "user_provided_measurement",
+      "careena_use_policy": "accept_if_user_provided",
+      "capture_limitation_reason": "requires_device_measurement",
+      "mapping_status": "draft",
+      "expected_value_type": "measurement",
+      "suggested_input_mode": "measurement_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "glasgow_coma_scale_observer_assisted",
+      "label_de": "Glasgow Coma Scale nur fremdbeobachtet",
+      "description_de": "GCS-nahe Beobachtung von Augenoeffnung, Sprache und motorischer Reaktion. Nicht fuer Selbstbericht geeignet.",
+      "criterion_type": "scale",
+      "suggested_question_texts": {
+        "de": "Ist die Person wach, spricht sie verstaendlich und reagiert sie gezielt auf Ansprache oder Beruehrung?",
+        "en": "Is the person awake, speaking clearly, and responding purposefully to voice or touch?"
+      },
+      "lay_terms": {
+        "de": [
+          "nicht ansprechbar",
+          "kaum wach",
+          "verwirrt",
+          "reagiert nicht",
+          "oeffnet die Augen nicht"
+        ],
+        "en": [
+          "not responsive",
+          "hard to wake",
+          "confused",
+          "does not respond",
+          "does not open eyes"
+        ]
+      },
+      "observation_context": "observed",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "observer_assisted_scale",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": "not_suitable_for_self_report",
+      "mapping_status": "draft",
+      "expected_value_type": "observed_sign",
+      "suggested_input_mode": "observed_sign_input",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "pupil_response",
+      "label_de": "Pupillenreaktion",
+      "description_de": "Klinische Beurteilung der Pupillenreaktion.",
+      "criterion_type": "clinical_exam",
+      "suggested_question_texts": {},
+      "lay_terms": {
+        "de": [
+          "Pupillen",
+          "Pupillenreaktion"
+        ],
+        "en": [
+          "pupils",
+          "pupil response"
+        ]
+      },
+      "observation_context": "clinician_assessment",
+      "careena_capture_status": "not_usable",
+      "careena_capture_method": "clinician_assessment",
+      "careena_use_policy": "do_not_ask",
+      "capture_limitation_reason": "not_reliable_for_layperson",
+      "mapping_status": "draft",
+      "expected_value_type": "not_collectable",
+      "suggested_input_mode": "none",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "speaking_full_sentences_difficulty",
+      "label_de": "Schwierigkeit, ganze Saetze zu sprechen",
+      "description_de": "Atembeschwerden mit eingeschraenkter Faehigkeit, in ganzen Saetzen zu sprechen.",
+      "criterion_type": "observation",
+      "suggested_question_texts": {
+        "de": "Faellt es schwer, ganze Saetze zu sprechen, weil die Luft fehlt?",
+        "en": "Is it hard to speak full sentences because of breathlessness?"
+      },
+      "lay_terms": {
+        "de": [
+          "kann nicht sprechen",
+          "nur einzelne Worte",
+          "keine ganzen Saetze",
+          "Sprechdyspnoe"
+        ],
+        "en": [
+          "can't speak",
+          "only single words",
+          "can't speak full sentences"
+        ]
+      },
+      "observation_context": "self_report_or_observed",
+      "careena_capture_status": "usable",
+      "careena_capture_method": "self_report_or_observed",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": null,
+      "mapping_status": "draft",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    },
+    {
+      "criterion_key": "cyanosis_observed",
+      "label_de": "Blaeuliche Lippen oder Haut beobachtet",
+      "description_de": "Laienhaft beobachtbare blaeuliche Verfaerbung von Lippen, Gesicht oder Haut.",
+      "criterion_type": "observation",
+      "suggested_question_texts": {
+        "de": "Sind Lippen, Gesicht oder Haut blaeulich verfaerbt?",
+        "en": "Are the lips, face, or skin bluish?"
+      },
+      "lay_terms": {
+        "de": [
+          "blaue Lippen",
+          "blau angelaufen",
+          "blaeulich",
+          "Zyanose"
+        ],
+        "en": [
+          "blue lips",
+          "bluish",
+          "turned blue",
+          "cyanosis"
+        ]
+      },
+      "observation_context": "observed",
+      "careena_capture_status": "conditional",
+      "careena_capture_method": "observer_report",
+      "careena_use_policy": "ask_if_context_relevant",
+      "capture_limitation_reason": "not_suitable_for_self_report",
+      "mapping_status": "draft",
+      "expected_value_type": "boolean",
+      "suggested_input_mode": "yes_no_buttons",
+      "free_text_allowed": true
+    }
+  ]
+}

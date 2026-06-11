@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "catalog_type": "sts_consultation_reason_criteria_links_seed",
+  "source": {
+    "system": "Careena",
+    "basis": "STS",
+    "version": "0.1",
+    "language": "de"
+  },
+  "usage_note": "Links reusable assessment criteria to STS consultation reasons. This file stores contextual relevance, safety relevance and later Pipeline3 decision role. It does not make runtime triage decisions.",
+  "consultation_reason_criteria_links": [
+    {
+      "consultation_reason_source_id": "1001",
+      "criterion_key": "glasgow_coma_scale_observer_assisted",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "For cardiac or respiratory arrest, Careena should not ask for a formal GCS score, but observer-assisted responsiveness questions may help validate severe safety concerns.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1002",
+      "criterion_key": "pain_intensity_0_10",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "source_note": "Pain intensity is relevant for thoracic pain assessment, but Careena does not map it directly to an STS urgency level.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1002",
+      "criterion_key": "symptom_onset_or_duration",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "source_note": "Onset and duration are relevant for thoracic pain context and later structured clarification.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1002",
+      "criterion_key": "dyspnea_self_reported",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "source_note": "Dyspnea accompanying thoracic pain is safety-relevant and should trigger structured clarification, not an automatic emergency decision by itself.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1005",
+      "criterion_key": "blood_pressure_user_provided",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "source_note": "Blood pressure is only usable if the user already provides a measured value. Careena should not require device measurements.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1005",
+      "criterion_key": "symptom_onset_or_duration",
+      "relevance": "supporting",
+      "is_safety_relevant": false,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "source_note": "Duration/context may help understand elevated blood pressure reports but does not determine urgency directly.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "dyspnea_self_reported",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "safety_clarification_trigger",
+      "source_note": "Self-reported dyspnea is directly relevant for STS respiratory symptoms and should be handled as a safety-relevant criterion.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "speaking_full_sentences_difficulty",
+      "relevance": "primary",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "Difficulty speaking full sentences is a lay-observable sign of relevant breathing impairment and may validate raw dyspnea concerns.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "oxygen_saturation_user_provided",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "supporting_context",
+      "source_note": "SpO2 is only accepted if user-provided from a device. Careena should not require measurement.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "cyanosis_observed",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "Cyanosis is only usable as observer-reported lay observation and should support structured safety validation.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "glasgow_coma_scale_observer_assisted",
+      "relevance": "supporting",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": true,
+      "careena_decision_role": "structured_safety_validator",
+      "source_note": "Reduced responsiveness in respiratory symptoms is only assessed via simplified observer questions, not formal GCS scoring by the user.",
+      "mapping_status": "draft"
+    },
+    {
+      "consultation_reason_source_id": "1008",
+      "criterion_key": "pupil_response",
+      "relevance": "source_only",
+      "is_safety_relevant": true,
+      "is_red_flag_candidate": false,
+      "careena_decision_role": "not_used_for_product_decision",
+      "source_note": "Pupil response may be clinically relevant in STS/vital assessment contexts, but Careena should not ask lay users to assess it.",
+      "mapping_status": "draft"
+    }
+  ]
+}

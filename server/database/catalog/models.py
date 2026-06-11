@@ -76,14 +76,24 @@ class AssessmentCriterion(SQLModel, table=True):
     # vital_sign, clinical_exam, diagnostic_test, scale, context.
     criterion_type: str = Field(max_length=80)
 
-    # User-facing question texts by language, for example {"de": "...", "en": "..."}.
-    question_texts_json: str = Field(default="{}")
+    # Suggested user-facing question examples by language, for example {"de": "...", "en": "..."}.
+    # These are not fixed runtime prompts; Pipeline3 may generate its own wording.
+    suggested_question_texts_json: str = Field(default="{}")
 
     # Everyday expressions by language, for example {"de": ["Luftnot"], "en": ["shortness of breath"]}.
     lay_terms_json: str = Field(default="{}")
 
-    # Examples: yes_no, free_text, number, duration, choice, observed_sign, not_collectable.
-    expected_answer_type: str = Field(default="yes_no", max_length=80)
+    # Defines which structured value Pipeline3 should try to extract.
+    # Examples: boolean, free_text, number, duration, choice, measurement, observed_sign, not_collectable.
+    expected_value_type: str = Field(default="free_text", max_length=80)
+
+    # Defines which optional UI/input helper could be suggested.
+    # Examples: free_text, yes_no_buttons, scale_0_10, duration_input,
+    # measurement_input, choice_buttons, observed_sign_input, none.
+    suggested_input_mode: str = Field(default="free_text", max_length=80)
+
+    # Users may still answer in free text even if buttons or structured inputs are suggested.
+    free_text_allowed: bool = Field(default=True)
 
     # Defines whether this can be self-reported, observed by others, or both.
     # Examples: self_report, observed, self_report_or_observed, clinician_assessment.
@@ -104,11 +114,11 @@ class AssessmentCriterion(SQLModel, table=True):
     # do_not_ask, do_not_use.
     careena_use_policy: str = Field(default="not_assessed", max_length=120)
 
-    # Documents why an STS criterion is not usable or only conditionally usable in Careena.
+    # Documents why an STS-relevant criterion is only conditionally usable or not usable in Careena.
     # Examples: requires_clinician_assessment, requires_device_measurement,
     # requires_lab_result, requires_imaging, not_reliable_for_layperson,
     # not_suitable_for_self_report.
-    not_usable_reason: Optional[str] = Field(default=None, max_length=255)
+    capture_limitation_reason: Optional[str] = Field(default=None, max_length=255)
 
     mapping_status: str = Field(default="draft", max_length=80)
     mapping_notes: Optional[str] = Field(default=None)

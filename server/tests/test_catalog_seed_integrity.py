@@ -123,3 +123,24 @@ def test_sts_1001_uses_lay_observable_primary_safety_criterion() -> None:
 
     assert "breathing_and_responsiveness_observed" in primary_keys
     assert "glasgow_coma_scale_observer_assisted" not in primary_keys
+
+def test_cardiovascular_respiratory_category_has_primary_criterion_links() -> None:
+    """Ensure every cardiovascular/respiratory STS reason has at least one primary criterion link."""
+    reasons = load_seed(CONSULTATION_REASONS_PATH)
+    links = load_seed(CRITERIA_LINKS_PATH)
+
+    category_reason_ids = {
+        item["sts_id"]
+        for item in reasons["consultation_reasons"]
+        if item["source_category_de"] == "Kardiovaskulaer und respiratorisch"
+    }
+
+    reason_ids_with_primary_link = {
+        item["consultation_reason_source_id"]
+        for item in links["consultation_reason_criteria_links"]
+        if item.get("is_active", True) is True and item["relevance"] == "primary"
+    }
+
+    missing_reason_ids = sorted(category_reason_ids - reason_ids_with_primary_link)
+
+    assert missing_reason_ids == []

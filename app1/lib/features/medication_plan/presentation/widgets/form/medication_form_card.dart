@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/core/widgets/careena_action_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +13,9 @@ import 'time_selector.dart';
 
 /// Form card for entering medication name, dose, time, and reminder state.
 class MedicationFormCard extends StatelessWidget {
+  final String title;
+  final String submitLabel;
+  final IconData submitIcon;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final FocusNode nameFocusNode;
@@ -33,6 +36,9 @@ class MedicationFormCard extends StatelessWidget {
 
   const MedicationFormCard({
     super.key,
+    this.title = 'Neues Medikament',
+    this.submitLabel = 'Eintrag speichern',
+    this.submitIcon = Icons.add,
     required this.formKey,
     required this.nameController,
     required this.nameFocusNode,
@@ -77,7 +83,7 @@ class MedicationFormCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Neues Medikament',
+                    title,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 18,
@@ -178,8 +184,8 @@ class MedicationFormCard extends StatelessWidget {
             const SizedBox(height: 8),
             CareenaPrimaryIconButton(
               onPressed: onSubmit,
-              icon: Icons.add,
-              label: 'Eintrag speichern',
+              icon: submitIcon,
+              label: submitLabel,
             ),
           ],
         ),

@@ -38,23 +38,27 @@ class MedicationEntry {
     String? dose,
     TimeOfDay? intakeTime,
     TimeOfDay? secondIntakeTime,
+    bool clearSecondIntakeTime = false,
     MedicationFrequency? frequency,
     bool? remindersEnabled,
     DateTime? createdAt,
     List<String>? takenDateKeys,
     MedicationCatalogItem? catalogItem,
+    bool clearCatalogItem = false,
   }) {
     return MedicationEntry(
       id: id ?? this.id,
       name: name ?? this.name,
       dose: dose ?? this.dose,
       intakeTime: intakeTime ?? this.intakeTime,
-      secondIntakeTime: secondIntakeTime ?? this.secondIntakeTime,
+      secondIntakeTime: clearSecondIntakeTime
+          ? null
+          : secondIntakeTime ?? this.secondIntakeTime,
       frequency: frequency ?? this.frequency,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       createdAt: createdAt ?? this.createdAt,
       takenDateKeys: takenDateKeys ?? this.takenDateKeys,
-      catalogItem: catalogItem ?? this.catalogItem,
+      catalogItem: clearCatalogItem ? null : catalogItem ?? this.catalogItem,
     );
   }
 

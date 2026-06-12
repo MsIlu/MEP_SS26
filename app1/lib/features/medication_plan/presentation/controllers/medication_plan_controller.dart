@@ -63,6 +63,47 @@ class MedicationPlanController extends ChangeNotifier {
     _notifyIfActive();
   }
 
+  /// Updates an existing medication while preserving its intake history.
+  Future<void> updateEntry({
+    required MedicationEntry entry,
+    required String name,
+    required String dose,
+    required TimeOfDay intakeTime,
+    TimeOfDay? secondIntakeTime,
+    required MedicationFrequency frequency,
+    required bool remindersEnabled,
+    MedicationCatalogItem? catalogItem,
+  }) async {
+    final updatedEntry = entry.copyWith(
+      name: name.trim(),
+      dose: dose.trim(),
+      intakeTime: intakeTime,
+      secondIntakeTime: secondIntakeTime,
+      clearSecondIntakeTime: secondIntakeTime == null,
+      frequency: frequency,
+      remindersEnabled: remindersEnabled,
+      catalogItem: catalogItem,
+      clearCatalogItem: catalogItem == null,
+    );
+
+    _entries = _sortedEntries(
+      _entries
+          .map(
+            (currentEntry) =>
+                currentEntry.id == entry.id ? updatedEntry : currentEntry,
+          )
+          .toList(),
+    );
+
+    await _repository.saveEntries(_entries);
+    await _notificationService.cancelReminders(entry);
+    await _notificationService.scheduleReminders(
+      updatedEntry,
+      skippedDoseIndexes: _takenDoseIndexesForToday(updatedEntry),
+    );
+    _notifyIfActive();
+  }
+
   /// Updates reminder state for a single medication entry.
   Future<void> toggleReminder(
     MedicationEntry entry,

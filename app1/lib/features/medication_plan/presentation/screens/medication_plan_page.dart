@@ -2,6 +2,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:flutter/material.dart';
 
+import '../../data/medication_entry.dart';
 import '../controllers/medication_plan_controller.dart';
 import '../widgets/form/medication_form_dialog.dart';
 import '../widgets/list/medication_list_dialog.dart';
@@ -79,11 +80,12 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
   }
 
   /// Opens a centered form dialog and prepares clean input state first.
-  Future<void> _openMedicationForm() async {
+  Future<void> _openMedicationForm({MedicationEntry? entry}) async {
     final wasSaved = await showDialog<bool>(
       context: context,
       builder: (context) {
         return MedicationFormDialog(
+          initialEntry: entry,
           onSave:
               (
                 name,
@@ -94,6 +96,19 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
                 remindersEnabled,
                 catalogItem,
               ) {
+                if (entry != null) {
+                  return _controller.updateEntry(
+                    entry: entry,
+                    name: name,
+                    dose: dose,
+                    intakeTime: intakeTime,
+                    secondIntakeTime: secondIntakeTime,
+                    frequency: frequency,
+                    remindersEnabled: remindersEnabled,
+                    catalogItem: catalogItem,
+                  );
+                }
+
                 return _controller.addEntry(
                   name: name,
                   dose: dose,
@@ -109,9 +124,15 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     );
 
     if (mounted && wasSaved == true) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Medikament gespeichert')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            entry == null
+                ? 'Medikament gespeichert'
+                : 'Medikament aktualisiert',
+          ),
+        ),
+      );
     }
   }
 
@@ -141,6 +162,8 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
                     onAdd: () => _openMedicationFormFromList(context),
                     onClose: () => Navigator.pop(context),
                     onToggleReminder: _controller.toggleReminder,
+                    onEdit: (entry) =>
+                        _openMedicationEditFormFromList(context, entry),
                     onDelete: _controller.deleteEntry,
                   );
                 },
@@ -159,6 +182,19 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
 
     if (mounted) {
       await _openMedicationForm();
+    }
+  }
+
+  /// Closes the list dialog before opening the prefilled edit form.
+  Future<void> _openMedicationEditFormFromList(
+    BuildContext sheetContext,
+    MedicationEntry entry,
+  ) async {
+    Navigator.pop(sheetContext);
+    await Future<void>.delayed(const Duration(milliseconds: 160));
+
+    if (mounted) {
+      await _openMedicationForm(entry: entry);
     }
   }
 }

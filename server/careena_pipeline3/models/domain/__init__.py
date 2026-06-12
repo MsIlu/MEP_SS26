@@ -5,6 +5,7 @@ from careena_pipeline3.models.domain.dialogue import (
     DialogueState,
     PendingDialogueTransition,
     PendingFollowup,
+    PendingSafetyClarification,
     StagedFollowupAnswer,
 )
 from careena_pipeline3.models.domain.observation import CaseObservation
@@ -30,6 +31,7 @@ __all__ = [
     "MedicationObservationData",
     "PendingDialogueTransition",
     "PendingFollowup",
+    "PendingSafetyClarification",
     "Provenance",
     "StagedFollowupAnswer",
     "Subject",

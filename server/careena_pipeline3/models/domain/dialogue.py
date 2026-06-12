@@ -30,6 +30,14 @@ class PendingDialogueTransition(PipelineModel):
         default_factory=lambda: ["request_recommendation", "report_more_information"]
     )
 
+class PendingSafetyClarification(PipelineModel):
+    """Open safety clarification that must be answered before normal progression."""
+
+    kind: Literal["red_flag_clarification"] = "red_flag_clarification"
+    question_code: str = "raw_red_flag_clarification"
+    source_stage: Literal["raw", "extraction", "case"] = "raw"
+    evidence_terms: list[str] = Field(default_factory=list)
+    focus_observation_id: str | None = None
 
 class DialogueState(PipelineModel):
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
@@ -40,6 +48,7 @@ class DialogueState(PipelineModel):
     resolved_requirements: list[str] = Field(default_factory=list)
     pending_followup: PendingFollowup | None = None
     pending_dialogue_transition: PendingDialogueTransition | None = None
+    pending_safety_clarification: PendingSafetyClarification | None = None
     recommendation_requested: bool = False
     recommendation_ready: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)

@@ -1,15 +1,22 @@
-from careena_pipeline3.models.turn import ExtractionPayload, SafetyState, TurnInput
+from careena_pipeline3.application.services.raw_red_flag_detector import (
+    RawRedFlagDetector,
+)
 from careena_pipeline3.models.domain import MedicalCase
+from careena_pipeline3.models.turn import ExtractionPayload, SafetyState, TurnInput
 
 
 class SafetyManager:
     """Runs turn-level safety checks for raw and normalized inputs."""
 
+    def __init__(
+        self,
+        raw_red_flag_detector: RawRedFlagDetector | None = None,
+    ) -> None:
+        # Allow dependency injection for tests and future detector variants.
+        self._raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
+
     def assess_raw_message(self, turn_input: TurnInput) -> SafetyState:
-        return SafetyState(
-            checked_sources=["raw_message"],
-            trace_notes=["raw_safety_scaffold"],
-        )
+        return self._raw_red_flag_detector.detect(turn_input.message)
 
     def assess_extraction(self, extraction_payload: ExtractionPayload) -> SafetyState:
         checked_sources = []

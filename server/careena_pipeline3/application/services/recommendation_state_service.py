@@ -2,7 +2,7 @@ from careena_pipeline3.application.services.readiness_evaluator import (
     AssessmentReadinessEvaluator,
 )
 from careena_pipeline3.models.domain import DialogueState, MedicalCase
-from careena_pipeline3.models.workflow import AssessmentReadiness
+from careena_pipeline3.models.turn import ReadinessStateUpdate
 
 
 class RecommendationStateService:
@@ -29,7 +29,7 @@ class RecommendationStateService:
         person_reference_present: bool = False,
         multi_person_context: bool = False,
         subject_relation_unclear: bool = False,
-    ) -> tuple[DialogueState, AssessmentReadiness]:
+    ) -> ReadinessStateUpdate:
         readiness = self.readiness_evaluator.evaluate(
             medical_case,
             dialogue_state=dialogue_state,
@@ -42,4 +42,8 @@ class RecommendationStateService:
             and readiness.has_medical_problem
             and not readiness.blocking_requirements
         )
-        return dialogue_state, readiness
+        return ReadinessStateUpdate(
+            dialogue_state=dialogue_state,
+            assessment_readiness=readiness,
+            pending_followup=dialogue_state.pending_followup,
+        )

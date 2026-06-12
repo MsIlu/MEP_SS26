@@ -5,9 +5,18 @@ from typing import Literal
 
 import config
 
-from careena_pipeline3.application.managers import DialogueManager, EntryManager, ExtractionManager
+from careena_pipeline3.application.managers import (
+    DialogueManager,
+    EntryManager,
+    ExtractionManager,
+    ResponseManager,
+)
 from careena_pipeline3.application.services import (
     IntentClassificationService,
+    LLMResponseGenerationService,
+    PythonExtractionResultNormalizer,
+    RecommendationTransitionService,
+    ResponseGenerationService,
     ResilientExtractionService,
 )
 from careena_pipeline3.core.client import LLMClient
@@ -17,14 +26,14 @@ from careena_pipeline3.server_log import configure_debug_logging
 from careena_pipeline3.llm.call_control import CallModelConfig, build_call_model_config
 from careena_pipeline3.llm import (
     LLMCaseExtractionExtractor,
-    LLMExtractionResultNormalizer,
     LLMIntentGatewayExtractor,
+    LLMRecommendationTransitionExtractor,
 )
 
 
 LOCAL_LLM_BASE_URL = "http://localhost:11434/v1"
 LOCAL_LLM_API_KEY = "ollama"
-LOCAL_LLM_MODEL = "medgemma:4b"
+LOCAL_LLM_MODEL = "medgemma:27b"
 ENV_LLM_BASE_URL = config.LITELLM_BASE_URL
 ENV_LLM_API_KEY = config.LITELLM_API_KEY
 ENV_LLM_MODEL = config.SELECTED_MODEL
@@ -39,8 +48,10 @@ class PipelineRuntimeServices:
     call_model_config: CallModelConfig
     intent_gateway_extractor: LLMIntentGatewayExtractor
     case_extraction_extractor: LLMCaseExtractionExtractor
-    extraction_result_normalizer: LLMExtractionResultNormalizer
+    recommendation_transition_extractor: LLMRecommendationTransitionExtractor
+    extraction_result_normalizer: PythonExtractionResultNormalizer
     intent_classification_service: IntentClassificationService
+    recommendation_transition_service: RecommendationTransitionService
     entry_manager: EntryManager
     extraction_manager: ExtractionManager
     dialogue_manager: DialogueManager
@@ -91,15 +102,20 @@ def build_pipeline_runtime(
         extraction_engine,
         call_models=call_model_config,
     )
-    extraction_result_normalizer = LLMExtractionResultNormalizer(
+    recommendation_transition_extractor = LLMRecommendationTransitionExtractor(
         extraction_engine,
         call_models=call_model_config,
     )
+    extraction_result_normalizer = PythonExtractionResultNormalizer()
     intent_classification_service = IntentClassificationService(
         intent_gateway_extractor=intent_gateway_extractor,
     )
+    recommendation_transition_service = RecommendationTransitionService(
+        extractor=recommendation_transition_extractor,
+    )
     entry_manager = EntryManager(
         intent_classification=intent_classification_service,
+        recommendation_transition_service=recommendation_transition_service,
     )
     extraction_manager = ExtractionManager(
         extraction_service=ResilientExtractionService(
@@ -107,9 +123,16 @@ def build_pipeline_runtime(
             result_normalizer=extraction_result_normalizer,
         ),
     )
+    response_generation_service = ResponseGenerationService(
+        llm_response_generation=LLMResponseGenerationService(llm_client=llm_client),
+    )
+    response_manager = ResponseManager(
+        response_generation_service=response_generation_service,
+    )
     dialogue_manager = DialogueManager(
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
+        response_manager=response_manager,
     )
     session_store = CareenaPipeline3SessionStore()
 
@@ -119,8 +142,10 @@ def build_pipeline_runtime(
         call_model_config=call_model_config,
         intent_gateway_extractor=intent_gateway_extractor,
         case_extraction_extractor=case_extraction_extractor,
+        recommendation_transition_extractor=recommendation_transition_extractor,
         extraction_result_normalizer=extraction_result_normalizer,
         intent_classification_service=intent_classification_service,
+        recommendation_transition_service=recommendation_transition_service,
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
         dialogue_manager=dialogue_manager,

@@ -102,9 +102,8 @@ class ResponseTextBuilder:
 
         if response_mode == "guide_next_step":
             return (
-                "Gibt es noch weitere Beschwerden? "
-                "Wenn nicht, dann antworten Sie kurz mit nein, und ich erstelle "
-                "Ihre Empfehlung."
+                "Moechten Sie jetzt eine Versorgungsempfehlung erhalten oder "
+                "haben Sie noch weitere Beschwerden?"
             )
 
         if response_mode == "confirm_information":
@@ -114,6 +113,14 @@ class ResponseTextBuilder:
             )
 
         if response_mode == "continue":
+            if (
+                entry_decision.dialogue_transition_action == "report_more_information"
+                and not entry_decision.extraction_required
+            ):
+                return (
+                    "Okay, dann beschreiben Sie bitte kurz die weiteren "
+                    "Beschwerden."
+                )
             focus_label = (
                 context.medical_case.primary_focus_label()
                 if context.medical_case is not None

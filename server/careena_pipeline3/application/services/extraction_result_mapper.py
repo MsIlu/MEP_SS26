@@ -5,33 +5,30 @@ from careena_pipeline3.models.extraction import (
     ExtractionResult,
 )
 from careena_pipeline3.models.turn import (
-    MessageCaseDelta,
-    MessageDelta,
-    MessageIntentSignals,
-    MessageRequirementSignals,
-    MessageTraceSignals,
+    CaseUpdateBridge,
+    CaseUpdateClaims,
+    CaseUpdateMergeHints,
 )
 
 
 class ExtractionResultMapper:
     """
-    Transitional mapper from the cleaner extraction contract into MessageDelta.
+    Transitional mapper from the cleaner extraction contract into a small
+    truth-edge bridge.
 
     This keeps the new extraction target shape independent while the current
-    merge pipeline still consumes MessageDelta.
+    merge pipeline still consumes a bridge contract at the truth-update edge.
     """
 
-    def to_message_delta(
+    def to_case_update_bridge(
         self,
         result: ExtractionResult,
         *,
         message_role: str = "new_information",
         possible_new_topic: bool = False,
-    ) -> MessageDelta:
-        active_modules = self._active_modules(result)
-        return MessageDelta(
-            raw_text=result.raw_text,
-            case_delta=MessageCaseDelta(
+    ) -> CaseUpdateBridge:
+        return CaseUpdateBridge(
+            claims=CaseUpdateClaims(
                 subject=self._map_subject(result.case_payload.subject),
                 observations_added=[
                     self._map_observation(item)
@@ -44,23 +41,14 @@ class ExtractionResultMapper:
                     if item.negated
                 ],
             ),
-            intent_signals=MessageIntentSignals(
-                is_medical=result.medical,
-                extraction_required=True,
+            merge_hints=CaseUpdateMergeHints(
                 message_role=message_role,
                 possible_new_topic=possible_new_topic,
-            ),
-            requirement_signals=MessageRequirementSignals(
-                active_modules=active_modules,
-                required_fields=list(result.case_payload.unresolved_questions),
-            ),
-            trace_signals=MessageTraceSignals(
-                notes=list(result.trace_notes) + list(result.case_payload.extraction_notes),
             ),
         )
 
     @staticmethod
-    def _active_modules(result: ExtractionResult) -> list[str]:
+    def active_modules(result: ExtractionResult) -> list[str]:
         if result.case_payload.unresolved_questions:
             return ["requirement_resolution"]
         return []

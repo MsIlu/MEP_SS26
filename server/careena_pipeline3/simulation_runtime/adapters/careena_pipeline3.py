@@ -20,9 +20,11 @@ class CareenaPipeline3Adapter:
         state: dict | None,
     ) -> SimulationSystemTurn:
         case = None
+        concern_state = None
         dialogue_state = None
         if state is not None:
             case = state.get("case")
+            concern_state = state.get("concern_state")
             dialogue_state = state.get("dialogue_state")
 
         result = self.dialogue_manager.run_turn(
@@ -30,11 +32,13 @@ class CareenaPipeline3Adapter:
                 message=user_message,
                 conversation_messages=_transcript_to_messages(transcript),
                 existing_case=case,
+                existing_concern_state=concern_state,
                 existing_dialogue_state=dialogue_state,
             )
         )
 
         next_case = result.context.medical_case if result.context.medical_case is not None else case
+        next_concern_state = result.context.concern_state
         next_dialogue_state = (
             result.context.dialogue_state
             if result.context.dialogue_state is not None
@@ -49,10 +53,12 @@ class CareenaPipeline3Adapter:
             summary=_build_summary(
                 result=result,
                 case=next_case,
+                concern_state=next_concern_state,
                 dialogue_state=next_dialogue_state,
             ),
             state={
                 "case": next_case,
+                "concern_state": next_concern_state,
                 "dialogue_state": next_dialogue_state,
             },
             raw_result=result,
@@ -75,11 +81,14 @@ def _build_summary(
     *,
     result,
     case,
+    concern_state,
     dialogue_state,
 ) -> dict[str, object]:
     summary: dict[str, object] = {
         "response_mode": result.response_mode,
     }
+    if concern_state is not None:
+        summary["concern_summary"] = concern_state.summary or "unklar"
     if case is None:
         return summary
 

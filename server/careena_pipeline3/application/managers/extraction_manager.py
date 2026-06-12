@@ -12,7 +12,13 @@ from careena_pipeline3.models.turn import (
 
 
 class ExtractionManager:
-    """Produces extraction payloads when the entry decision requires it."""
+    """
+    Produces transitional extraction outputs for the turn orchestrator.
+
+    The manager may still carry a transitional truth-update bridge, but it
+    should expose neighboring orchestration signals directly instead of
+    hiding them inside that bridge contract.
+    """
 
     def __init__(
         self,
@@ -45,17 +51,18 @@ class ExtractionManager:
                 )
                 else None
             ),
+            profile=entry_decision.call2_profile,
             call2_tasks=entry_decision.call2_tasks,
             operation_mode=entry_decision.call2_operation_mode,
             conversation_messages=turn_input.conversation_messages,
         )
-        message_delta = self.extraction_result_mapper.to_message_delta(
+        case_update_bridge = self.extraction_result_mapper.to_case_update_bridge(
             extraction_result,
             message_role=entry_decision.message_role,
             possible_new_topic=(entry_decision.message_role == "topic_shift"),
         )
         active_modules = list(entry_decision.active_modules)
-        for module in message_delta.requirement_signals.active_modules:
+        for module in self.extraction_result_mapper.active_modules(extraction_result):
             if module not in active_modules:
                 active_modules.append(module)
 
@@ -63,5 +70,5 @@ class ExtractionManager:
             active_modules=active_modules,
             trace_notes=["extraction_manager_completed", *extraction_result.trace_notes],
             extraction_result=extraction_result,
-            message_delta=message_delta,
+            case_update_bridge=case_update_bridge,
         )

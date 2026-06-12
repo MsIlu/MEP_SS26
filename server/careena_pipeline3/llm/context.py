@@ -1,11 +1,11 @@
 from careena_pipeline3.models.common import Call2OperationMode, Call2Task
-from careena_pipeline3.models.domain import DialogueState, MedicalCase
-from careena_pipeline3.models.extraction import ExtractionResult
+from careena_pipeline3.models.domain import (
+    DialogueState,
+    MedicalCase,
+    PendingDialogueTransition,
+)
 from careena_pipeline3.models.workflow import (
-    CaseSummary,
-    CaseSummaryObservation,
     ConversationTurn,
-    DialogueSummary,
     IntentGatewayContext,
 )
 
@@ -23,10 +23,23 @@ def build_intent_gateway_context(
 ) -> IntentGatewayContext:
     recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
     last_assistant_question = _last_assistant_question(recent_turns)
+    pending_dialogue_transition = (
+        dialogue_state.pending_dialogue_transition if dialogue_state is not None else None
+    )
 
     return IntentGatewayContext(
         latest_user_message=latest_user_message,
         pending_slot=pending_slot,
+        active_dialogue_transition_kind=(
+            pending_dialogue_transition.kind
+            if pending_dialogue_transition is not None
+            else None
+        ),
+        active_dialogue_transition_prompt_code=(
+            pending_dialogue_transition.prompt_code
+            if pending_dialogue_transition is not None
+            else None
+        ),
         last_assistant_question=last_assistant_question,
         recent_turns=recent_turns,
         intent_gateway=None,
@@ -41,121 +54,58 @@ def build_case_extraction_input(
     existing_case: MedicalCase | None = None,
     dialogue_state: DialogueState | None = None,
     pending_slot: str | None = None,
+    profile: str | None = None,
     call2_tasks: list[Call2Task] | None = None,
     operation_mode: Call2OperationMode | None = None,
     messages: list[dict[str, str]] | None = None,
 ) -> dict[str, object]:
     """
-    Builds the constrained Call-2 payload.
+    Builds the reduced primary Call-2 payload.
 
     Important policy:
     - `latest_user_message` stays the primary fact source.
-    - focus/pending/dialogue/case fields are only interpretive control
-      signals.
+    - surrounding fields are only small interpretive control signals.
     - these context fields must not become an independent source for newly
       materialized medical facts.
+    - this payload is intentionally the small base structure; later Block-4/8
+      work may assemble it more dynamically from Call-1 dispatch signals, but
+      broad case/dialogue summaries should not re-enter by default.
     """
-    focus_observation = (
-        existing_case.primary_observation() if existing_case is not None else None
-    )
+    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
     return {
         "latest_user_message": latest_user_message,
+        "profile": profile or "default",
         "call2_tasks": list(call2_tasks or []),
         "operation_mode": operation_mode,
-        "target_scope": _target_scope_for_mode(operation_mode),
-        "allow_new_observations": _allow_new_observations_for_mode(operation_mode),
         "pending_slot": pending_slot,
-        "focus_observation_id": (
-            focus_observation.id if focus_observation is not None else None
+        "last_assistant_question": _last_assistant_question(recent_turns),
+        "focus_observation": _focus_observation_for_call2(
+            existing_case=existing_case,
+            operation_mode=operation_mode,
+            pending_slot=pending_slot,
         ),
-        "focus_label": (
-            focus_observation.patient_label if focus_observation is not None else None
-        ),
-        "focus_type": (
-            focus_observation.type if focus_observation is not None else None
-        ),
-        "last_assistant_question": _last_assistant_question(
-            _recent_turns(messages, latest_user_message=latest_user_message)
-        ),
-        "case_summary": (
-            _summarize_case(existing_case).model_dump() if existing_case is not None else None
-        ),
-        "dialogue_summary": (
-            _summarize_dialogue(dialogue_state).model_dump()
-            if dialogue_state is not None
-            else None
+        "relevant_existing_observations": _relevant_existing_observations_for_call2(
+            existing_case=existing_case,
+            operation_mode=operation_mode,
         ),
     }
 
 
-def build_extraction_normalization_input(
+def build_recommendation_transition_input(
     *,
     latest_user_message: str,
-    extraction_result: ExtractionResult,
-    existing_case: MedicalCase | None = None,
-    dialogue_state: DialogueState | None = None,
-    pending_slot: str | None = None,
-    call2_tasks: list[Call2Task] | None = None,
-    operation_mode: Call2OperationMode | None = None,
+    pending_transition: PendingDialogueTransition,
     messages: list[dict[str, str]] | None = None,
 ) -> dict[str, object]:
-    focus_observation = (
-        existing_case.primary_observation() if existing_case is not None else None
-    )
+    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
     return {
         "latest_user_message": latest_user_message,
-        "operation_mode": operation_mode,
-        "target_scope": _target_scope_for_mode(operation_mode),
-        "allow_new_observations": _allow_new_observations_for_mode(operation_mode),
-        "call2_tasks": list(call2_tasks or []),
-        "pending_slot": pending_slot,
-        "focus_observation_id": (
-            focus_observation.id if focus_observation is not None else None
-        ),
-        "focus_label": (
-            focus_observation.patient_label if focus_observation is not None else None
-        ),
-        "focus_type": (
-            focus_observation.type if focus_observation is not None else None
-        ),
-        "last_assistant_question": _last_assistant_question(
-            _recent_turns(messages, latest_user_message=latest_user_message)
-        ),
-        "case_summary": (
-            _summarize_case(existing_case).model_dump() if existing_case is not None else None
-        ),
-        "dialogue_summary": (
-            _summarize_dialogue(dialogue_state).model_dump()
-            if dialogue_state is not None
-            else None
-        ),
-        "initial_extraction_result": extraction_result.model_dump(),
+        "transition_kind": pending_transition.kind,
+        "prompt_code": pending_transition.prompt_code,
+        "allowed_actions": list(pending_transition.allowed_actions),
+        "last_assistant_question": _last_assistant_question(recent_turns),
+        "recent_turns": [turn.model_dump() for turn in recent_turns],
     }
-
-
-def _target_scope_for_mode(
-    operation_mode: Call2OperationMode | None,
-) -> str:
-    if operation_mode == "followup_slot_update":
-        return "focus_only"
-    if operation_mode == "existing_fact_revision":
-        return "existing_focus_revision"
-    if operation_mode == "mixed_update_and_new_info":
-        return "focus_plus_new"
-    if operation_mode == "no_medical_update_expected":
-        return "none"
-    return "free"
-
-
-def _allow_new_observations_for_mode(
-    operation_mode: Call2OperationMode | None,
-) -> bool:
-    return operation_mode in {
-        None,
-        "focused_new_fact_extraction",
-        "mixed_update_and_new_info",
-    }
-
 
 def _recent_turns(
     messages: list[dict[str, str]] | None,
@@ -209,45 +159,72 @@ def _last_assistant_question(recent_turns: list[ConversationTurn]) -> str | None
     return None
 
 
-def _summarize_case(existing_case: MedicalCase | None) -> CaseSummary | None:
+def _focus_observation_for_call2(
+    *,
+    existing_case: MedicalCase | None,
+    operation_mode: Call2OperationMode | None,
+    pending_slot: str | None,
+) -> dict[str, object] | None:
     if existing_case is None:
         return None
 
-    existing_case.ensure_primary_problem()
-    observations = [
-        CaseSummaryObservation(
-            type=observation.type,
-            display_label=observation.patient_label,
-            concept=observation.concept,
-            body_site=observation.runtime_value("body_site"),
-            temporality=observation.runtime_value("temporality"),
-            severity=observation.runtime_value("severity"),
-            details=observation.details,
-            status=observation.status,
-        )
-        for observation in existing_case.observations
-        if observation.status != "user_rejected"
-    ]
-
-    return CaseSummary(
-        subject_relation=existing_case.subject.relation,
-        subject_age=existing_case.subject.age,
-        primary_focus=existing_case.primary_focus_label(),
-        primary_problem_id=existing_case.primary_problem_id,
-        active_problem_ids=existing_case.active_problem_ids(),
-        observations=observations[:6],
-    )
-
-
-def _summarize_dialogue(dialogue_state: DialogueState | None) -> DialogueSummary | None:
-    if dialogue_state is None:
+    needs_focus = pending_slot is not None or operation_mode in {
+        "followup_slot_update",
+        "existing_fact_revision",
+        "mixed_update_and_new_info",
+    }
+    if not needs_focus:
         return None
 
-    return DialogueSummary(
-        current_topic_status=dialogue_state.current_topic_status,
-        active_modules=list(dialogue_state.active_modules),
-        open_requirements=list(dialogue_state.open_requirements),
-        pending_followup=dialogue_state.pending_followup,
-        recommendation_requested=dialogue_state.recommendation_requested,
-        recommended_modules=list(dialogue_state.recommended_modules),
-    )
+    focus = existing_case.primary_observation()
+    if focus is None:
+        return None
+
+    attributes: dict[str, object] = {}
+    for key in (
+        "body_site",
+        "temporality",
+        "severity",
+        "injury_context",
+        "functional_limitation",
+    ):
+        value = focus.runtime_value(key)
+        if value not in (None, "", []):
+            attributes[key] = value
+
+    return {
+        "type": focus.type,
+        "label": focus.patient_label,
+        "concept": focus.concept,
+        "attributes": attributes,
+    }
+
+
+def _relevant_existing_observations_for_call2(
+    *,
+    existing_case: MedicalCase | None,
+    operation_mode: Call2OperationMode | None,
+) -> list[dict[str, object]] | None:
+    if existing_case is None:
+        return None
+    if operation_mode not in {"existing_fact_revision"}:
+        return None
+
+    observations = []
+    for observation in existing_case.observations[:3]:
+        if observation.status == "user_rejected":
+            continue
+        attributes: dict[str, object] = {}
+        for key in ("body_site", "temporality", "severity"):
+            value = observation.runtime_value(key)
+            if value not in (None, "", []):
+                attributes[key] = value
+        observations.append(
+            {
+                "type": observation.type,
+                "label": observation.patient_label,
+                "concept": observation.concept,
+                "attributes": attributes,
+            }
+        )
+    return observations or None

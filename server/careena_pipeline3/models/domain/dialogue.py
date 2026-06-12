@@ -23,6 +23,14 @@ class PendingFollowup(PipelineModel):
     focus_label: str | None = None
 
 
+class PendingDialogueTransition(PipelineModel):
+    kind: Literal["recommendation_ready_check"]
+    prompt_code: str | None = None
+    allowed_actions: list[str] = Field(
+        default_factory=lambda: ["request_recommendation", "report_more_information"]
+    )
+
+
 class DialogueState(PipelineModel):
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
     active_case_id: str | None = None
@@ -31,6 +39,7 @@ class DialogueState(PipelineModel):
     open_requirements: list[str] = Field(default_factory=list)
     resolved_requirements: list[str] = Field(default_factory=list)
     pending_followup: PendingFollowup | None = None
+    pending_dialogue_transition: PendingDialogueTransition | None = None
     recommendation_requested: bool = False
     recommendation_ready: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)

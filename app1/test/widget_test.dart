@@ -122,10 +122,26 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<ChatResponse> sendMessage(
-      String text,
-      String sessionId,
-      int profileId,
-      ) async {
+    String text,
+    String sessionId,
+    int? profileId,
+  ) async {
     return const ChatResponse(text: 'Testantwort', redFlag: false);
   }
+
+  @override
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    return [];
+  }
+
+  @override
+  Future<List<String>> updateInputDraftSymptoms(
+    String sessionId,
+    List<String> symptoms,
+  ) async {
+    return symptoms;
+  }
+
+  @override
+  Future<void> cancelInputDraft(String sessionId) async {}
 }

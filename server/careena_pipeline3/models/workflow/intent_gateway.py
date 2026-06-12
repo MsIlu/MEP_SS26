@@ -55,6 +55,10 @@ class IntentGateway(PipelineModel):
         return self.category not in {"smalltalk", "not_medical"}
 
     @property
+    def medical_relevance(self) -> str | None:
+        return self._value_from(self.entry_signals, "medical_relevance:")
+
+    @property
     def next_step(self) -> str | None:
         return self._value_from(self.dispatch_signals, "next_step:")
 
@@ -99,6 +103,33 @@ class IntentGateway(PipelineModel):
     @property
     def recommendation_request(self) -> bool:
         return self.has_dialogue_hint("dialogue_hint:recommendation_requested")
+
+    @property
+    def transition_continue_without_medical_content(self) -> bool:
+        return self.has_dialogue_hint(
+            "dialogue_hint:transition_continue_without_medical_content"
+        )
+
+    @property
+    def contains_medical_update(self) -> bool:
+        if self.transition_continue_without_medical_content:
+            return False
+        if self.next_step == "extract":
+            return True
+        if self.additional_medical_information:
+            return True
+        return (
+            self.medical_relevance == "medical"
+            and self.message_role
+            in {
+                "new_information",
+                "answer_to_followup",
+                "confirmation",
+                "correction",
+                "topic_shift",
+            }
+            and not self.has_dialogue_hint("dialogue_hint:social_turn_without_medical_update")
+        )
 
     def has_entry_signal(self, code: str) -> bool:
         return code in self.entry_signals

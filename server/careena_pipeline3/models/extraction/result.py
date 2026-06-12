@@ -92,8 +92,12 @@ class Call2ExtractionResult(PipelineModel):
     ) -> ExtractionResult:
         observations = []
         if self.focus_update is not None:
-            observations.append(self.focus_update)
-        observations.extend(self.new_items)
+            observations.append(
+                _with_contract_role(self.focus_update, role="focus_update")
+            )
+        observations.extend(
+            _with_contract_role(item, role="new_item") for item in self.new_items
+        )
         return ExtractionResult(
             raw_text=raw_text,
             medical=medical,
@@ -112,3 +116,19 @@ class ExtractionResult(PipelineModel):
     medical: bool = True
     case_payload: ExtractedCasePayload = Field(default_factory=ExtractedCasePayload)
     trace_notes: list[str] = Field(default_factory=list)
+
+
+def _with_contract_role(
+    observation: ExtractedObservation,
+    *,
+    role: str,
+) -> ExtractedObservation:
+    marked = observation.model_copy(deep=True)
+    marked.signals.append(
+        ExtractionSignal(
+            code="call2_contract_role",
+            value=role,
+            note="transitional_call2_contract_role",
+        )
+    )
+    return marked

@@ -83,10 +83,12 @@ def chat(req: ChatRequest):
             conversation_messages=session.messages,
             existing_case=session.case,
             existing_dialogue_state=session.dialogue_state,
+            existing_concern_state=session.concern_state,
         )
     )
 
     session.case = turn_result.context.medical_case
+    session.concern_state = turn_result.context.concern_state
     session.dialogue_state = turn_result.context.dialogue_state
     session.messages.append({"role": "user", "content": req.message})
 
@@ -103,9 +105,14 @@ def get_case(session_id: str):
     if session is None:
         return {"error": "invalid_session"}
     if session.case is None:
-        return {"case": None}
+        return {
+            "case": None,
+            "concern_state": session.concern_state.model_dump(),
+            "dialogue_state": session.dialogue_state.model_dump(),
+        }
     return {
         "case": session.case.model_dump(),
+        "concern_state": session.concern_state.model_dump(),
         "dialogue_state": session.dialogue_state.model_dump(),
     }
 

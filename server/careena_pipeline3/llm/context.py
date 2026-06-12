@@ -1,5 +1,9 @@
 from careena_pipeline3.models.common import Call2OperationMode, Call2Task
-from careena_pipeline3.models.domain import DialogueState, MedicalCase
+from careena_pipeline3.models.domain import (
+    DialogueState,
+    MedicalCase,
+    PendingDialogueTransition,
+)
 from careena_pipeline3.models.workflow import (
     ConversationTurn,
     IntentGatewayContext,
@@ -19,10 +23,23 @@ def build_intent_gateway_context(
 ) -> IntentGatewayContext:
     recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
     last_assistant_question = _last_assistant_question(recent_turns)
+    pending_dialogue_transition = (
+        dialogue_state.pending_dialogue_transition if dialogue_state is not None else None
+    )
 
     return IntentGatewayContext(
         latest_user_message=latest_user_message,
         pending_slot=pending_slot,
+        active_dialogue_transition_kind=(
+            pending_dialogue_transition.kind
+            if pending_dialogue_transition is not None
+            else None
+        ),
+        active_dialogue_transition_prompt_code=(
+            pending_dialogue_transition.prompt_code
+            if pending_dialogue_transition is not None
+            else None
+        ),
         last_assistant_question=last_assistant_question,
         recent_turns=recent_turns,
         intent_gateway=None,
@@ -71,6 +88,23 @@ def build_case_extraction_input(
             existing_case=existing_case,
             operation_mode=operation_mode,
         ),
+    }
+
+
+def build_recommendation_transition_input(
+    *,
+    latest_user_message: str,
+    pending_transition: PendingDialogueTransition,
+    messages: list[dict[str, str]] | None = None,
+) -> dict[str, object]:
+    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
+    return {
+        "latest_user_message": latest_user_message,
+        "transition_kind": pending_transition.kind,
+        "prompt_code": pending_transition.prompt_code,
+        "allowed_actions": list(pending_transition.allowed_actions),
+        "last_assistant_question": _last_assistant_question(recent_turns),
+        "recent_turns": [turn.model_dump() for turn in recent_turns],
     }
 
 def _recent_turns(

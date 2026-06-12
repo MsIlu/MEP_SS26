@@ -42,6 +42,8 @@ class DialogueSummary(PipelineModel):
 class IntentGatewayContext(PipelineModel):
     latest_user_message: str
     pending_slot: str | None = None
+    active_dialogue_transition_kind: str | None = None
+    active_dialogue_transition_prompt_code: str | None = None
     last_assistant_question: str | None = None
     recent_turns: list[ConversationTurn] = Field(default_factory=list)
     intent_gateway: IntentGateway | None = None

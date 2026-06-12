@@ -7,6 +7,7 @@ from careena_pipeline3.application.managers.extraction_manager import Extraction
 from careena_pipeline3.application.managers.response_manager import ResponseManager
 from careena_pipeline3.application.managers.safety_manager import SafetyManager
 from careena_pipeline3.application.services import (
+    ConcernStateService,
     DialogueStateService,
     RecommendationStateService,
 )
@@ -48,6 +49,7 @@ class DialogueManager:
         safety_manager: SafetyManager | None = None,
         response_manager: ResponseManager | None = None,
         confirmation_manager: ConfirmationManager | None = None,
+        concern_state_service: ConcernStateService | None = None,
         dialogue_state_service: DialogueStateService | None = None,
         recommendation_state_service: RecommendationStateService | None = None,
     ):
@@ -57,6 +59,7 @@ class DialogueManager:
         self.safety_manager = safety_manager or SafetyManager()
         self.response_manager = response_manager or ResponseManager()
         self.confirmation_manager = confirmation_manager or ConfirmationManager()
+        self.concern_state_service = concern_state_service or ConcernStateService()
         self.dialogue_state_service = dialogue_state_service or DialogueStateService()
         self.recommendation_state_service = (
             recommendation_state_service or RecommendationStateService()
@@ -69,6 +72,9 @@ class DialogueManager:
         context.medical_case = turn_input.existing_case
         if turn_input.existing_dialogue_state is not None:
             context.dialogue_state = turn_input.existing_dialogue_state
+        context.concern_state = self.concern_state_service.ensure_state(
+            turn_input.existing_concern_state
+        )
 
         # Run the first safety look on the raw user message.
         raw_safety = self.safety_manager.assess_raw_message(turn_input)
@@ -104,6 +110,14 @@ class DialogueManager:
             context=context,
             extraction_payload=extraction_payload,
         )
+        (
+            context.concern_state,
+            concern_trace_notes,
+        ) = self.concern_state_service.sync_after_case_update(
+            concern_state=context.concern_state,
+            medical_case=context.medical_case,
+        )
+        context.trace_notes.extend(concern_trace_notes)
 
         # Derive process-state consequences from the updated case truth.
         process_state_update = self.dialogue_state_service.sync_after_case_update(
@@ -111,6 +125,8 @@ class DialogueManager:
             medical_case=context.medical_case,
             active_modules=context.active_modules,
             dialogue_consequences=context.case_update_dialogue_consequences,
+            previous_pending_followup=context.pending_followup,
+            additional_medical_information=entry_decision.additional_medical_information,
             person_reference_present=context.person_reference_present,
             multi_person_context=context.multi_person_context,
             subject_relation_unclear=context.subject_relation_unclear,
@@ -148,6 +164,8 @@ class DialogueManager:
             raw_safety=raw_safety,
             extraction_safety=extraction_safety,
             case_safety=case_safety,
+            latest_user_message=turn_input.message,
+            conversation_messages=turn_input.conversation_messages,
         )
         self._apply_response_contract(
             context=context,
@@ -179,6 +197,8 @@ class DialogueManager:
         context.person_reference_present = entry_decision.person_reference_present
         context.multi_person_context = entry_decision.multi_person_context
         context.subject_relation_unclear = entry_decision.subject_relation_unclear
+        if entry_decision.clear_pending_dialogue_transition:
+            context.dialogue_state.pending_dialogue_transition = None
         context.dialogue_state.recommendation_requested = (
             context.dialogue_state.recommendation_requested
             or entry_decision.recommendation_requested
@@ -194,6 +214,8 @@ class DialogueManager:
         """Apply process-state progression after case truth changed."""
         context.dialogue_state = process_state_update.dialogue_state
         context.pending_followup = process_state_update.pending_followup
+        context.process_state_signals = process_state_update.process_state_signals
+        context.trace_notes.extend(process_state_update.process_state_signals.trace_notes)
 
     def _apply_readiness_state_update(
         self,
@@ -231,9 +253,18 @@ class DialogueManager:
         response_plan: ResponsePlan,
     ) -> None:
         """Apply the explicit response-policy result to the turn context."""
+        if response_plan.response_state.selected_response_mode is None:
+            response_plan.response_state.selected_response_mode = (
+                response_plan.response_mode
+            )
         context.response_mode = response_plan.response_mode
+        context.response_state = response_plan.response_state
+        context.response_strategy = response_plan.response_strategy
         context.response_text = response_plan.response_text
         context.recommendation_result = response_plan.recommendation_result
+        context.dialogue_state.pending_dialogue_transition = (
+            response_plan.pending_dialogue_transition
+        )
         context.trace_notes.extend(response_plan.trace_notes)
 
     def _apply_confirmation_contract(

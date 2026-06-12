@@ -1,12 +1,13 @@
 from uuid import uuid4
 
-from careena_pipeline3.models.domain import DialogueState, MedicalCase
+from careena_pipeline3.models.domain import ConcernState, DialogueState, MedicalCase
 
 
 class CareenaPipeline3Session:
     def __init__(self, session_id: str):
         self.session_id = session_id
         self.case: MedicalCase | None = None
+        self.concern_state: ConcernState = ConcernState()
         self.dialogue_state: DialogueState = DialogueState()
         self.messages: list[dict[str, str]] = []
 

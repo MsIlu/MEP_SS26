@@ -164,8 +164,10 @@ OPERATION_MODE_INSTRUCTIONS: dict[str, str] = {
 """,
     "mixed_update_and_new_info": """Operation mode: mixed_update_and_new_info
 - First resolve whether the message updates the current focus.
+- If the message answers the pending follow-up, represent that answer in `focus_update`.
 - Then capture clearly separate additional medical information in `new_items`.
 - Keep these two roles distinct.
+- Do not hide the follow-up answer only inside `new_items`.
 """,
     "no_medical_update_expected": """Operation mode: no_medical_update_expected
 - If the latest user message contains no concrete medical fact, leave

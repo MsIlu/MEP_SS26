@@ -6,6 +6,7 @@
 from datetime import datetime, date
 from typing import Optional
 
+from sqlalchemy import Column, JSON
 from sqlmodel import SQLModel, Field
 
 class User(SQLModel, table=True):
@@ -72,3 +73,41 @@ class AccountProfileAccess(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MedicationEntry(SQLModel, table=True):
+    """
+   Database model for one medication entry belonging to agit a profile.
+
+   Entries are scoped to profiles so shared accounts only access medications
+   through the existing profile permission model.
+   """
+    __tablename__ = "medication_entries"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    profile_id: int = Field(foreign_key="profiles.id", index=True)
+
+    name: str = Field(max_length=255)
+    dose: str = Field(max_length=100)
+
+    intake_hour: int
+    intake_minute: int
+    second_intake_hour: Optional[int] = Field(default=None)
+    second_intake_minute: Optional[int] = Field(default=None)
+
+    frequency: str = Field(default="daily", max_length=30)
+    reminders_enabled: bool = Field(default=True)
+    taken_date_keys: list[str] = Field(
+        default_factory=list,
+        sa_column=Column(JSON, nullable=False),
+    )
+
+    catalog_item_id: Optional[str] = Field(default=None, max_length=100)
+    catalog_item_name: Optional[str] = Field(default=None, max_length=255)
+    catalog_active_substance: Optional[str] = Field(default=None, max_length=255)
+    catalog_strength: Optional[str] = Field(default=None, max_length=100)
+    catalog_dosage_form: Optional[str] = Field(default=None, max_length=100)
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = Field(default=None)

@@ -56,8 +56,11 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException  {
+      throw const ApiException(
+        ApiErrorType.timeout,
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+      );
+    } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -65,7 +68,10 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
+      throw ApiException(
+        ApiErrorType.network,
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+      );
     }
   }
 
@@ -80,8 +86,11 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException  {
+      throw const ApiException(
+        ApiErrorType.timeout,
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+      );
+    } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -89,7 +98,10 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
+      throw ApiException(
+        ApiErrorType.network,
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+      );
     }
   }
 
@@ -103,9 +115,34 @@ class ApiClient {
           .timeout(const Duration(minutes: 3));
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        String message;
+
+        switch (response.statusCode) {
+          case 400:
+            message =
+                'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+            break;
+          case 401:
+            message =
+                'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+            break;
+          case 403:
+            message = 'Sie haben keine Berechtigung für diese Aktion.';
+            break;
+          case 404:
+            message = 'Die angefragten Daten wurden nicht gefunden.';
+            break;
+          case 409:
+            message = 'Diese E-Mail-Adresse wurde schon registriert.';
+            break;
+          default:
+            message =
+                'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+        }
+
         throw ApiException(
           ApiErrorType.http,
-          response.body.isEmpty ? 'HTTP request failed' : response.body,
+          message,
           statusCode: response.statusCode,
         );
       }
@@ -121,7 +158,10 @@ class ApiClient {
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
       );
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
+      throw const ApiException(
+        ApiErrorType.timeout,
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+      );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
@@ -130,7 +170,10 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
+      throw ApiException(
+        ApiErrorType.network,
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+      );
     }
   }
 
@@ -148,8 +191,11 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException  {
+      throw const ApiException(
+        ApiErrorType.timeout,
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+      );
+    } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -157,7 +203,10 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
+      throw ApiException(
+        ApiErrorType.network,
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+      );
     }
   }
 
@@ -172,8 +221,11 @@ class ApiClient {
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.');
-    } on FormatException  {
+      throw const ApiException(
+        ApiErrorType.timeout,
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+      );
+    } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
         'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
@@ -181,7 +233,10 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(ApiErrorType.network, 'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.');
+      throw ApiException(
+        ApiErrorType.network,
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+      );
     }
   }
 
@@ -196,9 +251,34 @@ class ApiClient {
   /// Validates an HTTP response and decodes it as a JSON object.
   Map<String, dynamic> _handleJsonObjectResponse(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message;
+
+      switch (response.statusCode) {
+        case 400:
+          message =
+              'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+          break;
+        case 401:
+          message =
+              'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+          break;
+        case 403:
+          message = 'Sie haben keine Berechtigung für diese Aktion.';
+          break;
+        case 404:
+          message = 'Die angefragten Daten wurden nicht gefunden.';
+          break;
+        case 409:
+          message = 'Diese E-Mail-Adresse wurde schon registriert.';
+          break;
+        default:
+          message =
+              'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+      }
+
       throw ApiException(
         ApiErrorType.http,
-        _errorMessage(response.body),
+        message,
         statusCode: response.statusCode,
       );
     }
@@ -215,6 +295,8 @@ class ApiClient {
     );
   }
 
+  /*
+  // In case a logger object is introduced, we could log errors from the HTTP body 
   String _errorMessage(String responseBody) {
     if (responseBody.isEmpty) return 'HTTP request failed';
 
@@ -229,4 +311,5 @@ class ApiClient {
 
     return responseBody;
   }
+  */
 }

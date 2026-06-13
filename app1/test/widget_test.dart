@@ -115,7 +115,7 @@ class _FakeChatApi extends ChatApi {
   _FakeChatApi() : super(ApiClient(http.Client()));
 
   @override
-  Future<String> createSession() async => 'test-session';
+  Future<String> createSession([int? profileId]) async => 'test-session';
 
   @override
   Future<void> warmup() async {}

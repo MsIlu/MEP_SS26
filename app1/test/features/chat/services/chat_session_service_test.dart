@@ -21,6 +21,20 @@ void main() {
       expect(chatApi.warmupCalls, 1);
     });
 
+    test('creates a new session when the profile changes', () async {
+      final chatApi = _FakeChatApi();
+      final service = ChatSessionService(chatApi);
+
+      final firstSessionId = await service.ensureSession(profileId: 10);
+      final secondSessionId = await service.ensureSession(profileId: 11);
+
+      expect(firstSessionId, 'session-1');
+      expect(secondSessionId, 'session-2');
+      expect(service.profileId, 11);
+      expect(chatApi.createdProfileIds, [10, 11]);
+      expect(chatApi.createSessionCalls, 2);
+    });
+
     test('clearSession returns and removes the current session id', () async {
       final chatApi = _FakeChatApi();
       final service = ChatSessionService(chatApi);
@@ -29,6 +43,7 @@ void main() {
 
       expect(service.clearSession(), 'session-1');
       expect(service.sessionId, isNull);
+      expect(service.profileId, isNull);
     });
   });
 }
@@ -38,10 +53,12 @@ class _FakeChatApi extends ChatApi {
 
   int createSessionCalls = 0;
   int warmupCalls = 0;
+  final List<int?> createdProfileIds = [];
 
   @override
-  Future<String> createSession() async {
+  Future<String> createSession([int? profileId]) async {
     createSessionCalls += 1;
+    createdProfileIds.add(profileId);
     return 'session-$createSessionCalls';
   }
 

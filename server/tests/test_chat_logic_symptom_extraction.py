@@ -32,6 +32,32 @@ def test_chat_logic_merges_llm_extracted_symptoms_into_draft():
     cancel_symptom_draft(session_id)
 
 
+def test_chat_logic_includes_manually_edited_symptoms_in_llm_context():
+    session_id = "chat-logic-manual-symptom-session"
+    cancel_symptom_draft(session_id)
+
+    from inputs.draft_service import update_symptom_draft
+
+    update_symptom_draft(session_id, ["Bauchschmerzen"])
+
+    sessions = _FakeSessionManager(session_id)
+    llm = _FakeLLMClient()
+    chat_logic = ChatLogic(sessions, llm)
+
+    response = chat_logic.handle_message(
+        session_id,
+        "Ich brauche medizinische Hilfe. Was soll ich jetzt tun?",
+    )
+
+    assert response == {"response": "Danke, ich habe das verstanden."}
+    assert any(
+        message["role"] == "system" and "Bauchschmerzen" in message["content"]
+        for message in llm.messages
+    )
+
+    cancel_symptom_draft(session_id)
+
+
 class _FakeSessionManager:
     def __init__(self, session_id: str):
         self.messages = {
@@ -51,7 +77,11 @@ class _FakeSessionManager:
 
 
 class _FakeLLMClient:
+    def __init__(self):
+        self.messages = []
+
     def complete(self, *, messages: list[dict], **kwargs) -> str:
+        self.messages = messages
         return "Danke, ich habe das verstanden."
 
 

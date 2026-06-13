@@ -59,10 +59,6 @@ class SymptomList extends StatelessWidget {
     return ValueListenableBuilder<List<String>>(
       valueListenable: symptomsListenable,
       builder: (context, symptoms, child) {
-        if (symptoms.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
         return LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth.isFinite
@@ -73,16 +69,20 @@ class SymptomList extends StatelessWidget {
             final symptomLabelWidth = availableWidth < 420
                 ? 96.0
                 : _maxSymptomLabelWidth;
-            final visibleCount = _visibleSymptomCount(
-              context: context,
-              symptoms: symptoms,
-              rowWidth: rowWidth,
-              symptomStyle: symptomStyle,
-              actionStyle: actionStyle,
-              symptomLabelWidth: symptomLabelWidth,
-            );
+            final visibleCount = symptoms.isEmpty
+                ? 0
+                : _visibleSymptomCount(
+                    context: context,
+                    symptoms: symptoms,
+                    rowWidth: rowWidth,
+                    symptomStyle: symptomStyle,
+                    actionStyle: actionStyle,
+                    symptomLabelWidth: symptomLabelWidth,
+                  );
             final visibleSymptoms = symptoms.take(visibleCount).toList();
             final hiddenCount = symptoms.length - visibleSymptoms.length;
+            final actionLabel = symptoms.isEmpty ? 'Symptom hinzufügen' : 'Bearbeiten';
+            final actionIcon = symptoms.isEmpty ? Icons.add : Icons.edit_outlined;
 
             return Align(
               alignment: Alignment.centerLeft,
@@ -97,17 +97,18 @@ class SymptomList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text('Erkannte Symptome:', style: labelStyle),
-                    ),
+                    if (symptoms.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text('Erkannte Symptome:', style: labelStyle),
+                      ),
                     ClipRect(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _SymptomChip(
-                            label: 'Bearbeiten',
-                            icon: Icons.edit_outlined,
+                            label: actionLabel,
+                            icon: actionIcon,
                             labelMaxWidth: _editChipWidth,
                             foregroundColor: actionColor,
                             backgroundColor: editBackground,

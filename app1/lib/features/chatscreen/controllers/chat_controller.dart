@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
 import '../data/chat_api.dart';
@@ -14,6 +16,7 @@ class ChatController {
   final ChatSessionService chatSessionService;
   final SymptomDraftService symptomDraftService;
   final AuthSession authSession;
+  int? _activeProfileId;
 
   ChatController({
     required this.chatApi,
@@ -23,7 +26,10 @@ class ChatController {
     SymptomDraftService? symptomDraftService,
   }) : chatSessionService = chatSessionService ?? ChatSessionService(chatApi),
        symptomDraftService =
-           symptomDraftService ?? SymptomDraftService(chatApi);
+           symptomDraftService ?? SymptomDraftService(chatApi) {
+    _activeProfileId = authSession.activeProfileId;
+    authSession.addListener(_handleAuthSessionChanged);
+  }
 
   final ValueNotifier<List<Message>> messages = ValueNotifier<List<Message>>(
     [],
@@ -54,7 +60,9 @@ class ChatController {
 
   Future<bool> _ensureSession({bool showOfflineMessage = false}) async {
     try {
-      await chatSessionService.ensureSession();
+      await chatSessionService.ensureSession(
+        profileId: authSession.activeProfileId,
+      );
       return true;
     } catch (_) {
       if (showOfflineMessage && !_hasOfflineMessage()) {
@@ -152,6 +160,10 @@ class ChatController {
   }
 
   Future<void> resetChat() async {
+    await _clearCurrentSession();
+  }
+
+  Future<void> _clearCurrentSession() async {
     final sessionId = chatSessionService.clearSession();
 
     messages.value = [];
@@ -159,6 +171,27 @@ class ChatController {
     _initFuture = null;
 
     await symptomDraftService.cancelDraft(sessionId);
+  }
+
+  void _handleAuthSessionChanged() {
+    final nextProfileId = authSession.activeProfileId;
+
+    if (nextProfileId == _activeProfileId) {
+      return;
+    }
+
+    _activeProfileId = nextProfileId;
+    unawaited(_resetAfterProfileChange());
+  }
+
+  Future<void> _resetAfterProfileChange() async {
+    final wasInitialized = _initFuture != null || messages.value.isNotEmpty;
+
+    await _clearCurrentSession();
+
+    if (wasInitialized) {
+      await init();
+    }
   }
 
   void _addMessage({required Message message}) {
@@ -178,6 +211,7 @@ class ChatController {
   }
 
   void dispose() {
+    authSession.removeListener(_handleAuthSessionChanged);
     messages.dispose();
     symptoms.dispose();
   }

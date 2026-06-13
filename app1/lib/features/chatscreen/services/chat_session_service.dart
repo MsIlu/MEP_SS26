@@ -8,17 +8,20 @@ class ChatSessionService {
   final ChatApi chatApi;
 
   String? _sessionId;
+  int? _profileId;
 
   ChatSessionService(this.chatApi);
 
   String? get sessionId => _sessionId;
+  int? get profileId => _profileId;
 
-  Future<String?> ensureSession() async {
-    if (_sessionId != null) {
+  Future<String?> ensureSession({int? profileId}) async {
+    if (_sessionId != null && _profileId == profileId) {
       return _sessionId;
     }
 
-    _sessionId = await chatApi.createSession();
+    _sessionId = await chatApi.createSession(profileId);
+    _profileId = profileId;
     await chatApi.warmup();
     return _sessionId;
   }
@@ -26,6 +29,7 @@ class ChatSessionService {
   String? clearSession() {
     final previousSessionId = _sessionId;
     _sessionId = null;
+    _profileId = null;
     return previousSessionId;
   }
 }

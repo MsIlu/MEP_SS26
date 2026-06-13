@@ -49,8 +49,14 @@ class ChatApi {
     } catch (_) {}
   }
 
-  Future<String> createSession() async {
-    final data = await client.post("/session", {});
+  Future<String> createSession([int? profileId]) async {
+    final body = <String, dynamic>{};
+
+    if (profileId != null) {
+      body["profile_id"] = profileId;
+    }
+
+    final data = await client.post("/session", body);
 
     final sessionId = data['session_id'];
 

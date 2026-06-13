@@ -122,6 +122,7 @@ def _symptom_key(label: str) -> str:
     normalized = normalized.replace("shc", "sch")
     normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
     normalized = re.sub(r"\s+", " ", normalized).strip()
+    normalized = _normalize_location_pain_phrase(normalized)
 
     if normalized.endswith("schmerzen"):
         normalized = normalized[:-2]
@@ -132,6 +133,31 @@ def _symptom_key(label: str) -> str:
         normalized = normalized.removesuffix(" schmerz") + "schmerz"
 
     return normalized
+
+
+def _normalize_location_pain_phrase(label: str) -> str:
+    match = re.fullmatch(
+        r"(?:schmerz|schmerzen|schmerze) "
+        r"(?:(?:im|am|in|an|auf) )"
+        r"(?:(?:der|dem|den|die|das|des) )?"
+        r"(.+)",
+        label,
+    )
+
+    if match is None:
+        return label
+
+    location = match.group(1).strip()
+
+    if not location:
+        return label
+
+    if location == "ohr":
+        location = "ohren"
+    elif location == "auge":
+        location = "augen"
+
+    return f"{location} schmerz"
 
 
 def _is_generic_pain_key(key: str) -> bool:

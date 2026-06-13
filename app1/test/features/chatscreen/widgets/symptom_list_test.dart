@@ -28,15 +28,18 @@ void main() {
     expect(find.text('Uebelkeit'), findsOneWidget);
   });
 
-  testWidgets('hides symptom list when no symptoms exist', (tester) async {
+  testWidgets('shows add action when no symptoms exist', (tester) async {
     final symptoms = ValueNotifier<List<String>>([]);
+    var addPressed = false;
 
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: SymptomList(
             symptomsListenable: symptoms,
-            onAddPressed: () {},
+            onAddPressed: () {
+              addPressed = true;
+            },
             onSymptomPressed: (_) {},
           ),
         ),
@@ -44,7 +47,11 @@ void main() {
     );
 
     expect(find.text('Erkannte Symptome:'), findsNothing);
-    expect(find.text('Bearbeiten'), findsNothing);
+    expect(find.text('Symptom hinzufügen'), findsOneWidget);
+
+    await tester.tap(find.text('Symptom hinzufügen'));
+
+    expect(addPressed, true);
   });
 
   testWidgets('groups hidden symptoms when more than three exist', (

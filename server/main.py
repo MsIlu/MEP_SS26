@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
 from auth.router import router as auth_router
 from profiles.router import router as profiles_router
-from inputs.draft_router import router as draft_router
+from inputs.draft_router import router as draft_router, set_session_manager
 from inputs.symptom_draft_extraction import SymptomDraftExtractionService
 from chat.logic import ChatLogic
 from extraction.core.extraction_engine import ExtractionEngine
@@ -39,6 +39,8 @@ from logging_config import configure_logging
 import config
 
 app = FastAPI()
+session_manager = SessionManager()
+set_session_manager(session_manager)
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
@@ -62,9 +64,6 @@ llm_client = LLMClient(
             model=config.SELECTED_MODEL,
             )
 
-
-session_manager = SessionManager()
-
 engine = ExtractionEngine(llm_client)
 event_extractor = EventExtractor(engine)
 symptom_confirmation_extractor = SymptomConfirmationExtractor(engine)
@@ -83,6 +82,11 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str
     profile_id: int | None = None
+
+
+class SessionRequest(BaseModel):
+    profile_id: int | None = None
+
 
 @app.post("/chatscreen")
 def chat(
@@ -104,6 +108,17 @@ def chat(
             session=session,
         )
 
+    if session_manager.session_exists(req.session_id):
+        session_profile_id = session_manager.get_profile_id(req.session_id)
+
+        if session_profile_id is None and req.profile_id is not None:
+            session_manager.bind_profile(req.session_id, req.profile_id)
+        elif session_profile_id is not None and req.profile_id != session_profile_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Chat session belongs to a different profile.",
+            )
+
     return chat_logic.handle_message(req.session_id, req.message)
 
 @app.post("/warmup")
@@ -118,11 +133,31 @@ def warmup():
         return {"error": str(e)}
 
 @app.post("/session")
-def create_session():
+def create_session(
+    req: SessionRequest | None = None,
+    current_user: User | None = Depends(get_optional_current_account),
+    session: Session = Depends(get_session),
+):
     """
     Create and return a new chat session id.
     """
-    session_id = session_manager.create_session()
+    profile_id = req.profile_id if req is not None else None
+
+    if profile_id is not None:
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication is required for profile chat sessions.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        get_profile_access_role(
+            account_id=current_user.id,
+            profile_id=profile_id,
+            session=session,
+        )
+
+    session_id = session_manager.create_session(profile_id=profile_id)
     print("Created session:", session_id)
     return {"session_id": session_id}
 

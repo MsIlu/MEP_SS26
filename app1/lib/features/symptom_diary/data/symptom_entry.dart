@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../domain/symptom_response.dart';
+
 /// Locally persisted symptom note for one calendar day.
 class SymptomEntry {
   final int id;
@@ -31,6 +33,23 @@ class SymptomEntry {
       'note': note,
       'createdAt': createdAt.toIso8601String(),
     };
+  }
+
+  /// Converts a backend response into a locally stored diary entry.
+  factory SymptomEntry.fromResponse(SymptomResponse response) {
+    return SymptomEntry(
+      id: response.id,
+      date: DateTime(
+        response.date.year,
+        response.date.month,
+        response.date.day,
+      ),
+      symptom: response.symptom,
+      bodyArea: response.bodyArea,
+      intensity: response.intensity,
+      note: response.note,
+      createdAt: response.createdAt,
+    );
   }
 
   /// Restores an entry from local JSON.

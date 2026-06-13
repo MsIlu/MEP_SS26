@@ -2,6 +2,8 @@ import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
@@ -10,8 +12,15 @@ import '../widgets/symptom_entry_form.dart';
 /// Page for daily symptom tracking and reviewing recent symptom intensity.
 class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
+  final AuthSession? authSession;
+  final SymptomApiService? symptomApiService;
 
-  const SymptomDiaryPage({super.key, required this.themeController});
+  const SymptomDiaryPage({
+    super.key,
+    required this.themeController,
+    this.authSession,
+    this.symptomApiService,
+  });
 
   @override
   State<SymptomDiaryPage> createState() => _SymptomDiaryPageState();
@@ -121,13 +130,28 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required int intensity,
     required String note,
   }) async {
+    final entryDate = _selectedDate;
+
     await _controller.addEntry(
-      date: _selectedDate,
+      date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
       note: note,
     );
+
+    final activeProfileId = widget.authSession?.activeProfileId;
+
+    if (activeProfileId != null && widget.symptomApiService != null) {
+      await widget.symptomApiService!.createSymptom(
+        profileId: activeProfileId,
+        date: entryDate,
+        symptom: symptom,
+        bodyArea: bodyArea,
+        intensity: intensity,
+        note: note,
+      );
+    }
 
     if (!mounted) {
       return;

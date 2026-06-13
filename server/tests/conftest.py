@@ -10,6 +10,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from auth.router import router as auth_router
 from auth.security import get_session
 from profiles.router import router as profiles_router
+from symptoms.router import router as symptoms_router
 
 
 @pytest.fixture()
@@ -45,6 +46,7 @@ def client(db_session):
     app = FastAPI()
     app.include_router(auth_router)
     app.include_router(profiles_router)
+    app.include_router(symptoms_router)
 
     def get_test_session():
         yield db_session

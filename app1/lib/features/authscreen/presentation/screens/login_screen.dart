@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../theme/auth_theme.dart';
@@ -10,7 +11,9 @@ import 'registration_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../state/auth_session.dart';
 import '../../data/auth_api_service.dart';
+import '../../../../app/app_dependencies_scope.dart';
 import '../../../../core/widgets/careena_page_header.dart';
+
 
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
@@ -18,6 +21,7 @@ class LoginScreen extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession authSession;
   final AuthApiService authApiService;
+  final SymptomRepository symptomRepository;
 
   const LoginScreen({
     super.key,
@@ -25,7 +29,8 @@ class LoginScreen extends StatefulWidget {
     required this.themeController,
     required this.authSession,
     required this.authApiService,
-  });
+    required this.symptomRepository, 
+});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -130,9 +135,25 @@ class _LoginScreenState extends State<LoginScreen> {
           themeController: widget.themeController,
           authSession: widget.authSession,
           authApiService: widget.authApiService,
+          symptomRepository: widget.symptomRepository,
         ),
       ),
     );
+  }
+
+  Future<void> _syncSymptomDiary() async {
+    final activeProfileId = widget.authSession.activeProfileId;
+    final dependencies = AppDependenciesScope.maybeOf(context);
+
+    if (activeProfileId == null || dependencies == null) {
+      return;
+    }
+
+    try {
+      await dependencies.symptomSyncService.syncActiveProfile(activeProfileId);
+    } catch (_) {
+      // Login should succeed even if symptom sync fails.
+    }
   }
 
   Future<void> _login() async {
@@ -158,6 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       widget.authSession.setAuthResponse(authResponse);
+      widget.symptomRepository.clearEntries(); 
+      await _syncSymptomDiary();
 
       if (!mounted) return;
 
@@ -166,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => HomeScreen(
             controller: widget.chatController,
             themeController: widget.themeController,
+            authSession: widget.authSession,
           ),
         ),
       );

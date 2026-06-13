@@ -54,6 +54,27 @@ class Profile(SQLModel, table=True):
     deleted_at: Optional[datetime] = Field(default=None)
 
 
+class SymptomDiaryEntry(SQLModel, table=True):
+    """
+   Database model for one symptom diary entry.
+
+   Entries belong to a medical profile and mirror the symptom diary data
+   structure used by the frontend.
+   """
+    __tablename__ = "symptom_diary_entries"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    profile_id: int = Field(foreign_key="profiles.id", index=True)
+    date: datetime = Field(index=True)
+    symptom: str = Field(max_length=255)
+    body_area: str = Field(default="", max_length=100)
+    intensity: int
+    note: str = Field(default="")
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class AccountProfileAccess(SQLModel, table=True):
     """
    Database model for access rights between accounts and profiles.

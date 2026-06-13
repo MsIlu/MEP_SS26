@@ -64,6 +64,17 @@ def create_medication(
         request.second_intake_hour,
         request.second_intake_minute,
     )
+    _ensure_medication_is_not_duplicate(
+        profile_id=profile_id,
+        name=request.name,
+        dose=request.dose,
+        intake_hour=request.intake_hour,
+        intake_minute=request.intake_minute,
+        second_intake_hour=request.second_intake_hour,
+        second_intake_minute=request.second_intake_minute,
+        frequency=request.frequency,
+        session=session,
+    )
 
     entry = MedicationEntry(
         profile_id=profile_id,
@@ -146,6 +157,18 @@ def update_medication(
         entry.second_intake_hour,
         entry.second_intake_minute,
     )
+    _ensure_medication_is_not_duplicate(
+        profile_id=profile_id,
+        name=entry.name,
+        dose=entry.dose,
+        intake_hour=entry.intake_hour,
+        intake_minute=entry.intake_minute,
+        second_intake_hour=entry.second_intake_hour,
+        second_intake_minute=entry.second_intake_minute,
+        frequency=entry.frequency,
+        session=session,
+        excluded_medication_id=entry.id,
+    )
 
     entry.updated_at = datetime.utcnow()
 
@@ -222,6 +245,49 @@ def _validate_second_intake_pair(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Second intake time must include both hour and minute.",
         )
+
+
+def _ensure_medication_is_not_duplicate(
+        profile_id: int,
+        name: str,
+        dose: str,
+        intake_hour: int,
+        intake_minute: int,
+        second_intake_hour: int | None,
+        second_intake_minute: int | None,
+        frequency: str,
+        session: Session,
+        excluded_medication_id: int | None = None,
+) -> None:
+    """
+    Prevent duplicate active medication schedules within one profile.
+    """
+    normalized_name = name.strip().casefold()
+    normalized_dose = dose.strip().casefold()
+
+    entries = session.exec(
+        select(MedicationEntry)
+        .where(MedicationEntry.profile_id == profile_id)
+        .where(MedicationEntry.deleted_at.is_(None))
+    ).all()
+
+    for entry in entries:
+        if excluded_medication_id is not None and entry.id == excluded_medication_id:
+            continue
+
+        if (
+            entry.name.strip().casefold() == normalized_name
+            and entry.dose.strip().casefold() == normalized_dose
+            and entry.intake_hour == intake_hour
+            and entry.intake_minute == intake_minute
+            and entry.second_intake_hour == second_intake_hour
+            and entry.second_intake_minute == second_intake_minute
+            and entry.frequency == frequency
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Medication already exists for this profile.",
+            )
 
 
 def _apply_catalog_item(

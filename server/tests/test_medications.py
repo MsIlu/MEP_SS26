@@ -86,6 +86,39 @@ def test_create_medication_persists_profile_scoped_entry(client, db_session):
     assert entry.catalog_item_id == "aspirin-500"
 
 
+def test_create_medication_rejects_duplicate_active_schedule(client):
+    auth = register_user(client)
+    first_response = create_medication(client, auth)
+
+    duplicate_response = create_medication(
+        client,
+        auth,
+        name=" aspirin ",
+        dose="500 MG",
+    )
+
+    assert first_response.status_code == 200
+    assert duplicate_response.status_code == 409
+    assert duplicate_response.json()["detail"] == (
+        "Medication already exists for this profile."
+    )
+
+
+def test_create_medication_allows_duplicate_after_soft_delete(client):
+    auth = register_user(client)
+    create_response = create_medication(client, auth)
+    medication_id = create_response.json()["id"]
+
+    delete_response = client.delete(
+        f"/profiles/{auth['profile_id']}/medications/{medication_id}",
+        headers=auth["headers"],
+    )
+    recreate_response = create_medication(client, auth)
+
+    assert delete_response.status_code == 200
+    assert recreate_response.status_code == 200
+
+
 def test_list_medications_returns_entries_in_intake_order(client):
     auth = register_user(client)
 
@@ -143,6 +176,34 @@ def test_patch_medication_updates_editable_fields(client):
     assert data["second_intake_minute"] == 0
     assert data["reminders_enabled"] is False
     assert data["taken_date_keys"] == ["2026-06-11:0"]
+
+
+def test_patch_medication_rejects_duplicate_active_schedule(client):
+    auth = register_user(client)
+    existing_response = create_medication(client, auth)
+    other_response = create_medication(
+        client,
+        auth,
+        name="Ibuprofen",
+        dose="400 mg",
+        intake_hour=10,
+        intake_minute=0,
+    )
+
+    response = client.patch(
+        f"/profiles/{auth['profile_id']}/medications/{other_response.json()['id']}",
+        headers=auth["headers"],
+        json={
+            "name": existing_response.json()["name"],
+            "dose": existing_response.json()["dose"],
+            "intake_hour": existing_response.json()["intake_hour"],
+            "intake_minute": existing_response.json()["intake_minute"],
+            "frequency": existing_response.json()["frequency"],
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Medication already exists for this profile."
 
 
 def test_delete_medication_soft_deletes_and_hides_entry(client, db_session):

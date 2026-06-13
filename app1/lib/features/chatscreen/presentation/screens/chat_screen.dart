@@ -107,7 +107,9 @@ class _ChatScreenState extends State<ChatScreen> {
       await _warningController.acceptWarning(null);
     } else {
       final acceptedAt = await _warningController.acceptWarning(activeProfileId);
-      authSession.setActiveProfileAiDisclaimerAcceptedAt(acceptedAt);
+      if (acceptedAt != "") {
+        authSession.setActiveProfileAiDisclaimerAcceptedAt(acceptedAt);
+      }
     }
   }
 

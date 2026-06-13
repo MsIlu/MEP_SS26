@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import '../../controllers/chat_warning_controller.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 
 class ChatWarningDialog extends StatelessWidget {
   const ChatWarningDialog({super.key});
@@ -21,6 +23,8 @@ class ChatWarningDialog extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
+            ChatWarningController _warningController = AppDependenciesScope.of(context).chatWarningController;
+            _warningController.warningAccepted = true;
             Navigator.of(context).pop();
           },
           child: const Text('Verstanden'),

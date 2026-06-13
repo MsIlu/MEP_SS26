@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine
 from . import models
+from sqlmodel import Session
+from sqlalchemy import text
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -30,6 +32,14 @@ engine = create_engine(DATABASE_URL, echo=True)
 #creates all tables from db_models.py
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.exec(
+            text(
+                "ALTER TABLE profiles "
+                "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
+            )
+        )
+        session.commit()
 
 #creates database-session
 def get_db_session():

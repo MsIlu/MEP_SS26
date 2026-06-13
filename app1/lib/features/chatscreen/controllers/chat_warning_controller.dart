@@ -8,7 +8,9 @@ class ChatWarningController {
 
   final ProfileApiService _profileApiService;
 
-  const ChatWarningController(this._profileApiService);
+  bool warningAccepted = false;
+
+  ChatWarningController(this._profileApiService);
 
   // Checks local storage to determine if the warning was already accepted
   Future<bool> shouldShowWarning(int? profileId, String? acceptedAt) async {
@@ -37,7 +39,8 @@ class ChatWarningController {
   // Persists that the user has accepted the warning
   Future<String> acceptWarning(int? profileId) async {
     final acceptedAt = DateTime.now().toUtc().toIso8601String();
-
+    if (warningAccepted == false) return "";
+    warningAccepted = false;
     if (profileId != null) {
       await _profileApiService.updateProfile(
         profileId: profileId,

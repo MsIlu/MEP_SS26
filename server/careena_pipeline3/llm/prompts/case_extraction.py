@@ -39,6 +39,14 @@ Global rules:
 - Do not recommend care.
 - Do not invent timelines, body sites, severities, causes, or medication data.
 - Prefer broad observations over over-interpreted medical labels.
+- If the medical case frame is clearly visible, you may set `case_frame_label`
+  to one short medical frame for the current case.
+- `case_frame_label` should describe the current medical case context, not only
+  a single observation label.
+- `case_frame_label` must stay medical and concrete, but it should be broader
+  than a raw symptom headline when the message supports that.
+- Do not use `case_frame_label` for social goals, recommendation wishes, or
+  non-medical wording.
 - If the latest user message contains no concrete medical fact, return empty
   updates rather than guessing.
 - Use `focus_observation` only to interpret whether the latest message updates
@@ -59,6 +67,8 @@ Task gating rules:
 
 Return JSON in exactly this shape:
 {
+  "case_extension_status": "adds_new_information",
+  "case_frame_label": "akute Bauchbeschwerden",
   "subject_update": {
     "relation": "self",
     "age": 34,
@@ -104,7 +114,20 @@ Return JSON in exactly this shape:
 }
 
 Important:
+- `case_extension_status` must be one of:
+  `no_relevant_change`,
+  `updates_existing_information`,
+  `adds_new_information`,
+  `mixed_update_and_new`.
+- Use `no_relevant_change` when the latest message contains no concrete
+  fallrelevante medizinische Erweiterung oder Aktualisierung.
+- Use `updates_existing_information` when the message mainly sharpens,
+  revises, or fills an existing fact or follow-up target.
+- Use `adds_new_information` when the message mainly contributes a new
+  separate medical fact to the case.
+- Use `mixed_update_and_new` when both happen in the same message.
 - `subject_update` is optional.
+- `case_frame_label` is optional.
 - `focus_update` is optional.
 - `new_items` may be empty.
 - `open_questions` may be empty.
@@ -114,6 +137,8 @@ Important:
 - Put details like `body_site`, `temporality`, `severity`, `course`,
   `laterality`, `kind`, `value`, `unit`, `injury_context`,
   `functional_limitation` inside `attributes`.
+- Only emit `case_frame_label` when the current turn contains enough concrete
+  medical signal to support that short medical case frame.
 """
 
 

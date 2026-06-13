@@ -60,7 +60,7 @@ class RequirementPolicy:
             medical_case=medical_case,
             dialogue_state=dialogue_state,
         )
-        required_requirements = self.required_requirements(
+        open_requirements = self.has_blocking_requirements(
             medical_case=medical_case,
             dialogue_state=dialogue_state,
             active_modules=normalized_modules,
@@ -68,11 +68,6 @@ class RequirementPolicy:
             multi_person_context=multi_person_context,
             subject_relation_unclear=subject_relation_unclear,
         )
-        open_requirements = [
-            requirement
-            for requirement in required_requirements
-            if requirement not in resolved_requirements
-        ]
 
         dialogue_state.active_modules = normalized_modules
         dialogue_state.resolved_requirements = resolved_requirements
@@ -110,18 +105,9 @@ class RequirementPolicy:
                 medical_case=medical_case,
                 dialogue_state=dialogue_state,
             )
-
-        focused_observation = self.focused_observation(
-            medical_case=medical_case,
-            dialogue_state=dialogue_state,
-        )
-        focused_type = focused_observation.type if focused_observation is not None else None
         requirements: list[str] = []
 
         for module in normalized_modules:
-            if focused_type in {"symptom", "injury"} and module in {"symptom", "injury"}:
-                if module != focused_type:
-                    continue
             for requirement in MODULE_REQUIREMENTS.get(module, ()):
                 if requirement not in requirements:
                     requirements.append(requirement)
@@ -152,23 +138,26 @@ class RequirementPolicy:
         if medical_case.subject.age is not None:
             resolved.append("subject.age")
 
-        focused = self.focused_observations(
-            medical_case=medical_case,
-            dialogue_state=dialogue_state,
-            types=("symptom", "injury"),
-        )
-        for observation in focused:
+        for observation in medical_case.observations_of_type("symptom", include_negated=True):
             if observation.requirement_value("duration_or_onset"):
-                self._append_unique(resolved, f"{observation.type}.duration_or_onset")
+                self._append_unique(resolved, "symptom.duration_or_onset")
             if observation.requirement_value("body_site"):
-                self._append_unique(resolved, f"{observation.type}.body_site")
+                self._append_unique(resolved, "symptom.body_site")
             if observation.requirement_value("severity") is not None:
-                self._append_unique(resolved, f"{observation.type}.severity")
-            if observation.type == "symptom" and observation.requirement_value("course"):
+                self._append_unique(resolved, "symptom.severity")
+            if observation.requirement_value("course"):
                 self._append_unique(resolved, "symptom.course")
-            if observation.type == "injury" and observation.requirement_value("injury_context"):
+
+        for observation in medical_case.observations_of_type("injury", include_negated=True):
+            if observation.requirement_value("duration_or_onset"):
+                self._append_unique(resolved, "injury.duration_or_onset")
+            if observation.requirement_value("body_site"):
+                self._append_unique(resolved, "injury.body_site")
+            if observation.requirement_value("severity") is not None:
+                self._append_unique(resolved, "injury.severity")
+            if observation.requirement_value("injury_context"):
                 self._append_unique(resolved, "injury.injury_context")
-            if observation.type == "injury" and observation.requirement_value("functional_limitation"):
+            if observation.requirement_value("functional_limitation"):
                 self._append_unique(resolved, "injury.functional_limitation")
 
         for observation in medical_case.observations_of_type("measurement", include_negated=True):
@@ -201,9 +190,10 @@ class RequirementPolicy:
         if not open_requirements:
             return None
         first_requirement = open_requirements[0]
-        focused = self.focused_observation(
+        focused = self.followup_target_observation(
             medical_case=medical_case,
             dialogue_state=dialogue_state,
+            requirement_key=first_requirement,
         )
         return PendingFollowup(
             requirement_key=first_requirement,
@@ -255,14 +245,7 @@ class RequirementPolicy:
         if medical_case.subject.relation != "unknown" or medical_case.subject.age is not None:
             modules.append("subject")
 
-        observations = self.focused_observations(
-            medical_case=medical_case,
-            dialogue_state=dialogue_state,
-        )
-        if not observations:
-            observations = medical_case.active_observations(include_negated=True)
-
-        for observation in observations:
+        for observation in medical_case.active_observations(include_negated=True):
             module = OBSERVATION_TYPE_TO_MODULE.get(observation.type)
             if module is not None and module not in modules:
                 modules.append(module)
@@ -278,9 +261,10 @@ class RequirementPolicy:
         requirement_key: str,
         slot: str,
     ) -> PendingFollowup:
-        focused = self.focused_observation(
+        focused = self.followup_target_observation(
             medical_case=medical_case,
             dialogue_state=dialogue_state,
+            requirement_key=requirement_key,
         )
         return PendingFollowup(
             requirement_key=requirement_key,
@@ -307,6 +291,34 @@ class RequirementPolicy:
                     return observation
         return medical_case.primary_observation()
 
+    def followup_target_observation(
+        self,
+        *,
+        medical_case: MedicalCase | None,
+        dialogue_state: DialogueState,
+        requirement_key: str,
+    ):
+        if medical_case is None:
+            return None
+
+        preferred = self.focused_observation(
+            medical_case=medical_case,
+            dialogue_state=dialogue_state,
+        )
+        if preferred is not None and self._observation_missing_requirement(
+            preferred,
+            requirement_key=requirement_key,
+        ):
+            return preferred
+
+        for observation in medical_case.active_observations(include_negated=True):
+            if self._observation_missing_requirement(
+                observation,
+                requirement_key=requirement_key,
+            ):
+                return observation
+        return preferred
+
     def focused_observations(
         self,
         *,
@@ -327,10 +339,110 @@ class RequirementPolicy:
             return medical_case.active_observations(include_negated=True)
         return medical_case.observations_of_type(*types, include_negated=True)
 
+    def has_blocking_requirements(
+        self,
+        *,
+        medical_case: MedicalCase | None,
+        dialogue_state: DialogueState,
+        active_modules: list[str],
+        person_reference_present: bool = False,
+        multi_person_context: bool = False,
+        subject_relation_unclear: bool = False,
+    ) -> list[str]:
+        required = self.required_requirements(
+            medical_case=medical_case,
+            dialogue_state=dialogue_state,
+            active_modules=active_modules,
+            person_reference_present=person_reference_present,
+            multi_person_context=multi_person_context,
+            subject_relation_unclear=subject_relation_unclear,
+        )
+        if medical_case is None:
+            return required
+
+        blocking: list[str] = []
+        for requirement in required:
+            if self._requirement_missing_somewhere(
+                medical_case=medical_case,
+                dialogue_state=dialogue_state,
+                requirement_key=requirement,
+            ):
+                blocking.append(requirement)
+        return blocking
+
     @staticmethod
     def _append_unique(values: list[str], value: str) -> None:
         if value not in values:
             values.append(value)
+
+    def _requirement_missing_somewhere(
+        self,
+        *,
+        medical_case: MedicalCase,
+        dialogue_state: DialogueState,
+        requirement_key: str,
+    ) -> bool:
+        if requirement_key == "subject.subject_relation":
+            return medical_case.subject.relation == "unknown"
+        if requirement_key == "subject.age":
+            return medical_case.subject.age is None
+
+        observations = self._requirement_target_observations(
+            medical_case=medical_case,
+            dialogue_state=dialogue_state,
+            requirement_key=requirement_key,
+        )
+        if not observations:
+            return False
+        return any(
+            self._observation_missing_requirement(
+                observation,
+                requirement_key=requirement_key,
+            )
+            for observation in observations
+        )
+
+    def _requirement_target_observations(
+        self,
+        *,
+        medical_case: MedicalCase,
+        dialogue_state: DialogueState,
+        requirement_key: str,
+    ) -> list:
+        if requirement_key.startswith("symptom."):
+            return medical_case.observations_of_type("symptom", include_negated=True)
+        if requirement_key.startswith("injury."):
+            return medical_case.observations_of_type("injury", include_negated=True)
+        if requirement_key.startswith("measurement."):
+            return medical_case.observations_of_type("measurement", include_negated=True)
+        if requirement_key.startswith("medication."):
+            return medical_case.observations_of_type("medication", include_negated=True)
+        if requirement_key.startswith("risk_factor."):
+            return medical_case.observations_of_type("risk_factor", include_negated=True)
+        if requirement_key.startswith("concern."):
+            return medical_case.observations_of_type("concern", include_negated=True)
+        focused = self.focused_observation(
+            medical_case=medical_case,
+            dialogue_state=dialogue_state,
+        )
+        return [focused] if focused is not None else []
+
+    @staticmethod
+    def _observation_missing_requirement(
+        observation,
+        *,
+        requirement_key: str,
+    ) -> bool:
+        if "." not in requirement_key:
+            return False
+        observation_type, requirement_name = requirement_key.split(".", 1)
+        if observation.type != observation_type:
+            return False
+
+        requirement_value = observation.requirement_value(requirement_name)
+        if requirement_name == "severity":
+            return requirement_value is None
+        return requirement_value is None or requirement_value == "" or requirement_value == []
 
     @staticmethod
     def needs_subject_resolution(

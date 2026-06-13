@@ -16,7 +16,7 @@ from careena_pipeline3.core.exceptions import (
 )
 from careena_pipeline3.server_log.logging import log_json
 from careena_pipeline3.models.domain import DialogueState, MedicalCase
-from careena_pipeline3.models.extraction import ExtractionResult
+from careena_pipeline3.models.extraction import Call2ExtractionResult
 
 
 class ResilientExtractionService:
@@ -53,7 +53,7 @@ class ResilientExtractionService:
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult:
+    ) -> Call2ExtractionResult:
         try:
             result = self.inner.extract(
                 text,
@@ -80,12 +80,12 @@ class ResilientExtractionService:
                 },
             )
             return self.fallback_builder.build(
-                raw_text=text,
                 pending_slot=pending_slot,
             )
 
         result = self._post_process_result(
             result,
+            text=text,
             dialogue_state=dialogue_state,
             existing_case=existing_case,
             pending_slot=pending_slot,
@@ -99,8 +99,9 @@ class ResilientExtractionService:
 
     def _post_process_result(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
+        text: str,
         dialogue_state: DialogueState | None = None,
         existing_case: MedicalCase | None = None,
         pending_slot: str | None = None,
@@ -108,13 +109,13 @@ class ResilientExtractionService:
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult:
+    ) -> Call2ExtractionResult:
         if self.result_normalizer is None:
             return result
         try:
             return self.result_normalizer.normalize(
                 result,
-                text=result.raw_text,
+                text=text,
                 existing_case=existing_case,
                 dialogue_state=dialogue_state,
                 pending_slot=pending_slot,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from careena_pipeline3.models.turn import EntryDecision, TurnContext
+from careena_pipeline3.models.turn import EntryDecision, ResponseStrategy, TurnContext
 from careena_pipeline3.models.workflow import RecommendationResult
 
 
@@ -21,6 +21,7 @@ class ResponseTextBuilder:
         self,
         *,
         response_mode: str,
+        response_strategy: ResponseStrategy,
         context: TurnContext,
         entry_decision: EntryDecision,
         recommendation_result: RecommendationResult | None = None,
@@ -37,6 +38,13 @@ class ResponseTextBuilder:
             return (
                 "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. "
                 "Bitte beschreiben Sie eine gesundheitliche Beschwerde oder Frage."
+            )
+
+        if response_mode == "ask_safety_question":
+            return (
+                "Ich moechte eine sicherheitsrelevante Angabe noch kurz gezielt "
+                "klaeren. Diese Safety-Rueckfrage ist in `careena_pipeline3` "
+                "aber aktuell nur als Andockstelle vorbereitet."
             )
 
         if response_mode == "ask_followup":
@@ -61,29 +69,15 @@ class ResponseTextBuilder:
                     "Koennen Sie kurz praezisieren, worauf sich Ihre letzte Angabe bezieht?"
                 )
             slot = followup.slot
-            followup_text = FOLLOWUP_TEXT_BY_SLOT.get(
-                slot,
-                f"Ich brauche noch eine kurze Rueckfrage zu: {slot}",
-            )
+            followup_text = _followup_text(followup=followup)
             if context.dialogue_state.recommendation_requested:
                 return f"Bevor ich eine Empfehlung geben kann: {followup_text}"
             return followup_text
 
-        if response_mode == "cannot_assess":
-            if entry_decision.response_mode_hint == "out_of_scope":
-                return (
-                    "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. "
-                    "Bitte beschreiben Sie eine gesundheitliche Beschwerde oder Frage."
-                )
-            if context.dialogue_state.recommendation_requested:
-                return (
-                    "Ich kann noch keine Empfehlung geben, weil mir dafuer noch "
-                    "keine ausreichende medizinische Beschwerde vorliegt. "
-                    "Welche gesundheitliche Beschwerde steht gerade im Vordergrund?"
-                )
+        if response_mode == "guide_next_step":
             return (
-                "Ich habe noch nicht genug konkrete medizinische Informationen. "
-                "Welche gesundheitliche Beschwerde steht gerade im Vordergrund?"
+                "Moechten Sie jetzt eine Versorgungsempfehlung erhalten oder "
+                "haben Sie noch weitere Beschwerden?"
             )
 
         if response_mode == "recommend":
@@ -100,12 +94,6 @@ class ResponseTextBuilder:
                 "nicht ausgebaut."
             )
 
-        if response_mode == "guide_next_step":
-            return (
-                "Moechten Sie jetzt eine Versorgungsempfehlung erhalten oder "
-                "haben Sie noch weitere Beschwerden?"
-            )
-
         if response_mode == "confirm_information":
             return (
                 "Eine Bestaetigungsstrecke ist vorgesehen, aber in "
@@ -113,21 +101,43 @@ class ResponseTextBuilder:
             )
 
         if response_mode == "continue":
-            if (
-                entry_decision.dialogue_transition_action == "report_more_information"
-                and not entry_decision.extraction_required
-            ):
-                return (
-                    "Okay, dann beschreiben Sie bitte kurz die weiteren "
-                    "Beschwerden."
-                )
-            focus_label = (
-                context.medical_case.primary_focus_label()
-                if context.medical_case is not None
-                else None
-            )
+            if response_strategy.kind == "static_return_to_medical":
+                return "Okay, dann beschreiben Sie bitte kurz die weiteren Beschwerden."
+            if response_strategy.kind == "static_medical_acknowledgement":
+                if context.latest_turn_role == "medical_clarification":
+                    return "Danke, das hilft mir weiter."
+                case_frame_label = _case_frame_label(context=context)
+                if case_frame_label:
+                    return (
+                        f"Verstanden, ich habe die Angaben zu "
+                        f"{case_frame_label} aufgenommen."
+                    )
+                return "Verstanden, ich habe die Angaben aufgenommen."
+            focus_label = _case_frame_label(context=context)
             if focus_label:
                 return f"Ich habe die Angaben zu {focus_label} aufgenommen."
             return "Verstanden. Ich habe die Angaben aufgenommen."
 
         return "Die Verarbeitung wurde abgeschlossen."
+
+
+def _case_frame_label(*, context: TurnContext) -> str | None:
+    if context.medical_case is None:
+        return None
+    return context.medical_case.current_case_frame_label()
+
+
+def _followup_text(*, followup) -> str:
+    focus_label = followup.focus_label
+    if followup.slot == "duration_or_onset" and focus_label:
+        return f"Seit wann haben Sie {focus_label}?"
+    if followup.slot == "injury_context" and focus_label:
+        return f"Wie ist {focus_label} entstanden?"
+    if followup.slot == "functional_limitation" and focus_label:
+        return f"Was ist durch {focus_label} eingeschraenkt?"
+    if followup.slot == "severity" and focus_label:
+        return f"Wie stark ist {focus_label} aktuell?"
+    return FOLLOWUP_TEXT_BY_SLOT.get(
+        followup.slot,
+        f"Ich brauche noch eine kurze Rueckfrage zu: {followup.slot}",
+    )

@@ -44,14 +44,16 @@ class ResponseState(PipelineModel):
     - medical case truth
 
     Transitional:
-    - yes; `response_mode` remains the externally visible path while V4 makes
-      the late-turn state underneath more explicit.
+    - yes; `response_mode` remains the externally visible path while older
+      recommendation/transition semantics still survive underneath as legacy
+      observability and future recommendation hooks.
     """
 
     selected_response_mode: ResponseMode | None = None
     safety_override: ResponseMode | None = None
     entry_response_hint: ResponseMode | None = None
     medical_state: ResponseMedicalState = "sufficient_information"
+    # Legacy observability / future recommendation hook.
     transition_state: ResponseTransitionState = "inactive"
+    # Legacy observability / future recommendation hook.
     recommendation_state: ResponseRecommendationState = "not_requested"
-

@@ -44,18 +44,14 @@ class AssessmentReadinessEvaluator:
         )
         open_requirements = list(state.open_requirements)
         if not open_requirements:
-            open_requirements = [
-                requirement
-                for requirement in self.requirement_policy.required_requirements(
-                    medical_case=medical_case,
-                    dialogue_state=state,
-                    active_modules=state.active_modules,
-                    person_reference_present=person_reference_present,
-                    multi_person_context=multi_person_context,
-                    subject_relation_unclear=subject_relation_unclear,
-                )
-                if requirement not in resolved_requirements
-            ]
+            open_requirements = self.requirement_policy.has_blocking_requirements(
+                medical_case=medical_case,
+                dialogue_state=state,
+                active_modules=state.active_modules,
+                person_reference_present=person_reference_present,
+                multi_person_context=multi_person_context,
+                subject_relation_unclear=subject_relation_unclear,
+            )
 
         disambiguation_needed = self.requirement_policy.needs_subject_resolution(
             medical_case,

@@ -1,6 +1,12 @@
 from careena_pipeline3.models.domain.case import MedicalCase
 from careena_pipeline3.models.domain.case_issue import CaseIssue
-from careena_pipeline3.models.domain.concern import ConcernState
+from careena_pipeline3.models.domain.concern import (
+    ConcernAllowedNextStep,
+    ConcernPhase,
+    ConcernRelation,
+    ConcernState,
+    ConcernTurnRole,
+)
 from careena_pipeline3.models.domain.dialogue import (
     DialogueState,
     PendingDialogueTransition,
@@ -21,7 +27,11 @@ from careena_pipeline3.models.domain.subject import Subject
 __all__ = [
     "CaseObservation",
     "CaseIssue",
+    "ConcernAllowedNextStep",
+    "ConcernPhase",
+    "ConcernRelation",
     "ConcernState",
+    "ConcernTurnRole",
     "DiagnosisObservationData",
     "DialogueState",
     "InjuryObservationData",

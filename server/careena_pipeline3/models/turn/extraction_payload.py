@@ -7,12 +7,11 @@ from careena_pipeline3.models.turn.case_update_bridge import CaseUpdateBridge
 
 class ExtractionPayload(PipelineModel):
     """
-    Transitional extraction output consumed by turn orchestration.
+    Extraction output consumed by turn orchestration.
 
-    The long-term target is not this full payload shape. For the current
-    boundary-first stage it carries only the neighboring extraction outputs
-    that orchestration and case truth still read directly, while the heavier
-    `case_update_bridge` remains available for the case-truth edge.
+    The active runtime path is centered on the explicit truth-edge bridge.
+    `extraction_result` remains available only as a diagnostic compatibility
+    artifact for logging and tests.
     """
 
     extracted_fields: dict[str, object] = Field(default_factory=dict)

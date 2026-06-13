@@ -9,14 +9,14 @@ class RecommendationResultBuilder:
 
     def build(self, *, context: TurnContext) -> RecommendationResult:
         focus_label = (
-            context.medical_case.primary_focus_label()
+            context.medical_case.current_case_frame_label()
             if context.medical_case is not None
             else None
         )
         summary = (
-            f"Es liegen ausreichend Angaben zum aktuellen Fokus {focus_label} vor."
+            f"Es liegen ausreichend Angaben zum aktuellen Fallrahmen {focus_label} vor."
             if focus_label
-            else "Es liegen ausreichend Angaben zum aktuellen medizinischen Fokus vor."
+            else "Es liegen ausreichend Angaben zum aktuellen medizinischen Fall vor."
         )
 
         reasons = ["Die Empfehlung wurde angefordert."]

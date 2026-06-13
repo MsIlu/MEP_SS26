@@ -13,12 +13,12 @@ class SafetyManager:
 
     def assess_extraction(self, extraction_payload: ExtractionPayload) -> SafetyState:
         checked_sources = []
-        if extraction_payload.extraction_result is not None:
-            checked_sources.append("extraction_result")
         if extraction_payload.case_update_bridge is not None:
-            checked_sources.append("normalized_extraction")
+            checked_sources.append("case_update_bridge")
         elif extraction_payload.extracted_fields:
             checked_sources.append("normalized_extraction")
+        elif extraction_payload.extraction_result is not None:
+            checked_sources.append("diagnostic_extraction_result")
 
         return SafetyState(
             checked_sources=checked_sources,

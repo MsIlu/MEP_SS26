@@ -13,11 +13,10 @@ from careena_pipeline3.models.turn import (
 
 class ExtractionManager:
     """
-    Produces transitional extraction outputs for the turn orchestrator.
+    Produces the active extraction outputs for the turn orchestrator.
 
-    The manager may still carry a transitional truth-update bridge, but it
-    should expose neighboring orchestration signals directly instead of
-    hiding them inside that bridge contract.
+    The manager keeps orchestration-facing signals small and builds the
+    truth-edge bridge directly from the normalized Call-2 contract.
     """
 
     def __init__(
@@ -39,7 +38,7 @@ class ExtractionManager:
         if not entry_decision.extraction_required:
             return ExtractionPayload(trace_notes=["extraction_skipped"])
 
-        extraction_result = self.extraction_service.extract(
+        call2_result = self.extraction_service.extract(
             turn_input.message,
             existing_case=context.medical_case,
             dialogue_state=context.dialogue_state,
@@ -57,18 +56,20 @@ class ExtractionManager:
             conversation_messages=turn_input.conversation_messages,
         )
         case_update_bridge = self.extraction_result_mapper.to_case_update_bridge(
-            extraction_result,
+            call2_result,
             message_role=entry_decision.message_role,
             possible_new_topic=(entry_decision.message_role == "topic_shift"),
         )
         active_modules = list(entry_decision.active_modules)
-        for module in self.extraction_result_mapper.active_modules(extraction_result):
+        for module in self.extraction_result_mapper.active_modules(call2_result):
             if module not in active_modules:
                 active_modules.append(module)
 
         return ExtractionPayload(
             active_modules=active_modules,
-            trace_notes=["extraction_manager_completed", *extraction_result.trace_notes],
-            extraction_result=extraction_result,
+            trace_notes=["extraction_manager_completed", *call2_result.trace_notes],
+            extraction_result=call2_result.to_extraction_result(
+                raw_text=turn_input.message
+            ),
             case_update_bridge=case_update_bridge,
         )

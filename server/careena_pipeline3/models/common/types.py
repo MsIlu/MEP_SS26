@@ -4,6 +4,7 @@ from typing import Literal
 ResponseMode = Literal[
     "emergency",
     "confirm_information",
+    "ask_safety_question",
     "ask_followup",
     "guide_next_step",
     "recommend",

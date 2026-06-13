@@ -91,6 +91,15 @@ class DialogueManager:
         # Read small entry signals before deciding whether extraction runs.
         entry_decision = self.entry_manager.evaluate(turn_input, context=context)
         self._apply_entry_contract(context=context, entry_decision=entry_decision)
+        (
+            context.concern_state,
+            concern_entry_trace_notes,
+        ) = self.concern_state_service.sync_after_entry(
+            concern_state=context.concern_state,
+            entry_decision=entry_decision,
+            dialogue_state=context.dialogue_state,
+        )
+        context.trace_notes.extend(concern_entry_trace_notes)
 
         # Run extraction and expose only the small orchestration-facing outputs.
         extraction_payload = self.extraction_manager.extract(
@@ -116,6 +125,7 @@ class DialogueManager:
         ) = self.concern_state_service.sync_after_case_update(
             concern_state=context.concern_state,
             medical_case=context.medical_case,
+            dialogue_state=context.dialogue_state,
         )
         context.trace_notes.extend(concern_trace_notes)
 
@@ -140,6 +150,8 @@ class DialogueManager:
         readiness_state_update = self.recommendation_state_service.sync_dialogue_state(
             dialogue_state=context.dialogue_state,
             medical_case=context.medical_case,
+            concern_state=context.concern_state,
+            entry_decision=entry_decision,
             person_reference_present=context.person_reference_present,
             multi_person_context=context.multi_person_context,
             subject_relation_unclear=context.subject_relation_unclear,
@@ -148,6 +160,15 @@ class DialogueManager:
             context=context,
             readiness_state_update=readiness_state_update,
         )
+        (
+            context.concern_state,
+            concern_gate_trace_notes,
+        ) = self.concern_state_service.sync_after_gate(
+            concern_state=context.concern_state,
+            readiness=context.assessment_readiness,
+            gate_decision=context.gate_decision,
+        )
+        context.trace_notes.extend(concern_gate_trace_notes)
 
         # Run the final safety look on the canonical case state.
         case_safety = self.safety_manager.assess_case(context.medical_case)
@@ -197,12 +218,14 @@ class DialogueManager:
         context.person_reference_present = entry_decision.person_reference_present
         context.multi_person_context = entry_decision.multi_person_context
         context.subject_relation_unclear = entry_decision.subject_relation_unclear
-        if entry_decision.clear_pending_dialogue_transition:
-            context.dialogue_state.pending_dialogue_transition = None
+        context.concern_relation = entry_decision.concern_relation
+        context.latest_turn_role = entry_decision.latest_turn_role
         context.dialogue_state.recommendation_requested = (
             context.dialogue_state.recommendation_requested
             or entry_decision.recommendation_requested
         )
+        if entry_decision.clear_pending_dialogue_transition:
+            context.dialogue_state.pending_dialogue_transition = None
         context.trace_notes.extend(entry_decision.trace_notes)
 
     def _apply_process_state_update(
@@ -227,6 +250,12 @@ class DialogueManager:
         context.dialogue_state = readiness_state_update.dialogue_state
         context.assessment_readiness = readiness_state_update.assessment_readiness
         context.pending_followup = readiness_state_update.pending_followup
+        context.gate_decision = readiness_state_update.gate_decision
+        context.allowed_next_step = (
+            readiness_state_update.gate_decision.allowed_next_step
+            if readiness_state_update.gate_decision is not None
+            else None
+        )
 
     def _apply_safety_state(
         self,
@@ -262,9 +291,6 @@ class DialogueManager:
         context.response_strategy = response_plan.response_strategy
         context.response_text = response_plan.response_text
         context.recommendation_result = response_plan.recommendation_result
-        context.dialogue_state.pending_dialogue_transition = (
-            response_plan.pending_dialogue_transition
-        )
         context.trace_notes.extend(response_plan.trace_notes)
 
     def _apply_confirmation_contract(

@@ -1,5 +1,6 @@
 from careena_pipeline3.models.domain import CaseObservation, Provenance, Subject
 from careena_pipeline3.models.extraction import (
+    Call2ExtractionResult,
     ExtractedObservation,
     ExtractedSubject,
     ExtractionResult,
@@ -13,14 +14,42 @@ from careena_pipeline3.models.turn import (
 
 class ExtractionResultMapper:
     """
-    Transitional mapper from the cleaner extraction contract into a small
-    truth-edge bridge.
+    Builds the truth-edge bridge from the active Call-2 contract.
 
-    This keeps the new extraction target shape independent while the current
-    merge pipeline still consumes a bridge contract at the truth-update edge.
+    `ExtractionResult` support remains only as a compatibility helper for
+    observability-oriented tests and transitional tooling.
     """
 
     def to_case_update_bridge(
+        self,
+        result: Call2ExtractionResult,
+        *,
+        message_role: str = "new_information",
+        possible_new_topic: bool = False,
+    ) -> CaseUpdateBridge:
+        return CaseUpdateBridge(
+            claims=CaseUpdateClaims(
+                subject=self._map_subject(result.subject_update),
+                case_frame_label=_normalized_case_frame_label(result.case_frame_label),
+                observations_added=[
+                    self._map_observation(item)
+                    for item in result.all_observations()
+                    if not item.negated
+                ],
+                negated_observations_added=[
+                    self._map_observation(item)
+                    for item in result.all_observations()
+                    if item.negated
+                ],
+            ),
+            merge_hints=CaseUpdateMergeHints(
+                message_role=message_role,
+                possible_new_topic=possible_new_topic,
+                case_extension_status=result.case_extension_status,
+            ),
+        )
+
+    def extraction_result_to_case_update_bridge(
         self,
         result: ExtractionResult,
         *,
@@ -30,6 +59,9 @@ class ExtractionResultMapper:
         return CaseUpdateBridge(
             claims=CaseUpdateClaims(
                 subject=self._map_subject(result.case_payload.subject),
+                case_frame_label=_normalized_case_frame_label(
+                    result.case_payload.case_frame_label
+                ),
                 observations_added=[
                     self._map_observation(item)
                     for item in result.case_payload.observations
@@ -44,12 +76,13 @@ class ExtractionResultMapper:
             merge_hints=CaseUpdateMergeHints(
                 message_role=message_role,
                 possible_new_topic=possible_new_topic,
+                case_extension_status=result.case_extension_status,
             ),
         )
 
     @staticmethod
-    def active_modules(result: ExtractionResult) -> list[str]:
-        if result.case_payload.unresolved_questions:
+    def active_modules(result: Call2ExtractionResult) -> list[str]:
+        if result.open_questions:
             return ["requirement_resolution"]
         return []
 
@@ -335,3 +368,10 @@ def _observation_type_value(value: object) -> str:
     }:
         return str(value)
     return "observation"
+
+
+def _normalized_case_frame_label(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip()
+    return normalized or None

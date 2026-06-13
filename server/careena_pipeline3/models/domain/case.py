@@ -23,6 +23,7 @@ class MedicalCase(PipelineModel):
     observations: list[CaseObservation] = Field(default_factory=list)
     issues: list[CaseIssue] = Field(default_factory=list)
     primary_problem_id: str | None = None
+    case_frame_label: str | None = None
 
     def active_observations(
         self,
@@ -88,6 +89,11 @@ class MedicalCase(PipelineModel):
     def primary_focus_label(self) -> str | None:
         observation = self.primary_observation()
         return observation.patient_label if observation is not None else None
+
+    def current_case_frame_label(self) -> str | None:
+        if self.case_frame_label:
+            return self.case_frame_label
+        return self.primary_focus_label()
 
     def set_primary_observation(self, observation: CaseObservation | None) -> None:
         self.primary_problem_id = observation.id if observation is not None else None

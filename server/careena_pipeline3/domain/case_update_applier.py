@@ -59,6 +59,20 @@ class CaseUpdateApplier:
         if case.subject.relation == "unknown" or subject.confidence >= case.subject.confidence:
             case.subject = subject
 
+    @staticmethod
+    def apply_case_frame_label(
+        *,
+        case: MedicalCase,
+        case_frame_label: str | None,
+    ) -> bool:
+        if case.case_frame_label is not None or case_frame_label is None:
+            return False
+        normalized = case_frame_label.strip()
+        if not normalized or not case.problem_observations():
+            return False
+        case.case_frame_label = normalized
+        return True
+
     def apply_observation_decision(
         self,
         *,
@@ -226,7 +240,7 @@ class CaseUpdateApplier:
             target.confidence is None or source.confidence > target.confidence
         ):
             target.confidence = source.confidence
-        if message_role == "confirmation" or action == "confirm_observation":
+        if message_role == "confirmation":
             target.status = "user_confirmed"
         elif message_role == "correction" or action == "correct_observation":
             target.status = "user_corrected"

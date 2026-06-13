@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from careena_pipeline3.models.extraction import ExtractionResult
+from careena_pipeline3.models.extraction import Call2ExtractionResult
 
 
 class ExtractionFailureFallbackBuilder:
@@ -9,14 +9,10 @@ class ExtractionFailureFallbackBuilder:
     def build(
         self,
         *,
-        raw_text: str,
         pending_slot: str | None = None,
-    ) -> ExtractionResult:
-        return ExtractionResult(
-            raw_text=raw_text,
-            case_payload={
-                "unresolved_questions": [pending_slot] if pending_slot else [],
-                "extraction_notes": ["case_extraction_failed"],
-            },
+    ) -> Call2ExtractionResult:
+        return Call2ExtractionResult(
+            open_questions=[pending_slot] if pending_slot else [],
+            extraction_notes=["case_extraction_failed"],
             trace_notes=["case_extraction_failed"],
         )

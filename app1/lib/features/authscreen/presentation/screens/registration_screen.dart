@@ -13,6 +13,7 @@ import 'login_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../state/auth_session.dart';
 import '../../data/auth_api_service.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 
 /// Multi-step registration flow based on the prototype screens.
 class RegistrationScreen extends StatefulWidget {
@@ -48,17 +49,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthPageScaffold(
+      fixedHeader: CareenaPageHeader(
+        title: 'Konto erstellen',
+        onBack: _goBack,
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(
-            onBack: _goBack,
-            showBrand: false,
-            onToggleTheme: widget.themeController.toggleTheme,
-            isDarkMode: widget.themeController.isDarkMode,
-          ),
-          const SizedBox(height: 22),
-          AuthIntro(title: 'Konto erstellen', subtitle: _subtitle),
+          Text(_subtitle),
           const SizedBox(height: 22),
           RegistrationStepIndicator(
             currentStep: _step,
@@ -231,8 +233,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       final displayName =
-      '${_form.firstNameController.text.trim()} ${_form.lastNameController.text.trim()}'
-          .trim();
+          '${_form.firstNameController.text.trim()} ${_form.lastNameController.text.trim()}'
+              .trim();
 
       final authResponse = await widget.authApiService.register(
         email: _form.emailController.text.trim(),
@@ -259,7 +261,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       setState(() {
         _errorMessage =
-        'Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+            'Registrierung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
       });
     } finally {
       if (mounted) {

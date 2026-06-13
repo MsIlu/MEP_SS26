@@ -72,6 +72,11 @@ app1/lib/
     |       |-- screens/
     |       |-- utils/
     |       `-- widgets/
+    |-- settings/
+    |   `-- presentation/
+    |       |-- settings_icons.dart
+    |       |-- screens/
+    |       `-- widgets/
     |-- onboardingscreen/
     |   `-- presentation/
     `-- warningscreen/
@@ -127,6 +132,19 @@ Controller keine rohen Exception-Texte auswerten müssen.
 
 `core/widgets/responsive_frame.dart` enthält gemeinsame Layout-Wrapper für
 Maximalbreiten, Padding und Scroll-Verhalten.
+
+## Settings-Feature
+
+`features/settings` trennt die durchsuchbare Einstellungsübersicht von den
+komplexeren Detailseiten. `SettingsPage` koordiniert nur Suche und Navigation.
+Wiederverwendbare Listen, Suchfeld, Panels und die feste Abmelde-Aktion liegen
+in `presentation/widgets/settings_components.dart`.
+Zusammengehörige Icons für Übersicht und Detailseiten liegen zentral in
+`presentation/settings_icons.dart`.
+
+`SettingsDetailScaffold` stellt Header, responsive Breite und Scrollverhalten
+für Detailseiten bereit. Sein einleitender Abschnitt kann ausgeblendet werden,
+wenn ein eingebetteter Bereich bereits eine eigene Überschrift besitzt.
 
 ## Chat-Feature
 

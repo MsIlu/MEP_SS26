@@ -22,6 +22,10 @@ class AppColors {
   static const Color darkTextPrimary = Color(0xFFF2F5FA);
   static const Color darkTextSecondary = Color(0xFFB0BEC5);
 
+  // Shared page headers
+  static const Color headerBackgroundLight = Color(0xFFF4FAFA);
+  static const Color headerBackgroundDark = Color(0xFF15212B);
+
   // Legacy aliases while migrating widgets to Theme.of(context).
   static const Color background = lightBackground;
   static const Color card = lightCard;
@@ -62,6 +66,7 @@ class AppColors {
   static const Color smartReplyMutedTextDark = Color(0xFF9DBDBA);
 
   // Onboarding
+  static const Color onboardingBackgroundLight = Color(0xFFE3F4F6);
   static const Color onboardingBubbleDark = Color(0xFFDDE2E3);
   static const Color onboardingBubbleBorderDark = Color(0xFFBCC7C9);
 

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/presentation/screens/login_screen.dart';
@@ -7,9 +7,9 @@ import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
-import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 
@@ -40,8 +40,16 @@ class OnboardingScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDarkMode
-      ? Theme.of(context).scaffoldBackgroundColor
-      : const Color(0xFFE3F4F6),
+          ? Theme.of(context).scaffoldBackgroundColor
+          : AppColors.onboardingBackgroundLight,
+      appBar: CareenaPageHeader(
+        title: 'MedBitAid',
+        showBack: false,
+        trailing: CareenaThemeHeaderAction(
+          onPressed: themeController.toggleTheme,
+          isDarkMode: themeController.isDarkMode,
+        ),
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 560,
@@ -58,11 +66,6 @@ class OnboardingScreen extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  OnboardingHeader(
-                    onToggleTheme: themeController.toggleTheme,
-                    isDarkMode: themeController.isDarkMode,
-                  ),
-                  const SizedBox(height: 10),
                   OnboardingHeroCard(onPressed: () => _navigateToChat(context)),
                   const SizedBox(height: 24),
 
@@ -186,6 +189,10 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => ChatScreen(
           controller: chatController,
           themeController: themeController,
+          leaveDialogMessage:
+              'Wenn du fortfährst, gelangst du zurück zur Startseite. '
+              'Der aktuelle Chat wird nicht gespeichert.',
+          leaveDialogConfirmLabel: 'Zur Startseite',
         ),
       ),
     );

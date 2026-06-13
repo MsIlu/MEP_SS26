@@ -1,15 +1,18 @@
-﻿import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
+import 'package:app1/features/settings/presentation/screens/settings_page.dart';
+import 'package:app1/features/authscreen/data/auth_api_service.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/home_function_list.dart';
-import '../widgets/home_header.dart';
 import '../widgets/home_search_bar.dart';
 import '../../../../core/themes/theme_controller.dart';
 
@@ -20,40 +23,88 @@ class HomeScreen extends StatelessWidget {
 
   /// Shared theme controller used to switch between light and dark mode.
   final ThemeController themeController;
+  final AuthSession? authSession;
+  final AuthApiService? authApiService;
 
   const HomeScreen({
     super.key,
     required this.controller,
     required this.themeController,
+    this.authSession,
+    this.authApiService,
   });
 
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // A very small width needs tighter horizontal spacing than the shared
     // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDarkMode
+          ? Theme.of(context).scaffoldBackgroundColor
+          : AppColors.headerBackgroundLight,
+      appBar: CareenaPageHeader(
+        title: 'Willkommen!',
+        showBack: false,
+        trailing: themeController.isSimpleView
+            ? null
+            : CareenaThemeHeaderAction(
+                onPressed: themeController.toggleTheme,
+                isDarkMode: themeController.isDarkMode,
+              ),
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 720,
           child: Column(
             children: [
-              HomeHeader(
-                isCompact: isCompact,
-                onToggleTheme: themeController.toggleTheme,
-                isDarkMode: themeController.isDarkMode,
+              CareenaHeroCard(
+                onTap: () => _navigateToChat(context),
+                isSimpleView: themeController.isSimpleView,
               ),
-              CareenaHeroCard(onTap: () => _navigateToChat(context)),
-              HomeSearchBar(isCompact: isCompact),
-              HomeFunctionList(features: features),
+              if (!themeController.isSimpleView)
+                HomeSearchBar(isCompact: isCompact),
+              HomeFunctionList(
+                features: features,
+                isSimpleView: themeController.isSimpleView,
+              ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(),
+      bottomNavigationBar: CustomBottomNav(
+        isSimpleView: themeController.isSimpleView,
+        onTap: (index) => _onBottomNavigationTap(context, index),
+      ),
+    );
+  }
+
+  void _onBottomNavigationTap(BuildContext context, int index) {
+    if (themeController.isSimpleView && index == 1) {
+      _openSettings(context);
+      return;
+    }
+
+    if (index == 2) {
+      _navigateToChat(context);
+    } else if (index == 3) {
+      _openSettings(context);
+    }
+  }
+
+  void _openSettings(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsPage(
+          themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
+        ),
+      ),
     );
   }
 

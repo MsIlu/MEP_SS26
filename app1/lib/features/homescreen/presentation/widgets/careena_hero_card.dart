@@ -8,7 +8,13 @@ import 'floating_avatar.dart';
 class CareenaHeroCard extends StatelessWidget {
   /// Called when the user taps the hero action.
   final VoidCallback onTap;
-  const CareenaHeroCard({super.key, required this.onTap});
+  final bool isSimpleView;
+
+  const CareenaHeroCard({
+    super.key,
+    required this.onTap,
+    this.isSimpleView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +61,10 @@ class CareenaHeroCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _HeroTextAndAction(onTap: onTap),
+                    _HeroTextAndAction(
+                      onTap: onTap,
+                      isSimpleView: isSimpleView,
+                    ),
                   ],
                 )
               : Row(
@@ -65,7 +74,12 @@ class CareenaHeroCard extends StatelessWidget {
                       size: avatarSize,
                     ),
                     const SizedBox(width: 16),
-                    Expanded(child: _HeroTextAndAction(onTap: onTap)),
+                    Expanded(
+                      child: _HeroTextAndAction(
+                        onTap: onTap,
+                        isSimpleView: isSimpleView,
+                      ),
+                    ),
                   ],
                 ),
         );
@@ -78,8 +92,9 @@ class CareenaHeroCard extends StatelessWidget {
 class _HeroTextAndAction extends StatelessWidget {
   /// Opens the chat screen.
   final VoidCallback onTap;
+  final bool isSimpleView;
 
-  const _HeroTextAndAction({required this.onTap});
+  const _HeroTextAndAction({required this.onTap, required this.isSimpleView});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +116,7 @@ class _HeroTextAndAction extends StatelessWidget {
           "Ich bin Careena!\nWie kann ich dir helfen?",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: isSimpleView ? 20 : 16,
             color: titleColor,
           ),
         ),
@@ -112,10 +127,10 @@ class _HeroTextAndAction extends StatelessWidget {
           backgroundColor: buttonColor,
           foregroundColor: isDarkMode
               ? AppColors.toolbarButtonForegroundDark
-              : Colors.white,
-          borderRadius: 20,
-          height: 44,
-          fontSize: 13,
+              : AppColors.toolbarButtonForeground,
+          borderRadius: isSimpleView ? 26 : 20,
+          height: isSimpleView ? 64 : 44,
+          fontSize: isSimpleView ? 17 : 13,
 
           side: BorderSide(color: AppColors.careenaGlow, width: 4),
         ),

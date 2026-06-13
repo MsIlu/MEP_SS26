@@ -8,11 +8,14 @@ import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
 import '../../../warningscreen/presentation/screens/warning_page.dart';
+import '../dialogs/leave_chat.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
+import '../widgets/symptom_editor.dart';
+import '../widgets/symptom_list.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
 import 'package:app1/app/app_dependencies_scope.dart';
@@ -22,45 +25,45 @@ import 'package:app1/app/app_dependencies_scope.dart';
 /// smart replies, and delayed loading hints. Message data and backend work stay
 /// inside [ChatController].
 class ChatScreen extends StatefulWidget {
-  /// Controller that provides message state and sends requests to the backend.
   final ChatController controller;
-
-  /// Shared theme controller used to switch between light and dark mode.
   final ThemeController themeController;
+  final String leaveDialogMessage;
+  final String leaveDialogConfirmLabel;
 
   const ChatScreen({
     super.key,
     required this.controller,
     required this.themeController,
+    this.leaveDialogMessage =
+        'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+        'Der aktuelle Chat wird nicht gespeichert.',
+    this.leaveDialogConfirmLabel = 'Zum Homescreen',
   });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-/// Internal state for input handling, scrolling, and chat presentation effects.
 class _ChatScreenState extends State<ChatScreen> {
-  // Controllers and focus nodes are kept in state because they must survive
-  // rebuilds and be disposed manually.
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final ChatWarningController _warningController;
   final FocusNode _inputFocusNode = FocusNode();
   final _speechService = SpeechService();
 
-  // Local UI-only state. The chat messages themselves live in ChatController.
   List<String> _smartReplies = [];
   Timer? _longProcessingTimer;
   bool _isSending = false;
   bool _shouldAutoScroll = true;
   bool _showLongProcessingHint = false;
   bool _showLatestMessageButton = false;
+  bool _allowPopAfterConfirmation = false;
 
   @override
   void initState() {
     super.initState();
     widget.controller.messages.addListener(_onMessagesChanged);
-    
+
     widget.controller.init();
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
@@ -96,7 +99,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
   Future<void> _handleSend() async {
-    // Ignore double-submits while the current request is still in flight.
     if (_isSending) return;
 
     final text = _textController.text.trim();
@@ -104,8 +106,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await _speechService.stop();
 
-    // Clear input and smart replies immediately to make the UI feel responsive
-    // before the network request starts.
     _textController.clear();
     setState(() {
       _isSending = true;
@@ -114,8 +114,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     _longProcessingTimer?.cancel();
-    // Only show the long-processing hint after a short delay so normal fast
-    // responses do not create unnecessary visual noise.
     _longProcessingTimer = Timer(const Duration(seconds: 4), () {
       if (!mounted || !_isSending) return;
 
@@ -123,8 +121,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     });
 
-    // Start the backend call before scrolling so the optimistic user bubble and
-    // loading bubble are already present when the scroll animation runs.
     final responseFuture = widget.controller.sendMessage(text);
     _scrollToBottom();
 
@@ -133,8 +129,6 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       response = await responseFuture;
     } catch (_) {
-      // The controller has already added a visible error bubble. Keeping the
-      // response null prevents smart replies from being generated from failure.
       response = null;
     }
 
@@ -148,7 +142,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _showLongProcessingHint = false;
     });
 
-    // Open the warning screen for red flag responses instead of showing a chat bubble.
     if (response?.redFlag == true) {
       Navigator.push(
         context,
@@ -160,17 +153,14 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocusNode.requestFocus();
   }
 
-
-
   void _onMessagesChanged() {
-    // Get the current list of messages
     final messages = widget.controller.messages.value;
 
     if (messages.isEmpty) return;
-    
+
     final lastMessage = messages.last;
     if (lastMessage.isLoading) return;
-    if (lastMessage.isUser)  return;
+    if (lastMessage.isUser) return;
     if (lastMessage.isStreaming) return;
     if (lastMessage.text.isEmpty) return;  
     
@@ -180,14 +170,11 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Animates to the newest message after the current layout pass has finished.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
 
       if (_showLatestMessageButton) {
-        // The button is no longer useful once the screen is returning to the
-        // bottom automatically.
         setState(() => _showLatestMessageButton = false);
       }
 
@@ -199,7 +186,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Jumps without animation for fast streaming updates.
   void _jumpToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
@@ -208,7 +194,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Supports keyboard navigation back to the beginning of the conversation.
   void _scrollToTop() {
     if (!_scrollController.hasClients) return;
 
@@ -219,21 +204,16 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  /// Returns focus to the input and resumes automatic scrolling.
   void _focusInputField() {
     _inputFocusNode.requestFocus();
     _shouldAutoScroll = true;
     _scrollToBottom();
   }
 
-  /// Keeps the newest assistant text visible unless the user intentionally
-  /// scrolled away from the bottom.
   void _handleMessagesChanged() {
     if (!_shouldAutoScroll && !_isSending) return;
 
     if (_isSending) {
-      // Streaming updates can arrive very frequently. Jumping avoids stacking
-      // many animations on top of each other while characters are appended.
       _jumpToBottom();
       return;
     }
@@ -260,8 +240,38 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Tracks whether the user is near the bottom and shows the jump button when
-  /// new messages may otherwise arrive outside the visible area.
+  Future<void> _handleLeaveChat() async {
+    final shouldLeave = await showLeaveChatDialog(
+      context,
+      message: widget.leaveDialogMessage,
+      confirmLabel: widget.leaveDialogConfirmLabel,
+    );
+
+    if (!shouldLeave || !mounted) return;
+
+    await _speechService.stop();
+    await widget.controller.resetChat();
+
+    if (!mounted) return;
+
+    _allowPopAfterConfirmation = true;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _showSymptomEditor() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return SymptomEditor(
+          symptoms: widget.controller.symptoms.value,
+          onSave: widget.controller.updateSymptomsDirectly,
+        );
+      },
+    );
+  }
+
   void _handleScrollChanged() {
     final shouldShow = !_isNearBottom();
 
@@ -272,7 +282,6 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _showLatestMessageButton = shouldShow);
   }
 
-  /// Uses a small threshold so tiny scroll offsets do not disable auto-scroll.
   bool _isNearBottom() {
     if (!_scrollController.hasClients) {
       return true;
@@ -298,52 +307,72 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-  backgroundColor: widget.themeController.isDarkMode
-      ? Theme.of(context).scaffoldBackgroundColor
-      : const Color(0xFFF7F9FA),
-      appBar: ChatAppBar(
-        onToggleTheme: widget.themeController.toggleTheme,
-        isDarkMode: widget.themeController.isDarkMode,
-      ),
-      body: SafeArea(
-        child: ResponsivePageBody(
-          maxWidth: 820,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(child: _buildMessageList()),
-                  ChatInputField(
-                    controller: _textController,
-                    focusNode: _inputFocusNode,
-                    isSending: _isSending,
-                    onSend: _handleSend,
-                    smartReplies: _smartReplies,
-                    onSmartReplySelected: _handleSmartReplySelected,
-                    speechService: _speechService,
-                  ),
-                ],
-              ),
-              if (_showLatestMessageButton)
-                Positioned(
-                  right: 16,
-                  bottom: 132,
-                  child: LatestMessageButton(onPressed: _scrollToBottom),
+    final backgroundColor = widget.themeController.isDarkMode
+        ? Theme.of(context).scaffoldBackgroundColor
+        : const Color(0xFFF7F9FA);
+
+    return PopScope(
+      canPop: _allowPopAfterConfirmation,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        _handleLeaveChat();
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        appBar: ChatAppBar(
+          onBackPressed: _handleLeaveChat,
+          onToggleTheme: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+        body: SafeArea(
+          child: ResponsivePageBody(
+            maxWidth: 820,
+            child: Column(
+              children: [
+                Expanded(child: _buildMessageList()),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SymptomList(
+                        symptomsListenable: widget.controller.symptoms,
+                        onAddPressed: _showSymptomEditor,
+                        onSymptomPressed: (_) => _showSymptomEditor(),
+                      ),
+                    ),
+                    if (_showLatestMessageButton)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 8,
+                          right: 12,
+                          bottom: 8,
+                        ),
+                        child: LatestMessageButton(onPressed: _scrollToBottom),
+                      ),
+                  ],
                 ),
-            ],
+                ChatInputField(
+                  controller: _textController,
+                  focusNode: _inputFocusNode,
+                  isSending: _isSending,
+                  onSend: _handleSend,
+                  smartReplies: _smartReplies,
+                  onSmartReplySelected: _handleSmartReplySelected,
+                  speechService: _speechService,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Builds the scrollable, keyboard-accessible message history.
   Widget _buildMessageList() {
     return FocusTraversalGroup(
       child: CallbackShortcuts(
         bindings: {
-          // Desktop/web users can navigate the chat without reaching for a mouse.
           const SingleActivator(LogicalKeyboardKey.end): _scrollToBottom,
           const SingleActivator(LogicalKeyboardKey.home): _scrollToTop,
           const SingleActivator(LogicalKeyboardKey.arrowDown): _focusInputField,
@@ -365,8 +394,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    // Loading messages have empty text, so screen readers need a
-                    // meaningful label while the assistant response is pending.
                     final semanticText = message.isLoading
                         ? 'Careena schreibt...'
                         : message.text;

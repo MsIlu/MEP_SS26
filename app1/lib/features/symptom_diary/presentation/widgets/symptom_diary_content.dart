@@ -1,8 +1,5 @@
-import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/shared_day_selector.dart';
-import 'package:app1/features/authscreen/presentation/widgets/common/auth_layout.dart';
 import 'package:flutter/material.dart';
-
 import '../../data/symptom_entry.dart';
 import 'symptom_add_button.dart';
 import 'symptom_entry_list.dart';
@@ -10,7 +7,6 @@ import 'symptom_summary_card.dart';
 
 /// Main symptom diary layout with date navigation, form, and daily history.
 class SymptomDiaryContent extends StatelessWidget {
-  final ThemeController themeController;
   final DateTime selectedDate;
   final DateTime today;
   final bool isLoading;
@@ -22,7 +18,6 @@ class SymptomDiaryContent extends StatelessWidget {
 
   const SymptomDiaryContent({
     super.key,
-    required this.themeController,
     required this.selectedDate,
     required this.today,
     required this.isLoading,
@@ -38,13 +33,6 @@ class SymptomDiaryContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AuthTopBar(
-          showBrand: false,
-          onBack: () => Navigator.pop(context),
-          onToggleTheme: themeController.toggleTheme,
-          isDarkMode: themeController.isDarkMode,
-        ),
-        const SizedBox(height: 18),
         _SymptomDiaryIntro(entriesCount: entries.length),
         const SizedBox(height: 12),
         Expanded(
@@ -112,15 +100,6 @@ class _SymptomDiaryIntro extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Symptomtagebuch',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 4),
               Text(
                 entriesCount == 0
                     ? 'Kurz eintragen, wie es dir geht.'

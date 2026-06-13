@@ -115,17 +115,33 @@ class _FakeChatApi extends ChatApi {
   _FakeChatApi() : super(ApiClient(http.Client()));
 
   @override
-  Future<String> createSession() async => 'test-session';
+  Future<String> createSession([int? profileId]) async => 'test-session';
 
   @override
   Future<void> warmup() async {}
 
   @override
   Future<ChatResponse> sendMessage(
-      String text,
-      String sessionId,
-      int profileId,
-      ) async {
+    String text,
+    String sessionId,
+    int? profileId,
+  ) async {
     return const ChatResponse(text: 'Testantwort', redFlag: false);
   }
+
+  @override
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    return [];
+  }
+
+  @override
+  Future<List<String>> updateInputDraftSymptoms(
+    String sessionId,
+    List<String> symptoms,
+  ) async {
+    return symptoms;
+  }
+
+  @override
+  Future<void> cancelInputDraft(String sessionId) async {}
 }

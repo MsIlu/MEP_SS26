@@ -46,10 +46,7 @@ void main() {
         AuthResponse(
           accessToken: 'test-token',
           tokenType: 'bearer',
-          account: const Account(
-            id: 1,
-            email: 'test@example.com',
-          ),
+          account: const Account(id: 1, email: 'test@example.com'),
           profiles: const [
             AuthProfile(
               id: 42,
@@ -66,8 +63,55 @@ void main() {
 
       expect(response, isNotNull);
       expect(chatApi.lastText, 'Hallo');
-      expect(chatApi.lastSessionId, 'fake-session-id');
+      expect(chatApi.lastSessionId, 'fake-session-1');
       expect(chatApi.lastProfileId, 42);
+    });
+
+    test('resets chat session and draft when active profile changes', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+            AuthProfile(
+              id: 43,
+              displayName: 'Ben',
+              profileType: 'child',
+              role: 'guardian',
+            ),
+          ],
+        ),
+      );
+
+      await controller.init();
+      await controller.updateSymptomsDirectly(['Kopfschmerzen']);
+
+      authSession.setActiveProfileById(43);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(chatApi.cancelledSessionIds, contains('fake-session-1'));
+      expect(controller.symptoms.value, isEmpty);
+      expect(controller.chatSessionService.profileId, 43);
+      expect(chatApi.createdProfileIds, [42, 43]);
     });
   });
 }
@@ -78,10 +122,15 @@ class _FakeChatApi extends ChatApi {
   String? lastText;
   String? lastSessionId;
   int? lastProfileId;
+  int createSessionCalls = 0;
+  final List<int?> createdProfileIds = [];
+  final List<String> cancelledSessionIds = [];
 
   @override
-  Future<String> createSession() async {
-    return 'fake-session-id';
+  Future<String> createSession([int? profileId]) async {
+    createSessionCalls += 1;
+    createdProfileIds.add(profileId);
+    return 'fake-session-$createSessionCalls';
   }
 
   @override
@@ -89,18 +138,32 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<ChatResponse> sendMessage(
-      String text,
-      String sessionId,
-      int profileId,
-      ) async {
+    String text,
+    String sessionId,
+    int? profileId,
+  ) async {
     lastText = text;
     lastSessionId = sessionId;
     lastProfileId = profileId;
 
-    return ChatResponse(
-      text: 'Antwort',
-      redFlag: false,
-      action: null,
-    );
+    return ChatResponse(text: 'Antwort', redFlag: false, action: null);
+  }
+
+  @override
+  Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    return [];
+  }
+
+  @override
+  Future<List<String>> updateInputDraftSymptoms(
+    String sessionId,
+    List<String> symptoms,
+  ) async {
+    return symptoms;
+  }
+
+  @override
+  Future<void> cancelInputDraft(String sessionId) async {
+    cancelledSessionIds.add(sessionId);
   }
 }

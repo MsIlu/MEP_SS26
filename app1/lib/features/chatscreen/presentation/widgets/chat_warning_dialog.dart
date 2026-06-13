@@ -25,7 +25,7 @@ class ChatWarningDialog extends StatelessWidget {
           onPressed: () {
             ChatWarningController warningController = AppDependenciesScope.of(context).chatWarningController;
             warningController.warningAccepted = true;
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
           child: const Text('Verstanden'),
         ),

@@ -129,12 +129,14 @@ class SafetyClarificationResolver:
         pending: PendingSafetyClarification,
         answer_code: str,
     ):
-        """Find the matching guided input option by answer code."""
+        """Find the matching guided input option by code or visible label."""
 
         normalized_answer_code = answer_code.strip().casefold()
 
         for option in pending.guided_input.options:
             if option.code.casefold() == normalized_answer_code:
+                return option
+            if option.label.strip().casefold() == normalized_answer_code:
                 return option
 
         return None

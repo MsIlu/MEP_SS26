@@ -83,3 +83,14 @@ def test_invalid_answer_keeps_safety_clarification_open():
     assert resolution.safety_state.red_flag_status == SafetyRedFlagStatus.SUSPECTED
     assert resolution.safety_state.action == SafetyAction.ASK_SAFETY_CLARIFICATION
     assert resolution.clear_pending_clarification is False
+    
+def test_visible_label_yes_confirms_red_flag():
+    resolver = SafetyClarificationResolver()
+    pending = PendingSafetyClarification(evidence_terms=["schlecht luft"])
+
+    resolution = resolver.resolve(pending=pending, answer_code="Ja")
+
+    assert resolution.outcome == SafetyClarificationOutcome.CONFIRMED_RED_FLAG
+    assert resolution.safety_state.red_flag_status == SafetyRedFlagStatus.CONFIRMED
+    assert resolution.safety_state.action == SafetyAction.EMERGENCY
+    assert resolution.clear_pending_clarification is True

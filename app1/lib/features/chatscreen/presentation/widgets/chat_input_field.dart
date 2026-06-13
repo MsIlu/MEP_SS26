@@ -75,8 +75,6 @@ class _ChatInputFieldState extends State<ChatInputField>
     super.dispose();
   }
 
-  // ── Spracheingabe ────────────────────────────────────────────────────────────
-
   Future<void> _toggleListening() async {
     if (_isListening) {
       await _stopListening();
@@ -114,7 +112,7 @@ class _ChatInputFieldState extends State<ChatInputField>
       onResult: (text) {
         if (!widget.speechService.isListening) return;
 
-        // Erkannten Text live ins Eingabefeld schreiben
+        // Mirror recognized speech into the input field while recording.
         widget.controller.text = text;
         widget.controller.selection = TextSelection.fromPosition(
           TextPosition(offset: text.length),
@@ -122,8 +120,8 @@ class _ChatInputFieldState extends State<ChatInputField>
       },
     );
 
-    // Aufnahme automatisch beendet (Stille erkannt)
-    //if (mounted) setState(() => _isListening = false);
+    // Recording completion is reported through onListeningStopped.
+    // Keeping that state transition in one callback avoids duplicate updates.
   }
 
   Future<void> _stopListening() async {
@@ -160,17 +158,22 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The mic icon is hidden on compact widths to reserve enough room for
-        // readable input text and the send button.
-        // TODO: Implement mic logic
-        final isCompact = constraints.maxWidth < 360;
+        // Compact and short layouts hide the mic icon to keep the text field
+        // and send button usable.
+        final isShortViewport = MediaQuery.sizeOf(context).height < 520;
+        final isCompact = constraints.maxWidth < 420 || isShortViewport;
+        final horizontalPadding = isCompact ? 10.0 : 16.0;
+        final topPadding = isShortViewport ? 4.0 : 8.0;
+        final bottomPadding = isShortViewport ? 8.0 : 16.0;
+        final fieldVerticalPadding = isShortViewport ? 10.0 : 16.0;
+        final buttonSize = isShortViewport ? 40.0 : (isCompact ? 44.0 : 48.0);
 
         return Container(
           padding: EdgeInsets.fromLTRB(
-            isCompact ? 10 : 16,
-            8,
-            isCompact ? 10 : 16,
-            16,
+            horizontalPadding,
+            topPadding,
+            horizontalPadding,
+            bottomPadding,
           ),
           decoration: BoxDecoration(
             color: outerBackground,
@@ -187,9 +190,12 @@ class _ChatInputFieldState extends State<ChatInputField>
                       label: 'Eingabefeld für Symptome',
                       hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
                       child: Container(
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: inputBackground,
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(
+                            isShortViewport ? 20 : 25,
+                          ),
                           border: Border.all(
                             color: AppColors.careenaTeal.withValues(
                               alpha: 0.25,
@@ -209,11 +215,11 @@ class _ChatInputFieldState extends State<ChatInputField>
                           children: [
                             if (widget.smartReplies.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  12,
-                                  4,
-                                  12,
-                                  6,
+                                padding: EdgeInsets.fromLTRB(
+                                  isShortViewport ? 8 : 12,
+                                  isShortViewport ? 2 : 4,
+                                  isShortViewport ? 8 : 12,
+                                  isShortViewport ? 2 : 6,
                                 ),
                                 child: SmartReplyList(
                                   replies: widget.smartReplies,
@@ -235,10 +241,10 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     textInputAction: TextInputAction.send,
                                     keyboardType: TextInputType.text,
                                     minLines: 1,
-                                    maxLines: 4,
+                                    maxLines: isShortViewport ? 2 : 4,
                                     style: TextStyle(
                                       color: colorScheme.onSurface,
-                                      fontSize: 16,
+                                      fontSize: isShortViewport ? 15 : 16,
                                     ),
                                     onSubmitted: (_) {
                                       // Pressing Enter should behave
@@ -262,10 +268,9 @@ class _ChatInputFieldState extends State<ChatInputField>
                                       filled: false,
                                       fillColor: Colors.transparent,
                                       isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        vertical: fieldVerticalPadding,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -333,7 +338,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                       style: IconButton.styleFrom(
                         backgroundColor: sendButtonColor,
                         disabledBackgroundColor: sendingButtonColor,
-                        fixedSize: Size.square(isCompact ? 44 : 48),
+                        fixedSize: Size.square(buttonSize),
                       ),
                       icon: Icon(
                         widget.isSending ? Icons.hourglass_top : Icons.send,

@@ -10,7 +10,9 @@ from sqlmodel import SQLModel, Session, create_engine
 from auth.router import router as auth_router
 from auth.security import get_session
 from medications.router import router as medications_router
+from inputs.draft_router import router as draft_router, set_session_manager
 from profiles.router import router as profiles_router
+from sessions.manager import SessionManager
 
 
 @pytest.fixture()
@@ -36,7 +38,17 @@ def db_session():
 
 
 @pytest.fixture()
-def client(db_session):
+def session_manager():
+    manager = SessionManager()
+    set_session_manager(manager)
+
+    yield manager
+
+    set_session_manager(None)
+
+
+@pytest.fixture()
+def client(db_session, session_manager):
     """
     Create a FastAPI test client with auth and profile routers.
 
@@ -47,6 +59,7 @@ def client(db_session):
     app.include_router(auth_router)
     app.include_router(profiles_router)
     app.include_router(medications_router)
+    app.include_router(draft_router)
 
     def get_test_session():
         yield db_session

@@ -33,7 +33,7 @@ from sessions.manager import SessionManager
 from logging_config import configure_logging
 import config
 
-app = FastAPI(debug=True)
+app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(profiles_router)

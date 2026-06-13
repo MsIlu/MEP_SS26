@@ -189,6 +189,10 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => ChatScreen(
           controller: chatController,
           themeController: themeController,
+          leaveDialogMessage:
+              'Wenn du fortfährst, gelangst du zurück zur Startseite. '
+              'Der aktuelle Chat wird nicht gespeichert.',
+          leaveDialogConfirmLabel: 'Zur Startseite',
         ),
       ),
     );

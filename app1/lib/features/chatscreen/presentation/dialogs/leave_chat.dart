@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
-Future<bool> showLeaveChatDialog(BuildContext context) async {
+Future<bool> showLeaveChatDialog(
+  BuildContext context, {
+  String message = 'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+      'Der aktuelle Chat wird nicht gespeichert.',
+  String confirmLabel = 'Zum Homescreen',
+}) async {
   final colorScheme = Theme.of(context).colorScheme;
   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -34,8 +39,7 @@ Future<bool> showLeaveChatDialog(BuildContext context) async {
           ),
         ),
         content: Text(
-          'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
-              'Der aktuelle Chat wird nicht gespeichert.',
+          message,
           style: TextStyle(
             color: isDarkMode
                 ? colorScheme.onSurface
@@ -81,8 +85,8 @@ Future<bool> showLeaveChatDialog(BuildContext context) async {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: const Text(
-              'Zum Homescreen',
+            child: Text(
+              confirmLabel,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,

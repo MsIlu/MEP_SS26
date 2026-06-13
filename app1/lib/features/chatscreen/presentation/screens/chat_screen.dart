@@ -27,11 +27,17 @@ import 'package:app1/app/app_dependencies_scope.dart';
 class ChatScreen extends StatefulWidget {
   final ChatController controller;
   final ThemeController themeController;
+  final String leaveDialogMessage;
+  final String leaveDialogConfirmLabel;
 
   const ChatScreen({
     super.key,
     required this.controller,
     required this.themeController,
+    this.leaveDialogMessage =
+        'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+        'Der aktuelle Chat wird nicht gespeichert.',
+    this.leaveDialogConfirmLabel = 'Zum Homescreen',
   });
 
   @override
@@ -235,7 +241,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _handleLeaveChat() async {
-    final shouldLeave = await showLeaveChatDialog(context);
+    final shouldLeave = await showLeaveChatDialog(
+      context,
+      message: widget.leaveDialogMessage,
+      confirmLabel: widget.leaveDialogConfirmLabel,
+    );
 
     if (!shouldLeave || !mounted) return;
 

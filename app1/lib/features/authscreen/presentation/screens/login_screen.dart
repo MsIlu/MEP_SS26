@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';

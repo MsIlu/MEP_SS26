@@ -70,9 +70,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
     final hintTextColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
-    final dotColor = isDarkMode
-        ? colorScheme.onSurfaceVariant
-        : Colors.grey;
+    final dotColor = isDarkMode ? colorScheme.onSurfaceVariant : Colors.grey;
     final shadowColor = isDarkMode
         ? Colors.black.withValues(alpha: 0.15)
         : Colors.black.withValues(alpha: 0.06);
@@ -88,53 +86,56 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
             backgroundImage: AssetImage(AppAssets.careenaDoctor),
           ),
           const SizedBox(width: 8),
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 300),
-            opacity: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: bubbleColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _dot(0.0, dotColor),
-                      _dot(0.2, dotColor),
-                      _dot(0.4, dotColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Careena schreibt...',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: textColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (widget.showLongProcessingHint) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: hintTextColor,
-                      ),
+          Flexible(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: bubbleColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor,
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
-                ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _dot(0.0, dotColor),
+                        _dot(0.2, dotColor),
+                        _dot(0.4, dotColor),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Careena schreibt...',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13, color: textColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (widget.showLongProcessingHint) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
+                        softWrap: true,
+                        style: TextStyle(fontSize: 12, color: hintTextColor),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),

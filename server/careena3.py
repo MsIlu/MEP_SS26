@@ -150,16 +150,10 @@ def _fallback_response_text(response_mode: str) -> str:
         return "Akuter Warnhinweis erkannt. Bitte holen Sie sofort medizinische Hilfe."
     if response_mode == "ask_followup":
         return "Es wird noch eine Rueckfrage benoetigt."
+    if response_mode == "ask_safety_question":
+        return "Es wird noch eine sicherheitsrelevante Rueckfrage benoetigt."
     if response_mode == "recommend":
         return "Die Recommendation-Strecke ist noch nicht voll ausgebaut."
-    if response_mode == "guide_next_step":
-        return (
-            "Gibt es noch weitere Beschwerden? "
-            "Wenn nicht, dann antworten Sie kurz mit nein, und ich erstelle "
-            "Ihre Empfehlung."
-        )
     if response_mode == "out_of_scope":
         return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen."
-    if response_mode == "cannot_assess":
-        return "Ich habe noch nicht genug medizinische Informationen."
     return "Verarbeitung abgeschlossen."

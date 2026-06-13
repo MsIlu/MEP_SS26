@@ -9,15 +9,14 @@ from careena_pipeline3.llm.prompts.case_extraction import (
     build_case_extraction_system_prompt,
 )
 from careena_pipeline3.models.domain import DialogueState, MedicalCase
-from careena_pipeline3.models.extraction import Call2ExtractionResult, ExtractionResult
+from careena_pipeline3.models.extraction import Call2ExtractionResult
 
 
 class LLMCaseExtractionExtractor:
     """
     Primary Call 2 for conservative fact extraction.
 
-    The LLM now emits a smaller Call-2 contract that is adapted back into the
-    current transitional `ExtractionResult` for the rest of the pipeline.
+    The LLM emits the smaller Call-2 contract directly for the active runtime.
     """
 
     def __init__(
@@ -39,7 +38,7 @@ class LLMCaseExtractionExtractor:
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult:
+    ) -> Call2ExtractionResult:
         system_prompt = build_case_extraction_system_prompt(
             call2_tasks,
             operation_mode=operation_mode,
@@ -77,4 +76,12 @@ class LLMCaseExtractionExtractor:
                 else None
             ),
         )
-        return call2_result.to_extraction_result(raw_text=text)
+        log_json(
+            "CASE EXTRACTION CONTRACT",
+            {
+                "operation_mode": operation_mode,
+                "call2_tasks": list(call2_tasks or []),
+                "case_extension_status": call2_result.case_extension_status,
+            },
+        )
+        return call2_result

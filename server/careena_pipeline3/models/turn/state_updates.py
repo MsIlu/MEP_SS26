@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 from pydantic import Field
 
 from careena_pipeline3.models.common import PipelineModel
-from careena_pipeline3.models.domain import DialogueState, PendingFollowup
+from careena_pipeline3.models.domain import (
+    ConcernAllowedNextStep,
+    DialogueState,
+    PendingFollowup,
+)
 from careena_pipeline3.models.workflow import AssessmentReadiness
 
 
@@ -47,3 +53,18 @@ class ReadinessStateUpdate(PipelineModel):
     dialogue_state: DialogueState
     assessment_readiness: AssessmentReadiness
     pending_followup: PendingFollowup | None = None
+    gate_decision: RecommendationGateDecision | None = None
+
+
+class RecommendationGateDecision(PipelineModel):
+    """
+    Explicit small gate contract after readiness/process state settled.
+
+    It keeps the policy question "which next move is actually allowed now"
+    separate from raw readiness and separate from final response wording.
+    """
+
+    gate_status: str
+    allowed_next_step: ConcernAllowedNextStep
+    active_transition_kind: str | None = None
+    reason_tags: list[str] = Field(default_factory=list)

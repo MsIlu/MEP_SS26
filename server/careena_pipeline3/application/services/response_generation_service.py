@@ -41,7 +41,7 @@ class ResponseGenerationService:
         recommendation_result: RecommendationResult | None = None,
     ) -> str:
         if (
-            response_strategy.kind == "llm_continue"
+            response_strategy.kind in {"llm_continue", "llm_bounded_response"}
             and self.llm_response_generation is not None
         ):
             try:
@@ -58,6 +58,7 @@ class ResponseGenerationService:
 
         return self.static_text_builder.build(
             response_mode=response_mode,
+            response_strategy=response_strategy,
             context=context,
             entry_decision=entry_decision,
             recommendation_result=recommendation_result,

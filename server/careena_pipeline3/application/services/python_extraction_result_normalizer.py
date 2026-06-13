@@ -3,9 +3,10 @@ from __future__ import annotations
 from careena_pipeline3.models.common import Call2OperationMode, Call2Task
 from careena_pipeline3.models.domain import CaseObservation, DialogueState, MedicalCase
 from careena_pipeline3.models.extraction import (
+    Call2CaseExtensionStatus,
+    Call2ExtractionResult,
     ExtractedObservation,
     ExtractedSubject,
-    ExtractionResult,
 )
 
 FOLLOWUP_SLOT_ATTRIBUTE_MAP: dict[str, str] = {
@@ -34,7 +35,7 @@ class PythonExtractionResultNormalizer:
 
     def normalize(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
         text: str,
         existing_case: MedicalCase | None = None,
@@ -44,40 +45,60 @@ class PythonExtractionResultNormalizer:
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult:
-        del text, dialogue_state, profile, conversation_messages
+    ) -> Call2ExtractionResult:
+        del dialogue_state, profile, conversation_messages
 
         normalized = result.model_copy(deep=True)
         self._normalize_subject_contract(normalized, call2_tasks=call2_tasks)
         self._prune_observations_by_tasks(normalized, call2_tasks=call2_tasks)
         self._apply_operation_mode_contract(
             normalized,
+            text=text,
             existing_case=existing_case,
             pending_slot=pending_slot,
             operation_mode=operation_mode,
+        )
+        self._normalize_case_topic_contract(normalized)
+        normalized.case_extension_status = self._normalized_case_extension_status(
+            normalized,
+            operation_mode=operation_mode,
+        )
+        normalized.trace_notes.append(
+            "python_normalized:case_extension_status:"
+            f"{normalized.case_extension_status}"
         )
         return normalized
 
     def _normalize_subject_contract(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
         call2_tasks: list[Call2Task] | None,
     ) -> None:
         tasks = set(call2_tasks or [])
         if "resolve_subject_context" in tasks:
             return
-        if self._is_empty_subject(result.case_payload.subject):
-            result.case_payload.subject = None
-        result.case_payload.unresolved_questions = [
+        if self._is_empty_subject(result.subject_update):
+            result.subject_update = None
+        result.open_questions = [
             question
-            for question in result.case_payload.unresolved_questions
+            for question in result.open_questions
             if question not in {"subject", "subject_age"}
         ]
 
+    @staticmethod
+    def _normalize_case_topic_contract(result: Call2ExtractionResult) -> None:
+        if result.case_frame_label is None:
+            return
+        normalized = result.case_frame_label.strip()
+        if not normalized or not result.all_observations():
+            result.case_frame_label = None
+            return
+        result.case_frame_label = normalized
+
     def _prune_observations_by_tasks(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
         call2_tasks: list[Call2Task] | None,
     ) -> None:
@@ -86,27 +107,36 @@ class PythonExtractionResultNormalizer:
         for task in tasks:
             allowed_types.update(OBSERVATION_TYPE_BY_TASK.get(task, set()))
         if not allowed_types:
-            result.case_payload.observations = []
+            result.focus_update = None
+            result.new_items = []
             return
-        result.case_payload.observations = [
+        if (
+            result.focus_update is not None
+            and result.focus_update.observation_type not in allowed_types
+        ):
+            result.focus_update = None
+        result.new_items = [
             observation
-            for observation in result.case_payload.observations
+            for observation in result.new_items
             if observation.observation_type in allowed_types
         ]
 
     def _apply_operation_mode_contract(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
+        text: str,
         existing_case: MedicalCase | None,
         pending_slot: str | None,
         operation_mode: Call2OperationMode | None,
     ) -> None:
         if operation_mode == "no_medical_update_expected":
-            result.case_payload.subject = None
-            result.case_payload.observations = []
-            result.case_payload.unresolved_questions = []
-            result.case_payload.extraction_notes.append(
+            result.subject_update = None
+            result.case_frame_label = None
+            result.focus_update = None
+            result.new_items = []
+            result.open_questions = []
+            result.extraction_notes.append(
                 "python_normalized_no_medical_update_expected"
             )
             result.trace_notes.append("python_normalized:no_medical_update_expected")
@@ -115,6 +145,7 @@ class PythonExtractionResultNormalizer:
         if operation_mode == "followup_slot_update":
             self._normalize_followup_slot_update(
                 result,
+                text=text,
                 existing_case=existing_case,
                 pending_slot=pending_slot,
             )
@@ -123,23 +154,55 @@ class PythonExtractionResultNormalizer:
         if operation_mode == "mixed_update_and_new_info":
             self._normalize_mixed_update_and_new_info(
                 result,
+                text=text,
                 existing_case=existing_case,
                 pending_slot=pending_slot,
             )
             return
 
         if operation_mode == "existing_fact_revision":
-            if len(result.case_payload.observations) > 1:
-                result.case_payload.observations = result.case_payload.observations[:1]
-                result.case_payload.extraction_notes.append(
+            if result.focus_update is None and result.new_items:
+                result.focus_update = result.new_items[0]
+                result.new_items = result.new_items[1:]
+            if result.new_items:
+                result.new_items = []
+                result.extraction_notes.append(
                     "python_normalized_existing_fact_revision"
                 )
                 result.trace_notes.append("python_normalized:existing_fact_revision")
 
+    def _normalized_case_extension_status(
+        self,
+        result: Call2ExtractionResult,
+        *,
+        operation_mode: Call2OperationMode | None,
+    ) -> Call2CaseExtensionStatus:
+        if not result.all_observations():
+            if self._has_write_relevant_subject(result.subject_update):
+                if operation_mode in {"followup_slot_update", "existing_fact_revision"}:
+                    return "updates_existing_information"
+                return "adds_new_information"
+            return "no_relevant_change"
+
+        focus_update_present = result.focus_update is not None
+        new_item_present = bool(result.new_items)
+
+        if focus_update_present and new_item_present:
+            return "mixed_update_and_new"
+        if new_item_present:
+            return "adds_new_information"
+        if focus_update_present:
+            return "updates_existing_information"
+
+        if operation_mode in {"followup_slot_update", "existing_fact_revision"}:
+            return "updates_existing_information"
+        return "no_relevant_change"
+
     def _normalize_followup_slot_update(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
+        text: str,
         existing_case: MedicalCase | None,
         pending_slot: str | None,
     ) -> None:
@@ -152,14 +215,16 @@ class PythonExtractionResultNormalizer:
 
         update_observation = self._followup_focus_update_observation(
             result=result,
+            raw_text=text,
             focus=focus,
             pending_slot=pending_slot,
         )
         if update_observation is None:
             return
 
-        result.case_payload.observations = [update_observation]
-        result.case_payload.extraction_notes.append(
+        result.focus_update = update_observation
+        result.new_items = []
+        result.extraction_notes.append(
             f"python_normalized_followup_slot_update:{pending_slot}"
         )
         result.trace_notes.append(
@@ -168,8 +233,9 @@ class PythonExtractionResultNormalizer:
 
     def _normalize_mixed_update_and_new_info(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
+        text: str,
         existing_case: MedicalCase | None,
         pending_slot: str | None,
     ) -> None:
@@ -180,15 +246,13 @@ class PythonExtractionResultNormalizer:
         if focus is None:
             return
 
-        focus_source = self._observation_with_contract_role(
-            result.case_payload.observations,
-            role="focus_update",
-        )
+        focus_source = result.focus_update
         if focus_source is None:
             return
 
         update_observation = self._followup_focus_update_observation(
             result=result,
+            raw_text=text,
             focus=focus,
             pending_slot=pending_slot,
             source=focus_source,
@@ -196,15 +260,13 @@ class PythonExtractionResultNormalizer:
         if update_observation is None:
             return
 
-        result.case_payload.observations = [
-            update_observation,
-            *[
-                observation
-                for observation in result.case_payload.observations
-                if observation is not focus_source
-            ],
+        result.focus_update = update_observation
+        result.new_items = [
+            observation
+            for observation in result.new_items
+            if observation is not focus_source
         ]
-        result.case_payload.extraction_notes.append(
+        result.extraction_notes.append(
             f"python_normalized_mixed_update_and_new_info:{pending_slot}"
         )
         result.trace_notes.append(
@@ -214,16 +276,16 @@ class PythonExtractionResultNormalizer:
     def _followup_focus_update_observation(
         self,
         *,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
+        raw_text: str,
         focus: CaseObservation,
         pending_slot: str,
         source: ExtractedObservation | None = None,
     ) -> ExtractedObservation | None:
-        if source is None and not result.case_payload.observations:
+        if source is None and result.focus_update is None and not result.new_items:
             return None
 
-        source = source or result.case_payload.observations[0]
-        raw_text = result.raw_text.strip()
+        source = source or result.focus_update or result.new_items[0]
         if not raw_text:
             return None
 
@@ -249,18 +311,6 @@ class PythonExtractionResultNormalizer:
         )
 
     @staticmethod
-    def _observation_with_contract_role(
-        observations: list[ExtractedObservation],
-        *,
-        role: str,
-    ) -> ExtractedObservation | None:
-        for observation in observations:
-            for signal in observation.signals:
-                if signal.code == "call2_contract_role" and signal.value == role:
-                    return observation
-        return None
-
-    @staticmethod
     def _is_empty_subject(subject: ExtractedSubject | None) -> bool:
         if subject is None:
             return False
@@ -270,6 +320,12 @@ class PythonExtractionResultNormalizer:
             and subject.sex is None
             and not subject.signals
         )
+
+    @classmethod
+    def _has_write_relevant_subject(cls, subject: ExtractedSubject | None) -> bool:
+        if subject is None:
+            return False
+        return not cls._is_empty_subject(subject)
 
 
 def _followup_attributes_from_slot(

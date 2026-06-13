@@ -17,6 +17,7 @@ from careena_pipeline3.models.turn.state_updates import (
     ProcessStateSignals,
     ProcessStateUpdate,
     ReadinessStateUpdate,
+    RecommendationGateDecision,
 )
 from careena_pipeline3.models.workflow import RecommendationResult
 
@@ -30,6 +31,7 @@ __all__ = [
     "ProcessStateSignals",
     "ProcessStateUpdate",
     "ReadinessStateUpdate",
+    "RecommendationGateDecision",
     "ResponsePlan",
     "ResponseState",
     "ResponseStrategy",

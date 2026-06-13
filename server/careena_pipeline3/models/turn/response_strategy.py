@@ -6,11 +6,14 @@ from careena_pipeline3.models.common import PipelineModel
 ResponseStrategyKind = Literal[
     "static_emergency",
     "static_out_of_scope",
+    "static_safety_followup",
     "static_followup",
     "static_cannot_assess",
     "static_recommendation_transition",
     "static_recommendation_placeholder",
     "static_return_to_medical",
+    "static_medical_acknowledgement",
+    "llm_bounded_response",
     "llm_continue",
 ]
 

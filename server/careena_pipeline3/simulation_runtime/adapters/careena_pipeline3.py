@@ -93,6 +93,7 @@ def _build_summary(
         return summary
 
     case.ensure_primary_problem()
+    summary["case_frame"] = case.current_case_frame_label() or "unklar"
     summary["focus"] = case.primary_focus_label() or "unklar"
     summary["pending"] = (
         dialogue_state.pending_followup.slot

@@ -6,6 +6,7 @@ from careena_pipeline3.models.common import (
     MessageRole,
     PipelineModel,
 )
+from careena_pipeline3.models.domain import ConcernRelation, ConcernTurnRole
 
 
 class EntryDecision(PipelineModel):
@@ -15,11 +16,17 @@ class EntryDecision(PipelineModel):
     message_role: MessageRole = "new_information"
     call2_profile: str = "default"
     additional_medical_information: bool = False
+    # Legacy recommendation transition hook, no longer applied by the active
+    # pre-recommend turn contract.
     clear_pending_dialogue_transition: bool = False
+    # Legacy recommendation transition support, not part of active primary
+    # pre-recommend next-step routing.
     dialogue_transition_action: str | None = None
     person_reference_present: bool = False
     multi_person_context: bool = False
     subject_relation_unclear: bool = False
+    concern_relation: ConcernRelation = "unclear"
+    latest_turn_role: ConcernTurnRole = "unclear"
     active_modules: list[str] = Field(default_factory=list)
     call2_tasks: list[Call2Task] = Field(default_factory=list)
     call2_operation_mode: Call2OperationMode = "focused_new_fact_extraction"

@@ -4,7 +4,7 @@ from typing import Protocol
 
 from careena_pipeline3.models.common import Call2OperationMode, Call2Task
 from careena_pipeline3.models.domain import DialogueState, MedicalCase
-from careena_pipeline3.models.extraction import ExtractionResult
+from careena_pipeline3.models.extraction import Call2ExtractionResult
 
 
 class ExtractionService(Protocol):
@@ -19,13 +19,13 @@ class ExtractionService(Protocol):
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult: ...
+    ) -> Call2ExtractionResult: ...
 
 
 class ExtractionResultNormalizer(Protocol):
     def normalize(
         self,
-        result: ExtractionResult,
+        result: Call2ExtractionResult,
         *,
         text: str,
         existing_case: MedicalCase | None = None,
@@ -35,7 +35,7 @@ class ExtractionResultNormalizer(Protocol):
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult: ...
+    ) -> Call2ExtractionResult: ...
 
 
 class NoOpExtractionService:
@@ -52,13 +52,10 @@ class NoOpExtractionService:
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-    ) -> ExtractionResult:
-        return ExtractionResult(
-            raw_text=text,
-            case_payload={
-                "extraction_notes": [
-                    "no_op_extraction_service",
-                ],
-            },
+    ) -> Call2ExtractionResult:
+        return Call2ExtractionResult(
+            extraction_notes=[
+                "no_op_extraction_service",
+            ],
             trace_notes=["extraction_not_configured"],
         )

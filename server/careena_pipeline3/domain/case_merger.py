@@ -46,6 +46,27 @@ class CaseMerger:
             subject=case_payload.subject,
         )
 
+        trace_notes.append(
+            "case_update:case_extension_status:"
+            f"{merge_hints.case_extension_status}"
+        )
+
+        if merge_hints.case_extension_status == "no_relevant_change":
+            self.update_applier.finalize_case(
+                case=existing_case,
+                message_role=merge_hints.message_role,
+                merged_any=merged_any,
+            )
+            if existing_case.primary_problem_id is None:
+                existing_case.ensure_primary_problem()
+            trace_notes.append("case_update:skip_observation_write:no_relevant_change")
+            return CaseUpdateOutcome(
+                medical_case=existing_case,
+                trace_notes=trace_notes,
+                dialogue_consequences=dialogue_consequences,
+                decision_log=decision_log,
+            )
+
         for observation in case_payload.all_observations:
             decision = self.merge_policy.decide_observation_update(
                 case=existing_case,
@@ -92,6 +113,15 @@ class CaseMerger:
                 existing_case.set_primary_observation(primary)
         elif existing_case.primary_problem_id is None:
             existing_case.ensure_primary_problem()
+
+        topic_written = self.update_applier.apply_case_frame_label(
+            case=existing_case,
+            case_frame_label=case_payload.case_frame_label,
+        )
+        if topic_written:
+            trace_notes.append("case_update:set_case_frame_label")
+        elif case_payload.case_frame_label is not None and existing_case.case_frame_label is not None:
+            trace_notes.append("case_update:skip_case_frame_label:already_set")
 
         return CaseUpdateOutcome(
             medical_case=existing_case,

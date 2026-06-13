@@ -5,8 +5,9 @@ class DialogueFocusSync:
     """
     Keeps focus and case linkage in sync between DialogueState and MedicalCase.
 
-    The service intentionally stays narrow. It synchronizes focus and case
-    references, but does not own readiness, gating, or extraction policy.
+    The service intentionally stays narrow. It synchronizes the observation
+    cursor and case references, but does not own case-frame semantics,
+    readiness, gating, or extraction policy.
     """
 
     def ensure_state_links(

@@ -25,8 +25,8 @@ class ResponsePlan(PipelineModel):
     - final recommendation content beyond attached placeholders
 
     Transitional:
-    - yes; `response_mode` remains the outward path while `response_state`
-      makes the late policy basis smaller and more explicit for V4.
+    - yes; `response_mode` remains the outward path while older recommendation
+      transition hooks may still be attached as explicit legacy payloads.
     """
 
     response_mode: str
@@ -34,5 +34,7 @@ class ResponsePlan(PipelineModel):
     response_strategy: ResponseStrategy = Field(default_factory=ResponseStrategy)
     response_text: str | None = None
     recommendation_result: RecommendationResult | None = None
+    # Legacy recommendation transition hook, not applied by the active
+    # pre-recommend routing contract.
     pending_dialogue_transition: PendingDialogueTransition | None = None
     trace_notes: list[str] = Field(default_factory=list)

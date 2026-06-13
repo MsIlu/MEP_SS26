@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import Field, model_validator
 
 from careena_pipeline3.models.common import PipelineModel
+
+
+Call2CaseExtensionStatus = Literal[
+    "no_relevant_change",
+    "updates_existing_information",
+    "adds_new_information",
+    "mixed_update_and_new",
+]
 
 
 class ExtractionSignal(PipelineModel):
@@ -49,6 +59,7 @@ class ExtractedObservation(PipelineModel):
 class ExtractedCasePayload(PipelineModel):
     subject: ExtractedSubject | None = None
     observations: list[ExtractedObservation] = Field(default_factory=list)
+    case_frame_label: str | None = None
     unresolved_questions: list[str] = Field(default_factory=list)
     extraction_notes: list[str] = Field(default_factory=list)
 
@@ -73,16 +84,25 @@ class Call2ExtractionResult(PipelineModel):
     - readiness, response, or requirement policy
 
     Transitional:
-    - yes; this contract is immediately adapted back into `ExtractionResult`
-      until downstream Block-4/5 cuts are ready.
+    - no longer the active runtime write contract by itself, but it still
+      supports compatibility exports for observability and tests.
     """
 
     subject_update: ExtractedSubject | None = None
+    case_extension_status: Call2CaseExtensionStatus = "no_relevant_change"
+    case_frame_label: str | None = None
     focus_update: ExtractedObservation | None = None
     new_items: list[ExtractedObservation] = Field(default_factory=list)
     open_questions: list[str] = Field(default_factory=list)
     extraction_notes: list[str] = Field(default_factory=list)
     trace_notes: list[str] = Field(default_factory=list)
+
+    def all_observations(self) -> list[ExtractedObservation]:
+        observations: list[ExtractedObservation] = []
+        if self.focus_update is not None:
+            observations.append(self.focus_update)
+        observations.extend(self.new_items)
+        return observations
 
     def to_extraction_result(
         self,
@@ -90,45 +110,27 @@ class Call2ExtractionResult(PipelineModel):
         raw_text: str,
         medical: bool = True,
     ) -> ExtractionResult:
-        observations = []
-        if self.focus_update is not None:
-            observations.append(
-                _with_contract_role(self.focus_update, role="focus_update")
-            )
-        observations.extend(
-            _with_contract_role(item, role="new_item") for item in self.new_items
-        )
         return ExtractionResult(
             raw_text=raw_text,
             medical=medical,
+            case_extension_status=self.case_extension_status,
             case_payload=ExtractedCasePayload(
                 subject=self.subject_update,
-                observations=observations,
+                observations=[item.model_copy(deep=True) for item in self.all_observations()],
+                case_frame_label=self.case_frame_label,
                 unresolved_questions=list(self.open_questions),
                 extraction_notes=list(self.extraction_notes),
             ),
-            trace_notes=list(self.trace_notes),
+            trace_notes=[
+                *list(self.trace_notes),
+                f"call2_case_extension_status:{self.case_extension_status}",
+            ],
         )
 
 
 class ExtractionResult(PipelineModel):
     raw_text: str
     medical: bool = True
+    case_extension_status: Call2CaseExtensionStatus = "no_relevant_change"
     case_payload: ExtractedCasePayload = Field(default_factory=ExtractedCasePayload)
     trace_notes: list[str] = Field(default_factory=list)
-
-
-def _with_contract_role(
-    observation: ExtractedObservation,
-    *,
-    role: str,
-) -> ExtractedObservation:
-    marked = observation.model_copy(deep=True)
-    marked.signals.append(
-        ExtractionSignal(
-            code="call2_contract_role",
-            value=role,
-            note="transitional_call2_contract_role",
-        )
-    )
-    return marked

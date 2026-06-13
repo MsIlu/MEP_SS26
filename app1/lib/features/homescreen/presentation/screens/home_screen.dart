@@ -1,9 +1,12 @@
-﻿import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:flutter/material.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/network/api_client.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
@@ -20,11 +23,15 @@ class HomeScreen extends StatelessWidget {
 
   /// Shared theme controller used to switch between light and dark mode.
   final ThemeController themeController;
+  final ApiClient? apiClient;
+  final AuthSession? authSession;
 
   const HomeScreen({
     super.key,
     required this.controller,
     required this.themeController,
+    this.apiClient,
+    this.authSession,
   });
 
   @override
@@ -109,11 +116,16 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _navigateToMedicationPlan(BuildContext context) {
+    final dependencies = _dependenciesFromContext(context);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            MedicationPlanPage(themeController: themeController),
+        builder: (context) => MedicationPlanPage(
+          themeController: themeController,
+          apiClient: apiClient ?? dependencies?.dependencies.apiClient,
+          authSession: authSession ?? dependencies?.dependencies.authSession,
+        ),
       ),
     );
   }
@@ -126,5 +138,12 @@ class HomeScreen extends StatelessWidget {
             SymptomDiaryPage(themeController: themeController),
       ),
     );
+  }
+
+  AppDependenciesScope? _dependenciesFromContext(BuildContext context) {
+    return context
+            .getElementForInheritedWidgetOfExactType<AppDependenciesScope>()
+            ?.widget
+        as AppDependenciesScope?;
   }
 }

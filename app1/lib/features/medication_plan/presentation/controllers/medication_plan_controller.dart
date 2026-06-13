@@ -57,9 +57,10 @@ class MedicationPlanController extends ChangeNotifier {
       catalogItem: catalogItem,
     );
 
-    _entries = _sortedEntries([..._entries, entry]);
+    final savedEntry = await _repository.createEntry(entry);
+    _entries = _sortedEntries([..._entries, savedEntry]);
     await _repository.saveEntries(_entries);
-    await _notificationService.scheduleReminders(entry);
+    await _notificationService.scheduleReminders(savedEntry);
     _notifyIfActive();
   }
 
@@ -86,11 +87,13 @@ class MedicationPlanController extends ChangeNotifier {
       clearCatalogItem: catalogItem == null,
     );
 
+    final savedEntry = await _repository.updateEntry(updatedEntry);
+
     _entries = _sortedEntries(
       _entries
           .map(
             (currentEntry) =>
-                currentEntry.id == entry.id ? updatedEntry : currentEntry,
+                currentEntry.id == entry.id ? savedEntry : currentEntry,
           )
           .toList(),
     );
@@ -98,8 +101,8 @@ class MedicationPlanController extends ChangeNotifier {
     await _repository.saveEntries(_entries);
     await _notificationService.cancelReminders(entry);
     await _notificationService.scheduleReminders(
-      updatedEntry,
-      skippedDoseIndexes: _takenDoseIndexesForToday(updatedEntry),
+      savedEntry,
+      skippedDoseIndexes: _takenDoseIndexesForToday(savedEntry),
     );
     _notifyIfActive();
   }
@@ -110,23 +113,25 @@ class MedicationPlanController extends ChangeNotifier {
     bool remindersEnabled,
   ) async {
     final updatedEntry = entry.copyWith(remindersEnabled: remindersEnabled);
+    final savedEntry = await _repository.updateEntry(updatedEntry);
     _entries = _entries
         .map(
           (currentEntry) =>
-              currentEntry.id == entry.id ? updatedEntry : currentEntry,
+              currentEntry.id == entry.id ? savedEntry : currentEntry,
         )
         .toList();
 
     await _repository.saveEntries(_entries);
     await _notificationService.scheduleReminders(
-      updatedEntry,
-      skippedDoseIndexes: _takenDoseIndexesForToday(updatedEntry),
+      savedEntry,
+      skippedDoseIndexes: _takenDoseIndexesForToday(savedEntry),
     );
     _notifyIfActive();
   }
 
   /// Deletes a medication entry and removes its pending notification.
   Future<void> deleteEntry(MedicationEntry entry) async {
+    await _repository.deleteEntry(entry);
     _entries = _entries
         .where((currentEntry) => currentEntry.id != entry.id)
         .toList();
@@ -160,10 +165,11 @@ class MedicationPlanController extends ChangeNotifier {
       takenDateKeys: updatedDateKeys.toList()..sort(),
     );
 
+    final savedEntry = await _repository.updateEntry(updatedEntry);
     _entries = _entries
         .map(
           (currentEntry) =>
-              currentEntry.id == entry.id ? updatedEntry : currentEntry,
+              currentEntry.id == entry.id ? savedEntry : currentEntry,
         )
         .toList();
 
@@ -171,10 +177,10 @@ class MedicationPlanController extends ChangeNotifier {
     if (_isToday(date)) {
       if (isTaken) {
         await _notificationService.cancelReminder(entry.id, doseIndex);
-      } else if (updatedEntry.remindersEnabled) {
+      } else if (savedEntry.remindersEnabled) {
         await _notificationService.scheduleReminders(
-          updatedEntry,
-          skippedDoseIndexes: _takenDoseIndexesForToday(updatedEntry),
+          savedEntry,
+          skippedDoseIndexes: _takenDoseIndexesForToday(savedEntry),
         );
       }
     }

@@ -42,6 +42,8 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
   TimeOfDay _secondSelectedTime = const TimeOfDay(hour: 20, minute: 0);
   MedicationFrequency _frequency = MedicationFrequency.daily;
   bool _remindersEnabled = true;
+  bool _isSaving = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -79,6 +81,8 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
                 ? 'Eintrag speichern'
                 : 'Änderungen speichern',
             submitIcon: widget.initialEntry == null ? Icons.add : Icons.check,
+            isSubmitting: _isSaving,
+            errorMessage: _errorMessage,
             formKey: _formKey,
             nameController: _nameController,
             nameFocusNode: _nameFocusNode,
@@ -142,18 +146,38 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
       return;
     }
 
-    await widget.onSave(
-      _nameController.text,
-      _formattedDose,
-      _selectedTime,
-      _frequency == MedicationFrequency.twiceDaily ? _secondSelectedTime : null,
-      _frequency,
-      _remindersEnabled,
-      _selectedCatalogItem,
-    );
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
 
-    if (mounted) {
-      Navigator.pop(context, true);
+    try {
+      await widget.onSave(
+        _nameController.text,
+        _formattedDose,
+        _selectedTime,
+        _frequency == MedicationFrequency.twiceDaily
+            ? _secondSelectedTime
+            : null,
+        _frequency,
+        _remindersEnabled,
+        _selectedCatalogItem,
+      );
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Medikament konnte nicht gespeichert werden. Bitte erneut versuchen.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 

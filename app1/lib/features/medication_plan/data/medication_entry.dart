@@ -80,6 +80,28 @@ class MedicationEntry {
     };
   }
 
+  /// Converts the entry into the JSON shape expected by FastAPI.
+  Map<String, dynamic> toApiJson({bool includeCreatedAt = true}) {
+    final json = {
+      'name': name,
+      'dose': dose,
+      'intake_hour': intakeTime.hour,
+      'intake_minute': intakeTime.minute,
+      'second_intake_hour': secondIntakeTime?.hour,
+      'second_intake_minute': secondIntakeTime?.minute,
+      'frequency': frequency.storageValue,
+      'reminders_enabled': remindersEnabled,
+      'taken_date_keys': takenDateKeys,
+      'catalog_item': catalogItem?.toApiJson(),
+    };
+
+    if (includeCreatedAt) {
+      json['created_at'] = createdAt.toIso8601String();
+    }
+
+    return json;
+  }
+
   /// Restores an entry and keeps older stored data compatible with new fields.
   factory MedicationEntry.fromJson(Map<String, dynamic> json) {
     final now = DateTime.now();
@@ -114,6 +136,40 @@ class MedicationEntry {
           ? null
           : MedicationCatalogItem.fromJson(
               json['catalogItem'] as Map<String, dynamic>,
+            ),
+    );
+  }
+
+  /// Restores an entry returned by the FastAPI medication endpoints.
+  factory MedicationEntry.fromApiJson(Map<String, dynamic> json) {
+    return MedicationEntry(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      dose: json['dose'] as String,
+      intakeTime: TimeOfDay(
+        hour: json['intake_hour'] as int,
+        minute: json['intake_minute'] as int,
+      ),
+      secondIntakeTime: json['second_intake_hour'] == null
+          ? null
+          : TimeOfDay(
+              hour: json['second_intake_hour'] as int,
+              minute: json['second_intake_minute'] as int,
+            ),
+      frequency: MedicationFrequency.fromStorageValue(
+        json['frequency'] as String?,
+      ),
+      remindersEnabled: json['reminders_enabled'] as bool? ?? true,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      takenDateKeys:
+          (json['taken_date_keys'] as List<dynamic>?)
+              ?.map((value) => value as String)
+              .toList() ??
+          const [],
+      catalogItem: json['catalog_item'] == null
+          ? null
+          : MedicationCatalogItem.fromApiJson(
+              json['catalog_item'] as Map<String, dynamic>,
             ),
     );
   }

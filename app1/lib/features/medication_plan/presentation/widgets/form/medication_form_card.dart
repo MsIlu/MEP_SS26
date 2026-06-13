@@ -16,6 +16,8 @@ class MedicationFormCard extends StatelessWidget {
   final String title;
   final String submitLabel;
   final IconData submitIcon;
+  final bool isSubmitting;
+  final String? errorMessage;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final FocusNode nameFocusNode;
@@ -39,6 +41,8 @@ class MedicationFormCard extends StatelessWidget {
     this.title = 'Neues Medikament',
     this.submitLabel = 'Eintrag speichern',
     this.submitIcon = Icons.add,
+    this.isSubmitting = false,
+    this.errorMessage,
     required this.formKey,
     required this.nameController,
     required this.nameFocusNode,
@@ -182,10 +186,21 @@ class MedicationFormCard extends StatelessWidget {
               onChanged: onReminderChanged,
             ),
             const SizedBox(height: 8),
+            if (errorMessage != null) ...[
+              Text(
+                errorMessage!,
+                style: TextStyle(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+            ],
             CareenaPrimaryIconButton(
-              onPressed: onSubmit,
+              onPressed: isSubmitting ? null : onSubmit,
               icon: submitIcon,
-              label: submitLabel,
+              label: isSubmitting ? 'Speichert...' : submitLabel,
             ),
           ],
         ),

@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/network/api_client.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../../data/medication_api_service.dart';
 import '../../data/medication_entry.dart';
+import '../../data/medication_repository.dart';
 import '../controllers/medication_plan_controller.dart';
 import '../widgets/form/medication_form_dialog.dart';
 import '../widgets/list/medication_list_dialog.dart';
@@ -11,15 +17,22 @@ import '../widgets/layout/medication_plan_content.dart';
 /// Page for managing personal medications and daily intake reminders.
 class MedicationPlanPage extends StatefulWidget {
   final ThemeController themeController;
+  final ApiClient? apiClient;
+  final AuthSession? authSession;
 
-  const MedicationPlanPage({super.key, required this.themeController});
+  const MedicationPlanPage({
+    super.key,
+    required this.themeController,
+    this.apiClient,
+    this.authSession,
+  });
 
   @override
   State<MedicationPlanPage> createState() => _MedicationPlanPageState();
 }
 
 class _MedicationPlanPageState extends State<MedicationPlanPage> {
-  final _controller = MedicationPlanController();
+  late final MedicationPlanController _controller;
 
   late final DateTime _today;
   late DateTime _selectedDate;
@@ -30,6 +43,14 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     _selectedDate = _today;
+    _controller = MedicationPlanController(
+      repository: MedicationRepository(
+        apiService: widget.apiClient == null
+            ? null
+            : MedicationApiService(widget.apiClient!),
+        profileId: widget.authSession?.activeProfileId,
+      ),
+    );
     _controller.loadEntries();
   }
 
@@ -70,7 +91,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
                 },
                 onOpenMedicationList: _openMedicationList,
                 onAddMedication: _openMedicationForm,
-                onTakenChanged: _controller.toggleTakenForDate,
+                onTakenChanged: _toggleTakenForDate,
               ),
             );
           },
@@ -161,10 +182,10 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
                     entries: _controller.entries,
                     onAdd: () => _openMedicationFormFromList(context),
                     onClose: () => Navigator.pop(context),
-                    onToggleReminder: _controller.toggleReminder,
+                    onToggleReminder: _toggleReminder,
                     onEdit: (entry) =>
                         _openMedicationEditFormFromList(context, entry),
-                    onDelete: _controller.deleteEntry,
+                    onDelete: _deleteEntry,
                   );
                 },
               ),
@@ -195,6 +216,53 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
 
     if (mounted) {
       await _openMedicationForm(entry: entry);
+    }
+  }
+
+  void _toggleReminder(MedicationEntry entry, bool remindersEnabled) {
+    unawaited(
+      _runMedicationAction(
+        _controller.toggleReminder(entry, remindersEnabled),
+        'Erinnerung konnte nicht aktualisiert werden.',
+      ),
+    );
+  }
+
+  void _deleteEntry(MedicationEntry entry) {
+    unawaited(
+      _runMedicationAction(
+        _controller.deleteEntry(entry),
+        'Medikament konnte nicht entfernt werden.',
+      ),
+    );
+  }
+
+  void _toggleTakenForDate(
+    MedicationEntry entry,
+    DateTime date,
+    int doseIndex,
+    bool isTaken,
+  ) {
+    unawaited(
+      _runMedicationAction(
+        _controller.toggleTakenForDate(entry, date, doseIndex, isTaken),
+        'Einnahme konnte nicht aktualisiert werden.',
+      ),
+    );
+  }
+
+  Future<void> _runMedicationAction(
+    Future<void> action,
+    String errorMessage,
+  ) async {
+    try {
+      await action;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
     }
   }
 }

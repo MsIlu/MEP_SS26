@@ -19,6 +19,13 @@ class AppointmentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 3,
+
+  color: appointment.isCompleted
+
+      ? Theme.of(context).colorScheme.surfaceContainerHighest
+
+      : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -39,15 +46,20 @@ class AppointmentTile extends StatelessWidget {
 
     Expanded(
       child: Text(
-        appointment.doctorName,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          decoration: appointment.isCompleted
-              ? TextDecoration.lineThrough
-              : null,
-        ),
-      ),
+  appointment.doctorName,
+  style: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+
+    color: appointment.isCompleted
+        ? Colors.grey
+        : null,
+
+    decoration: appointment.isCompleted
+        ? TextDecoration.lineThrough
+        : null,
+  ),
+),
     ),
     IconButton(
   icon: const Icon(
@@ -67,7 +79,7 @@ IconButton(
   ],
 ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             Row(
               children: [

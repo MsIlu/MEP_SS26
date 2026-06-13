@@ -15,7 +15,7 @@ class AppointmentInfoCard extends StatelessWidget {
   decoration: BoxDecoration(
     color: isDarkMode
         ? colorScheme.surface
-        : AppColors.careenaInfoBorder,
+        : const Color(0xFFE8F6F6),
 
     borderRadius: BorderRadius.circular(16),
 

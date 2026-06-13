@@ -24,6 +24,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   final timeController = TextEditingController();
   TimeOfDay? selectedTime;
 
+  String selectedFilter = 'Alle';
+
   Future<void> _pickDate() async {
     final pickedDate = await showDatePicker(
       context: context,
@@ -118,7 +120,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         title: Text(
           'Terminplanung',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
+            color: AppColors.careenaDark,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -140,30 +142,82 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Deine Termine',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppColors.careenaDark,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+
+            const SizedBox(height: 12),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+
+              child: Row(
+                children: [
+                  _buildFilterChip('Alle'),
+
+                  _buildFilterChip('Kommend'),
+
+                  _buildFilterChip('Vergangen'),
+
+                  _buildFilterChip('Erledigt'),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: controller.appointments,
                 builder: (context, appointments, child) {
+                  List<Appointment> filteredAppointments = List.from(
+                    appointments,
+                  );
+                  if (selectedFilter == 'Kommend') {
+                    filteredAppointments = filteredAppointments.where((
+                      appointment,
+                    ) {
+                      return appointment.appointmentDate.isAfter(
+                        DateTime.now(),
+                      );
+                    }).toList();
+                  }
+
+                  if (selectedFilter == 'Vergangen') {
+                    filteredAppointments = filteredAppointments.where((
+                      appointment,
+                    ) {
+                      return appointment.appointmentDate.isBefore(
+                        DateTime.now(),
+                      );
+                    }).toList();
+                  }
+
+                  if (selectedFilter == 'Erledigt') {
+                    filteredAppointments = filteredAppointments.where((
+                      appointment,
+                    ) {
+                      return appointment.isCompleted;
+                    }).toList();
+                  }
                   if (appointments.isEmpty) {
                     return const AppointmentEmptyState();
                   }
 
                   final sortedAppointments = [...appointments];
 
-sortedAppointments.sort(
-  (a, b) => a.appointmentDate.compareTo(
-    b.appointmentDate,
-  ),
-);
+                  sortedAppointments.sort(
+                    (a, b) => a.appointmentDate.compareTo(b.appointmentDate),
+                  );
 
                   return ListView.builder(
-                    itemCount: sortedAppointments.length,
+                    itemCount: filteredAppointments.length,
                     itemBuilder: (context, index) {
-                      final appointment = sortedAppointments[index];
+                      final appointment = filteredAppointments[index];
 
                       return AppointmentTile(
                         appointment: appointment,
@@ -391,6 +445,12 @@ sortedAppointments.sort(
                 selectedDate = null;
                 selectedTime = null;
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(
+    backgroundColor: AppColors.careenaTeal,
+    content: Text('Termin gespeichert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
+  ),
+);
                 setState(() {});
               },
               child: const Text('Speichern'),
@@ -424,6 +484,13 @@ sortedAppointments.sort(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 controller.removeAppointment(appointment.id);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(
+    backgroundColor: AppColors.careenaTeal,
+    content: Text('Termin gelöscht', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
+  ),
+);
 
                 Navigator.pop(context);
               },
@@ -599,42 +666,67 @@ sortedAppointments.sort(
           ),
 
           actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Abbrechen'),
-          ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Abbrechen'),
+            ),
 
-          FilledButton(
-            onPressed: () {
-              controller.updateAppointment(
-                Appointment(
-                  id: appointment.id,
-                  doctorName: doctorController.text.trim(),
-                  appointmentDate: DateTime(
-                    selectedDate?.year ??
-                        appointment.appointmentDate.year,
-                    selectedDate?.month ??
-                        appointment.appointmentDate.month,
-                    selectedDate?.day ??
-                        appointment.appointmentDate.day,
-                    selectedTime?.hour ??
-                        appointment.appointmentDate.hour,
-                    selectedTime?.minute ??
-                        appointment.appointmentDate.minute,
+            FilledButton(
+              onPressed: () {
+                controller.updateAppointment(
+                  Appointment(
+                    id: appointment.id,
+                    doctorName: doctorController.text.trim(),
+                    appointmentDate: DateTime(
+                      selectedDate?.year ?? appointment.appointmentDate.year,
+                      selectedDate?.month ?? appointment.appointmentDate.month,
+                      selectedDate?.day ?? appointment.appointmentDate.day,
+                      selectedTime?.hour ?? appointment.appointmentDate.hour,
+                      selectedTime?.minute ??
+                          appointment.appointmentDate.minute,
+                    ),
+                    note: noteController.text.trim(),
+                    isCompleted: appointment.isCompleted,
                   ),
-                  note: noteController.text.trim(),
-                  isCompleted: appointment.isCompleted,
-                ),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Speichern'),
-          ),
-        ],
-      );
-    },
-  );
-}
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(
+    backgroundColor: AppColors.careenaTeal,
+    content: Text('Termin aktualisiert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
+  ),
+);
+                Navigator.pop(context);
+              },
+              child: const Text('Speichern'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterChip(String label) {
+    final isSelected = selectedFilter == label;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+
+        selected: isSelected,
+
+        selectedColor: AppColors.careenaTeal,
+
+        labelStyle: TextStyle(color: isSelected ? Colors.white : null),
+
+        onSelected: (_) {
+          setState(() {
+            selectedFilter = label;
+          });
+        },
+      ),
+    );
+  }
 }

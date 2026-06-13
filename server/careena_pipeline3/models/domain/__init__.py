@@ -16,6 +16,13 @@ from careena_pipeline3.models.domain.observation_data import (
     MedicationObservationData,
     SymptomObservationData,
 )
+
+from careena_pipeline3.models.domain.guided_input import (
+    GuidedInputContract,
+    GuidedInputMode,
+    GuidedInputOption,
+)
+
 from careena_pipeline3.models.domain.provenance import Provenance
 from careena_pipeline3.models.domain.subject import Subject
 
@@ -36,4 +43,7 @@ __all__ = [
     "StagedFollowupAnswer",
     "Subject",
     "SymptomObservationData",
+    "GuidedInputContract",
+    "GuidedInputMode",
+    "GuidedInputOption",
 ]

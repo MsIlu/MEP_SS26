@@ -5,6 +5,11 @@ from typing import Literal
 
 from careena_pipeline3.models.common import PipelineModel
 from careena_pipeline3.models.common.types import DialogueTopicStatus, PlannerModule
+from careena_pipeline3.models.domain.guided_input import (
+    GuidedInputContract,
+    GuidedInputMode,
+    GuidedInputOption,
+)
 
 
 class StagedFollowupAnswer(PipelineModel):
@@ -36,6 +41,36 @@ class PendingSafetyClarification(PipelineModel):
     kind: Literal["red_flag_clarification"] = "red_flag_clarification"
     question_code: str = "raw_red_flag_clarification"
     source_stage: Literal["raw", "extraction", "case"] = "raw"
+    
+    guided_input: GuidedInputContract = Field(
+        default_factory=lambda: GuidedInputContract(
+            mode=GuidedInputMode.STRUCTURED_REQUIRED,
+            free_text_allowed=False,
+            options=[
+                GuidedInputOption(
+                    code="yes",
+                    label="Ja",
+                    effect_code="confirms_red_flag",
+                ),
+                GuidedInputOption(
+                    code="no",
+                    label="Nein",
+                    effect_code="clears_red_flag",
+                ),
+                GuidedInputOption(
+                    code="unsure",
+                    label="Ich bin unsicher",
+                    effect_code="keeps_clarification_open",
+                ),
+                GuidedInputOption(
+                    code="immediate_help",
+                    label="Ich brauche sofort Hilfe",
+                    effect_code="confirms_emergency",
+                ),
+            ],
+        )
+    )
+    
     evidence_terms: list[str] = Field(default_factory=list)
     focus_observation_id: str | None = None
 

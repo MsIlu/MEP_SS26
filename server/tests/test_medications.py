@@ -100,7 +100,7 @@ def test_create_medication_rejects_duplicate_active_schedule(client):
     assert first_response.status_code == 200
     assert duplicate_response.status_code == 409
     assert duplicate_response.json()["detail"] == (
-        "Medication already exists for this profile."
+        "Dieses Medikament existiert schon in diesem Profil."
     )
 
 
@@ -203,7 +203,9 @@ def test_patch_medication_rejects_duplicate_active_schedule(client):
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Medication already exists for this profile."
+    assert response.json()["detail"] == (
+        "Dieses Medikament existiert schon in diesem Profil."
+    )
 
 
 def test_delete_medication_soft_deletes_and_hides_entry(client, db_session):
@@ -217,7 +219,9 @@ def test_delete_medication_soft_deletes_and_hides_entry(client, db_session):
     )
 
     assert delete_response.status_code == 200
-    assert delete_response.json()["message"] == "Medication deleted successfully."
+    assert delete_response.json()["message"] == (
+        "Das Medikament wurde erfolgreich entfernt."
+    )
 
     entry = db_session.get(MedicationEntry, medication_id)
     assert entry is not None
@@ -235,7 +239,7 @@ def test_delete_medication_soft_deletes_and_hides_entry(client, db_session):
     assert list_response.status_code == 200
     assert list_response.json() == []
     assert get_response.status_code == 404
-    assert get_response.json()["detail"] == "Medication not found."
+    assert get_response.json()["detail"] == "Dieses Medikament wurde nicht gefunden."
 
 
 def test_medication_routes_require_profile_access(client):
@@ -262,7 +266,7 @@ def test_create_medication_requires_complete_second_intake_time(client):
 
     assert response.status_code == 400
     assert response.json()["detail"] == (
-        "Second intake time must include both hour and minute."
+        "Die zweite Einnahmezeit muss Stunde und Minute enthalten."
     )
 
 

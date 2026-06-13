@@ -1,4 +1,5 @@
 import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:app1/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_catalog_item.dart';
@@ -167,11 +168,10 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
       if (mounted) {
         Navigator.pop(context, true);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         setState(() {
-          _errorMessage =
-              'Medikament konnte nicht gespeichert werden. Bitte erneut versuchen.';
+          _errorMessage = _saveErrorMessage(error);
         });
       }
     } finally {
@@ -179,6 +179,14 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  String _saveErrorMessage(Object error) {
+    if (error is ApiException && error.statusCode == 409) {
+      return 'Dieses Medikament ist bereits in deinem Medikationsplan vorhanden.';
+    }
+
+    return 'Medikament konnte nicht gespeichert werden. Bitte erneut versuchen.';
   }
 
   /// Stores metadata from the demo catalog while keeping the text field editable.

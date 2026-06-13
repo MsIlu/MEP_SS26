@@ -206,7 +206,7 @@ def delete_medication(
     session.add(entry)
     session.commit()
 
-    return MedicationDeleteResponse(message="Medication deleted successfully.")
+    return MedicationDeleteResponse(message="Das Medikament wurde erfolgreich entfernt.")
 
 
 def _get_existing_medication(
@@ -227,7 +227,7 @@ def _get_existing_medication(
     if entry is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Medication not found.",
+            detail="Dieses Medikament wurde nicht gefunden.",
         )
 
     return entry
@@ -243,7 +243,7 @@ def _validate_second_intake_pair(
     if (second_intake_hour is None) != (second_intake_minute is None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Second intake time must include both hour and minute.",
+            detail="Die zweite Einnahmezeit muss Stunde und Minute enthalten.",
         )
 
 
@@ -286,7 +286,7 @@ def _ensure_medication_is_not_duplicate(
         ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Medication already exists for this profile.",
+                detail="Dieses Medikament existiert schon in diesem Profil.",
             )
 
 

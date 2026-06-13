@@ -23,6 +23,15 @@ class SafetyAction(str, Enum):
     EMERGENCY = "emergency"
 
 
+class SafetyClarificationOutcome(str, Enum):
+    """Result of resolving a structured safety clarification answer."""
+
+    CONFIRMED_RED_FLAG = "confirmed_red_flag"
+    CLEARED_RED_FLAG = "cleared_red_flag"
+    STILL_UNCLEAR = "still_unclear"
+    CONFIRMED_EMERGENCY = "confirmed_emergency"
+    INVALID_ANSWER = "invalid_answer"
+
 class SafetyState(PipelineModel):
     """Safety result for one pipeline turn.
 
@@ -76,3 +85,10 @@ class SafetyState(PipelineModel):
             and self.action == SafetyAction.ASK_SAFETY_CLARIFICATION
         )
         
+class SafetyClarificationResolution(PipelineModel):
+    """Resolution result for one structured safety clarification answer."""
+
+    outcome: SafetyClarificationOutcome
+    safety_state: SafetyState
+    clear_pending_clarification: bool = False
+    trace_notes: list[str] = Field(default_factory=list)

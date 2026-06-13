@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
-import '../theme/warning_theme.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
@@ -25,40 +25,9 @@ class WarningPage extends StatelessWidget {
         ? colorScheme.surface
         : AppColors.background;
 
-    final appBarColor = isDarkMode
-        ? colorScheme.surface
-        : Colors.white;
-
-    final titleColor = isDarkMode
-        ? colorScheme.onSurface
-        : WarningColors.darkText;
-
-    final iconColor = isDarkMode
-        ? AppColors.toolbarButtonBackgroundDark
-        : WarningColors.teal;
-
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: appBarColor,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: iconColor),
-          iconSize: 32,
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          WarningCopy.pageTitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: titleColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
+      appBar: const CareenaPageHeader(title: WarningCopy.pageTitle),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: WarningLayout.maxContentWidth,
@@ -72,10 +41,11 @@ class WarningPage extends StatelessWidget {
 
               ExportRecommendationPdfButton(
                 title: WarningCopy.pageTitle,
-                patientSummary: 'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                patientSummary:
+                    'Aus dem Chatverlauf generierte Handlungsempfehlung.',
                 recommendation: response.text,
                 nextSteps:
-                response.action ??
+                    response.action ??
                     'Bitte folgen Sie den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktieren Sie den Notruf 112.',
               ),
 

@@ -1,3 +1,4 @@
+import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 
 /// Handles chat-domain message operations without depending on Flutter UI state.
@@ -35,6 +36,28 @@ class ChatService {
     final updated = List<Message>.from(messages);
     updated[updated.length - 1] = message;
     return updated;
+  }
+
+  Message buildAssistantMessage(ChatResponse response) {
+    return Message(
+      text: response.text,
+      isUser: false,
+      canExportPdf: hasRecommendation(response),
+      exportTitle: 'Handlungsempfehlung',
+      exportRecommendation: response.text,
+      exportNextSteps: response.action,
+    );
+  }
+
+  bool hasRecommendation(ChatResponse response) {
+    final responseText = response.text.toLowerCase();
+
+    return (response.action != null && response.action!.trim().isNotEmpty) ||
+        responseText.contains('dringlichkeit:') ||
+        responseText.contains('empfohlene versorgungsebene:') ||
+        responseText.contains('nächster schritt:') ||
+        responseText.contains('naechster schritt:') ||
+        responseText.contains('hinweis:');
   }
 
   Stream<String> streamText(

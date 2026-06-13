@@ -27,6 +27,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+optional_oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/token",
+    auto_error=False,
+)
 
 def hash_password(password: str) -> str:
     """
@@ -67,16 +71,7 @@ def get_session():
         yield session
 
 
-def get_current_account(
-        token: str = Depends(oauth2_scheme),
-        session: Session = Depends(get_session),
-) -> User:
-    """
-    Validate the bearer token and return the currently authenticated account.
-
-    Raises 401 if the token is missing or invalid.
-    Raises 403 if the account is inactive.
-    """
+def _resolve_account_from_token(token: str, session: Session) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate authentication credentials.",
@@ -109,3 +104,26 @@ def get_current_account(
         )
 
     return account
+
+
+def get_current_account(
+        token: str = Depends(oauth2_scheme),
+        session: Session = Depends(get_session),
+) -> User:
+    """
+    Validate the bearer token and return the currently authenticated account.
+
+    Raises 401 if the token is missing or invalid.
+    Raises 403 if the account is inactive.
+    """
+    return _resolve_account_from_token(token, session)
+
+
+def get_optional_current_account(
+        token: str | None = Depends(optional_oauth2_scheme),
+        session: Session = Depends(get_session),
+) -> User | None:
+    if token is None:
+        return None
+
+    return _resolve_account_from_token(token, session)

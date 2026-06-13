@@ -139,10 +139,39 @@ def _migrate_legacy_user_schema():
             )
 
 
+def _migrate_chat_history_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    with engine.begin() as connection:
+        columns = _get_table_columns(connection, "chat_history")
+
+        if not columns:
+            return
+
+        connection.execute(
+            text("ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS title VARCHAR(80)")
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS is_emergency BOOLEAN DEFAULT FALSE"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE chat_history "
+                "SET is_emergency = FALSE "
+                "WHERE is_emergency IS NULL"
+            )
+        )
+
+
 #creates all tables from db_models.py
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
     _migrate_legacy_user_schema()
+    _migrate_chat_history_schema()
 
 #creates database-session
 def get_db_session():

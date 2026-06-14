@@ -26,6 +26,7 @@ class ChatHistoryScreen extends StatefulWidget {
 
 class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   late final Future<List<ChatHistoryEntry>> _entriesFuture;
+  _HistorySortOrder _sortOrder = _HistorySortOrder.descending;
 
   @override
   void initState() {
@@ -60,11 +61,22 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                 return const _EmptyChatHistory();
               }
 
-              final groups = _groupEntriesByMonth(entries);
+              final sortedEntries = _sortEntries(entries, _sortOrder);
+              final groups = _groupEntriesByMonth(sortedEntries);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: _HistorySortControl(
+                      value: _sortOrder,
+                      onChanged: (value) {
+                        setState(() => _sortOrder = value);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   for (final group in groups) _ChatHistoryGroup(group: group),
                 ],
               );
@@ -72,6 +84,60 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _HistorySortControl extends StatelessWidget {
+  final _HistorySortOrder value;
+  final ValueChanged<_HistorySortOrder> onChanged;
+
+  const _HistorySortControl({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode
+        ? AppColors.segmentedControlBackgroundDark
+        : AppColors.lightCard;
+    final foregroundColor = isDarkMode
+        ? AppColors.darkTextPrimary
+        : AppColors.careenaDark;
+    final selectedBackgroundColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaSoftAccent;
+    final selectedForegroundColor = isDarkMode
+        ? AppColors.toolbarButtonForegroundDark
+        : AppColors.careenaDark;
+    final borderColor = isDarkMode
+        ? AppColors.toolbarButtonBackgroundDark
+        : AppColors.careenaInfoBorder;
+
+    return SegmentedButton<_HistorySortOrder>(
+      segments: const [
+        ButtonSegment(
+          value: _HistorySortOrder.descending,
+          icon: Icon(Icons.south),
+          label: Text('Neueste'),
+        ),
+        ButtonSegment(
+          value: _HistorySortOrder.ascending,
+          icon: Icon(Icons.north),
+          label: Text('Älteste'),
+        ),
+      ],
+      selected: {value},
+      showSelectedIcon: false,
+      style: SegmentedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        selectedBackgroundColor: selectedBackgroundColor,
+        selectedForegroundColor: selectedForegroundColor,
+        side: BorderSide(color: borderColor, width: 1.5),
+      ),
+      onSelectionChanged: (selection) {
+        onChanged(selection.single);
+      },
     );
   }
 }
@@ -221,6 +287,15 @@ class _ChatHistoryTile extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
+                  _formatHistoryDate(entry.createdAt),
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
                   _formatHistoryTimestamp(entry.createdAt),
                   style: TextStyle(
                     color: colorScheme.onSurfaceVariant,
@@ -299,6 +374,13 @@ class ChatHistoryDetailScreen extends StatelessWidget {
   }
 }
 
+String _formatHistoryDate(DateTime value) {
+  final day = _twoDigits(value.day);
+  final month = _twoDigits(value.month);
+
+  return '$day.$month.${value.year}';
+}
+
 String _formatHistoryTimestamp(DateTime value) {
   final hour = _twoDigits(value.hour);
   final minute = _twoDigits(value.minute);
@@ -314,6 +396,20 @@ String _formatEntryCount(int count) {
   }
 
   return '$count Verläufe';
+}
+
+List<ChatHistoryEntry> _sortEntries(
+  List<ChatHistoryEntry> entries,
+  _HistorySortOrder sortOrder,
+) {
+  final sortedEntries = List<ChatHistoryEntry>.from(entries)
+    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  if (sortOrder == _HistorySortOrder.descending) {
+    return sortedEntries.reversed.toList();
+  }
+
+  return sortedEntries;
 }
 
 List<_HistoryMonthGroup> _groupEntriesByMonth(List<ChatHistoryEntry> entries) {
@@ -337,6 +433,8 @@ List<_HistoryMonthGroup> _groupEntriesByMonth(List<ChatHistoryEntry> entries) {
 
   return groups;
 }
+
+enum _HistorySortOrder { descending, ascending }
 
 class _HistoryMonthGroup {
   final int year;

@@ -255,12 +255,40 @@ void main() {
       expect(find.text('Kopfschmerzen'), findsOneWidget);
       expect(find.text('Halsschmerzen'), findsOneWidget);
       expect(find.text('Notfall'), findsOneWidget);
+      expect(find.text('13.06.2026'), findsOneWidget);
+      expect(find.text('12.06.2026'), findsOneWidget);
+      expect(find.text('20.05.2026'), findsOneWidget);
       expect(find.text('10:00 Uhr'), findsOneWidget);
       expect(find.text('09:30 Uhr'), findsOneWidget);
       expect(find.text('Ich habe Kopfschmerzen seit gestern'), findsOneWidget);
       expect(find.text('Richtig'), findsNothing);
       expect(find.text('Schwindel'), findsWidgets);
       expect(find.text('Husten'), findsNothing);
+      expect(find.text('Neueste'), findsOneWidget);
+      expect(find.text('Älteste'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Juni 2026')).dy,
+        lessThan(tester.getTopLeft(find.text('Mai 2026')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Kopfschmerzen')).dy,
+        lessThan(tester.getTopLeft(find.text('Halsschmerzen')).dy),
+      );
+
+      await tester.tap(find.text('Älteste'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(find.text('Mai 2026')).dy,
+        lessThan(tester.getTopLeft(find.text('Juni 2026')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Halsschmerzen')).dy,
+        lessThan(tester.getTopLeft(find.text('Kopfschmerzen')).dy),
+      );
+
+      await tester.tap(find.text('Neueste'));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Juni 2026'));
       await tester.pumpAndSettle();

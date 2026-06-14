@@ -5,8 +5,13 @@ import 'package:app1/core/themes/app_colors.dart';
 class HomeSearchBar extends StatelessWidget {
   /// Whether the field should use the narrow phone spacing.
   final bool isCompact;
+  final Key? guideTargetKey;
 
-  const HomeSearchBar({super.key, required this.isCompact});
+  const HomeSearchBar({
+    super.key,
+    required this.isCompact,
+    this.guideTargetKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +44,7 @@ class HomeSearchBar extends StatelessWidget {
         vertical: 15,
       ),
       child: TextField(
+        key: guideTargetKey,
         style: TextStyle(color: textColor),
         decoration: InputDecoration(
           hintText: 'Suchen...',

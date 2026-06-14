@@ -11,7 +11,9 @@ Verantwortlichkeiten der einzelnen Bereiche.
 
 `app1/lib` enthält das Flutter-Frontend. Die App startet im Onboarding, teilt
 eine Chat-Session über Onboarding, Home und Chat hinweg und öffnet bei einer
-medizinischen Red-Flag-Antwort des Backends einen eigenen Warning-Flow.
+medizinischen Red-Flag-Antwort des Backends einen eigenen Warning-Flow. Über
+das Home ist außerdem `Meine Medikamente` mit lokalen täglichen Erinnerungen
+und `Symptomtagebuch` für tägliches Symptomtracking erreichbar.
 
 ## Ordnerstruktur
 
@@ -48,6 +50,33 @@ app1/lib/
     |-- homescreen/
     |   |-- data/
     |   `-- presentation/
+    |-- medication_plan/
+    |   |-- data/
+    |   |-- presentation/
+    |   |   |-- controllers/
+    |   |   |-- screens/
+    |   |   |-- utils/
+    |   |   `-- widgets/
+    |   |       |-- actions/
+    |   |       |-- common/
+    |   |       |-- daily_plan/
+    |   |       |-- day_selector/
+    |   |       |-- form/
+    |   |       |-- list/
+    |   |       `-- summary/
+    |   `-- services/
+    |-- symptom_diary/
+    |   |-- data/
+    |   `-- presentation/
+    |       |-- controllers/
+    |       |-- screens/
+    |       |-- utils/
+    |       `-- widgets/
+    |-- settings/
+    |   `-- presentation/
+    |       |-- settings_icons.dart
+    |       |-- screens/
+    |       `-- widgets/
     |-- onboardingscreen/
     |   `-- presentation/
     `-- warningscreen/
@@ -57,7 +86,13 @@ app1/lib/
 ## App-Start
 
 `main.dart` bleibt bewusst klein. Die Datei erstellt `MyApp`; die langlebigen
-Abhängigkeiten werden in `_AppDependencyScope` gehalten.
+Abhängigkeiten werden in `_AppDependencyScope` gehalten. Die App setzt außerdem
+Deutsch als Material-Locale, damit Systemdialoge wie Time-Picker deutsche Texte
+verwenden.
+
+`ResponsivePageBody` legt eine `SelectionArea` um Seiteninhalte, damit normale
+sichtbare Texte innerhalb der App markiert und kopiert werden können, ohne
+jedes Text-Widget einzeln anzupassen.
 
 `app/app_dependencies.dart` ist der Composition Root der App. Dort werden diese
 Objekte einmal erstellt und gemeinsam verwendet:
@@ -98,6 +133,19 @@ Controller keine rohen Exception-Texte auswerten müssen.
 `core/widgets/responsive_frame.dart` enthält gemeinsame Layout-Wrapper für
 Maximalbreiten, Padding und Scroll-Verhalten.
 
+## Settings-Feature
+
+`features/settings` trennt die durchsuchbare Einstellungsübersicht von den
+komplexeren Detailseiten. `SettingsPage` koordiniert nur Suche und Navigation.
+Wiederverwendbare Listen, Suchfeld, Panels und die feste Abmelde-Aktion liegen
+in `presentation/widgets/settings_components.dart`.
+Zusammengehörige Icons für Übersicht und Detailseiten liegen zentral in
+`presentation/settings_icons.dart`.
+
+`SettingsDetailScaffold` stellt Header, responsive Breite und Scrollverhalten
+für Detailseiten bereit. Sein einleitender Abschnitt kann ausgeblendet werden,
+wenn ein eingebetteter Bereich bereits eine eigene Überschrift besitzt.
+
 ## Chat-Feature
 
 `features/chatscreen/controllers/chat_controller.dart` koordiniert Chat-State,
@@ -122,6 +170,65 @@ für die Chat-Oberfläche.
 
 `features/chatscreen/utils` enthält kleine Frontend-Helfer wie Smart Replies und
 medizinische Begriffserklärungen.
+
+## Medication-Plan-Feature
+
+`features/medication_plan` enthält `Meine Medikamente` für selbst gepflegte
+Medikamenteneinträge. Nutzer erfassen Medikament, Dosis und Einnahmezeit und
+können pro Eintrag eine tägliche Push-Erinnerung aktivieren.
+
+Die Verantwortlichkeiten sind getrennt in:
+
+- `data`: `MedicationEntry`, `MedicationCatalogItem`,
+  `DemoMedicationCatalog`, `DoseUnitCatalog`, `MedicationFrequency` und
+  `MedicationRepository` für lokale Persistenz, Einnahmehäufigkeiten sowie eine
+  bewusst einfache Demo-Katalogsuche mit anwendernahen Arzneimitteldaten und
+  Dosis-Einheiten
+- `services`: `MedicationNotificationService` für lokale tägliche
+  Benachrichtigungen über `flutter_local_notifications`
+- `presentation/controllers`: `MedicationPlanController` für Laden, Speichern,
+  Löschen, Sortieren und Reminder-Synchronisierung
+- `presentation/screens`: `MedicationPlanPage` als Scaffold- und
+  Navigationsschicht
+- `presentation/models`: `PlannedMedicationDose` als Presentation-Modell für
+  einzelne geplante Einnahmen
+- `presentation/utils`: kleine Formatierungs- und Planungshelfer wie die
+  24-Stunden-Anzeige von Einnahmezeiten, deutsche Datumslabels und die
+  Erzeugung geplanter Tagesdosen für Tagesplan und Datumsleisten-Marker
+- `presentation/widgets/actions`: untere Aktionsbuttons für Hinzufügen und
+  Verwaltung
+- `presentation/widgets/common`: kleine wiederverwendbare Bausteine wie Titel
+  und Empty-State
+- `presentation/widgets/daily_plan`: Tagesplan und Einnahme-Abhaken
+- `presentation/widgets/day_selector`: scrollbare Tagesleiste mit
+  Monatsmarkierungen
+- `presentation/widgets/form`: Formular, Arzneimittel-Autocomplete,
+  Einheiten-Autocomplete, Katalogdetails, Frequenzauswahl, Zeit-Auswahl und
+  Formular-Dialogzustand
+- `presentation/widgets/layout`: Seitenlayout für den Medikamentenplan, damit
+  `MedicationPlanPage` Navigation und Dialog-Orchestrierung fokussiert hält
+- `presentation/widgets/list`: Verwaltungsdialog, Liste und Eintragskarten
+- `presentation/widgets/summary`: zusammenfassende Darstellungen für gespeicherte
+  Medikamente
+
+## Symptom-Diary-Feature
+
+`features/symptom_diary` enthält das `Symptomtagebuch` für kurze tägliche
+Symptomeinträge. Nutzer erfassen Symptom, betroffene Körperstelle, Intensität
+von 1 bis 10 und optional eine Notiz. Die Einträge werden lokal gespeichert und
+pro Kalendertag angezeigt.
+
+Die Verantwortlichkeiten sind getrennt in:
+
+- `data`: `SymptomEntry` und `SymptomRepository` für lokale Persistenz über
+  `SharedPreferences`
+- `presentation/controllers`: `SymptomDiaryController` für Laden, Speichern,
+  Löschen, Tagesfilterung und Durchschnittsberechnung
+- `presentation/screens`: `SymptomDiaryPage` als Scaffold-, Datums- und
+  State-Orchestrierung
+- `presentation/utils`: deutsche Datumslabels und Kalendervergleich
+- `presentation/widgets`: Tageskopf, Tageszusammenfassung, Eingabeformular und
+  Eintragsliste
 
 ## Warning-Feature
 
@@ -201,6 +308,13 @@ Das Frontend enthält jetzt fokussierte Tests für:
 - Warning-Page-Rendering
 - `ChatService`-Transformationen
 - `ChatResponse.fromJson`
+- Medikamentenplan-Planungslogik unter
+  `test/features/medication_plan/presentation/utils`
+- Medikamentenplan-Widgets unter
+  `test/features/medication_plan/presentation/widgets`, unter anderem
+  Tagesplan, `Eingenommen`-Status und untere Aktionen
+- Symptomtagebuch-Controller unter
+  `test/features/symptom_diary/presentation/controllers`
 
 Sinnvolle nächste Testziele sind Controller-Fehlerpfade, API-Exceptions und die
 Red-Flag-Navigation.

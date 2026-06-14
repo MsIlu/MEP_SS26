@@ -11,6 +11,7 @@ from careena_pipeline3.models.domain.dialogue import (
     DialogueState,
     PendingChoicePrompt,
     PendingFollowup,
+    PendingSafetyClarification,
     StagedFollowupAnswer,
 )
 from careena_pipeline3.models.domain.observation import CaseObservation
@@ -21,6 +22,13 @@ from careena_pipeline3.models.domain.observation_data import (
     MedicationObservationData,
     SymptomObservationData,
 )
+
+from careena_pipeline3.models.domain.guided_input import (
+    GuidedInputContract,
+    GuidedInputMode,
+    GuidedInputOption,
+)
+
 from careena_pipeline3.models.domain.provenance import Provenance
 from careena_pipeline3.models.domain.subject import Subject
 
@@ -40,8 +48,12 @@ __all__ = [
     "MedicationObservationData",
     "PendingChoicePrompt",
     "PendingFollowup",
+    "PendingSafetyClarification",
     "Provenance",
     "StagedFollowupAnswer",
     "Subject",
     "SymptomObservationData",
+    "GuidedInputContract",
+    "GuidedInputMode",
+    "GuidedInputOption",
 ]

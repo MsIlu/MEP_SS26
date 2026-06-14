@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../models/auth_review_item.dart';
 import '../../theme/auth_theme.dart';
 
@@ -20,11 +18,19 @@ class AuthReviewBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final boxColor = isDarkMode ? colorScheme.surface : Colors.white;
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: boxColor,
         borderRadius: BorderRadius.circular(AuthTheme.fieldRadius),
-        border: Border.all(color: AppColors.careenaBorder),
+        border: Border.all(color: borderColor),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -32,11 +38,11 @@ class AuthReviewBox extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _ReviewHeader(title: title, onEdit: onEdit),
-            const Divider(height: 22, color: AppColors.careenaBorder),
+            Divider(height: 22, color: borderColor),
             for (var index = 0; index < items.length; index++) ...[
               _ReviewRow(item: items[index]),
               if (index < items.length - 1)
-                const Divider(height: 22, color: AppColors.careenaBorder),
+                Divider(height: 22, color: borderColor),
             ],
           ],
         ),
@@ -53,18 +59,25 @@ class _ReviewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final iconColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaTitle;
+
     return Row(
       children: [
         Expanded(
           child: Text(
             title,
-            style: AuthTheme.sectionTitleStyle().copyWith(fontSize: 16),
+            style: AuthTheme.sectionTitleStyle(context).copyWith(fontSize: 16),
           ),
         ),
         IconButton(
           tooltip: '$title bearbeiten',
           onPressed: onEdit,
-          icon: const Icon(Icons.edit_outlined, color: AppColors.careenaTitle),
+          icon: Icon(Icons.edit_outlined, color: iconColor),
         ),
       ],
     );
@@ -78,6 +91,17 @@ class _ReviewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final labelColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaTitle;
+
+    final valueColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,9 +109,9 @@ class _ReviewRow extends StatelessWidget {
           width: 148,
           child: Text(
             item.label,
-            style: GoogleFonts.nunito(
+            style: TextStyle(
               fontWeight: FontWeight.w800,
-              color: AppColors.careenaTitle,
+              color: labelColor,
             ),
           ),
         ),
@@ -95,7 +119,7 @@ class _ReviewRow extends StatelessWidget {
         Expanded(
           child: Text(
             item.value,
-            style: GoogleFonts.nunito(color: AppColors.careenaBody),
+            style: TextStyle(color: valueColor),
           ),
         ),
       ],

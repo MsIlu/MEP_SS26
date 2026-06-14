@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
 /// Shared button widgets for Careena flows.
@@ -52,7 +50,7 @@ class CareenaButton extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             text,
-            style: GoogleFonts.nunito(
+            style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
               color: foregroundColor,
@@ -71,14 +69,31 @@ class AuthDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final dividerColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : Colors.grey.shade500;
+
+    final textColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
     return Row(
       children: [
-        Expanded(child: Divider(color: Colors.grey.shade500, thickness: 1)),
+        Expanded(child: Divider(color: dividerColor, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(text, style: GoogleFonts.nunito(fontSize: 14)),
+          child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor,
+              ),
+          ),
         ),
-        Expanded(child: Divider(color: Colors.grey.shade500, thickness: 1)),
+        Expanded(child: Divider(color: dividerColor, thickness: 1)),
       ],
     );
   }
@@ -98,11 +113,18 @@ class SwitchAuthMode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final labelColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
     return Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(label, style: GoogleFonts.nunito(color: AppColors.careenaBody)),
+        Text(label, style: TextStyle(color: labelColor)),
         TextButton(onPressed: onPressed, child: Text(actionText)),
       ],
     );

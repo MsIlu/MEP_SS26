@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import '../../utils/medical_terms.dart';
-import '../themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
+import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -26,6 +27,28 @@ class ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = message.isUser;
     final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final avatarBackground = isDarkMode
+        ? const Color(0xFF86B2B2)
+        : const Color(0xFFC3E7E7);
+
+    final bubbleColor = isUser
+        ? AppColors.careenaTeal
+        : isDarkMode
+        ? colorScheme.surface
+        : Colors.white;
+
+    final textColor = isUser
+        ? Colors.white
+        : isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.10);
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -48,10 +71,16 @@ class ChatBubble extends StatelessWidget {
             children: [
               // Assistant avatar.
               if (!isUser) ...[
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 16,
-                  backgroundColor: AppColors.careenaBubbleBackground,
-                  backgroundImage: AssetImage(AppAssets.careenaDoctor),
+                  backgroundColor: avatarBackground,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Image.asset(
+                      AppAssets.careenaProfil,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -63,18 +92,23 @@ class ChatBubble extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: isUser ? AppColors.careenaTeal : Colors.white,
+                    color: bubbleColor,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
+
+                    border: !isUser && !isDarkMode
+                        ? Border.all(color: Colors.grey.shade200, width: 1)
+                        : null,
+
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+                        color: shadowColor,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -83,13 +117,23 @@ class ChatBubble extends StatelessWidget {
                     children: [
                       Text(
                         message.text,
-                        style: TextStyle(
-                          color: isUser ? Colors.white : AppColors.careenaDark,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 15),
                       ),
                       if (medicalTerm != null)
                         MedicalTermInfoBox(term: medicalTerm),
+                      if (!isUser &&
+                          message.canExportPdf &&
+                          !message.isStreaming) ...[
+                        const SizedBox(height: 12),
+                        ExportRecommendationPdfButton(
+                          title: message.exportTitle ?? 'Handlungsempfehlung',
+                          patientSummary:
+                              'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                          recommendation:
+                              message.exportRecommendation ?? message.text,
+                          nextSteps: message.exportNextSteps ?? '',
+                        ),
+                      ],
                     ],
                   ),
                 ),

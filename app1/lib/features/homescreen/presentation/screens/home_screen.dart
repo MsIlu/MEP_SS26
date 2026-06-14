@@ -1,45 +1,110 @@
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
+import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
+import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
+import 'package:app1/features/settings/presentation/screens/settings_page.dart';
+import 'package:app1/features/authscreen/data/auth_api_service.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter/material.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 import '../../data/home_feature.dart';
 import '../widgets/careena_hero_card.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/home_function_list.dart';
-import '../widgets/home_header.dart';
 import '../widgets/home_search_bar.dart';
+import '../../../../core/themes/theme_controller.dart';
 
 /// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatelessWidget {
   /// Shared chat controller reused when opening the chat from the home screen.
   final ChatController controller;
 
-  const HomeScreen({super.key, required this.controller});
+  /// Shared theme controller used to switch between light and dark mode.
+  final ThemeController themeController;
+  final AuthSession? authSession;
+  final AuthApiService? authApiService;
+
+  const HomeScreen({
+    super.key,
+    required this.controller,
+    required this.themeController,
+    this.authSession,
+    this.authApiService,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final features = _buildFeatures();
+    final features = _buildFeatures(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // A very small width needs tighter horizontal spacing than the shared
     // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode
+          ? Theme.of(context).scaffoldBackgroundColor
+          : AppColors.headerBackgroundLight,
+      appBar: CareenaPageHeader(
+        title: 'Willkommen!',
+        showBack: false,
+        trailing: themeController.isSimpleView
+            ? null
+            : CareenaThemeHeaderAction(
+                onPressed: themeController.toggleTheme,
+                isDarkMode: themeController.isDarkMode,
+              ),
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 720,
           child: Column(
             children: [
-              HomeHeader(isCompact: isCompact),
-              CareenaHeroCard(onTap: () => _navigateToChat(context)),
-              HomeSearchBar(isCompact: isCompact),
-              HomeFunctionList(features: features),
+              CareenaHeroCard(
+                onTap: () => _navigateToChat(context),
+                isSimpleView: themeController.isSimpleView,
+              ),
+              if (!themeController.isSimpleView)
+                HomeSearchBar(isCompact: isCompact),
+              HomeFunctionList(
+                features: features,
+                isSimpleView: themeController.isSimpleView,
+              ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(),
+      bottomNavigationBar: CustomBottomNav(
+        isSimpleView: themeController.isSimpleView,
+        onTap: (index) => _onBottomNavigationTap(context, index),
+      ),
+    );
+  }
+
+  void _onBottomNavigationTap(BuildContext context, int index) {
+    if (themeController.isSimpleView && index == 1) {
+      _openSettings(context);
+      return;
+    }
+
+    if (index == 2) {
+      _navigateToChat(context);
+    } else if (index == 3) {
+      _openSettings(context);
+    }
+  }
+
+  void _openSettings(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsPage(
+          themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
+        ),
+      ),
     );
   }
 
@@ -48,13 +113,16 @@ class HomeScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatScreen(controller: controller),
+        builder: (context) => ChatScreen(
+          controller: controller,
+          themeController: themeController,
+        ),
       ),
     );
   }
 
   /// Defines the currently available home features.
-  List<HomeFeature> _buildFeatures() {
+  List<HomeFeature> _buildFeatures(BuildContext context) {
     const featureColor = AppColors.careenaInfoBorder;
 
     return [
@@ -66,9 +134,9 @@ class HomeScreen extends StatelessWidget {
       ),
       HomeFeature(
         icon: Icons.medication,
-        title: "Medikamente",
+        title: "Medikamentenplan",
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToMedicationPlan(context),
       ),
       HomeFeature(
         icon: Icons.description_outlined,
@@ -86,8 +154,28 @@ class HomeScreen extends StatelessWidget {
         icon: Icons.menu_book_outlined,
         title: "Symptomtagebuch",
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToSymptomDiary(context),
       ),
     ];
+  }
+
+  void _navigateToMedicationPlan(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            MedicationPlanPage(themeController: themeController),
+      ),
+    );
+  }
+
+  void _navigateToSymptomDiary(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            SymptomDiaryPage(themeController: themeController),
+      ),
+    );
   }
 }

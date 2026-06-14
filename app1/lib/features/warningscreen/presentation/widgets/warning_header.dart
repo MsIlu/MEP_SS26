@@ -65,10 +65,17 @@ class _WarningHeaderCopy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final bodyColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : WarningColors.darkText;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           WarningCopy.headerTitle,
           style: TextStyle(
             color: WarningColors.warningRed,
@@ -76,11 +83,11 @@ class _WarningHeaderCopy extends StatelessWidget {
             fontSize: 17,
           ),
         ),
-        SizedBox(height: 7),
+        const SizedBox(height: 7),
         Text(
           WarningCopy.headerBody,
           style: TextStyle(
-            color: WarningColors.darkText,
+            color: bodyColor,
             fontSize: 13,
             height: 1.35,
           ),

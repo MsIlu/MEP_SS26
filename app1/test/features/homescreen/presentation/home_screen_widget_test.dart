@@ -1,41 +1,143 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
-import 'package:app1/features/chat/controllers/chat_controller.dart';
-import 'package:app1/features/chat/data/chat_api.dart';
-import 'package:app1/features/chat/services/chat_service.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/core/network/api_client.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/data/chat_api.dart';
+import 'package:app1/features/chatscreen/services/chat_service.dart';
+import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:app1/features/authscreen/state/auth_session.dart';
 
-/// HomeScreen Widget- und Integrationstest
-/// 
-/// Dieser Widget-Test überprüft die visuelle Präsentationsschicht des Hauptbildschirms.
-/// Da wir echte UI-Komponenten rendern, testen wir hier:
-/// 1. Wird die Willkommens-Überschrift korrekt für den Patienten dargestellt?
-/// 2. Existiert die interaktive Careena-Karte, über die man den Chat aufruft?
+/// Widget tests for the home screen presentation layer.
 void main() {
-  group('HomeScreen - UI & Widget-Rendering Tests', () {
-    
-    testWidgets('Sollte den Willkommenstext und die Careena-Aufforderungskarte korrekt auf dem Screen rendern', (WidgetTester tester) async {
-      // Setup: Mock-Abhängigkeiten aufbauen, um das HomeScreen-Widget lauffähig in die Testumgebung zu laden
+  group('HomeScreen', () {
+    testWidgets('renders the welcome area and Careena entry card', (
+      WidgetTester tester,
+    ) async {
+      // The home screen needs the same controllers it receives in production.
       final apiClient = ApiClient(http.Client());
       final chatApi = ChatApi(apiClient);
-      final controller = ChatController(chatApi: chatApi, chatService: ChatService());
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: AuthSession(),
+      );
+      final themeController = ThemeController();
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
 
-      // Execution: Widget in den virtuellen Test-Bildschirm "pumpen"
       await tester.pumpWidget(
         MaterialApp(
-          home: HomeScreen(controller: controller),
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+          ),
         ),
       );
 
-      // Verification 1: Prüfen, ob das Begrüßungs-Text-Widget existiert
-      expect(find.text('Willkommen!'), findsOneWidget, 
-          reason: 'Der Willkommensgruß muss auf der Startseite gut sichtbar gerendert werden.');
+      expect(find.text('Willkommen!'), findsOneWidget);
+      expect(find.textContaining('Ich bin Careena!'), findsOneWidget);
+      expect(find.text('Medikamentenplan'), findsOneWidget);
+    });
 
-      // Verification 2: Prüfen, ob der Text auf der Hero-Card vorhanden ist
-      expect(find.textContaining('Ich bin Careena!'), findsOneWidget,
-          reason: 'Die Einstiegskarte für den Chatbot muss für den Nutzer sofort ins Auge springen.');
+    testWidgets('simple view removes distractions and enlarges navigation', (
+      WidgetTester tester,
+    ) async {
+      final apiClient = ApiClient(http.Client());
+      final controller = ChatController(
+        chatApi: ChatApi(apiClient),
+        chatService: ChatService(),
+        authSession: AuthSession(),
+      );
+      final themeController = ThemeController()..setSimpleView(true);
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+          ),
+        ),
+      );
+
+      expect(find.text('Suchen...'), findsNothing);
+      expect(find.text('Was möchtest du tun?'), findsOneWidget);
+      expect(find.text('Kalender'), findsNothing);
+      expect(find.text('Nachrichten'), findsNothing);
+      expect(find.text('Einstellungen'), findsOneWidget);
+
+      final iconBackground = find.byKey(
+        const ValueKey('feature-icon-background-Terminplanung'),
+      );
+      final iconBox = tester.getSize(iconBackground);
+
+      expect(iconBox, const Size.square(64));
+    });
+
+    testWidgets('uses the Careena light home palette', (
+      WidgetTester tester,
+    ) async {
+      final controller = ChatController(
+        chatApi: ChatApi(ApiClient(http.Client())),
+        chatService: ChatService(),
+        authSession: AuthSession(),
+      );
+      final themeController = ThemeController()..setThemeMode(ThemeMode.light);
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+          ),
+        ),
+      );
+
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+      final featureCard = tester.widget<Material>(
+        find.byKey(const ValueKey('home-feature-card-Terminplanung')),
+      );
+
+      expect(scaffold.backgroundColor, AppColors.headerBackgroundLight);
+      expect(featureCard.color, AppColors.lightCard);
+      expect(featureCard.shadowColor, AppColors.careenaBorder);
+    });
+
+    testWidgets('keeps elevated feature cards in dark mode', (
+      WidgetTester tester,
+    ) async {
+      final controller = ChatController(
+        chatApi: ChatApi(ApiClient(http.Client())),
+        chatService: ChatService(),
+        authSession: AuthSession(),
+      );
+      final themeController = ThemeController()..setThemeMode(ThemeMode.dark);
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+          ),
+        ),
+      );
+
+      final featureCard = tester.widget<Material>(
+        find.byKey(const ValueKey('home-feature-card-Terminplanung')),
+      );
+
+      expect(featureCard.elevation, 2);
+      expect(featureCard.shadowColor, AppColors.darkBackground);
     });
   });
 }

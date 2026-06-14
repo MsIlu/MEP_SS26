@@ -123,11 +123,12 @@ class ResponseManager:
         extraction_safety: SafetyState,
         case_safety: SafetyState,
     ) -> ResponseState:
+        
         safety_override = None
         if (
-            raw_safety.red_flag_detected
-            or extraction_safety.red_flag_detected
-            or case_safety.red_flag_detected
+            raw_safety.requires_emergency_response
+            or extraction_safety.requires_emergency_response
+            or case_safety.requires_emergency_response
         ):
             safety_override = "emergency"
 

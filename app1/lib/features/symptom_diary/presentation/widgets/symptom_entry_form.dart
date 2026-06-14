@@ -1,0 +1,304 @@
+import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/features/authscreen/presentation/widgets/registration/registration_step_indicator.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:flutter/material.dart';
+
+import '../utils/symptom_body_area.dart';
+import 'body_area_selector.dart';
+import 'symptom_details_step.dart';
+import 'symptom_selection_step.dart';
+
+const _symptomSuggestions = [
+  'Kopfschmerzen',
+  'Müdigkeit',
+  'Übelkeit',
+  'Schwindel',
+  'Husten',
+  'Schmerzen',
+  'Fieber',
+  'Schlafprobleme',
+];
+
+enum _SymptomEntryStep {
+  symptom,
+  bodyArea,
+  details;
+
+  String get label {
+    return switch (this) {
+      _SymptomEntryStep.symptom => 'Symptom',
+      _SymptomEntryStep.bodyArea => 'Körper-\nstelle',
+      _SymptomEntryStep.details => 'Details',
+    };
+  }
+}
+
+/// Coordinates the multi-step form for one symptom diary entry.
+class SymptomEntryForm extends StatefulWidget {
+  final Future<void> Function({
+    required String symptom,
+    required String bodyArea,
+    required int intensity,
+    required String note,
+  })
+  onSave;
+  final VoidCallback? onCancel;
+  final VoidCallback? onSaved;
+
+  const SymptomEntryForm({
+    super.key,
+    required this.onSave,
+    this.onCancel,
+    this.onSaved,
+  });
+
+  @override
+  State<SymptomEntryForm> createState() => _SymptomEntryFormState();
+}
+
+class _SymptomEntryFormState extends State<SymptomEntryForm> {
+  final _symptomController = TextEditingController();
+  final _noteController = TextEditingController();
+
+  String _bodyArea = '';
+  int _currentStepIndex = 0;
+  int _intensity = 5;
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _symptomController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDarkMode
+              ? colorScheme.outlineVariant.withValues(alpha: 0.55)
+              : AppColors.careenaBorder,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _FormHeader(onCancel: widget.onCancel),
+          const SizedBox(height: 12),
+          RegistrationStepIndicator(
+            currentStep: _currentStepIndex,
+            labels: _stepLabels,
+            onStepSelected: _selectStep,
+          ),
+          const SizedBox(height: 16),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: KeyedSubtree(
+              key: ValueKey(_currentStep),
+              child: _buildStepContent(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CareenaStepNavigation(
+            backLabel: _isFirstStep ? 'Abbrechen' : 'Zurück',
+            nextLabel: _isLastStep ? 'Speichern' : 'Weiter',
+            backIcon: _isFirstStep ? Icons.close : Icons.arrow_back,
+            nextIcon: _isLastStep ? Icons.add : Icons.arrow_forward,
+            isBusy: _isSaving,
+            onBack: _isFirstStep ? widget.onCancel : _goToPreviousStep,
+            onNext: _isLastStep ? _save : _goToNextStep,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepContent() {
+    return switch (_currentStep) {
+      _SymptomEntryStep.symptom => SymptomSelectionStep(
+        suggestions: _symptomSuggestions,
+        filteredSuggestions: _filteredSuggestions,
+        controller: _symptomController,
+        onChanged: _updateSymptom,
+        onSelected: _selectSymptom,
+        onSubmitted: _goToNextStep,
+      ),
+      _SymptomEntryStep.bodyArea => BodyAreaSelector(
+        selectedArea: _bodyArea,
+        onChanged: (area) => setState(() => _bodyArea = area),
+      ),
+      _SymptomEntryStep.details => SymptomDetailsStep(
+        intensity: _intensity,
+        noteController: _noteController,
+        onIntensityChanged: (value) => setState(() => _intensity = value),
+      ),
+    };
+  }
+
+  void _selectStep(int index) {
+    setState(() => _currentStepIndex = index.clamp(0, _lastStepIndex));
+  }
+
+  void _goToPreviousStep() {
+    setState(() => _currentStepIndex--);
+  }
+
+  void _goToNextStep() {
+    if (_currentStep == _SymptomEntryStep.symptom && _symptom.isEmpty) {
+      _showMissingSymptomMessage();
+      return;
+    }
+
+    setState(() {
+      _currentStepIndex = (_currentStepIndex + 1).clamp(0, _lastStepIndex);
+    });
+  }
+
+  Future<void> _save() async {
+    if (_symptom.isEmpty) {
+      _showMissingSymptomMessage();
+      setState(() => _currentStepIndex = 0);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    await widget.onSave(
+      symptom: _symptom,
+      bodyArea: _needsBodyArea ? _bodyArea : '',
+      intensity: _intensity,
+      note: _noteController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    _resetForm();
+    widget.onSaved?.call();
+  }
+
+  void _selectSymptom(String symptom) {
+    _symptomController.text = symptom;
+    _symptomController.selection = TextSelection.collapsed(
+      offset: symptom.length,
+    );
+    _updateSymptom(symptom);
+  }
+
+  void _updateSymptom(String symptom) {
+    final suggestedArea = suggestedBodyAreaForSymptom(symptom);
+
+    setState(() {
+      if (!symptomNeedsBodyArea(symptom)) {
+        _bodyArea = '';
+        _clampCurrentStepToActiveFlow();
+        return;
+      }
+
+      if (_bodyArea.isEmpty && suggestedArea.isNotEmpty) {
+        _bodyArea = suggestedArea;
+      }
+    });
+  }
+
+  void _resetForm() {
+    _symptomController.clear();
+    _noteController.clear();
+    setState(() {
+      _bodyArea = '';
+      _currentStepIndex = 0;
+      _intensity = 5;
+      _isSaving = false;
+    });
+  }
+
+  void _showMissingSymptomMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bitte ein Symptom eintragen')),
+    );
+  }
+
+  void _clampCurrentStepToActiveFlow() {
+    if (_currentStepIndex > _lastStepIndex) {
+      _currentStepIndex = _lastStepIndex;
+    }
+  }
+
+  String get _symptom => _symptomController.text.trim();
+  bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
+  bool get _isFirstStep => _currentStepIndex == 0;
+  bool get _isLastStep => _currentStepIndex == _lastStepIndex;
+  int get _lastStepIndex => _activeSteps.length - 1;
+
+  List<String> get _stepLabels {
+    return _activeSteps.map((step) => step.label).toList(growable: false);
+  }
+
+  List<_SymptomEntryStep> get _activeSteps {
+    return _needsBodyArea
+        ? const [
+            _SymptomEntryStep.symptom,
+            _SymptomEntryStep.bodyArea,
+            _SymptomEntryStep.details,
+          ]
+        : const [_SymptomEntryStep.symptom, _SymptomEntryStep.details];
+  }
+
+  _SymptomEntryStep get _currentStep {
+    return _activeSteps[_currentStepIndex.clamp(0, _lastStepIndex)];
+  }
+
+  List<String> get _filteredSuggestions {
+    final query = _symptom.toLowerCase();
+    if (query.isEmpty) {
+      return const [];
+    }
+
+    return _symptomSuggestions
+        .where(
+          (suggestion) =>
+              suggestion.toLowerCase().contains(query) &&
+              suggestion != _symptom,
+        )
+        .toList(growable: false);
+  }
+}
+
+class _FormHeader extends StatelessWidget {
+  final VoidCallback? onCancel;
+
+  const _FormHeader({required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Symptom eintragen',
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        if (onCancel != null)
+          CareenaIconActionButton.close(
+            tooltip: 'Abbrechen',
+            onPressed: onCancel,
+          ),
+      ],
+    );
+  }
+}

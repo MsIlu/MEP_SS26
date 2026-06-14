@@ -1,26 +1,55 @@
 import 'package:flutter/material.dart';
+import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/presentation/screens/login_screen.dart';
 import '../../../authscreen/presentation/screens/registration_screen.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
 import '../../../chatscreen/presentation/screens/chat_screen.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
-import '../widgets/onboarding_header.dart';
 import '../widgets/onboarding_hero_card.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import '../../../../core/widgets/careena_page_header.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../../../authscreen/data/auth_api_service.dart';
 
 /// Entry screen that introduces Careena and routes users into chat or home.
 class OnboardingScreen extends StatelessWidget {
   /// Shared chat controller passed forward so later screens keep one session.
   final ChatController chatController;
 
-  const OnboardingScreen({super.key, required this.chatController});
+  /// Shared theme controller used to switch between light and dark mode.
+  final ThemeController themeController;
+
+  final AuthSession authSession;
+
+  final AuthApiService authApiService;
+
+  const OnboardingScreen({
+    super.key,
+    required this.chatController,
+    required this.themeController,
+    required this.authSession,
+    required this.authApiService,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.careenaBackground,
+      backgroundColor: isDarkMode
+          ? Theme.of(context).scaffoldBackgroundColor
+          : AppColors.onboardingBackgroundLight,
+      appBar: CareenaPageHeader(
+        title: 'MedBitAid',
+        showBack: false,
+        trailing: CareenaThemeHeaderAction(
+          onPressed: themeController.toggleTheme,
+          isDarkMode: themeController.isDarkMode,
+        ),
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 560,
@@ -37,10 +66,72 @@ class OnboardingScreen extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const OnboardingHeader(),
-                  const SizedBox(height: 10),
                   OnboardingHeroCard(onPressed: () => _navigateToChat(context)),
                   const SizedBox(height: 24),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? colorScheme.surface : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.careenaTeal,
+                          width: 2,
+                        ),
+                      ),
+
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: isDarkMode
+                                ? Colors.white
+                                : AppColors.careenaTeal,
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Hinweis',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : AppColors.careenaTeal,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  'Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
+                                  'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: horizontalPadding,
@@ -50,8 +141,8 @@ class OnboardingScreen extends StatelessWidget {
                         CareenaButton(
                           text: 'Anmelden',
                           onPressed: () => _navigateToLogin(context),
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.onboardingButtonText,
+                          backgroundColor: colorScheme.surface,
+                          foregroundColor: colorScheme.onSurface,
                           borderRadius: 22,
                           elevation: 2,
                         ),
@@ -61,8 +152,8 @@ class OnboardingScreen extends StatelessWidget {
                         CareenaButton(
                           text: 'Registrieren',
                           onPressed: () => _navigateToRegistration(context),
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.onboardingButtonText,
+                          backgroundColor: colorScheme.surface,
+                          foregroundColor: colorScheme.onSurface,
                           borderRadius: 22,
                           elevation: 2,
                         ),
@@ -70,6 +161,11 @@ class OnboardingScreen extends StatelessWidget {
                         // Todo: remove when testing is done
                         TextButton.icon(
                           onPressed: () => _navigateToHome(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: isDarkMode
+                                ? AppColors.toolbarButtonBackgroundDark
+                                : AppColors.careenaTeal,
+                          ),
                           icon: const Icon(Icons.home_outlined, size: 18),
                           label: const Text('Test: direkt zur Homepage'),
                         ),
@@ -90,7 +186,14 @@ class OnboardingScreen extends StatelessWidget {
   void _navigateToChat(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ChatScreen(controller: chatController),
+        builder: (context) => ChatScreen(
+          controller: chatController,
+          themeController: themeController,
+          leaveDialogMessage:
+              'Wenn du fortfährst, gelangst du zurück zur Startseite. '
+              'Der aktuelle Chat wird nicht gespeichert.',
+          leaveDialogConfirmLabel: 'Zur Startseite',
+        ),
       ),
     );
   }
@@ -99,7 +202,12 @@ class OnboardingScreen extends StatelessWidget {
   void _navigateToLogin(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => LoginScreen(chatController: chatController),
+        builder: (context) => LoginScreen(
+          chatController: chatController,
+          themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
+        ),
       ),
     );
   }
@@ -108,8 +216,12 @@ class OnboardingScreen extends StatelessWidget {
   void _navigateToRegistration(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            RegistrationScreen(chatController: chatController),
+        builder: (context) => RegistrationScreen(
+          chatController: chatController,
+          themeController: themeController,
+          authSession: authSession,
+          authApiService: authApiService,
+        ),
       ),
     );
   }
@@ -117,7 +229,10 @@ class OnboardingScreen extends StatelessWidget {
   void _navigateToHome(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => HomeScreen(controller: chatController),
+        builder: (context) => HomeScreen(
+          controller: chatController,
+          themeController: themeController,
+        ),
       ),
     );
   }

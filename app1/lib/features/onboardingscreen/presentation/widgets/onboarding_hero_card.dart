@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
-import '../../../chatscreen/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
 
 /// Large onboarding card that presents the primary chat call to action.
@@ -19,6 +18,11 @@ class OnboardingHeroCard extends StatelessWidget {
         // so the body switches to a vertical arrangement below this width.
         final isCompact = constraints.maxWidth < 380;
         final horizontalMargin = isCompact ? 12.0 : 13.0;
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+        final cardColor = isDarkMode
+            ? AppColors.darkElevatedSurface
+            : Colors.white;
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
@@ -26,13 +30,20 @@ class OnboardingHeroCard extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(isCompact ? 16 : 18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardColor,
               borderRadius: BorderRadius.circular(20),
+
+              border: Border.all(
+                color: AppColors.careenaGlow,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+                  color: AppColors.careenaGlow.withValues(
+                    alpha: isDarkMode ? 0.15 : 0.08,
+                  ),
+                  blurRadius: isDarkMode ? 12 : 8,
+                  spreadRadius: 1,
                 ),
               ],
             ),
@@ -41,11 +52,13 @@ class OnboardingHeroCard extends StatelessWidget {
               children: [
                 Text(
                   "Die richtige Hilfe,\nzum richtigen\nZeitpunkt.",
-                  style: GoogleFonts.nunito(
+                  style: TextStyle(
                     fontSize: isCompact ? 24 : 28,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
-                    color: AppColors.careenaTitle,
+                    color: isDarkMode
+                        ? Theme.of(context).colorScheme.onSurface
+                        : AppColors.careenaTitle,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -54,10 +67,15 @@ class OnboardingHeroCard extends StatelessWidget {
                 CareenaButton(
                   text: 'Jetzt mit Careena sprechen',
                   onPressed: onPressed,
-                  backgroundColor: AppColors.careenaPrimary,
+                  backgroundColor: isDarkMode
+                      ? AppColors.toolbarButtonBackgroundDark
+                      : AppColors.careenaPrimary,
+                  foregroundColor: isDarkMode
+                      ? AppColors.toolbarButtonForegroundDark
+                      : Colors.white,
                   borderRadius: 40,
                   height: 58,
-                  side: const BorderSide(
+                  side: BorderSide(
                     color: AppColors.careenaGlow,
                     width: 3,
                   ),
@@ -89,7 +107,7 @@ class _RegularHeroBody extends StatelessWidget {
               Positioned(
                 left: 0,
                 top: 6,
-                width: constraints.maxWidth * 0.48,
+                width: constraints.maxWidth * 0.58,
                 child: const _HeroDescription(),
               ),
               Positioned(
@@ -142,11 +160,15 @@ class _HeroDescription extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Text(
-      "Beschreibe deine Beschwerden\nund erhalte deine persönliche\nHandlungsempfehlung.",
-      style: GoogleFonts.nunito(
-        fontSize: 12,
-        color: Colors.black87,
+      "Beschreibe deine Beschwerden\nund erhalte deine\npersönliche\nHandlungsempfehlung.",
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: isDarkMode ? colorScheme.onSurfaceVariant : Colors.black87,
         height: 1.3,
       ),
     );

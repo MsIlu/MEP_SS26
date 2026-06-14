@@ -1,36 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
-import '../../../../chatscreen/presentation/themes/app_colors.dart';
+const _circleSize = 42.0;
+const _connectorHeight = 4.0;
 
 /// Visual progress indicator for the registration flow.
 class RegistrationStepIndicator extends StatelessWidget {
   final int currentStep;
+  final List<String> labels;
   final ValueChanged<int>? onStepSelected;
 
   const RegistrationStepIndicator({
     super.key,
     required this.currentStep,
+    this.labels = const [
+      'Persönliche\nDaten',
+      'Gesundheits-\nangaben',
+      'Überprüfung',
+    ],
     this.onStepSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    const labels = [
-      'Persönliche\nDaten',
-      'Gesundheits-\nangaben',
-      'Überprüfung',
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final stepWidth = _stepWidthFor(constraints.maxWidth);
-
-        return Row(
+    return Stack(
+      children: [
+        Positioned(
+          top: (_circleSize - _connectorHeight) / 2,
+          left: 0,
+          right: 0,
+          child: Row(
+            children: [
+              const Expanded(child: SizedBox()),
+              for (var index = 0; index < labels.length - 1; index++)
+                Expanded(
+                  flex: 2,
+                  child: _StepConnector(
+                    key: ValueKey('registration-step-connector-$index'),
+                    isActive: index < currentStep,
+                  ),
+                ),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var index = 0; index < labels.length; index++) ...[
-              SizedBox(
-                width: stepWidth,
+            for (var index = 0; index < labels.length; index++)
+              Expanded(
                 child: _StepItem(
                   index: index,
                   label: labels[index],
@@ -40,41 +58,26 @@ class RegistrationStepIndicator extends StatelessWidget {
                       : null,
                 ),
               ),
-              if (index < labels.length - 1)
-                Expanded(child: _StepConnector(isActive: index < currentStep)),
-            ],
           ],
-        );
-      },
+        ),
+      ],
     );
-  }
-
-  double _stepWidthFor(double availableWidth) {
-    if (availableWidth < 330) {
-      return 82;
-    }
-    if (availableWidth < 390) {
-      return 92;
-    }
-    return 108;
   }
 }
 
 class _StepConnector extends StatelessWidget {
   final bool isActive;
 
-  const _StepConnector({required this.isActive});
+  const _StepConnector({super.key, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
-      height: 4,
-      margin: const EdgeInsets.only(left: 4, right: 4, bottom: 34),
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.careenaPrimary : Colors.white,
-        borderRadius: BorderRadius.circular(999),
-      ),
+      height: _connectorHeight,
+      color: isActive
+          ? AppColors.careenaPrimary
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
 }
@@ -96,52 +99,60 @@ class _StepItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = index <= currentStep;
     final isPastStep = index < currentStep;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Tooltip(
       message: isPastStep ? '$label bearbeiten' : label.replaceAll('\n', ' '),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-          child: Column(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: isActive ? AppColors.careenaPrimary : Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.careenaPrimary),
-                ),
-                child: Center(
-                  child: isPastStep
-                      ? const Icon(Icons.check, color: Colors.white, size: 21)
-                      : Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: index == currentStep
-                                ? Colors.white
-                                : AppColors.careenaPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
+        child: Column(
+          children: [
+            AnimatedContainer(
+              key: ValueKey('registration-step-circle-$index'),
+              duration: const Duration(milliseconds: 180),
+              width: _circleSize,
+              height: _circleSize,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppColors.careenaPrimary
+                    : Theme.of(context).colorScheme.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.careenaPrimary, width: 2),
+              ),
+              child: Center(
+                child: isPastStep
+                    ? const Icon(
+                        Icons.check,
+                        color: AppColors.toolbarButtonForeground,
+                        size: 23,
+                      )
+                    : Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          color: index == currentStep
+                              ? AppColors.toolbarButtonForeground
+                              : AppColors.careenaPrimary,
+                          fontWeight: FontWeight.bold,
                         ),
-                ),
+                      ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  height: 1.12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.careenaTitle,
-                ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.12,
+                fontWeight: FontWeight.w700,
+                color: isDarkMode
+                    ? colorScheme.onSurface
+                    : AppColors.careenaTitle,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

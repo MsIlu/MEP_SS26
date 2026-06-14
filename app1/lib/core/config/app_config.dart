@@ -18,6 +18,7 @@ class AppConfig {
     return kIsWeb
         ? "http://localhost:8000" // Web
         : "http://10.0.2.2:8000" // Android Emulator
+       // : "http://localhost:8000" // IOS-Simulator
     //"PC/FastAPIServerIP"             // Android device (physical) (no //)
     ;
   }

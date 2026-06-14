@@ -19,10 +19,10 @@ class ReasonBox extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: WarningDecorations.reasonBox,
+      decoration: WarningDecorations.reasonBox(context),
       child: Text(
         '${WarningCopy.reasonPrefix}: ${reason.label}',
-        style: WarningTextStyles.caption,
+        style: WarningTextStyles.captionFor(context),
       ),
     );
   }

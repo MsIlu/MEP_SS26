@@ -7,12 +7,25 @@ import '../widgets/common/auth_buttons.dart';
 import '../widgets/common/auth_fields.dart';
 import '../widgets/common/auth_layout.dart';
 import 'registration_screen.dart';
+import '../../../../core/themes/theme_controller.dart';
+import '../../state/auth_session.dart';
+import '../../data/auth_api_service.dart';
+import '../../../../core/widgets/careena_page_header.dart';
 
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
   final ChatController chatController;
+  final ThemeController themeController;
+  final AuthSession authSession;
+  final AuthApiService authApiService;
 
-  const LoginScreen({super.key, required this.chatController});
+  const LoginScreen({
+    super.key,
+    required this.chatController,
+    required this.themeController,
+    required this.authSession,
+    required this.authApiService,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,6 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -34,11 +49,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return AuthPageScaffold(
       maxWidth: AuthTheme.loginMaxWidth,
+      fixedHeader: CareenaPageHeader(
+        title: 'Anmelden',
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTopBar(onBack: () => Navigator.of(context).pop()),
-          const SizedBox(height: 26),
           const AuthIntro(
             title: 'Willkommen zurück!',
             subtitle:
@@ -63,10 +83,24 @@ class _LoginScreenState extends State<LoginScreen> {
               obscurePassword: _obscurePassword,
               onPressed: _togglePasswordVisibility,
             ),
-            onFieldSubmitted: (_) => _goHome(),
+            onFieldSubmitted: (_) => _login(),
           ),
           const SizedBox(height: 28),
-          CareenaButton(text: 'Anmelden', onPressed: _goHome),
+          CareenaButton(
+            text: _isSubmitting ? 'Anmeldung läuft...' : 'Anmelden',
+            onPressed: _isSubmitting ? null : _login,
+          ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 16),
           TextButton(
             // TODO(backend): Connect password reset flow once email delivery is available.
@@ -91,19 +125,63 @@ class _LoginScreenState extends State<LoginScreen> {
   void _openRegistration() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) =>
-            RegistrationScreen(chatController: widget.chatController),
+        builder: (context) => RegistrationScreen(
+          chatController: widget.chatController,
+          themeController: widget.themeController,
+          authSession: widget.authSession,
+          authApiService: widget.authApiService,
+        ),
       ),
     );
   }
 
-  void _goHome() {
-    // TODO(backend): Authenticate credentials, persist the user session, and
-    // TODO: surface backend validation errors before navigating to HomeScreen.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(controller: widget.chatController),
-      ),
-    );
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Bitte E-Mail-Adresse und Passwort eingeben.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authResponse = await widget.authApiService.login(
+        email: email,
+        password: password,
+      );
+
+      widget.authSession.setAuthResponse(authResponse);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            controller: widget.chatController,
+            themeController: widget.themeController,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage =
+            'Anmeldung fehlgeschlagen. Bitte überprüfe deine Eingaben.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

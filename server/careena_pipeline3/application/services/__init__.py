@@ -39,6 +39,9 @@ from careena_pipeline3.application.services.recommendation_state_service import 
 from careena_pipeline3.application.services.response_text_builder import (
     ResponseTextBuilder,
 )
+from careena_pipeline3.application.services.safety_clarification_builder import (
+    SafetyClarificationBuilder,
+)
 from careena_pipeline3.application.services.response_generation_service import (
     ResponseGenerationService,
 )
@@ -66,4 +69,5 @@ __all__ = [
     "ResponseGenerationService",
     "ResponseTextBuilder",
     "ResilientExtractionService",
+    "SafetyClarificationBuilder",
 ]

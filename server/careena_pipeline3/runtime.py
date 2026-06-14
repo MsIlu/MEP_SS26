@@ -18,10 +18,12 @@ from careena_pipeline3.application.services import (
     PythonExtractionResultNormalizer,
     ResponseGenerationService,
     ResilientExtractionService,
+    SafetyClarificationBuilder,
 )
 from careena_pipeline3.core.client import LLMClient
 from careena_pipeline3.core.engine import ExtractionEngine
 from careena_pipeline3.infrastructure import CareenaPipeline3SessionStore
+from careena_pipeline3.infrastructure.repositories import SqlSafetyCatalogRepository
 from careena_pipeline3.server_log import configure_debug_logging
 from careena_pipeline3.llm.call_control import CallModelConfig, build_call_model_config
 from careena_pipeline3.llm import (
@@ -52,6 +54,8 @@ class PipelineRuntimeServices:
     extraction_result_normalizer: PythonExtractionResultNormalizer
     intent_classification_service: IntentClassificationService
     recommendation_choice_resolution_service: RecommendationChoiceResolutionService
+    safety_catalog_repository: SqlSafetyCatalogRepository
+    safety_clarification_builder: SafetyClarificationBuilder
     entry_manager: EntryManager
     extraction_manager: ExtractionManager
     dialogue_manager: DialogueManager
@@ -129,10 +133,15 @@ def build_pipeline_runtime(
     response_manager = ResponseManager(
         response_generation_service=response_generation_service,
     )
+    safety_catalog_repository = SqlSafetyCatalogRepository()
+    safety_clarification_builder = SafetyClarificationBuilder(
+        safety_catalog_repository=safety_catalog_repository,
+    )
     dialogue_manager = DialogueManager(
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
         response_manager=response_manager,
+        safety_clarification_builder=safety_clarification_builder,
     )
     session_store = CareenaPipeline3SessionStore()
 
@@ -146,6 +155,8 @@ def build_pipeline_runtime(
         extraction_result_normalizer=extraction_result_normalizer,
         intent_classification_service=intent_classification_service,
         recommendation_choice_resolution_service=recommendation_choice_resolution_service,
+        safety_catalog_repository=safety_catalog_repository,
+        safety_clarification_builder=safety_clarification_builder,
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
         dialogue_manager=dialogue_manager,

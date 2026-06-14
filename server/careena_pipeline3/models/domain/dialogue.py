@@ -5,12 +5,12 @@ from typing import Literal
 
 from careena_pipeline3.models.common import PipelineModel
 from careena_pipeline3.models.common.types import DialogueTopicStatus, PlannerModule
+
 from careena_pipeline3.models.domain.guided_input import (
     GuidedInputContract,
     GuidedInputMode,
     GuidedInputOption,
 )
-
 
 class StagedFollowupAnswer(PipelineModel):
     requirement_key: str
@@ -29,6 +29,7 @@ class PendingFollowup(PipelineModel):
 
 
 class PendingDialogueTransition(PipelineModel):
+    """Legacy recommendation transition hook, not part of active pre-recommend routing."""
     kind: Literal["recommendation_ready_check"]
     prompt_code: str | None = None
     allowed_actions: list[str] = Field(
@@ -42,6 +43,22 @@ class PendingSafetyClarification(PipelineModel):
     question_code: str = "raw_red_flag_clarification"
     source_stage: Literal["raw", "extraction", "case"] = "raw"
     
+    question_text: str | None = None
+
+    # Reference metadata for the catalog criterion that caused this clarification.
+    source_system: Literal["STS"] = "STS"
+    source_version: str | None = None
+    consultation_reason_source_id: str | None = None
+    consultation_reason_key: str | None = None
+    criterion_key: str | None = None
+    criterion_role: str | None = None
+    urgency_effect: str | None = None
+    catalog_mapping_status: Literal[
+        "unmapped",
+        "catalog_matched",
+        "fallback_no_catalog_match",
+    ] = "unmapped"
+
     guided_input: GuidedInputContract = Field(
         default_factory=lambda: GuidedInputContract(
             mode=GuidedInputMode.STRUCTURED_REQUIRED,
@@ -70,9 +87,10 @@ class PendingSafetyClarification(PipelineModel):
             ],
         )
     )
-    
+
     evidence_terms: list[str] = Field(default_factory=list)
     focus_observation_id: str | None = None
+
 
 class DialogueState(PipelineModel):
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
@@ -82,9 +100,13 @@ class DialogueState(PipelineModel):
     open_requirements: list[str] = Field(default_factory=list)
     resolved_requirements: list[str] = Field(default_factory=list)
     pending_followup: PendingFollowup | None = None
+    # Legacy recommendation transition hook, not part of active pre-recommend routing.
     pending_dialogue_transition: PendingDialogueTransition | None = None
+    # Pending safety clarification must be resolved before normal turn processing.
     pending_safety_clarification: PendingSafetyClarification | None = None
+    # Legacy recommendation intent hook for future recommendation routing.
     recommendation_requested: bool = False
+    # Legacy recommendation readiness hook, no longer the primary pre-recommend driver.
     recommendation_ready: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)
     focus_observation_id: str | None = None

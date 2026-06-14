@@ -27,7 +27,7 @@ class SymptomDiaryPage extends StatefulWidget {
 }
 
 class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
-  final _controller = SymptomDiaryController();
+  late final SymptomDiaryController _controller;
 
   late final DateTime _today;
   late DateTime _selectedDate;
@@ -38,6 +38,10 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     _selectedDate = _today;
+    _controller = SymptomDiaryController(
+      apiService: widget.symptomApiService,
+      profileId: widget.authSession?.activeProfileId,
+    );
     _controller.loadEntries();
   }
 
@@ -132,7 +136,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }) async {
     final entryDate = _selectedDate;
 
-    await _controller.addEntry(
+    final localEntry = await _controller.addEntry(
       date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
@@ -143,14 +147,26 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     final activeProfileId = widget.authSession?.activeProfileId;
 
     if (activeProfileId != null && widget.symptomApiService != null) {
-      await widget.symptomApiService!.createSymptom(
-        profileId: activeProfileId,
-        date: entryDate,
-        symptom: symptom,
-        bodyArea: bodyArea,
-        intensity: intensity,
-        note: note,
-      );
+      try {
+        final remoteEntry = await widget.symptomApiService!.createSymptom(
+          profileId: activeProfileId,
+          date: entryDate,
+          symptom: symptom,
+          bodyArea: bodyArea,
+          intensity: intensity,
+          note: note,
+        );
+        await _controller.markEntrySynced(localEntry, remoteEntry.id);
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Symptom lokal gespeichert')),
+        );
+        return;
+      }
     }
 
     if (!mounted) {

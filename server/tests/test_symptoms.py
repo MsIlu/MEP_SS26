@@ -64,6 +64,32 @@ def test_get_symptoms_returns_profile_entries(client):
     assert data[0]["bodyArea"] == ""
 
 
+def test_delete_symptom_removes_entry_from_database(client, db_session):
+    auth = register_user(client)
+
+    create_response = client.post(
+        f"/profiles/{auth['profile_id']}/symptoms",
+        headers=auth["headers"],
+        json={
+            "date": "2026-06-12T00:00:00",
+            "symptom": "Kopfschmerzen",
+            "intensity": 4,
+            "note": "",
+        },
+    )
+
+    response = client.delete(
+        f"/profiles/{auth['profile_id']}/symptoms/{create_response.json()['id']}",
+        headers=auth["headers"],
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Symptom entry deleted successfully."
+
+    remaining_entries = db_session.exec(select(SymptomDiaryEntry)).all()
+    assert remaining_entries == []
+
+
 def test_create_symptom_requires_profile_access(client):
     first_user = register_user(client, email="symptom-first@example.com")
     second_user = register_user(client, email="symptom-second@example.com")

@@ -42,4 +42,12 @@ class SymptomApiService {
 
     return SymptomResponse.fromJson(response);
   }
+
+  /// Deletes one symptom diary entry for a profile.
+  Future<void> deleteSymptom({
+    required int profileId,
+    required int entryId,
+  }) async {
+    await _apiClient.delete('/profiles/$profileId/symptoms/$entryId');
+  }
 }

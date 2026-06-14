@@ -19,6 +19,14 @@ class SymptomCreateRequest(BaseModel):
         populate_by_name = True
 
 
+class SymptomDeleteResponse(BaseModel):
+    """
+    Response body returned after a symptom entry has been deleted.
+    """
+
+    message: str
+
+
 class SymptomResponse(BaseModel):
     """
     Symptom diary entry returned to the frontend.

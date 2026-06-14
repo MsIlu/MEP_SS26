@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from sqlmodel import Session, select
 
 from database.models import ChatHistory, User
@@ -58,8 +60,15 @@ def _to_response(entry: ChatHistory) -> ChatHistoryResponse:
         profile_id=entry.profile_id,
         title=entry.title,
         is_emergency=entry.is_emergency,
-        created_at=entry.created_at,
+        created_at=_as_utc(entry.created_at),
         recommendation=entry.recommendation,
         next_steps=entry.next_steps,
         messages=entry.messages,
     )
+
+
+def _as_utc(value):
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)

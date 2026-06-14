@@ -70,13 +70,32 @@ class ChatHistoryEntry {
       profileId: json['profile_id'] as int,
       symptomTitle: json['title'] as String?,
       isEmergency: json['is_emergency'] == true,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: _parseServerDateTime(json['created_at'] as String),
       recommendation: json['recommendation'] as String? ?? '',
       nextSteps: json['next_steps'] as String?,
       messages: rawMessages
           .map((item) => _messageFromJson(item as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  static DateTime _parseServerDateTime(String value) {
+    final parsed = DateTime.parse(value);
+
+    if (parsed.isUtc) {
+      return parsed.toLocal();
+    }
+
+    return DateTime.utc(
+      parsed.year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+      parsed.millisecond,
+      parsed.microsecond,
+    ).toLocal();
   }
 
   static Map<String, dynamic> _messageToJson(Message message) {

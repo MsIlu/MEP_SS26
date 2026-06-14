@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
-/// App bar for the chat screen with Careena identity and status.
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onBackPressed;
   final VoidCallback onToggleTheme;
   final bool isDarkMode;
 
   const ChatAppBar({
     super.key,
+    required this.onBackPressed,
     required this.onToggleTheme,
     required this.isDarkMode,
   });
@@ -32,13 +33,12 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           foregroundColor: Colors.white,
           fixedSize: const Size.square(44),
         ),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: onBackPressed,
         icon: const Icon(Icons.west, size: 22),
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Avatar that visually connects the app bar to assistant messages.
           CircleAvatar(
             radius: 22,
             backgroundColor: avatarBackground,
@@ -48,7 +48,6 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           const SizedBox(width: 15),
-          // Name and simple status indicator for the assistant persona.
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

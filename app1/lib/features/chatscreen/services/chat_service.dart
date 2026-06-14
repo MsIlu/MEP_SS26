@@ -39,6 +39,8 @@ class ChatService {
   }
 
   Message buildAssistantMessage(ChatResponse response) {
+    final canCreateAppointment = hasAppointmentRecommendation(response);
+
     return Message(
       text: response.text,
       isUser: false,
@@ -46,6 +48,10 @@ class ChatService {
       exportTitle: 'Handlungsempfehlung',
       exportRecommendation: response.text,
       exportNextSteps: response.action,
+      canCreateAppointment: canCreateAppointment,
+      appointmentTitle: canCreateAppointment
+          ? _appointmentTitleForRecommendation(response.text)
+          : null,
     );
   }
 
@@ -58,6 +64,33 @@ class ChatService {
         responseText.contains('nächster schritt:') ||
         responseText.contains('naechster schritt:') ||
         responseText.contains('hinweis:');
+  }
+
+  bool hasAppointmentRecommendation(ChatResponse response) {
+    final responseText = response.text.toLowerCase();
+    final actionText = response.action?.toLowerCase() ?? '';
+    final combinedText = '$responseText $actionText';
+
+    return combinedText.contains('hausarzt') ||
+        combinedText.contains('facharzt') ||
+        combinedText.contains('arztbesuch') ||
+        combinedText.contains('arzttermin') ||
+        combinedText.contains('ärztlich') ||
+        combinedText.contains('aerztlich');
+  }
+
+  String _appointmentTitleForRecommendation(String text) {
+    final lowerText = text.toLowerCase();
+
+    if (lowerText.contains('hausarzt')) {
+      return 'Hausarzttermin vereinbaren';
+    }
+
+    if (lowerText.contains('facharzt')) {
+      return 'Facharzttermin vereinbaren';
+    }
+
+    return 'Arzttermin vereinbaren';
   }
 
   Stream<String> streamText(

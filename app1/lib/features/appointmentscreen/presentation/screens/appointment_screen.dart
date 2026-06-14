@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
-import '../widgets/appointment_empty_state.dart';
-import '../widgets/appointment_info_card.dart';
-import '../widgets/appointment_116117_card.dart';
+import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../core/widgets/careena_page_header.dart';
 import '../../controllers/appointment_controller.dart';
 import '../../data/models/appointment.dart';
+import '../widgets/appointment_116117_card.dart';
+import '../widgets/appointment_dialog.dart';
+import '../widgets/appointment_empty_state.dart';
+import '../widgets/appointment_filter_bar.dart';
+import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_tile.dart';
-//import '../widgets/add_appointment_dialog.dart';
 
 class AppointmentScreen extends StatefulWidget {
   const AppointmentScreen({super.key});
@@ -20,8 +24,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   final doctorController = TextEditingController();
   final noteController = TextEditingController();
   final dateController = TextEditingController();
-  DateTime? selectedDate;
   final timeController = TextEditingController();
+
+  DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
   String selectedFilter = 'Alle';
@@ -32,16 +37,47 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
+      helpText: 'Datum auswählen',
+      cancelText: 'Abbrechen',
+      confirmText: 'OK',
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.careenaTeal,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final mediaQuery = MediaQuery.of(context);
+
+        return MediaQuery(
+          data: mediaQuery.copyWith(size: const Size(420, 720)),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: isDark
+                      ? const ColorScheme.dark(
+                          primary: AppColors.careenaTeal,
+                          onPrimary: Colors.white,
+                          surface: Color(0xFF1B2B3D),
+                          onSurface: Colors.white,
+                        )
+                      : const ColorScheme.light(
+                          primary: AppColors.careenaTeal,
+                          onPrimary: Colors.white,
+                          onSurface: Colors.black,
+                        ),
+                  datePickerTheme: DatePickerThemeData(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    headerHeadlineStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 30,
+                    ),
+                    headerHelpStyle: const TextStyle(fontSize: 20),
+                  ),
+                ),
+                child: child!,
+              ),
             ),
           ),
-          child: child!,
         );
       },
     );
@@ -59,14 +95,25 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.careenaTeal,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: AppColors.careenaTeal,
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF1B2B3D),
+                    onSurface: Colors.white,
+                  )
+                : const ColorScheme.light(
+                    primary: AppColors.careenaTeal,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.black,
+                  ),
+            timePickerTheme: const TimePickerThemeData(
+              helpTextStyle: TextStyle(fontSize: 20),
             ),
           ),
           child: child!,
@@ -77,7 +124,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     if (pickedTime != null) {
       setState(() {
         selectedTime = pickedTime;
-
         timeController.text =
             '${pickedTime.hour.toString().padLeft(2, '0')}:'
             '${pickedTime.minute.toString().padLeft(2, '0')}';
@@ -98,78 +144,38 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: IconButton(
-            tooltip: 'Zurück',
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.careenaTeal,
-              foregroundColor: Colors.white,
-              shape: const CircleBorder(),
-              fixedSize: const Size(44, 44),
-            ),
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.west),
-          ),
-        ),
-
-        title: Text(
-          'Terminplanung',
-          style: TextStyle(
-            color: AppColors.careenaDark,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        centerTitle: true,
-      ),
-
-      body: Padding(
+      appBar: const CareenaPageHeader(title: 'Terminplanung'),
+      body: ResponsivePageBody(
+        maxWidth: 1000,
         padding: const EdgeInsets.all(16),
+        scrollable: false,
         child: Column(
           children: [
             const AppointmentInfoCard(),
             const SizedBox(height: 16),
-
             const Appointment116117Card(),
             const SizedBox(height: 24),
-
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Deine Termine',
                 style: TextStyle(
-                  color: AppColors.careenaDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-
-              child: Row(
-                children: [
-                  _buildFilterChip('Alle'),
-
-                  _buildFilterChip('Kommend'),
-
-                  _buildFilterChip('Vergangen'),
-
-                  _buildFilterChip('Erledigt'),
-                ],
-              ),
+            AppointmentFilterBar(
+              selectedFilter: selectedFilter,
+              onFilterChanged: (filter) {
+                setState(() {
+                  selectedFilter = filter;
+                });
+              },
             ),
-
             const SizedBox(height: 16),
-
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: controller.appointments,
@@ -177,13 +183,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   List<Appointment> filteredAppointments = List.from(
                     appointments,
                   );
+
                   if (selectedFilter == 'Kommend') {
                     filteredAppointments = filteredAppointments.where((
                       appointment,
                     ) {
-                      return appointment.appointmentDate.isAfter(
-                        DateTime.now(),
-                      );
+                      final appointmentDate = appointment.appointmentDate;
+                      return appointmentDate != null &&
+                          appointmentDate.isAfter(DateTime.now());
                     }).toList();
                   }
 
@@ -191,9 +198,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     filteredAppointments = filteredAppointments.where((
                       appointment,
                     ) {
-                      return appointment.appointmentDate.isBefore(
-                        DateTime.now(),
-                      );
+                      final appointmentDate = appointment.appointmentDate;
+                      return appointmentDate != null &&
+                          appointmentDate.isBefore(DateTime.now());
                     }).toList();
                   }
 
@@ -204,36 +211,92 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                       return appointment.isCompleted;
                     }).toList();
                   }
+
                   if (appointments.isEmpty) {
                     return const AppointmentEmptyState();
                   }
 
-                  final sortedAppointments = [...appointments];
+                  final recommendedAppointments = selectedFilter == 'Alle'
+                      ? filteredAppointments.where((appointment) {
+                          return appointment.isRecommendation &&
+                              appointment.appointmentDate == null;
+                        }).toList()
+                      : <Appointment>[];
 
-                  sortedAppointments.sort(
-                    (a, b) => a.appointmentDate.compareTo(b.appointmentDate),
-                  );
+                  filteredAppointments = filteredAppointments.where((
+                    appointment,
+                  ) {
+                    return !(appointment.isRecommendation &&
+                        appointment.appointmentDate == null);
+                  }).toList();
 
-                  return ListView.builder(
-                    itemCount: filteredAppointments.length,
-                    itemBuilder: (context, index) {
-                      final appointment = filteredAppointments[index];
+                  filteredAppointments.sort((a, b) {
+                    final firstDate = a.appointmentDate;
+                    final secondDate = b.appointmentDate;
 
-                      return AppointmentTile(
-                        appointment: appointment,
+                    if (firstDate == null && secondDate == null) return 0;
+                    if (firstDate == null) return -1;
+                    if (secondDate == null) return 1;
 
-                        onToggleCompleted: () {
-                          controller.toggleAppointment(appointment.id);
-                        },
+                    return firstDate.compareTo(secondDate);
+                  });
 
-                        onDelete: () {
-                          _showDeleteDialog(appointment);
-                        },
-                        onEdit: () {
-                          _showEditDialog(appointment);
-                        },
-                      );
-                    },
+                  if (recommendedAppointments.isEmpty &&
+                      filteredAppointments.isEmpty) {
+                    return const Center(
+                      child: Text('Keine Termine in diesem Filter.'),
+                    );
+                  }
+
+                  return ListView(
+                    children: [
+                      if (recommendedAppointments.isNotEmpty) ...[
+                        _AppointmentSectionHeader(
+                          icon: Icons.auto_awesome_outlined,
+                          title: 'Empfohlene nächste Schritte',
+                          subtitle:
+                              'Von Careena vorgeschlagene Termine, die du noch eintragen kannst.',
+                        ),
+                        const SizedBox(height: 8),
+                        for (final appointment in recommendedAppointments)
+                          AppointmentTile(
+                            appointment: appointment,
+                            onToggleCompleted: () {
+                              controller.toggleAppointment(appointment.id);
+                            },
+                            onDelete: () {
+                              _showDeleteDialog(appointment);
+                            },
+                            onEdit: () {
+                              _showEditDialog(appointment);
+                            },
+                          ),
+                        if (filteredAppointments.isNotEmpty)
+                          const SizedBox(height: 12),
+                      ],
+                      if (filteredAppointments.isNotEmpty) ...[
+                        if (recommendedAppointments.isNotEmpty) ...[
+                          const _AppointmentSectionHeader(
+                            icon: Icons.event_available_outlined,
+                            title: 'Geplante Termine',
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        for (final appointment in filteredAppointments)
+                          AppointmentTile(
+                            appointment: appointment,
+                            onToggleCompleted: () {
+                              controller.toggleAppointment(appointment.id);
+                            },
+                            onDelete: () {
+                              _showDeleteDialog(appointment);
+                            },
+                            onEdit: () {
+                              _showEditDialog(appointment);
+                            },
+                          ),
+                      ],
+                    ],
                   );
                 },
               ),
@@ -241,12 +304,24 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Builder(
+        builder: (context) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final contentSideInset = screenWidth > 1000
+              ? (screenWidth - 1000) / 2
+              : 0.0;
 
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.careenaTeal,
-        foregroundColor: Colors.white,
-        onPressed: _showAddAppointmentDialog,
-        child: const Icon(Icons.add),
+          return Padding(
+            padding: EdgeInsets.only(right: contentSideInset),
+            child: FloatingActionButton(
+              backgroundColor: AppColors.careenaTeal,
+              foregroundColor: Colors.white,
+              onPressed: _showAddAppointmentDialog,
+              child: const Icon(Icons.add),
+            ),
+          );
+        },
       ),
     );
   }
@@ -255,207 +330,44 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Termin hinzufügen',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+        return AppointmentDialog(
+          title: 'Termin hinzufügen',
+          doctorController: doctorController,
+          dateController: dateController,
+          timeController: timeController,
+          noteController: noteController,
+          onPickDate: _pickDate,
+          onPickTime: _pickTime,
+          onSave: () {
+            if (doctorController.text.trim().isEmpty) {
+              return;
+            }
 
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: doctorController,
-                decoration: InputDecoration(
-                  labelText: 'Arzt',
-
-                  prefixIcon: const Icon(
-                    Icons.medical_services,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+            controller.addAppointment(
+              Appointment(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                doctorName: doctorController.text.trim(),
+                appointmentDate: DateTime(
+                  selectedDate?.year ?? DateTime.now().year,
+                  selectedDate?.month ?? DateTime.now().month,
+                  selectedDate?.day ?? DateTime.now().day,
+                  selectedTime?.hour ?? 0,
+                  selectedTime?.minute ?? 0,
                 ),
+                note: noteController.text.trim(),
               ),
+            );
 
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: dateController,
-                readOnly: true,
-                onTap: _pickDate,
-
-                decoration: InputDecoration(
-                  labelText: 'Datum',
-
-                  prefixIcon: const Icon(
-                    Icons.calendar_month,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: timeController,
-                readOnly: true,
-                onTap: _pickTime,
-
-                decoration: InputDecoration(
-                  labelText: 'Uhrzeit',
-
-                  prefixIcon: const Icon(
-                    Icons.access_time,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: noteController,
-                decoration: InputDecoration(
-                  labelText: 'Notiz',
-
-                  prefixIcon: const Icon(
-                    Icons.note_alt_outlined,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.careenaTeal,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Abbrechen'),
-            ),
-
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.careenaTeal,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                if (doctorController.text.trim().isEmpty) {
-                  return;
-                }
-
-                controller.addAppointment(
-                  Appointment(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    doctorName: doctorController.text.trim(),
-                    appointmentDate: DateTime(
-                      selectedDate?.year ?? DateTime.now().year,
-                      selectedDate?.month ?? DateTime.now().month,
-                      selectedDate?.day ?? DateTime.now().day,
-                      selectedTime?.hour ?? 0,
-                      selectedTime?.minute ?? 0,
-                    ),
-                    note: noteController.text.trim(),
-                  ),
-                );
-
-                doctorController.clear();
-                noteController.clear();
-                dateController.clear();
-                timeController.clear();
-                selectedDate = null;
-                selectedTime = null;
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-  const SnackBar(
-    backgroundColor: AppColors.careenaTeal,
-    content: Text('Termin gespeichert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
-  ),
-);
-                setState(() {});
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
+            doctorController.clear();
+            noteController.clear();
+            dateController.clear();
+            timeController.clear();
+            selectedDate = null;
+            selectedTime = null;
+            Navigator.pop(context);
+            _showSuccessMessage('Termin gespeichert');
+            setState(() {});
+          },
         );
       },
     );
@@ -467,31 +379,24 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Termin löschen'),
-
           content: Text(
             'Möchtest du den Termin bei "${appointment.doctorName}" wirklich löschen?',
           ),
-
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.careenaTeal,
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
               child: const Text('Abbrechen'),
             ),
-
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 controller.removeAppointment(appointment.id);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-  const SnackBar(
-    backgroundColor: AppColors.careenaTeal,
-    content: Text('Termin gelöscht', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
-  ),
-);
-
+                _showSuccessMessage('Termin gelöscht');
                 Navigator.pop(context);
               },
               child: const Text('Löschen'),
@@ -503,229 +408,149 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _showEditDialog(Appointment appointment) {
-    doctorController.text = appointment.doctorName;
-    noteController.text = appointment.note;
-    selectedDate = appointment.appointmentDate;
-    selectedTime = TimeOfDay(
-      hour: appointment.appointmentDate.hour,
-      minute: appointment.appointmentDate.minute,
-    );
+    final appointmentDate = appointment.appointmentDate;
+    final isPendingRecommendation =
+        appointment.isRecommendation && appointmentDate == null;
 
-    dateController.text =
-        '${appointment.appointmentDate.day}.'
-        '${appointment.appointmentDate.month}.'
-        '${appointment.appointmentDate.year}';
+    doctorController.text = isPendingRecommendation
+        ? ''
+        : appointment.doctorName;
+    noteController.text = isPendingRecommendation ? '' : appointment.note;
+    selectedDate = appointmentDate;
+    selectedTime = appointmentDate == null
+        ? null
+        : TimeOfDay(hour: appointmentDate.hour, minute: appointmentDate.minute);
 
-    timeController.text =
-        '${appointment.appointmentDate.hour.toString().padLeft(2, '0')}:'
-        '${appointment.appointmentDate.minute.toString().padLeft(2, '0')}';
+    dateController.text = appointmentDate == null
+        ? ''
+        : '${appointmentDate.day}.'
+              '${appointmentDate.month}.'
+              '${appointmentDate.year}';
+
+    timeController.text = appointmentDate == null
+        ? ''
+        : '${appointmentDate.hour.toString().padLeft(2, '0')}:'
+              '${appointmentDate.minute.toString().padLeft(2, '0')}';
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Termin bearbeiten',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+        return AppointmentDialog(
+          title: 'Termin bearbeiten',
+          doctorController: doctorController,
+          dateController: dateController,
+          timeController: timeController,
+          noteController: noteController,
+          onPickDate: _pickDate,
+          onPickTime: _pickTime,
+          onSave: () {
+            if (doctorController.text.trim().isEmpty) {
+              return;
+            }
 
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: doctorController,
-                decoration: InputDecoration(
-                  labelText: 'Arzt',
-                  prefixIcon: const Icon(
-                    Icons.medical_services,
-                    color: AppColors.careenaTeal,
-                  ),
+            final updatedAppointmentDate = _buildAppointmentDate(
+              appointmentDate,
+            );
 
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+            controller.updateAppointment(
+              Appointment(
+                id: appointment.id,
+                doctorName: doctorController.text.trim(),
+                appointmentDate: updatedAppointmentDate,
+                note: noteController.text.trim(),
+                isRecommendation: appointment.isRecommendation &&
+                    updatedAppointmentDate == null,
+                isCompleted: appointment.isCompleted,
               ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: dateController,
-                readOnly: true,
-                onTap: _pickDate,
-                decoration: InputDecoration(
-                  labelText: 'Datum',
-                  prefixIcon: const Icon(
-                    Icons.calendar_month,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: timeController,
-                readOnly: true,
-                onTap: _pickTime,
-
-                decoration: InputDecoration(
-                  labelText: 'Uhrzeit',
-
-                  prefixIcon: const Icon(
-                    Icons.access_time,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: noteController,
-                decoration: InputDecoration(
-                  labelText: 'Notiz',
-
-                  prefixIcon: const Icon(
-                    Icons.note_alt_outlined,
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  labelStyle: const TextStyle(color: AppColors.careenaTeal),
-
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Abbrechen'),
-            ),
-
-            FilledButton(
-              onPressed: () {
-                controller.updateAppointment(
-                  Appointment(
-                    id: appointment.id,
-                    doctorName: doctorController.text.trim(),
-                    appointmentDate: DateTime(
-                      selectedDate?.year ?? appointment.appointmentDate.year,
-                      selectedDate?.month ?? appointment.appointmentDate.month,
-                      selectedDate?.day ?? appointment.appointmentDate.day,
-                      selectedTime?.hour ?? appointment.appointmentDate.hour,
-                      selectedTime?.minute ??
-                          appointment.appointmentDate.minute,
-                    ),
-                    note: noteController.text.trim(),
-                    isCompleted: appointment.isCompleted,
-                  ),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-  const SnackBar(
-    backgroundColor: AppColors.careenaTeal,
-    content: Text('Termin aktualisiert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16,)),
-  ),
-);
-                Navigator.pop(context);
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
+            );
+            _showSuccessMessage('Termin aktualisiert');
+            Navigator.pop(context);
+          },
         );
       },
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = selectedFilter == label;
+  DateTime? _buildAppointmentDate(DateTime? fallbackDate) {
+    if (selectedDate == null && selectedTime == null) {
+      return fallbackDate;
+    }
+
+    final date = selectedDate ?? fallbackDate ?? DateTime.now();
+    final time =
+        selectedTime ??
+        (fallbackDate == null
+            ? const TimeOfDay(hour: 0, minute: 0)
+            : TimeOfDay(hour: fallbackDate.hour, minute: fallbackDate.minute));
+
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.careenaTeal,
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppointmentSectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+
+  const _AppointmentSectionHeader({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-
-        selected: isSelected,
-
-        selectedColor: AppColors.careenaTeal,
-
-        labelStyle: TextStyle(color: isSelected ? Colors.white : null),
-
-        onSelected: (_) {
-          setState(() {
-            selectedFilter = label;
-          });
-        },
+      padding: const EdgeInsets.only(top: 4, bottom: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: AppColors.careenaTeal),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

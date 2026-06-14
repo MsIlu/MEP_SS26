@@ -1,9 +1,14 @@
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
-class Appointment116117Card extends StatelessWidget {
+class Appointment116117Card extends StatefulWidget {
   const Appointment116117Card({super.key});
 
+  @override
+  State<Appointment116117Card> createState() => _Appointment116117CardState();
+}
+
+class _Appointment116117CardState extends State<Appointment116117Card> {
   static const Color serviceBlue = Color(0xFF2BA4D4);
   static const Color servicePink = Color(0xFFE91E63);
 
@@ -17,7 +22,6 @@ class Appointment116117Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -25,75 +29,118 @@ class Appointment116117Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
 
         gradient: const LinearGradient(colors: [serviceBlue, servicePink]),
+
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
 
-      padding: const EdgeInsets.all(4), // Rahmenstärke
-
+      padding: const EdgeInsets.all(4),
       child: Container(
-        padding: const EdgeInsets.all(16),
-
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDarkMode ? const Color(0xFF203246) : Colors.white,
-
+          color: isDarkMode ? const Color(0xFF203246) : const Color(0xFFF8FAFB),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Termin online vereinbaren',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: colorScheme.onSurface,
+            InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    const Icon(Icons.phone, color: serviceBlue),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '116117 Terminservice',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Online Arzttermin vereinbaren',
+                            style: TextStyle(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.72,
+                              ),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      _isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: colorScheme.onSurface.withValues(alpha: 0.72),
+                    ),
+                  ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.phone, color: serviceBlue),
-                const SizedBox(width: 8),
-
-                Text(
-                  '116117',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30,
-                    color: servicePink,
-                  ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Über die 116117 können Arzttermine online vereinbart werden.',
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.85),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: serviceBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        onPressed: _open116117,
+                        child: const Text('Jetzt online Termin buchen'),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'Über die 116117 können Arzttermine online vereinbart werden.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: colorScheme.onSurface.withOpacity(0.85)
-                ),
-            ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: serviceBlue,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _open116117,
-                child: const Text('Jetzt online Termin buchen'),
               ),
+              crossFadeState: _isExpanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 180),
+              sizeCurve: Curves.easeOut,
             ),
           ],
         ),
       ),
     );
   }
+
+  bool _isExpanded = false;
 }

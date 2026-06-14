@@ -12,7 +12,7 @@ class Call2OperationModeService:
     def _requirement_followup_pending(context: TurnContext | None) -> bool:
         if context is None:
             return False
-        followup = context.pending_followup or context.dialogue_state.pending_followup
+        followup = context.dialogue_state.pending_followup
         return followup is not None and followup.kind == "requirement"
 
     def resolve(

@@ -353,6 +353,17 @@ verlustreich oder semantisch driftend geliefert wird.
 - 2026-06-08 00:00
   - Initialblock aus Ist-Zustand rund um Mapper und ResilientExtractionService angelegt.
 - 2026-06-08
+  - Exkurs fuer Phase 2:
+    vor weiterem Codeumbau wird Call 2 kurz ueber Arbeitsdokumente und Review
+    neu geschaerft, damit der naechste Umbau nicht nur Reparaturlogik
+    umsortiert.
+    Verwendete Dokumente:
+    - `CAREENA3_ARCHITECTURE_EXECUTIVE_SUMMARY.md`
+    - `CODE_REVIEW_FRAMEWORK.md`
+    - `CAREENA3_CURRENT_WEAKNESSES.md`
+    - `CAREENA3_PHASE2_CALL2_PROPOSAL.md`
+    - `CAREENA3_PHASE2_CALL2_PROPOSAL_REVISED.md`
+- 2026-06-08
   - `[bearbeitet]` erster Phase-2-Schnitt im `ExtractionResultMapper`:
     typbezogene Surface-/Detail-/Measurement-Vertraege expliziter gemacht und
     generisches Attribut-Kippen fuer unbekannte Keys deutlich reduziert.

@@ -77,19 +77,19 @@ def chat(req: ChatRequest):
         return response
 
     turn_result = dialogue_manager.run_turn(
-        TurnInput(
+        TurnInput.from_persisted_state(
             message=req.message,
             session_id=req.session_id,
             conversation_messages=session.messages,
-            existing_case=session.case,
-            existing_dialogue_state=session.dialogue_state,
-            existing_concern_state=session.concern_state,
+            persisted_case=session.case,
+            persisted_dialogue_state=session.dialogue_state,
+            persisted_concern_state=session.concern_state,
         )
     )
 
-    session.case = turn_result.context.medical_case
-    session.concern_state = turn_result.context.concern_state
-    session.dialogue_state = turn_result.context.dialogue_state
+    session.case = turn_result.medical_case
+    session.concern_state = turn_result.concern_state
+    session.dialogue_state = turn_result.dialogue_state
     session.messages.append({"role": "user", "content": req.message})
 
     response = _chat_response(turn_result)
@@ -125,35 +125,21 @@ def run_simulation(req: SimulationRequest):
 
 
 def _chat_response(result: TurnResult) -> dict:
-    response_text = result.response_text or _fallback_response_text(result.response_mode)
-    pending_followup = result.context.dialogue_state.pending_followup
+    pending_followup = result.dialogue_state.pending_followup
+    recommendation_ready = result.response_mode in {"guide_next_step", "recommend"}
     return {
-        "response": response_text,
+        "response": result.response_text,
         "response_mode": result.response_mode,
         "red_flag": result.response_mode == "emergency",
-        "trace_notes": list(result.context.trace_notes),
+        "trace_notes": list(result.trace_notes),
         "pending_followup": (
             pending_followup.model_dump() if pending_followup is not None else None
         ),
-        "recommendation_requested": result.context.dialogue_state.recommendation_requested,
-        "recommendation_ready": result.context.dialogue_state.recommendation_ready,
+        "recommendation_requested": result.dialogue_state.recommendation_requested,
+        "recommendation_ready": recommendation_ready,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None
             else None
         ),
     }
-
-
-def _fallback_response_text(response_mode: str) -> str:
-    if response_mode == "emergency":
-        return "Akuter Warnhinweis erkannt. Bitte holen Sie sofort medizinische Hilfe."
-    if response_mode == "ask_followup":
-        return "Es wird noch eine Rueckfrage benoetigt."
-    if response_mode == "ask_safety_question":
-        return "Es wird noch eine sicherheitsrelevante Rueckfrage benoetigt."
-    if response_mode == "recommend":
-        return "Die Recommendation-Strecke ist noch nicht voll ausgebaut."
-    if response_mode == "out_of_scope":
-        return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen."
-    return "Verarbeitung abgeschlossen."

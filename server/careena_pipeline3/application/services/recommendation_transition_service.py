@@ -4,22 +4,22 @@ from careena_pipeline3.core.exceptions import (
     SchemaValidationError,
 )
 from careena_pipeline3.llm.recommendation_transition_extractor import (
-    LLMRecommendationTransitionExtractor,
+    LLMRecommendationChoiceExtractor,
 )
-from careena_pipeline3.models.domain import PendingDialogueTransition
+from careena_pipeline3.models.domain import PendingChoicePrompt
 from careena_pipeline3.models.workflow import RecommendationTransitionResolution
 
 
-class RecommendationTransitionService:
+class RecommendationChoiceResolutionService:
     """
-    Resolves an active recommendation-ready transition node into one of its
+    Resolves an active recommendation choice prompt into one of its
     two allowed semantic actions.
     """
 
     def __init__(
         self,
         *,
-        extractor: LLMRecommendationTransitionExtractor | None = None,
+        extractor: LLMRecommendationChoiceExtractor | None = None,
     ):
         self.extractor = extractor
 
@@ -27,19 +27,19 @@ class RecommendationTransitionService:
         self,
         *,
         text: str,
-        pending_transition: PendingDialogueTransition | None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        pending_choice_prompt: PendingChoicePrompt | None,
+        transition_history_messages: list[dict[str, str]] | None = None,
     ) -> RecommendationTransitionResolution | None:
-        if pending_transition is None:
+        if pending_choice_prompt is None:
             return None
-        if pending_transition.kind != "recommendation_ready_check":
+        if pending_choice_prompt.kind != "recommendation_choice":
             return None
 
         normalized = text.strip()
         if normalized in {"request_recommendation", "report_more_information"}:
             return RecommendationTransitionResolution(
                 action=normalized,  # type: ignore[arg-type]
-                trace_notes=["transition_resolution:canonical_action"],
+                trace_notes=["choice_resolution:canonical_action"],
             )
 
         if self.extractor is None:
@@ -48,8 +48,8 @@ class RecommendationTransitionService:
         try:
             return self.extractor.resolve(
                 text,
-                pending_transition=pending_transition,
-                conversation_messages=conversation_messages,
+                pending_choice_prompt=pending_choice_prompt,
+                transition_history_messages=transition_history_messages,
             )
         except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError):
             return None

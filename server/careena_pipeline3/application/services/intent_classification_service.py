@@ -26,7 +26,7 @@ class IntentClassificationService:
         existing_case: MedicalCase | None,
         dialogue_state: DialogueState | None,
         pending_slot: str | None,
-        conversation_messages: list[dict[str, str]] | None,
+        entry_history_messages: list[dict[str, str]] | None,
     ) -> IntentGateway | None:
         if self.intent_gateway_extractor is None:
             return None
@@ -37,7 +37,7 @@ class IntentClassificationService:
                 existing_case=existing_case,
                 dialogue_state=dialogue_state,
                 pending_slot=pending_slot,
-                conversation_messages=conversation_messages,
+                entry_history_messages=entry_history_messages,
             )
             log_json("INTENT GATEWAY RESULT", result)
             return result

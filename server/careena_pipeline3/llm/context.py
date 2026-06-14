@@ -2,7 +2,7 @@ from careena_pipeline3.models.common import Call2OperationMode, Call2Task
 from careena_pipeline3.models.domain import (
     DialogueState,
     MedicalCase,
-    PendingDialogueTransition,
+    PendingChoicePrompt,
 )
 from careena_pipeline3.models.workflow import (
     ConversationTurn,
@@ -19,25 +19,28 @@ def build_intent_gateway_context(
     existing_case: MedicalCase | None = None,
     dialogue_state: DialogueState | None = None,
     pending_slot: str | None = None,
-    messages: list[dict[str, str]] | None = None,
+    history_messages: list[dict[str, str]] | None = None,
 ) -> IntentGatewayContext:
-    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
+    recent_turns = _recent_turns(
+        history_messages,
+        latest_user_message=latest_user_message,
+    )
     last_assistant_question = _last_assistant_question(recent_turns)
-    pending_dialogue_transition = (
-        dialogue_state.pending_dialogue_transition if dialogue_state is not None else None
+    pending_choice_prompt = (
+        dialogue_state.pending_choice_prompt if dialogue_state is not None else None
     )
 
     return IntentGatewayContext(
         latest_user_message=latest_user_message,
         pending_slot=pending_slot,
-        active_dialogue_transition_kind=(
-            pending_dialogue_transition.kind
-            if pending_dialogue_transition is not None
+        active_choice_prompt_kind=(
+            pending_choice_prompt.kind
+            if pending_choice_prompt is not None
             else None
         ),
-        active_dialogue_transition_prompt_code=(
-            pending_dialogue_transition.prompt_code
-            if pending_dialogue_transition is not None
+        active_choice_prompt_code=(
+            pending_choice_prompt.prompt_code
+            if pending_choice_prompt is not None
             else None
         ),
         last_assistant_question=last_assistant_question,
@@ -57,7 +60,7 @@ def build_case_extraction_input(
     profile: str | None = None,
     call2_tasks: list[Call2Task] | None = None,
     operation_mode: Call2OperationMode | None = None,
-    messages: list[dict[str, str]] | None = None,
+    history_messages: list[dict[str, str]] | None = None,
 ) -> dict[str, object]:
     """
     Builds the reduced primary Call-2 payload.
@@ -71,7 +74,10 @@ def build_case_extraction_input(
       work may assemble it more dynamically from Call-1 dispatch signals, but
       broad case/dialogue summaries should not re-enter by default.
     """
-    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
+    recent_turns = _recent_turns(
+        history_messages,
+        latest_user_message=latest_user_message,
+    )
     return {
         "latest_user_message": latest_user_message,
         "profile": profile or "default",
@@ -94,15 +100,18 @@ def build_case_extraction_input(
 def build_recommendation_transition_input(
     *,
     latest_user_message: str,
-    pending_transition: PendingDialogueTransition,
-    messages: list[dict[str, str]] | None = None,
+    pending_choice_prompt: PendingChoicePrompt,
+    history_messages: list[dict[str, str]] | None = None,
 ) -> dict[str, object]:
-    recent_turns = _recent_turns(messages, latest_user_message=latest_user_message)
+    recent_turns = _recent_turns(
+        history_messages,
+        latest_user_message=latest_user_message,
+    )
     return {
         "latest_user_message": latest_user_message,
-        "transition_kind": pending_transition.kind,
-        "prompt_code": pending_transition.prompt_code,
-        "allowed_actions": list(pending_transition.allowed_actions),
+        "prompt_kind": pending_choice_prompt.kind,
+        "prompt_code": pending_choice_prompt.prompt_code,
+        "allowed_actions": list(pending_choice_prompt.allowed_actions),
         "last_assistant_question": _last_assistant_question(recent_turns),
         "recent_turns": [turn.model_dump() for turn in recent_turns],
     }

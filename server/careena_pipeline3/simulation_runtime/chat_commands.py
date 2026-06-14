@@ -32,7 +32,7 @@ def run_simulation_command(*, selector: str, simulation_runner) -> str:
                 SimulationRequest(
                     scenario_prompt=SIMULATION_SCENARIOS[scenario_key],
                     participant_prompt=DEFAULT_PARTICIPANT_PROMPT,
-                    max_turns=4,
+                    max_turns=6,
                 )
             )
             lines.append(f"=== Simulation {scenario_key} ===")

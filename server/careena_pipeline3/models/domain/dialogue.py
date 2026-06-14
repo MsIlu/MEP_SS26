@@ -23,9 +23,9 @@ class PendingFollowup(PipelineModel):
     focus_label: str | None = None
 
 
-class PendingDialogueTransition(PipelineModel):
-    """Legacy recommendation transition hook, not part of active pre-recommend routing."""
-    kind: Literal["recommendation_ready_check"]
+class PendingChoicePrompt(PipelineModel):
+    """Visible process contract for one open system choice prompt."""
+    kind: Literal["recommendation_choice"]
     prompt_code: str | None = None
     allowed_actions: list[str] = Field(
         default_factory=lambda: ["request_recommendation", "report_more_information"]
@@ -40,12 +40,9 @@ class DialogueState(PipelineModel):
     open_requirements: list[str] = Field(default_factory=list)
     resolved_requirements: list[str] = Field(default_factory=list)
     pending_followup: PendingFollowup | None = None
-    # Legacy recommendation transition hook, not part of active pre-recommend routing.
-    pending_dialogue_transition: PendingDialogueTransition | None = None
+    pending_choice_prompt: PendingChoicePrompt | None = None
     # Legacy recommendation intent hook for future recommendation routing.
     recommendation_requested: bool = False
-    # Legacy recommendation readiness hook, no longer the primary pre-recommend driver.
-    recommendation_ready: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)
     focus_observation_id: str | None = None
     focus_label: str | None = None

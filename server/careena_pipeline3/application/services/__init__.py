@@ -28,7 +28,7 @@ from careena_pipeline3.application.services.recommendation_request_service impor
     RecommendationRequestService,
 )
 from careena_pipeline3.application.services.recommendation_transition_service import (
-    RecommendationTransitionService,
+    RecommendationChoiceResolutionService,
 )
 from careena_pipeline3.application.services.recommendation_result_builder import (
     RecommendationResultBuilder,
@@ -59,10 +59,10 @@ __all__ = [
     "LLMResponseGenerationService",
     "NoOpExtractionService",
     "PythonExtractionResultNormalizer",
+    "RecommendationChoiceResolutionService",
     "RecommendationRequestService",
     "RecommendationResultBuilder",
     "RecommendationStateService",
-    "RecommendationTransitionService",
     "ResponseGenerationService",
     "ResponseTextBuilder",
     "ResilientExtractionService",

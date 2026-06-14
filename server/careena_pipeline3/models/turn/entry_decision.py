@@ -16,12 +16,8 @@ class EntryDecision(PipelineModel):
     message_role: MessageRole = "new_information"
     call2_profile: str = "default"
     additional_medical_information: bool = False
-    # Legacy recommendation transition hook, no longer applied by the active
-    # pre-recommend turn contract.
-    clear_pending_dialogue_transition: bool = False
-    # Legacy recommendation transition support, not part of active primary
-    # pre-recommend next-step routing.
-    dialogue_transition_action: str | None = None
+    clear_pending_choice_prompt: bool = False
+    choice_prompt_action: str | None = None
     person_reference_present: bool = False
     multi_person_context: bool = False
     subject_relation_unclear: bool = False

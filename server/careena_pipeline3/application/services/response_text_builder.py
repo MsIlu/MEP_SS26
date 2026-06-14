@@ -48,7 +48,7 @@ class ResponseTextBuilder:
             )
 
         if response_mode == "ask_followup":
-            followup = context.dialogue_state.pending_followup or context.pending_followup
+            followup = context.dialogue_state.pending_followup
             if followup is None:
                 if context.dialogue_state.recommendation_requested:
                     return (

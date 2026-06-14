@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import config
 
-from careena_pipeline3.core.client import LLMClient
 from careena_pipeline3.core.exceptions import EmptyLLMResponseError, LLMRequestError
-from careena_pipeline3.models.turn import EntryDecision, ResponseStrategy, TurnContext
+from careena_pipeline3.core.client import LLMClient
+from careena_pipeline3.models.turn import (
+    EntryDecision,
+    RecommendationGateDecision,
+    ResponseState,
+    ResponseStrategy,
+    TurnContext,
+)
 from careena_pipeline3.models.workflow import RecommendationResult
 
 
@@ -20,11 +26,13 @@ class LLMResponseGenerationService:
     def build(
         self,
         *,
+        response_mode: str,
+        response_state: ResponseState,
         response_strategy: ResponseStrategy,
         context: TurnContext,
         entry_decision: EntryDecision,
         latest_user_message: str,
-        conversation_messages: list[dict[str, str]] | None = None,
+        response_history_messages: list[dict[str, str]] | None = None,
         recommendation_result: RecommendationResult | None = None,
     ) -> str:
         del recommendation_result
@@ -36,11 +44,13 @@ class LLMResponseGenerationService:
 
         system_prompt = _build_system_prompt()
         user_prompt = _build_user_prompt(
+            response_mode=response_mode,
+            response_state=response_state,
             response_strategy=response_strategy,
             context=context,
             entry_decision=entry_decision,
             latest_user_message=latest_user_message,
-            conversation_messages=conversation_messages,
+            response_history_messages=response_history_messages,
         )
         try:
             content = self.llm_client.complete(
@@ -94,11 +104,13 @@ def _build_system_prompt() -> str:
 
 def _build_user_prompt(
     *,
+    response_mode: str,
+    response_state: ResponseState,
     response_strategy: ResponseStrategy,
     context: TurnContext,
     entry_decision: EntryDecision,
     latest_user_message: str,
-    conversation_messages: list[dict[str, str]] | None,
+    response_history_messages: list[dict[str, str]] | None,
 ) -> str:
     case_frame = (
         context.medical_case.current_case_frame_label()
@@ -123,7 +135,8 @@ def _build_user_prompt(
             detail_suffix = f" ({', '.join(details)})" if details else ""
             observations.append(f"- {observation.patient_label}{detail_suffix}")
     observation_text = "\n".join(observations) if observations else "- keine"
-    history_text = _format_conversation_history(conversation_messages)
+    history_text = _format_conversation_history(response_history_messages)
+    allowed_next_step = _allowed_next_step(context.gate_decision)
 
     pending_followup_text = (
         f"{pending_followup.kind}:{pending_followup.slot}"
@@ -132,15 +145,15 @@ def _build_user_prompt(
     )
     return (
         f"Antwortstrategie: {response_strategy.kind}\n"
-        f"Response Mode: {context.response_mode or 'continue'}\n"
-        f"Response State Medical: {context.response_state.medical_state}\n"
-        f"Response State Transition: {context.response_state.transition_state}\n"
-        f"Response State Recommendation: {context.response_state.recommendation_state}\n"
+        f"Response Mode: {response_mode}\n"
+        f"Response State Medical: {response_state.medical_state}\n"
+        f"Response State Transition: {response_state.transition_state}\n"
+        f"Response State Recommendation: {response_state.recommendation_state}\n"
         f"Concern Relation: {context.concern_relation}\n"
         f"Latest Turn Role: {context.latest_turn_role}\n"
         f"Concern Phase: {context.concern_state.phase}\n"
         f"Concern Information Sufficiency: {context.concern_state.information_sufficiency}\n"
-        f"Allowed Next Step: {context.active_allowed_next_step or 'none'}\n"
+        f"Allowed Next Step: {allowed_next_step or 'none'}\n"
         f"Gate Status: {context.gate_decision.gate_status if context.gate_decision is not None else 'none'}\n"
         f"Letzte Nutzernachricht: {latest_user_message}\n"
         f"Message-Rolle laut Entry: {entry_decision.message_role}\n"
@@ -150,7 +163,7 @@ def _build_user_prompt(
         f"Pending Follow-up: {pending_followup_text}\n"
         f"Pending Follow-up Focus: {followup_focus_label or 'none'}\n"
         f"Case Frame: {case_frame or 'none'}\n"
-        f"Erlaubte Antwortfamilie: {_allowed_response_family(context=context)}\n"
+        f"Erlaubte Antwortfamilie: {_allowed_response_family(response_mode=response_mode, gate_decision=context.gate_decision)}\n"
         "Letzte Konversation:\n"
         f"{history_text}\n"
         "Aktuelle Beobachtungen:\n"
@@ -168,13 +181,13 @@ def _build_user_prompt(
 
 
 def _format_conversation_history(
-    conversation_messages: list[dict[str, str]] | None,
+    response_history_messages: list[dict[str, str]] | None,
 ) -> str:
-    if not conversation_messages:
+    if not response_history_messages:
         return "- none"
 
     lines: list[str] = []
-    for message in conversation_messages[-6:]:
+    for message in response_history_messages[-6:]:
         role = (message.get("role") or "unknown").strip()
         content = (message.get("content") or "").strip()
         if not content:
@@ -184,11 +197,23 @@ def _format_conversation_history(
     return "\n".join(lines) if lines else "- none"
 
 
-def _allowed_response_family(*, context: TurnContext) -> str:
-    if context.response_mode == "ask_followup":
+def _allowed_response_family(
+    *,
+    response_mode: str,
+    gate_decision: RecommendationGateDecision | None,
+) -> str:
+    if response_mode == "ask_followup":
         return "gezielte einzelne medizinische Rueckfrage"
-    if context.response_mode == "continue":
-        if context.active_allowed_next_step == "continue_medical":
+    if response_mode == "continue":
+        if _allowed_next_step(gate_decision) == "continue_medical":
             return "kurze natuerliche medizinische Weiterfuehrung oder genau eine passende Rueckfrage"
         return "kurze medizinische Weiterfuehrung ohne Themenwechsel"
     return "keine freie Antwortfamilie"
+
+
+def _allowed_next_step(
+    gate_decision: RecommendationGateDecision | None,
+) -> str | None:
+    if gate_decision is None:
+        return None
+    return gate_decision.allowed_next_step

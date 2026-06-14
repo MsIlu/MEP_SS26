@@ -9,7 +9,7 @@ from careena_pipeline3.models.domain.concern import (
 )
 from careena_pipeline3.models.domain.dialogue import (
     DialogueState,
-    PendingDialogueTransition,
+    PendingChoicePrompt,
     PendingFollowup,
     StagedFollowupAnswer,
 )
@@ -38,7 +38,7 @@ __all__ = [
     "MeasurementObservationData",
     "MedicalCase",
     "MedicationObservationData",
-    "PendingDialogueTransition",
+    "PendingChoicePrompt",
     "PendingFollowup",
     "Provenance",
     "StagedFollowupAnswer",

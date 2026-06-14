@@ -4,11 +4,11 @@ from careena_pipeline3.application.services.call2_operation_mode_service import 
 from careena_pipeline3.application.services.intent_classification_service import (
     IntentClassificationService,
 )
+from careena_pipeline3.application.services.recommendation_transition_service import (
+    RecommendationChoiceResolutionService,
+)
 from careena_pipeline3.application.services.recommendation_request_service import (
     RecommendationRequestService,
-)
-from careena_pipeline3.application.services.recommendation_transition_service import (
-    RecommendationTransitionService,
 )
 from careena_pipeline3.models.turn import EntryDecision, TurnContext, TurnInput
 
@@ -22,21 +22,22 @@ class EntryManager:
     Input contract:
     - latest turn input plus current turn context
     - grouped Call-1 signals from the intent gateway
-    - optional legacy transition-normalization result for an inactive
-      recommendation-ready hook
+    - optional choice-prompt normalization result for an active
+      recommendation choice question
 
     Output contract:
     - small entry-stage steering signals for extraction, person context,
-      recommendation-request intent, and legacy transition observability
+      recommendation-request intent, and choice-prompt observability
 
     Does not decide:
     - case truth
     - merge semantics
     - recommendation readiness
 
-    Legacy:
-    - may still carry recommendation-transition support fields, but these are
-      not part of active primary pre-recommend next-step routing.
+    Transitional:
+    - yes; the manager still carries a small recommendation-choice helper
+      contract while the late closing node is being separated from older
+      transition terminology.
     """
 
     def __init__(
@@ -45,7 +46,9 @@ class EntryManager:
         call2_operation_mode_service: Call2OperationModeService | None = None,
         intent_classification: IntentClassificationService | None = None,
         recommendation_request_service: RecommendationRequestService | None = None,
-        recommendation_transition_service: RecommendationTransitionService | None = None,
+        recommendation_choice_resolution_service: (
+            RecommendationChoiceResolutionService | None
+        ) = None,
     ):
         self.call2_operation_mode_service = (
             call2_operation_mode_service or Call2OperationModeService()
@@ -56,8 +59,9 @@ class EntryManager:
         self.recommendation_request_service = (
             recommendation_request_service or RecommendationRequestService()
         )
-        self.recommendation_transition_service = (
-            recommendation_transition_service or RecommendationTransitionService()
+        self.recommendation_choice_resolution_service = (
+            recommendation_choice_resolution_service
+            or RecommendationChoiceResolutionService()
         )
 
     def evaluate(
@@ -77,56 +81,54 @@ class EntryManager:
                 trace_notes=["empty_message"],
             )
 
-        pending_dialogue_transition = (
-            context.dialogue_state.pending_dialogue_transition
-            if context is not None
-            else None
+        pending_choice_prompt = (
+            context.dialogue_state.pending_choice_prompt if context is not None else None
         )
-        transition_resolution = self.recommendation_transition_service.resolve(
+        choice_resolution = self.recommendation_choice_resolution_service.resolve(
             text=message,
-            pending_transition=pending_dialogue_transition,
-            conversation_messages=turn_input.conversation_messages,
+            pending_choice_prompt=pending_choice_prompt,
+            transition_history_messages=turn_input.transition_history_messages,
         )
-        if transition_resolution is not None and transition_resolution.action == "request_recommendation":
+        if choice_resolution is not None and choice_resolution.action == "request_recommendation":
             return EntryDecision(
                 extraction_required=False,
                 recommendation_requested=True,
-                clear_pending_dialogue_transition=True,
-                dialogue_transition_action="request_recommendation",
+                clear_pending_choice_prompt=True,
+                choice_prompt_action="request_recommendation",
                 concern_relation="dialogue_only",
                 latest_turn_role="closing_choice",
                 trace_notes=[
-                    "legacy_transition_resolution_observed",
-                    "legacy_transition_hook_present:recommendation_ready_check",
-                    "dialogue_transition:recommendation_ready_check:request_recommendation",
-                    *transition_resolution.trace_notes,
+                    "choice_prompt_resolution_observed",
+                    "pending_choice_prompt:recommendation_choice",
+                    "choice_prompt:recommendation_choice:request_recommendation",
+                    *choice_resolution.trace_notes,
                 ],
             )
         if (
-            transition_resolution is not None
-            and transition_resolution.action == "report_more_information"
+            choice_resolution is not None
+            and choice_resolution.action == "report_more_information"
             and message == "report_more_information"
         ):
             return EntryDecision(
                 extraction_required=False,
                 recommendation_requested=False,
-                clear_pending_dialogue_transition=True,
-                dialogue_transition_action="report_more_information",
+                clear_pending_choice_prompt=True,
+                choice_prompt_action="report_more_information",
                 concern_relation="same_concern",
                 latest_turn_role="closing_choice",
                 trace_notes=[
-                    "legacy_transition_resolution_observed",
-                    "legacy_transition_hook_present:recommendation_ready_check",
-                    "dialogue_transition:recommendation_ready_check:report_more_information",
-                    *transition_resolution.trace_notes,
+                    "choice_prompt_resolution_observed",
+                    "pending_choice_prompt:recommendation_choice",
+                    "choice_prompt:recommendation_choice:report_more_information",
+                    *choice_resolution.trace_notes,
                 ],
             )
-        legacy_transition_trace_notes: list[str] = []
-        if transition_resolution is not None:
-            legacy_transition_trace_notes = [
-                "legacy_transition_resolution_observed",
-                f"dialogue_transition:recommendation_ready_check:{transition_resolution.action}",
-                *transition_resolution.trace_notes,
+        choice_prompt_trace_notes: list[str] = []
+        if choice_resolution is not None:
+            choice_prompt_trace_notes = [
+                "choice_prompt_resolution_observed",
+                f"choice_prompt:recommendation_choice:{choice_resolution.action}",
+                *choice_resolution.trace_notes,
             ]
 
         gateway = self.intent_classification.classify(
@@ -134,15 +136,15 @@ class EntryManager:
             existing_case=(context.medical_case if context is not None else None),
             dialogue_state=(context.dialogue_state if context is not None else None),
             pending_slot=(
-                context.pending_followup.slot
+                context.dialogue_state.pending_followup.slot
                 if (
                     context is not None
-                    and context.pending_followup is not None
-                    and context.pending_followup.kind == "requirement"
+                    and context.dialogue_state.pending_followup is not None
+                    and context.dialogue_state.pending_followup.kind == "requirement"
                 )
                 else None
             ),
-            conversation_messages=turn_input.conversation_messages,
+            entry_history_messages=turn_input.entry_history_messages,
         )
         if gateway is None:
             return EntryDecision(
@@ -164,7 +166,7 @@ class EntryManager:
         response_mode_hint = self._response_mode_hint_for_gateway(
             gateway=gateway,
         )
-        if pending_dialogue_transition is not None and transition_resolution is None:
+        if pending_choice_prompt is not None and choice_resolution is None:
             response_mode_hint = None
         concern_relation = self._concern_relation_for_gateway(
             gateway=gateway,
@@ -172,16 +174,16 @@ class EntryManager:
         latest_turn_role = self._latest_turn_role_for_gateway(
             gateway=gateway,
         )
-        dialogue_transition_trace_notes = self._dialogue_transition_trace_notes(
-            pending_dialogue_transition=pending_dialogue_transition,
-            transition_resolution=transition_resolution,
+        pending_choice_trace_notes = self._pending_choice_trace_notes(
+            pending_choice_prompt=pending_choice_prompt,
+            choice_resolution=choice_resolution,
             response_mode_hint=response_mode_hint,
         )
 
         if not gateway.extraction_required:
-            dialogue_transition_action = _dialogue_transition_action_for_gateway(
-                pending_dialogue_transition=pending_dialogue_transition,
-                transition_resolution=transition_resolution,
+            choice_prompt_action = _choice_prompt_action_for_gateway(
+                pending_choice_prompt=pending_choice_prompt,
+                choice_resolution=choice_resolution,
                 gateway=gateway,
                 recommendation_requested=recommendation_requested,
             )
@@ -189,8 +191,8 @@ class EntryManager:
                 extraction_required=False,
                 recommendation_requested=recommendation_requested,
                 response_mode_hint=response_mode_hint,
-                clear_pending_dialogue_transition=dialogue_transition_action is not None,
-                dialogue_transition_action=dialogue_transition_action,
+                clear_pending_choice_prompt=choice_prompt_action is not None,
+                choice_prompt_action=choice_prompt_action,
                 message_role=gateway.message_role,
                 call2_profile=gateway.profile,
                 additional_medical_information=gateway.additional_medical_information,
@@ -205,15 +207,14 @@ class EntryManager:
                     f"intent_gateway:{gateway.category}",
                     f"message_role:{gateway.message_role}",
                     f"profile:{gateway.profile}",
-                    *legacy_transition_trace_notes,
-                    *dialogue_transition_trace_notes,
+                    *choice_prompt_trace_notes,
+                    *pending_choice_trace_notes,
                     *(
                         [
-                            "dialogue_transition:"
-                            f"recommendation_ready_check:{dialogue_transition_action}"
+                            "choice_prompt:"
+                            f"recommendation_choice:{choice_prompt_action}"
                         ]
-                        if dialogue_transition_action is not None
-                        and transition_resolution is None
+                        if choice_prompt_action is not None and choice_resolution is None
                         else []
                     ),
                     f"next_step:{gateway.next_step or 'none'}",
@@ -227,15 +228,12 @@ class EntryManager:
         return EntryDecision(
             extraction_required=True,
             recommendation_requested=recommendation_requested,
-            clear_pending_dialogue_transition=(
-                transition_resolution is not None
-                and transition_resolution.action == "report_more_information"
-            ),
-            dialogue_transition_action=(
+            clear_pending_choice_prompt=pending_choice_prompt is not None,
+            choice_prompt_action=(
                 "report_more_information"
                 if (
-                    transition_resolution is not None
-                    and transition_resolution.action == "report_more_information"
+                    choice_resolution is not None
+                    and choice_resolution.action == "report_more_information"
                 )
                 else None
             ),
@@ -253,8 +251,8 @@ class EntryManager:
                 f"intent_gateway:{gateway.category}",
                 f"message_role:{gateway.message_role}",
                 f"profile:{gateway.profile}",
-                *legacy_transition_trace_notes,
-                *dialogue_transition_trace_notes,
+                *choice_prompt_trace_notes,
+                *pending_choice_trace_notes,
                 f"next_step:{gateway.next_step or 'none'}",
                 f"recommendation_requested:{recommendation_requested}",
                 f"call2_mode:{call2_operation_mode}",
@@ -273,25 +271,25 @@ class EntryManager:
         return "out_of_scope"
 
     @staticmethod
-    def _dialogue_transition_trace_notes(
+    def _pending_choice_trace_notes(
         *,
-        pending_dialogue_transition,
-        transition_resolution,
+        pending_choice_prompt,
+        choice_resolution,
         response_mode_hint: str | None,
     ) -> list[str]:
-        if pending_dialogue_transition is None:
+        if pending_choice_prompt is None:
             return []
-        if pending_dialogue_transition.kind != "recommendation_ready_check":
+        if pending_choice_prompt.kind != "recommendation_choice":
             return []
-        if transition_resolution is not None:
+        if choice_resolution is not None:
             return [
-                "legacy_transition_hook_present:recommendation_ready_check",
-                f"dialogue_transition:recommendation_ready_check:{transition_resolution.action}",
+                "pending_choice_prompt:recommendation_choice",
+                f"choice_prompt:recommendation_choice:{choice_resolution.action}",
             ]
         if response_mode_hint is None:
             return [
-                "legacy_transition_hook_present:recommendation_ready_check",
-                "dialogue_transition:recommendation_ready_check:awaiting_resolved_reply",
+                "pending_choice_prompt:recommendation_choice",
+                "choice_prompt:recommendation_choice:awaiting_resolved_reply",
             ]
         return []
 
@@ -320,19 +318,21 @@ class EntryManager:
         return "unclear"
 
 
-def _dialogue_transition_action_for_gateway(
+def _choice_prompt_action_for_gateway(
     *,
-    pending_dialogue_transition,
-    transition_resolution,
+    pending_choice_prompt,
+    choice_resolution,
     gateway,
     recommendation_requested: bool,
 ) -> str | None:
-    if pending_dialogue_transition is None:
+    if pending_choice_prompt is None:
         return None
-    if pending_dialogue_transition.kind != "recommendation_ready_check":
+    if pending_choice_prompt.kind != "recommendation_choice":
         return None
-    if transition_resolution is not None:
-        return transition_resolution.action
+    if choice_resolution is not None:
+        return choice_resolution.action
     if recommendation_requested:
         return "request_recommendation"
+    if gateway.extraction_required:
+        return "report_more_information"
     return None

@@ -52,7 +52,7 @@ class ResilientExtractionService:
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult:
         try:
             result = self.inner.extract(
@@ -63,7 +63,7 @@ class ResilientExtractionService:
                 profile=profile,
                 call2_tasks=call2_tasks,
                 operation_mode=operation_mode,
-                conversation_messages=conversation_messages,
+                extraction_history_messages=extraction_history_messages,
             )
         except (
             EmptyLLMResponseError,
@@ -92,7 +92,7 @@ class ResilientExtractionService:
             profile=profile,
             call2_tasks=call2_tasks,
             operation_mode=operation_mode,
-            conversation_messages=conversation_messages,
+            extraction_history_messages=extraction_history_messages,
         )
         log_json("CASE EXTRACTION RESULT", result)
         return result
@@ -108,7 +108,7 @@ class ResilientExtractionService:
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult:
         if self.result_normalizer is None:
             return result
@@ -122,7 +122,7 @@ class ResilientExtractionService:
                 profile=profile,
                 call2_tasks=call2_tasks,
                 operation_mode=operation_mode,
-                conversation_messages=conversation_messages,
+                extraction_history_messages=extraction_history_messages,
             )
         except (
             EmptyLLMResponseError,

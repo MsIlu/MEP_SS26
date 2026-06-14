@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
 import '../data/chat_api.dart';
+import '../data/chat_history_repository.dart';
+import '../data/models/chat_history_entry.dart';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
@@ -15,13 +17,16 @@ class ChatController {
   final ChatService chatService;
   final ChatSessionService chatSessionService;
   final SymptomDraftService symptomDraftService;
+  final ChatHistoryRepository chatHistoryRepository;
   final AuthSession authSession;
   int? _activeProfileId;
+  bool _isCompleted = false;
 
   ChatController({
     required this.chatApi,
     required this.chatService,
     required this.authSession,
+    required this.chatHistoryRepository,
     ChatSessionService? chatSessionService,
     SymptomDraftService? symptomDraftService,
   }) : chatSessionService = chatSessionService ?? ChatSessionService(chatApi),
@@ -36,6 +41,7 @@ class ChatController {
   );
 
   final ValueNotifier<List<String>> symptoms = ValueNotifier<List<String>>([]);
+  final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
 
   Future<void>? _initFuture;
 
@@ -81,6 +87,10 @@ class ChatController {
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
+    if (_isCompleted) {
+      return null;
+    }
+
     if (_initFuture != null) {
       await _initFuture;
     }
@@ -116,6 +126,13 @@ class ChatController {
       await loadSymptoms();
 
       if (response.redFlag) {
+        final botMessage = chatService.buildAssistantMessage(response);
+        _addMessage(message: botMessage);
+        await _completeChat(
+          recommendation: response.text,
+          nextSteps: response.action,
+          isEmergency: chatService.isEmergencyRecommendation(response),
+        );
         return response;
       }
 
@@ -137,6 +154,16 @@ class ChatController {
           message: botMessage.copyWith(isStreaming: false),
         ),
       );
+
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.hasRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation: response.text,
+          nextSteps: response.action,
+          isEmergency: isEmergency,
+        );
+      }
 
       return response;
     } catch (e) {
@@ -168,6 +195,7 @@ class ChatController {
 
     messages.value = [];
     symptoms.value = [];
+    _setCompleted(false);
     _initFuture = null;
 
     await symptomDraftService.cancelDraft(sessionId);
@@ -204,6 +232,52 @@ class ChatController {
     messages.value = updatedMessages;
   }
 
+  Future<void> _completeChat({
+    required String recommendation,
+    String? nextSteps,
+    bool isEmergency = false,
+  }) async {
+    if (_isCompleted) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final activeProfileId = authSession.activeProfileId;
+
+    if (activeProfileId != null) {
+      await chatHistoryRepository.saveCompletedChat(
+        ChatHistoryEntry(
+          id: now.microsecondsSinceEpoch.toString(),
+          profileId: activeProfileId,
+          symptomTitle: _historyTitleFromSymptoms(),
+          isEmergency: isEmergency,
+          createdAt: now,
+          messages: messages.value,
+          recommendation: recommendation,
+          nextSteps: nextSteps,
+        ),
+      );
+    }
+
+    _setCompleted(true);
+  }
+
+  void _setCompleted(bool value) {
+    _isCompleted = value;
+    isCompleted.value = value;
+  }
+
+  String? _historyTitleFromSymptoms() {
+    for (final symptom in symptoms.value) {
+      final normalizedSymptom = symptom.trim();
+      if (normalizedSymptom.isNotEmpty) {
+        return normalizedSymptom;
+      }
+    }
+
+    return null;
+  }
+
   bool _hasOfflineMessage() {
     return messages.value.any(
       (message) => message.text.startsWith('Der Chat ist gerade offline.'),
@@ -214,5 +288,6 @@ class ChatController {
     authSession.removeListener(_handleAuthSessionChanged);
     messages.dispose();
     symptoms.dispose();
+    isCompleted.dispose();
   }
 }

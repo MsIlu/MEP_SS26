@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlmodel import SQLModel, Session, create_engine
 from . import models
+from sqlmodel import Session
+from sqlalchemy import text
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -170,6 +172,14 @@ def _migrate_chat_history_schema():
 #creates all tables from db_models.py
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.exec(
+            text(
+                "ALTER TABLE profiles "
+                "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
+            )
+        )
+        session.commit()
     _migrate_legacy_user_schema()
     _migrate_chat_history_schema()
 

@@ -34,6 +34,7 @@ class ProfileApiService {
     String? relevantPreconditionsSummary,
     String? relevantMedicationsSummary,
     String? symptomDiarySummary,
+    String? aiDisclaimerAcceptedAt,
   }) async {
     final response = await _apiClient.post(
       '/profiles',
@@ -45,6 +46,7 @@ class ProfileApiService {
         'relevant_preconditions_summary': relevantPreconditionsSummary,
         'relevant_medications_summary': relevantMedicationsSummary,
         'symptom_diary_summary': symptomDiarySummary,
+        'ai_disclaimer_accepted_at': aiDisclaimerAcceptedAt,
       },
     );
 
@@ -61,6 +63,7 @@ class ProfileApiService {
     String? relevantPreconditionsSummary,
     String? relevantMedicationsSummary,
     String? symptomDiarySummary,
+    String? aiDisclaimerAcceptedAt,
   }) async {
     final body = <String, dynamic>{};
 
@@ -86,6 +89,9 @@ class ProfileApiService {
     }
     if (symptomDiarySummary != null) {
       body['symptom_diary_summary'] = symptomDiarySummary;
+    }
+    if (aiDisclaimerAcceptedAt != null) {
+      body['ai_disclaimer_accepted_at'] = aiDisclaimerAcceptedAt;
     }
 
     final response = await _apiClient.patch('/profiles/$profileId', body);

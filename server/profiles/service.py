@@ -98,6 +98,7 @@ def list_profiles(current_user: User, session: Session) -> list[ProfileResponse]
             relevant_preconditions_summary=profile.relevant_preconditions_summary,
             relevant_medications_summary=profile.relevant_medications_summary,
             symptom_diary_summary=profile.symptom_diary_summary,
+            ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
             role=access.role,
         )
         for profile, access in rows
@@ -122,6 +123,7 @@ def create_profile(
         relevant_preconditions_summary=request.relevant_preconditions_summary,
         relevant_medications_summary=request.relevant_medications_summary,
         symptom_diary_summary=request.symptom_diary_summary,
+        ai_disclaimer_accepted_at=request.ai_disclaimer_accepted_at,
     )
 
     session.add(profile)
@@ -155,6 +157,7 @@ def create_profile(
         relevant_preconditions_summary=profile.relevant_preconditions_summary,
         relevant_medications_summary=profile.relevant_medications_summary,
         symptom_diary_summary=profile.symptom_diary_summary,
+        ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
         role=role,
     )
 
@@ -184,6 +187,7 @@ def get_profile(
         relevant_preconditions_summary=profile.relevant_preconditions_summary,
         relevant_medications_summary=profile.relevant_medications_summary,
         symptom_diary_summary=profile.symptom_diary_summary,
+        ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
         role=role,
     )
 
@@ -226,6 +230,7 @@ def update_profile(
         relevant_preconditions_summary=profile.relevant_preconditions_summary,
         relevant_medications_summary=profile.relevant_medications_summary,
         symptom_diary_summary=profile.symptom_diary_summary,
+        ai_disclaimer_accepted_at=profile.ai_disclaimer_accepted_at,
         role=role,
     )
 

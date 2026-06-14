@@ -9,7 +9,15 @@ class FloatingAvatar extends StatefulWidget {
   /// Diameter of the circular avatar.
   final double size;
 
-  const FloatingAvatar({super.key, required this.imagePath, this.size = 100});
+  /// Whether the image is displayed inside the circular avatar surface.
+  final bool showFrame;
+
+  const FloatingAvatar({
+    super.key,
+    required this.imagePath,
+    this.size = 100,
+    this.showFrame = true,
+  });
 
   @override
   State<FloatingAvatar> createState() => _FloatingAvatarState();
@@ -73,6 +81,13 @@ class _FloatingAvatarState extends State<FloatingAvatar>
   }
 
   Widget _buildAvatar() {
+    if (!widget.showFrame) {
+      return SizedBox.square(
+        dimension: widget.size,
+        child: Image.asset(widget.imagePath, fit: BoxFit.contain),
+      );
+    }
+
     return Container(
       height: widget.size,
       width: widget.size,
@@ -81,7 +96,7 @@ class _FloatingAvatarState extends State<FloatingAvatar>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: AppColors.darkBackground.withValues(alpha: 0.14),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),

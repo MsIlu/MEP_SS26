@@ -146,6 +146,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (response != null &&
         widget.controller.chatService.isEmergencyRecommendation(response)) {
+      await widget.controller.resetChat();
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
@@ -459,7 +463,7 @@ class _CompletedChatNotice extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Text(
-          'Dieser Chat wurde als Verlauf gespeichert. Du kannst die Empfehlung exportieren oder zur Startseite zurueckgehen.',
+          'Dieser Chat wurde als Verlauf gespeichert. Du kannst die Empfehlung exportieren oder zur Startseite zurückgehen.',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurfaceVariant,

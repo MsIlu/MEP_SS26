@@ -4,21 +4,42 @@ import 'package:app1/core/themes/app_colors.dart';
 
 /// Small speech bubble shown on the onboarding hero card.
 class CareenaChatBubble extends StatelessWidget {
-  const CareenaChatBubble({super.key});
+  final String? title;
+  final String text;
+  final Widget? footer;
+  final double fontSize;
+  final bool useDarkSurfaceInDarkMode;
+
+  const CareenaChatBubble({
+    super.key,
+    this.title,
+    this.text =
+        'Ich bin Careena!\nDeine persönliche\nKI-Gesundheits-\nassistentin.',
+    this.footer,
+    this.fontSize = 12,
+    this.useDarkSurfaceInDarkMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final usesDarkSurface = isDarkMode && useDarkSurfaceInDarkMode;
 
-    final bubbleColor = isDarkMode
+    final bubbleColor = usesDarkSurface
+        ? AppColors.darkElevatedSurface
+        : isDarkMode
         ? AppColors.onboardingBubbleDark
-        : Colors.white;
+        : AppColors.lightCard;
 
-    final textColor = isDarkMode
+    final textColor = usesDarkSurface
+        ? AppColors.darkTextPrimary
+        : isDarkMode
         ? AppColors.careenaTitle
         : AppColors.careenaBody;
 
-    final borderColor = isDarkMode
+    final borderColor = usesDarkSurface
+        ? AppColors.toolbarButtonBackgroundDark
+        : isDarkMode
         ? AppColors.onboardingBubbleBorderDark
         : AppColors.careenaBorder;
 
@@ -30,14 +51,33 @@ class CareenaChatBubble extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(30, 18, 18, 18),
-        child: Text(
-          'Ich bin Careena!\nDeine persönliche\nKI-Gesundheits-\nassistentin.',
-          style: TextStyle(
-            fontSize: 12,
-            height: 1.25,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (title != null) ...[
+              Text(
+                title!,
+                style: TextStyle(
+                  fontSize: fontSize + 2,
+                  height: 1.2,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: fontSize,
+                height: 1.3,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+            if (footer != null) ...[const SizedBox(height: 10), footer!],
+          ],
         ),
       ),
     );
@@ -102,7 +142,7 @@ class _SpeechBubblePainter extends CustomPainter {
 
     canvas.drawShadow(
       path,
-      Colors.black.withValues(alpha: shadowOpacity),
+      AppColors.darkBackground.withValues(alpha: shadowOpacity),
       10,
       false,
     );

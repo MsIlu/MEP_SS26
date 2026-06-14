@@ -12,6 +12,7 @@ from careena_pipeline3.application.services import (
     DialogueStateService,
     RecommendationStateService,
 )
+from careena_pipeline3.models.domain import PendingChoicePrompt
 from careena_pipeline3.models.turn import (
     ConfirmationDecision,
     EntryDecision,
@@ -39,6 +40,16 @@ class DialogueManager:
     - delegates canonical case mutation to `CaseStateManager`
     - sequences visible safety, response, and confirmation stages
     - does not decide extraction internals or case-merge semantics itself
+
+    Current stage matrix:
+    - seed persisted truth into turn work context
+    - derive entry signals from the latest message and small history slices
+    - run optional extraction against canonical case/dialogue truth
+    - progress canonical case truth
+    - sync dialogue/process state from case truth
+    - derive readiness and active next-step decision
+    - derive response policy and final boundary output
+    - append late confirmation observability only
     """
 
     def __init__(
@@ -70,11 +81,11 @@ class DialogueManager:
         context = TurnContext()
 
         # Seed the turn with persisted case and dialogue process state.
-        context.medical_case = turn_input.existing_case
-        if turn_input.existing_dialogue_state is not None:
-            context.dialogue_state = turn_input.existing_dialogue_state
+        context.medical_case = turn_input.persisted_case
+        if turn_input.persisted_dialogue_state is not None:
+            context.dialogue_state = turn_input.persisted_dialogue_state
         context.concern_state = self.concern_state_service.ensure_state(
-            turn_input.existing_concern_state
+            turn_input.persisted_concern_state
         )
 
         # Run the first safety look on the raw user message.
@@ -87,7 +98,7 @@ class DialogueManager:
 
         # Ensure canonical case/process anchors exist before downstream work.
         context = self.case_state_manager.ensure_case_context(context=context)
-        context.pending_followup = context.dialogue_state.pending_followup
+        previous_pending_followup = context.dialogue_state.pending_followup
 
         # Read small entry signals before deciding whether extraction runs.
         entry_decision = self.entry_manager.evaluate(turn_input, context=context)
@@ -136,7 +147,7 @@ class DialogueManager:
             medical_case=context.medical_case,
             active_modules=context.active_modules,
             dialogue_consequences=context.case_update_dialogue_consequences,
-            previous_pending_followup=context.pending_followup,
+            previous_pending_followup=previous_pending_followup,
             additional_medical_information=entry_decision.additional_medical_information,
             person_reference_present=context.person_reference_present,
             multi_person_context=context.multi_person_context,
@@ -183,16 +194,15 @@ class DialogueManager:
         response_plan = self.response_manager.plan(
             context=context,
             entry_decision=entry_decision,
-            raw_safety=raw_safety,
+            raw_safety=context.raw_safety,
             extraction_safety=extraction_safety,
             case_safety=case_safety,
             latest_user_message=turn_input.message,
-            conversation_messages=turn_input.conversation_messages,
+            response_history_messages=turn_input.response_history_messages,
         )
-        self._apply_response_contract(
-            context=context,
-            response_plan=response_plan,
-        )
+        self._apply_response_contract(context=context, response_plan=response_plan)
+        if response_plan.response_text is None:
+            raise ValueError("response plan must include response_text")
 
         # Keep confirmation as a visible late-stage boundary, even as placeholder.
         confirmation_decision = self.confirmation_manager.evaluate(context)
@@ -202,10 +212,13 @@ class DialogueManager:
         )
 
         return TurnResult(
-            response_mode=context.response_mode or "continue",
-            context=context,
-            response_text=context.response_text,
-            recommendation_result=context.recommendation_result,
+            response_mode=response_plan.response_mode,
+            response_text=response_plan.response_text,
+            medical_case=context.medical_case,
+            dialogue_state=context.dialogue_state,
+            concern_state=context.concern_state,
+            recommendation_result=response_plan.recommendation_result,
+            trace_notes=list(context.trace_notes),
         )
 
     def _apply_entry_contract(
@@ -225,8 +238,19 @@ class DialogueManager:
             context.dialogue_state.recommendation_requested
             or entry_decision.recommendation_requested
         )
-        if entry_decision.clear_pending_dialogue_transition:
-            context.dialogue_state.pending_dialogue_transition = None
+        if entry_decision.safety_clarification_resolution is not None:
+            resolution = entry_decision.safety_clarification_resolution
+            context.raw_safety = resolution.safety_state
+            if entry_decision.clear_pending_safety_clarification:
+                context.dialogue_state.pending_safety_clarification = None
+            elif resolution.safety_state.requires_safety_clarification:
+                self._set_pending_safety_clarification(
+                    context=context,
+                    stage="raw",
+                    safety_state=resolution.safety_state,
+                )
+        if entry_decision.clear_pending_choice_prompt:
+            context.dialogue_state.pending_choice_prompt = None
         context.trace_notes.extend(entry_decision.trace_notes)
 
     def _apply_process_state_update(
@@ -237,7 +261,6 @@ class DialogueManager:
     ) -> None:
         """Apply process-state progression after case truth changed."""
         context.dialogue_state = process_state_update.dialogue_state
-        context.pending_followup = process_state_update.pending_followup
         context.process_state_signals = process_state_update.process_state_signals
         context.trace_notes.extend(process_state_update.process_state_signals.trace_notes)
 
@@ -250,13 +273,7 @@ class DialogueManager:
         """Apply readiness/gating progression after process state settled."""
         context.dialogue_state = readiness_state_update.dialogue_state
         context.assessment_readiness = readiness_state_update.assessment_readiness
-        context.pending_followup = readiness_state_update.pending_followup
         context.gate_decision = readiness_state_update.gate_decision
-        context.allowed_next_step = (
-            readiness_state_update.gate_decision.allowed_next_step
-            if readiness_state_update.gate_decision is not None
-            else None
-        )
 
     def _apply_safety_state(
         self,
@@ -276,18 +293,10 @@ class DialogueManager:
             raise ValueError(f"unknown safety stage: {stage}")
         context.trace_notes.extend(safety_state.trace_notes)
         if safety_state.requires_safety_clarification:
-            """ Store suspected red flags as dialogue process state.
-                This keeps safety clarification separate from MedicalCase truth
-                and prevents premature emergency responses."""
-            context.dialogue_state.pending_safety_clarification = (
-                PendingSafetyClarification(
-                    question_code=(
-                        safety_state.clarification_question_code
-                        or "raw_red_flag_clarification"
-                    ),
-                    source_stage=stage,
-                    evidence_terms=list(safety_state.evidence_terms),
-                )
+            self._set_pending_safety_clarification(
+                context=context,
+                stage=stage,
+                safety_state=safety_state,
             )
 
     def _apply_response_contract(
@@ -296,17 +305,36 @@ class DialogueManager:
         context: TurnContext,
         response_plan: ResponsePlan,
     ) -> None:
-        """Apply the explicit response-policy result to the turn context."""
+        """Apply response observability plus the visible late choice-prompt state."""
         if response_plan.response_state.selected_response_mode is None:
             response_plan.response_state.selected_response_mode = (
                 response_plan.response_mode
             )
-        context.response_mode = response_plan.response_mode
-        context.response_state = response_plan.response_state
-        context.response_strategy = response_plan.response_strategy
-        context.response_text = response_plan.response_text
-        context.recommendation_result = response_plan.recommendation_result
+        if response_plan.response_mode == "guide_next_step":
+            context.dialogue_state.pending_choice_prompt = PendingChoicePrompt(
+                kind="recommendation_choice",
+                prompt_code="recommendation_choice",
+            )
         context.trace_notes.extend(response_plan.trace_notes)
+
+    @staticmethod
+    def _set_pending_safety_clarification(
+        *,
+        context: TurnContext,
+        stage: str,
+        safety_state: SafetyState,
+    ) -> None:
+        """Persist one open safety clarification as dialogue process state."""
+        context.dialogue_state.pending_safety_clarification = (
+            PendingSafetyClarification(
+                question_code=(
+                    safety_state.clarification_question_code
+                    or "raw_red_flag_clarification"
+                ),
+                source_stage=stage,
+                evidence_terms=list(safety_state.evidence_terms),
+            )
+        )
 
     def _apply_confirmation_contract(
         self,

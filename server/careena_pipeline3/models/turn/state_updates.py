@@ -48,6 +48,14 @@ class ReadinessStateUpdate(PipelineModel):
 
     It keeps readiness evaluation separate from the broader process-state
     update so the `DialogueManager` can apply both stages explicitly.
+
+    Field groups:
+    - persisted truth update:
+      `dialogue_state`
+    - derived assessment:
+      `assessment_readiness`, `gate_decision`
+    - transition-period compatibility:
+      `pending_followup`
     """
 
     dialogue_state: DialogueState
@@ -66,5 +74,5 @@ class RecommendationGateDecision(PipelineModel):
 
     gate_status: str
     allowed_next_step: ConcernAllowedNextStep
-    active_transition_kind: str | None = None
+    active_prompt_kind: str | None = None
     reason_tags: list[str] = Field(default_factory=list)

@@ -43,17 +43,17 @@ class ExtractionManager:
             existing_case=context.medical_case,
             dialogue_state=context.dialogue_state,
             pending_slot=(
-                context.pending_followup.slot
+                context.dialogue_state.pending_followup.slot
                 if (
-                    context.pending_followup is not None
-                    and context.pending_followup.kind == "requirement"
+                    context.dialogue_state.pending_followup is not None
+                    and context.dialogue_state.pending_followup.kind == "requirement"
                 )
                 else None
             ),
             profile=entry_decision.call2_profile,
             call2_tasks=entry_decision.call2_tasks,
             operation_mode=entry_decision.call2_operation_mode,
-            conversation_messages=turn_input.conversation_messages,
+            extraction_history_messages=turn_input.extraction_history_messages,
         )
         case_update_bridge = self.extraction_result_mapper.to_case_update_bridge(
             call2_result,

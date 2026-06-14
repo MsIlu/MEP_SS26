@@ -44,9 +44,9 @@ class PythonExtractionResultNormalizer:
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult:
-        del dialogue_state, profile, conversation_messages
+        del dialogue_state, profile, extraction_history_messages
 
         normalized = result.model_copy(deep=True)
         self._normalize_subject_contract(normalized, call2_tasks=call2_tasks)

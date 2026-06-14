@@ -6,12 +6,12 @@ from careena_pipeline3.llm.context import build_recommendation_transition_input
 from careena_pipeline3.llm.prompts.recommendation_transition import (
     RECOMMENDATION_TRANSITION_SYSTEM_PROMPT,
 )
-from careena_pipeline3.models.domain import PendingDialogueTransition
+from careena_pipeline3.models.domain import PendingChoicePrompt
 from careena_pipeline3.models.workflow import RecommendationTransitionResolution
 
 
-class LLMRecommendationTransitionExtractor:
-    """Small support-call normalizer for recommendation transition replies."""
+class LLMRecommendationChoiceExtractor:
+    """Small support-call normalizer for open recommendation choice replies."""
 
     def __init__(
         self,
@@ -25,13 +25,13 @@ class LLMRecommendationTransitionExtractor:
         self,
         text: str,
         *,
-        pending_transition: PendingDialogueTransition,
-        conversation_messages: list[dict[str, str]] | None = None,
+        pending_choice_prompt: PendingChoicePrompt,
+        transition_history_messages: list[dict[str, str]] | None = None,
     ) -> RecommendationTransitionResolution:
         payload = build_recommendation_transition_input(
             latest_user_message=text,
-            pending_transition=pending_transition,
-            messages=conversation_messages,
+            pending_choice_prompt=pending_choice_prompt,
+            history_messages=transition_history_messages,
         )
         return self.engine.extract(
             text=json.dumps(payload, ensure_ascii=False),

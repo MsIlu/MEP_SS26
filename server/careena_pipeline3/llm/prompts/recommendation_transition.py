@@ -1,5 +1,5 @@
 RECOMMENDATION_TRANSITION_SYSTEM_PROMPT = """
-You normalize the user's reply on an active Careena recommendation transition.
+You normalize the user's reply on an active Careena recommendation choice.
 
 The active node has exactly two allowed semantic outcomes:
 - request_recommendation

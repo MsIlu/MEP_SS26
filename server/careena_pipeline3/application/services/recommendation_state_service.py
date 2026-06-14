@@ -11,13 +11,12 @@ from careena_pipeline3.models.turn import (
 
 class RecommendationStateService:
     """
-    Owns the active post-processing next-step policy plus legacy
-    recommendation hooks.
+    Owns the active post-processing next-step policy plus the open
+    recommendation choice prompt.
 
     `allowed_next_step` is the active steering truth after processing and
     before response selection.
-    `recommendation_requested` and `recommendation_ready` remain visible as
-    legacy / future recommendation hooks.
+    `recommendation_requested` remains visible as user-intent process truth.
     """
 
     def __init__(
@@ -51,13 +50,6 @@ class RecommendationStateService:
             readiness=readiness,
             entry_decision=entry_decision,
         )
-        # Legacy recommendation hook; no longer the primary next-step driver.
-        dialogue_state.recommendation_ready = (
-            readiness.ready
-            and readiness.has_medical_problem
-            and not readiness.blocking_requirements
-            and gate_decision.allowed_next_step == "allow_recommendation"
-        )
         return ReadinessStateUpdate(
             dialogue_state=dialogue_state,
             assessment_readiness=readiness,
@@ -73,54 +65,62 @@ class RecommendationStateService:
         readiness,
         entry_decision: EntryDecision | None,
     ) -> RecommendationGateDecision:
-        active_transition_kind = (
-            dialogue_state.pending_dialogue_transition.kind
-            if dialogue_state.pending_dialogue_transition is not None
+        active_choice_prompt_kind = (
+            dialogue_state.pending_choice_prompt.kind
+            if dialogue_state.pending_choice_prompt is not None
             else None
         )
         if entry_decision is not None and entry_decision.response_mode_hint == "out_of_scope":
             return RecommendationGateDecision(
                 gate_status="out_of_scope",
                 allowed_next_step="out_of_scope",
-                active_transition_kind=active_transition_kind,
+                active_prompt_kind=active_choice_prompt_kind,
                 reason_tags=["gate:out_of_scope", *readiness.reason_tags],
             )
 
         if (
             entry_decision is not None
-            and entry_decision.dialogue_transition_action == "request_recommendation"
+            and entry_decision.choice_prompt_action == "request_recommendation"
         ):
             return RecommendationGateDecision(
                 gate_status="recommendation_allowed",
                 allowed_next_step="allow_recommendation",
-                active_transition_kind=active_transition_kind,
+                active_prompt_kind=active_choice_prompt_kind,
                 reason_tags=["policy:request_recommendation", *readiness.reason_tags],
             )
 
         if (
             entry_decision is not None
-            and entry_decision.dialogue_transition_action == "report_more_information"
+            and entry_decision.choice_prompt_action == "report_more_information"
         ):
             return RecommendationGateDecision(
                 gate_status="return_to_medical",
                 allowed_next_step="return_to_medical",
-                active_transition_kind=active_transition_kind,
+                active_prompt_kind=active_choice_prompt_kind,
                 reason_tags=["policy:return_to_medical", *readiness.reason_tags],
+            )
+
+        if dialogue_state.pending_safety_clarification is not None:
+            return RecommendationGateDecision(
+                gate_status="safety_clarification",
+                allowed_next_step="safety_question",
+                active_prompt_kind=active_choice_prompt_kind,
+                reason_tags=["gate:pending_safety_clarification", *readiness.reason_tags],
             )
 
         if dialogue_state.pending_followup is not None:
             return RecommendationGateDecision(
                 gate_status="concern_clarification",
                 allowed_next_step="ask_clarifying_question",
-                active_transition_kind=active_transition_kind,
+                active_prompt_kind=active_choice_prompt_kind,
                 reason_tags=["gate:pending_followup", *readiness.reason_tags],
             )
 
-        if active_transition_kind == "recommendation_ready_check":
+        if active_choice_prompt_kind == "recommendation_choice":
             return RecommendationGateDecision(
                 gate_status="closing_check",
                 allowed_next_step="stay_on_closing_check",
-                active_transition_kind=active_transition_kind,
+                active_prompt_kind=active_choice_prompt_kind,
                 reason_tags=["policy:closing_check", *readiness.reason_tags],
             )
 
@@ -132,7 +132,7 @@ class RecommendationStateService:
                 else "missing_medical_problem"
             ),
             allowed_next_step="continue_medical",
-            active_transition_kind=active_transition_kind,
+            active_prompt_kind=active_choice_prompt_kind,
             reason_tags=[
                 f"gate:concern_phase:{concern_phase or 'none'}",
                 *readiness.reason_tags,

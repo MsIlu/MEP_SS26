@@ -18,7 +18,7 @@ class ExtractionService(Protocol):
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult: ...
 
 
@@ -34,7 +34,7 @@ class ExtractionResultNormalizer(Protocol):
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult: ...
 
 
@@ -51,7 +51,7 @@ class NoOpExtractionService:
         profile: str | None = None,
         call2_tasks: list[Call2Task] | None = None,
         operation_mode: Call2OperationMode | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        extraction_history_messages: list[dict[str, str]] | None = None,
     ) -> Call2ExtractionResult:
         return Call2ExtractionResult(
             extraction_notes=[

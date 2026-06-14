@@ -26,14 +26,14 @@ class LLMIntentGatewayExtractor:
         existing_case: MedicalCase | None = None,
         dialogue_state: DialogueState | None = None,
         pending_slot: str | None = None,
-        conversation_messages: list[dict[str, str]] | None = None,
+        entry_history_messages: list[dict[str, str]] | None = None,
     ) -> IntentGateway:
         context = build_intent_gateway_context(
             latest_user_message=text,
             existing_case=existing_case,
             dialogue_state=dialogue_state,
             pending_slot=pending_slot,
-            messages=conversation_messages,
+            history_messages=entry_history_messages,
         )
         return self.engine.extract(
             text=json.dumps(context.model_dump(), ensure_ascii=False),

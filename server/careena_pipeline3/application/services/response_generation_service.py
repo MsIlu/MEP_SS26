@@ -3,6 +3,7 @@ from __future__ import annotations
 from careena_pipeline3.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena_pipeline3.models.turn import (
     EntryDecision,
+    ResponseState,
     ResponseStrategy,
     TurnContext,
 )
@@ -35,9 +36,10 @@ class ResponseGenerationService:
         response_mode: str,
         response_strategy: ResponseStrategy,
         context: TurnContext,
+        response_state: ResponseState,
         entry_decision: EntryDecision,
         latest_user_message: str,
-        conversation_messages: list[dict[str, str]] | None = None,
+        response_history_messages: list[dict[str, str]] | None = None,
         recommendation_result: RecommendationResult | None = None,
     ) -> str:
         if (
@@ -46,11 +48,13 @@ class ResponseGenerationService:
         ):
             try:
                 return self.llm_response_generation.build(
+                    response_mode=response_mode,
+                    response_state=response_state,
                     response_strategy=response_strategy,
                     context=context,
                     entry_decision=entry_decision,
                     latest_user_message=latest_user_message,
-                    conversation_messages=conversation_messages,
+                    response_history_messages=response_history_messages,
                     recommendation_result=recommendation_result,
                 )
             except (EmptyLLMResponseError, LLMRequestError):

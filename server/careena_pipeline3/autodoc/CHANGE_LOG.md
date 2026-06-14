@@ -119,6 +119,121 @@ Number muss jedes mal um eins erhoeht werden und datum und uhrzeit falls das ein
   - DEV_NOTE:
     - `workbench@freddy`
 
+=== CHANGE NUMBER: 118 Datum: 14-06-26 09:52 ===
+  - Kategorie:
+    - `refactor`
+  - Bereich:
+    - `backend`
+  - Aenderung:
+    - den Turn-Vertrag an der Runtime-Mitte und an den Boundaries sichtbar
+      neu geschnitten:
+      `TurnInput` traegt jetzt persistierte Aggregate explizit als
+      `persisted_*`
+      sowie getrennte purpose-spezifische History-Slices fuer
+      Entry,
+      Extraction,
+      Transition
+      und Response
+    - `TurnContext` auf internen Arbeitszustand zurueckgeschnitten:
+      die aktiven Spiegel
+      `allowed_next_step`,
+      `pending_followup`,
+      `response_mode`,
+      `response_state`,
+      `response_strategy`,
+      `response_text`
+      und
+      `recommendation_result`
+      wurden aus dem aktiven Turn-Pfad entfernt
+    - die aktive spaete Handlungswahrheit auf
+      `gate_decision.allowed_next_step`
+      singularisiert und alle aktiven Leser in
+      `ResponseManager`
+      und der freien Response-Generierung darauf umgezogen
+    - `TurnResult` zum echten Boundary-Vertrag ausgebaut:
+      er traegt jetzt direkt
+      `medical_case`,
+      `dialogue_state`,
+      `concern_state`,
+      `response_text`,
+      `recommendation_result`
+      und
+      `trace_notes`
+    - HTTP- und Simulations-Boundary auf diesen neuen
+      `TurnResult`-Vertrag umgestellt und den alten
+      Response-Fallback in
+      `careena3.py`
+      entfernt
+    - die kleineren History-Vertraege bis in
+      Intent-Gateway-,
+      Transition-,
+      Extraction-
+      und freie Response-Pfade nachgezogen,
+      sodass keine globale
+      `conversation_messages`
+      -Liste mehr durch den aktiven Turn-Lauf geschoben werden muss
+  - Warum:
+    - die bisherige Hauptspannung lag nicht in fehlender Persistenz,
+      sondern darin,
+      dass persistierte Wahrheit pro Turn zu breit in eine
+      Schattenwelt gezogen und dort mehrfach gespiegelt wurde
+    - der Refactor sollte deshalb zuerst aktive Doppelwahrheit abbauen,
+      Boundaries von
+      `result.context`
+      entkoppeln
+      und den Turn wieder staerker als Ausfuehrungseinheit statt als
+      Zweit-Wahrheitscontainer lesbar machen
+  - Wirkung:
+    - die aktive Steuerung nach der Verarbeitung laeuft jetzt nur noch ueber
+      die eine Next-Step-Wahrheit im Gate-Decision-Vertrag
+    - Persistenz- und Ausgabe-Boundaries lesen nicht mehr den internen
+      `TurnContext`,
+      sondern den expliziten `TurnResult`
+    - die freie Response-Schicht liest ihren Antwortpfad und ihre
+      Observationsdaten jetzt ohne response-nahe Spiegel im
+      `TurnContext`
+    - Verifikation:
+      `C:\\Users\\WahnWitz\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe -m compileall C:\\Users\\WahnWitz\\Documents\\IMB\\MEP\\Projekt\\MEP_SS26\\server\\careena_pipeline3 C:\\Users\\WahnWitz\\Documents\\IMB\\MEP\\Projekt\\MEP_SS26\\server\\careena3.py`
+      lief erfolgreich durch
+    - Verifikation:
+      ein manueller Smoke-Run ueber
+      `DialogueManager()`
+      plus
+      `TurnInput.from_persisted_state(...)`
+      lieferte erfolgreich einen vollstaendigen
+      `TurnResult`
+      mit
+      `response_mode`,
+      `response_text`
+      und den drei Persistenzobjekten
+    - Verifikation:
+      ein manueller Smoke-Run ueber den
+      `CareenaPipeline3Adapter`
+      bestaetigte den neuen Boundary-Pfad mit
+      `state={case, concern_state, dialogue_state}`
+      und einer aus
+      `TurnResult`
+      gebauten Simulation-Response
+  - Betroffene Dateien/Bereiche:
+    - `server/careena3.py`
+    - `server/careena_pipeline3/models/turn/`
+    - `server/careena_pipeline3/application/managers/`
+    - `server/careena_pipeline3/application/services/`
+    - `server/careena_pipeline3/llm/`
+    - `server/careena_pipeline3/simulation_runtime/adapters/careena_pipeline3.py`
+  - Naechster Punkt:
+    - als naechstes die neue kleinere History-Schnittstelle noch weiter
+      gegen wirklich benoetigte Informationen haerten
+      und danach entscheiden,
+      ob
+      `recommendation_ready`
+      und
+      `pending_dialogue_transition`
+      bereits weiter auf reine Legacy-/Trace-Rolle zurueckgeschnitten werden
+      koennen
+  - DEV_NOTE:
+    - `workbench@freddy`
+
 === CHANGE NUMBER: 116 Datum: 13-06-26 17:35 ===
   - Kategorie:
     - `docs`
@@ -5867,5 +5982,100 @@ Format Ende
       zu halten,
       oder ob spaeter noch eine getrennte concern-nahe
       Verlaufssemantik gebraucht wird
+  - DEV_NOTE:
+    - `workbench@freddy`
+
+=== CHANGE NUMBER: 116 Datum: 14-06-26 10:47 ===
+  - Kategorie:
+    - `refactor`
+  - Bereich:
+    - `backend`
+  - Aenderung:
+    - den alten Recommendation-Abschluss-Hook aus
+      `DialogueState`
+      entfernt und durch einen kleinen expliziten Prozessvertrag
+      `pending_choice_prompt`
+      mit
+      `kind="recommendation_choice"`
+      ersetzt
+    - Entry-,
+      Gate-,
+      Concern-,
+      LLM-Kontext-
+      und Boundary-Pfade auf diesen neuen Choice-Prompt-Vertrag umgezogen
+      und die alten Felder
+      `pending_dialogue_transition`
+      sowie
+      `recommendation_ready`
+      aus dem aktiven Runtime-Pfad entfernt
+    - den kleinen Recommendation-Resolver und seinen LLM-Extractor auf
+      Choice-Begriffe umbenannt,
+      `ResponsePlan`
+      vom alten Transition-Payload bereinigt
+      und
+      `careena3.py`
+      auf einen rein abgeleiteten Kompatibilitaetswert fuer
+      `recommendation_ready`
+      umgestellt
+  - Warum:
+    - der spaete Abschlussknoten sollte nicht weiter ueber einen toten
+      Legacy-Transition-Hook plus eine zweite Readiness-Wahrheit getragen
+      werden
+    - `allowed_next_step`
+      soll die einzige aktive post-processing-Handlungswahrheit bleiben,
+      waehrend offene Systemrueckfragen als eigener kleiner
+      Dialogprozessvertrag sichtbar sind
+  - Wirkung:
+    - `guide_next_step`
+      setzt jetzt sichtbar genau einen offenen Choice-Prompt,
+      den der naechste Turn explizit aufloesen oder beenden kann
+    - aktive Produktpfade lesen und schreiben keine
+      `pending_dialogue_transition`-
+      oder
+      `recommendation_ready`-
+      Wahrheit mehr
+    - Verifikation:
+      `C:\\Users\\WahnWitz\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe -m compileall C:\\Users\\WahnWitz\\Documents\\IMB\\MEP\\Projekt\\MEP_SS26\\server\\careena_pipeline3 C:\\Users\\WahnWitz\\Documents\\IMB\\MEP\\Projekt\\MEP_SS26\\server\\careena3.py`
+      lief erfolgreich durch
+    - Verifikation:
+      zwei kleine Smoke-Checks mit dem gebuendelten Python und lokal
+      gestubbten
+      `openai`-
+      und
+      `dotenv`-
+      Modulen bestaetigten,
+      dass
+      `request_recommendation`
+      den Choice-Prompt sauber aufloest
+      und
+      `guide_next_step`
+      den neuen
+      `pending_choice_prompt`
+      korrekt setzt
+  - Betroffene Dateien/Bereiche:
+    - `server/careena_pipeline3/models/domain/dialogue.py`
+    - `server/careena_pipeline3/models/domain/__init__.py`
+    - `server/careena_pipeline3/models/workflow/context.py`
+    - `server/careena_pipeline3/models/turn/entry_decision.py`
+    - `server/careena_pipeline3/models/turn/response_plan.py`
+    - `server/careena_pipeline3/models/turn/state_updates.py`
+    - `server/careena_pipeline3/application/managers/entry_manager.py`
+    - `server/careena_pipeline3/application/managers/dialogue_manager.py`
+    - `server/careena_pipeline3/application/managers/response_manager.py`
+    - `server/careena_pipeline3/application/services/recommendation_state_service.py`
+    - `server/careena_pipeline3/application/services/concern_state_service.py`
+    - `server/careena_pipeline3/application/services/recommendation_transition_service.py`
+    - `server/careena_pipeline3/application/services/__init__.py`
+    - `server/careena_pipeline3/llm/context.py`
+    - `server/careena_pipeline3/llm/prompts/intent_gateway.py`
+    - `server/careena_pipeline3/llm/prompts/recommendation_transition.py`
+    - `server/careena_pipeline3/llm/recommendation_transition_extractor.py`
+    - `server/careena_pipeline3/llm/__init__.py`
+    - `server/careena_pipeline3/runtime.py`
+    - `server/careena3.py`
+  - Naechster Punkt:
+    - als naechstes pruefen,
+      ob der Truth-Write-Rand nach dem beruhigten Abschlussknoten jetzt der
+      kleinere und sinnvollere Refactor-Hebel ist
   - DEV_NOTE:
     - `workbench@freddy`

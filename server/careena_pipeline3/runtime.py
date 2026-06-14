@@ -13,9 +13,9 @@ from careena_pipeline3.application.managers import (
 )
 from careena_pipeline3.application.services import (
     IntentClassificationService,
+    RecommendationChoiceResolutionService,
     LLMResponseGenerationService,
     PythonExtractionResultNormalizer,
-    RecommendationTransitionService,
     ResponseGenerationService,
     ResilientExtractionService,
 )
@@ -27,7 +27,7 @@ from careena_pipeline3.llm.call_control import CallModelConfig, build_call_model
 from careena_pipeline3.llm import (
     LLMCaseExtractionExtractor,
     LLMIntentGatewayExtractor,
-    LLMRecommendationTransitionExtractor,
+    LLMRecommendationChoiceExtractor,
 )
 
 
@@ -48,10 +48,10 @@ class PipelineRuntimeServices:
     call_model_config: CallModelConfig
     intent_gateway_extractor: LLMIntentGatewayExtractor
     case_extraction_extractor: LLMCaseExtractionExtractor
-    recommendation_transition_extractor: LLMRecommendationTransitionExtractor
+    recommendation_choice_extractor: LLMRecommendationChoiceExtractor
     extraction_result_normalizer: PythonExtractionResultNormalizer
     intent_classification_service: IntentClassificationService
-    recommendation_transition_service: RecommendationTransitionService
+    recommendation_choice_resolution_service: RecommendationChoiceResolutionService
     entry_manager: EntryManager
     extraction_manager: ExtractionManager
     dialogue_manager: DialogueManager
@@ -102,7 +102,7 @@ def build_pipeline_runtime(
         extraction_engine,
         call_models=call_model_config,
     )
-    recommendation_transition_extractor = LLMRecommendationTransitionExtractor(
+    recommendation_choice_extractor = LLMRecommendationChoiceExtractor(
         extraction_engine,
         call_models=call_model_config,
     )
@@ -110,12 +110,12 @@ def build_pipeline_runtime(
     intent_classification_service = IntentClassificationService(
         intent_gateway_extractor=intent_gateway_extractor,
     )
-    recommendation_transition_service = RecommendationTransitionService(
-        extractor=recommendation_transition_extractor,
+    recommendation_choice_resolution_service = RecommendationChoiceResolutionService(
+        extractor=recommendation_choice_extractor,
     )
     entry_manager = EntryManager(
         intent_classification=intent_classification_service,
-        recommendation_transition_service=recommendation_transition_service,
+        recommendation_choice_resolution_service=recommendation_choice_resolution_service,
     )
     extraction_manager = ExtractionManager(
         extraction_service=ResilientExtractionService(
@@ -142,10 +142,10 @@ def build_pipeline_runtime(
         call_model_config=call_model_config,
         intent_gateway_extractor=intent_gateway_extractor,
         case_extraction_extractor=case_extraction_extractor,
-        recommendation_transition_extractor=recommendation_transition_extractor,
+        recommendation_choice_extractor=recommendation_choice_extractor,
         extraction_result_normalizer=extraction_result_normalizer,
         intent_classification_service=intent_classification_service,
-        recommendation_transition_service=recommendation_transition_service,
+        recommendation_choice_resolution_service=recommendation_choice_resolution_service,
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
         dialogue_manager=dialogue_manager,

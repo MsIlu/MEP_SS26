@@ -6,7 +6,7 @@ from careena_pipeline3.llm.context import (
 )
 from careena_pipeline3.llm.intent_gateway_extractor import LLMIntentGatewayExtractor
 from careena_pipeline3.llm.recommendation_transition_extractor import (
-    LLMRecommendationTransitionExtractor,
+    LLMRecommendationChoiceExtractor,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "build_recommendation_transition_input",
     "LLMCaseExtractionExtractor",
     "LLMIntentGatewayExtractor",
-    "LLMRecommendationTransitionExtractor",
+    "LLMRecommendationChoiceExtractor",
 ]

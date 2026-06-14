@@ -119,19 +119,19 @@ Rules:
 - `profile` should currently always be `default`.
 - `medical_relevance:*` and `category` should be consistent.
 - `message_role` should describe the main role of the latest user message.
-- If `active_dialogue_transition_kind` is `recommendation_ready_check`,
-  interpret the latest message against that active transition.
-- On an active `recommendation_ready_check`, if the user only says that they
+- If `active_choice_prompt_kind` is `recommendation_choice`,
+  interpret the latest message against that active system choice.
+- On an active `recommendation_choice`, if the user only says that they
   want to continue medically or have more complaints, but does not yet provide
   concrete new symptom, injury, measurement, or medication details, do NOT use
   `next_step:extract`.
-- In that active-transition case, a bare choice of "more information first"
+- In that active-choice case, a bare choice of "more information first"
   should usually use `next_step:response_only` and
   `dialogue_hint:transition_continue_without_medical_content`.
-- On an active `recommendation_ready_check`, only use `next_step:extract` when
+- On an active `recommendation_choice`, only use `next_step:extract` when
   the same latest message already contains actual new medical content that the
   downstream case extraction should work on.
-- On an active `recommendation_ready_check`, do not emit
+- On an active `recommendation_choice`, do not emit
   `content_hint:*_present` only because the user announced that there is more
   to say; emit content hints only for concrete medical content in the latest
   message itself.

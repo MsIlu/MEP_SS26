@@ -28,25 +28,21 @@ class CareenaPipeline3Adapter:
             dialogue_state = state.get("dialogue_state")
 
         result = self.dialogue_manager.run_turn(
-            TurnInput(
+            TurnInput.from_persisted_state(
                 message=user_message,
                 conversation_messages=_transcript_to_messages(transcript),
-                existing_case=case,
-                existing_concern_state=concern_state,
-                existing_dialogue_state=dialogue_state,
+                persisted_case=case,
+                persisted_concern_state=concern_state,
+                persisted_dialogue_state=dialogue_state,
             )
         )
 
-        next_case = result.context.medical_case if result.context.medical_case is not None else case
-        next_concern_state = result.context.concern_state
-        next_dialogue_state = (
-            result.context.dialogue_state
-            if result.context.dialogue_state is not None
-            else dialogue_state
-        )
+        next_case = result.medical_case if result.medical_case is not None else case
+        next_concern_state = result.concern_state
+        next_dialogue_state = result.dialogue_state
 
         return SimulationSystemTurn(
-            text=result.response_text or "",
+            text=result.response_text,
             response_mode=result.response_mode,
             should_stop=result.response_mode in {"recommend", "emergency", "out_of_scope"},
             stop_reason=result.response_mode,

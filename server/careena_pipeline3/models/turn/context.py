@@ -2,43 +2,51 @@ from pydantic import Field
 
 from careena_pipeline3.models.common import PipelineModel
 from careena_pipeline3.models.domain import (
-    ConcernAllowedNextStep,
     ConcernRelation,
     ConcernState,
     ConcernTurnRole,
     DialogueState,
     MedicalCase,
-    PendingFollowup,
 )
 from careena_pipeline3.models.turn.state_updates import ProcessStateSignals
 from careena_pipeline3.models.turn.state_updates import RecommendationGateDecision
 from careena_pipeline3.models.workflow import AssessmentReadiness
-from careena_pipeline3.models.workflow import RecommendationResult
-from careena_pipeline3.models.turn.response_state import ResponseState
-from careena_pipeline3.models.turn.response_strategy import ResponseStrategy
 from careena_pipeline3.models.turn.safety_state import SafetyState
 
 
 class TurnContext(PipelineModel):
+    """
+    Internal turn work context.
+
+    Field groups:
+    - persisted truth mirrored into the turn:
+      `medical_case`, `dialogue_state`, `concern_state`
+    - turn work / orchestration signals:
+      `active_modules`,
+      `process_state_signals`,
+      `case_update_dialogue_consequences`,
+      person and concern relation signals
+    - derived assessments:
+      `assessment_readiness`, `gate_decision`
+    - observability:
+      `trace_notes`, safety states
+
+    Intentionally excluded:
+    - boundary output fields now belong in `TurnResult`
+    - active next-step truth is read directly from `gate_decision`
+    - current follow-up truth stays in `dialogue_state.pending_followup`
+    """
+
     active_modules: list[str] = Field(default_factory=list)
-    pending_followup: PendingFollowup | None = None
     process_state_signals: ProcessStateSignals = Field(
         default_factory=ProcessStateSignals
     )
     case_update_dialogue_consequences: list[str] = Field(default_factory=list)
-    response_mode: str | None = None
-    response_state: ResponseState = Field(default_factory=ResponseState)
-    response_strategy: ResponseStrategy = Field(default_factory=ResponseStrategy)
-    response_text: str | None = None
-    recommendation_result: RecommendationResult | None = None
     person_reference_present: bool = False
     multi_person_context: bool = False
     subject_relation_unclear: bool = False
     concern_relation: ConcernRelation = "unclear"
     latest_turn_role: ConcernTurnRole = "unclear"
-    # Legacy mirror for older tests / observability. Active routing should read
-    # from `gate_decision` via `active_allowed_next_step`.
-    allowed_next_step: ConcernAllowedNextStep | None = None
     gate_decision: RecommendationGateDecision | None = None
     trace_notes: list[str] = Field(default_factory=list)
     raw_safety: SafetyState = Field(default_factory=SafetyState)
@@ -48,10 +56,3 @@ class TurnContext(PipelineModel):
     concern_state: ConcernState = Field(default_factory=ConcernState)
     dialogue_state: DialogueState = Field(default_factory=DialogueState)
     assessment_readiness: AssessmentReadiness = Field(default_factory=AssessmentReadiness)
-
-    @property
-    def active_allowed_next_step(self) -> ConcernAllowedNextStep | None:
-        """Return the active pre-recommend steering decision for this turn."""
-        if self.gate_decision is not None:
-            return self.gate_decision.allowed_next_step
-        return self.allowed_next_step

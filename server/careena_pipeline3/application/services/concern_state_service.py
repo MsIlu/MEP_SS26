@@ -43,8 +43,8 @@ class ConcernStateService:
     ) -> tuple[ConcernState, list[str]]:
         trace_notes: list[str] = []
         closing_node = (
-            dialogue_state.pending_dialogue_transition.kind
-            if dialogue_state.pending_dialogue_transition is not None
+            dialogue_state.pending_choice_prompt.kind
+            if dialogue_state.pending_choice_prompt is not None
             else None
         )
         if concern_state.active_closing_node != closing_node:
@@ -99,8 +99,8 @@ class ConcernStateService:
                     trace_notes.append("concern_state:summary_from_case_frame")
 
         closing_node = (
-            dialogue_state.pending_dialogue_transition.kind
-            if dialogue_state.pending_dialogue_transition is not None
+            dialogue_state.pending_choice_prompt.kind
+            if dialogue_state.pending_choice_prompt is not None
             else None
         )
         concern_state.active_closing_node = closing_node

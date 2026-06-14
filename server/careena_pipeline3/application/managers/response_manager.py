@@ -2,7 +2,6 @@ from careena_pipeline3.application.services import (
     RecommendationResultBuilder,
     ResponseGenerationService,
 )
-from careena_pipeline3.models.domain import PendingDialogueTransition
 from careena_pipeline3.models.turn import (
     EntryDecision,
     ResponsePlan,
@@ -60,7 +59,7 @@ class ResponseManager:
         extraction_safety: SafetyState,
         case_safety: SafetyState,
         latest_user_message: str = "",
-        conversation_messages: list[dict[str, str]] | None = None,
+        response_history_messages: list[dict[str, str]] | None = None,
     ) -> ResponsePlan:
         response_state = self._build_response_state(
             context=context,
@@ -79,9 +78,6 @@ class ResponseManager:
             response_mode=response_mode,
             response_state=response_state,
         )
-        pending_dialogue_transition = self._pending_dialogue_transition_for_response(
-            response_mode=response_mode,
-        )
         recommendation_result = self._build_recommendation_result(
             response_mode=response_mode,
             context=context,
@@ -90,9 +86,10 @@ class ResponseManager:
             response_mode=response_mode,
             response_strategy=response_strategy,
             context=context,
+            response_state=response_state,
             entry_decision=entry_decision,
             latest_user_message=latest_user_message,
-            conversation_messages=conversation_messages,
+            response_history_messages=response_history_messages,
             recommendation_result=recommendation_result,
         )
         return ResponsePlan(
@@ -101,7 +98,6 @@ class ResponseManager:
             response_strategy=response_strategy,
             response_text=response_text,
             recommendation_result=recommendation_result,
-            pending_dialogue_transition=pending_dialogue_transition,
             trace_notes=[
                 *trace_notes,
                 f"response_strategy:{response_strategy.kind}",
@@ -117,15 +113,6 @@ class ResponseManager:
         if response_mode != "recommend":
             return None
         return self.recommendation_result_builder.build(context=context)
-
-    @staticmethod
-    def _pending_dialogue_transition_for_response(
-        *,
-        response_mode: str,
-    ) -> PendingDialogueTransition | None:
-        # Legacy recommendation transition hook; inactive for primary
-        # pre-recommend routing in the minimal next-step model.
-        return None
 
     def _build_response_state(
         self,
@@ -146,7 +133,11 @@ class ResponseManager:
             safety_override = "emergency"
 
         readiness = context.assessment_readiness
-        allowed_next_step = context.active_allowed_next_step
+        allowed_next_step = (
+            context.gate_decision.allowed_next_step
+            if context.gate_decision is not None
+            else None
+        )
         transition_state = "inactive"
         if allowed_next_step == "stay_on_closing_check":
             transition_state = "awaiting_reply"
@@ -211,7 +202,9 @@ class ResponseManager:
     ) -> tuple[str, list[str]]:
         readiness = context.assessment_readiness
         gate_decision = context.gate_decision
-        allowed_next_step = context.active_allowed_next_step
+        allowed_next_step = (
+            gate_decision.allowed_next_step if gate_decision is not None else None
+        )
         gate_reason_tags = gate_decision.reason_tags if gate_decision is not None else []
         if response_state.safety_override is not None:
             return response_state.safety_override, ["response_manager_emergency"]

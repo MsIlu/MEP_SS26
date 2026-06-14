@@ -30,6 +30,17 @@ from careena_pipeline3.llm import (
     LLMRecommendationTransitionExtractor,
 )
 
+from careena_pipeline3.application.services import (
+    IntentClassificationService,
+    LLMResponseGenerationService,
+    PythonExtractionResultNormalizer,
+    RecommendationTransitionService,
+    ResponseGenerationService,
+    ResilientExtractionService,
+    SafetyClarificationBuilder,
+)
+
+from careena_pipeline3.infrastructure.repositories import SqlSafetyCatalogRepository
 
 LOCAL_LLM_BASE_URL = "http://localhost:11434/v1"
 LOCAL_LLM_API_KEY = "ollama"
@@ -126,6 +137,10 @@ def build_pipeline_runtime(
     response_generation_service = ResponseGenerationService(
         llm_response_generation=LLMResponseGenerationService(llm_client=llm_client),
     )
+    safety_catalog_repository = SqlSafetyCatalogRepository()
+    safety_clarification_builder = SafetyClarificationBuilder(
+        safety_catalog_repository=safety_catalog_repository
+    )
     response_manager = ResponseManager(
         response_generation_service=response_generation_service,
     )
@@ -133,6 +148,7 @@ def build_pipeline_runtime(
         entry_manager=entry_manager,
         extraction_manager=extraction_manager,
         response_manager=response_manager,
+        safety_clarification_builder=safety_clarification_builder,
     )
     session_store = CareenaPipeline3SessionStore()
 

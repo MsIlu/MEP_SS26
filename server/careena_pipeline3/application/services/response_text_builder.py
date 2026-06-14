@@ -41,10 +41,14 @@ class ResponseTextBuilder:
             )
 
         if response_mode == "ask_safety_question":
+            pending_safety = context.dialogue_state.pending_safety_clarification
+
+            if pending_safety is not None and pending_safety.question_text:
+                return pending_safety.question_text
+
             return (
                 "Ich moechte eine sicherheitsrelevante Angabe noch kurz gezielt "
-                "klaeren. Diese Safety-Rueckfrage ist in `careena_pipeline3` "
-                "aber aktuell nur als Andockstelle vorbereitet."
+                "klaeren. Bitte beantworten Sie die Sicherheitsfrage."
             )
 
         if response_mode == "ask_followup":

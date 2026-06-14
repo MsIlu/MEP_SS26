@@ -45,7 +45,9 @@ from careena_pipeline3.application.services.response_generation_service import (
 from careena_pipeline3.application.services.resilient_extraction_service import (
     ResilientExtractionService,
 )
-
+from careena_pipeline3.application.services.safety_clarification_builder import (
+    SafetyClarificationBuilder,
+)
 __all__ = [
     "AssessmentReadinessEvaluator",
     "Call2OperationModeService",
@@ -66,4 +68,5 @@ __all__ = [
     "ResponseGenerationService",
     "ResponseTextBuilder",
     "ResilientExtractionService",
+    "SafetyClarificationBuilder",
 ]

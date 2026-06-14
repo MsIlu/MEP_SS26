@@ -127,6 +127,8 @@ def run_simulation(req: SimulationRequest):
 def _chat_response(result: TurnResult) -> dict:
     response_text = result.response_text or _fallback_response_text(result.response_mode)
     pending_followup = result.context.dialogue_state.pending_followup
+    pending_safety = result.context.dialogue_state.pending_safety_clarification
+    raw_safety = getattr(result.context, "raw_safety", None)
     return {
         "response": response_text,
         "response_mode": result.response_mode,
@@ -135,6 +137,10 @@ def _chat_response(result: TurnResult) -> dict:
         "pending_followup": (
             pending_followup.model_dump() if pending_followup is not None else None
         ),
+        "pending_safety_clarification": (
+            pending_safety.model_dump() if pending_safety is not None else None
+        ),
+        "raw_safety": raw_safety.model_dump() if raw_safety is not None else None,
         "recommendation_requested": result.context.dialogue_state.recommendation_requested,
         "recommendation_ready": result.context.dialogue_state.recommendation_ready,
         "recommendation_result": (

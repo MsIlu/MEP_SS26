@@ -24,6 +24,12 @@ from careena_pipeline3.models.turn import (
     TurnResult,
 )
 
+from careena_pipeline3.application.services import (
+    ConcernStateService,
+    DialogueStateService,
+    RecommendationStateService,
+    SafetyClarificationBuilder,
+)
 
 class DialogueManager:
     """
@@ -53,6 +59,7 @@ class DialogueManager:
         concern_state_service: ConcernStateService | None = None,
         dialogue_state_service: DialogueStateService | None = None,
         recommendation_state_service: RecommendationStateService | None = None,
+        safety_clarification_builder: SafetyClarificationBuilder | None = None,
     ):
         self.entry_manager = entry_manager or EntryManager()
         self.extraction_manager = extraction_manager or ExtractionManager()
@@ -64,6 +71,9 @@ class DialogueManager:
         self.dialogue_state_service = dialogue_state_service or DialogueStateService()
         self.recommendation_state_service = (
             recommendation_state_service or RecommendationStateService()
+        )
+        self.safety_clarification_builder = (
+            safety_clarification_builder or SafetyClarificationBuilder()
         )
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
@@ -276,19 +286,33 @@ class DialogueManager:
             raise ValueError(f"unknown safety stage: {stage}")
         context.trace_notes.extend(safety_state.trace_notes)
         if safety_state.requires_safety_clarification:
-            """ Store suspected red flags as dialogue process state.
-                This keeps safety clarification separate from MedicalCase truth
-                and prevents premature emergency responses."""
-            context.dialogue_state.pending_safety_clarification = (
-                PendingSafetyClarification(
-                    question_code=(
-                        safety_state.clarification_question_code
-                        or "raw_red_flag_clarification"
-                    ),
+            # memo kommentar erneuern 
+            pending_safety_clarification = (
+                self.safety_clarification_builder.build_pending_clarification(
+                    safety_state=safety_state,
                     source_stage=stage,
-                    evidence_terms=list(safety_state.evidence_terms),
                 )
             )
+
+            context.dialogue_state.pending_safety_clarification = (
+                pending_safety_clarification
+            )
+            context.trace_notes.append(
+                "safety_clarification:"
+                f"{pending_safety_clarification.catalog_mapping_status}"
+            )
+
+            if pending_safety_clarification.consultation_reason_source_id:
+                context.trace_notes.append(
+                    "safety_catalog_reason:"
+                    f"{pending_safety_clarification.consultation_reason_source_id}"
+                )
+
+            if pending_safety_clarification.criterion_key:
+                context.trace_notes.append(
+                    "safety_catalog_criterion:"
+                    f"{pending_safety_clarification.criterion_key}"
+                )
 
     def _apply_response_contract(
         self,

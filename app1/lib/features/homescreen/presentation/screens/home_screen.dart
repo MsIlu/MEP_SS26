@@ -1,5 +1,8 @@
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
+import 'package:app1/features/app_guide/data/app_guide_store.dart';
+import 'package:app1/features/app_guide/data/app_guide_steps.dart';
+import 'package:app1/features/app_guide/presentation/widgets/app_guide_overlay.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
@@ -17,7 +20,7 @@ import '../widgets/home_search_bar.dart';
 import '../../../../core/themes/theme_controller.dart';
 
 /// Dashboard-style home screen with the Careena entry point and feature list.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   /// Shared chat controller reused when opening the chat from the home screen.
   final ChatController controller;
 
@@ -25,6 +28,7 @@ class HomeScreen extends StatelessWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final AuthApiService? authApiService;
+  final bool startGuide;
 
   const HomeScreen({
     super.key,
@@ -32,7 +36,39 @@ class HomeScreen extends StatelessWidget {
     required this.themeController,
     this.authSession,
     this.authApiService,
+    this.startGuide = false,
   });
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _careenaKey = GlobalKey();
+  final _searchKey = GlobalKey();
+  final _featuresKey = GlobalKey();
+  final _themeKey = GlobalKey();
+  final _navigationKey = GlobalKey();
+  int? _guideStep;
+
+  List<AppGuideStep> get _visibleGuideSteps =>
+      widget.themeController.isSimpleView
+      ? appGuideSteps
+            .where(
+              (step) =>
+                  step.target != AppGuideTarget.search &&
+                  step.target != AppGuideTarget.theme,
+            )
+            .toList()
+      : appGuideSteps;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startGuide) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startGuide());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,48 +78,74 @@ class HomeScreen extends StatelessWidget {
     // breakpoint helpers, because this screen has several fixed-size elements.
     final isCompact = MediaQuery.sizeOf(context).width < 360;
 
-    return Scaffold(
-      backgroundColor: isDarkMode
-          ? Theme.of(context).scaffoldBackgroundColor
-          : AppColors.headerBackgroundLight,
-      appBar: CareenaPageHeader(
-        title: 'Willkommen!',
-        showBack: false,
-        trailing: themeController.isSimpleView
-            ? null
-            : CareenaThemeHeaderAction(
-                onPressed: themeController.toggleTheme,
-                isDarkMode: themeController.isDarkMode,
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: isDarkMode
+              ? Theme.of(context).scaffoldBackgroundColor
+              : AppColors.headerBackgroundLight,
+          appBar: CareenaPageHeader(
+            title: 'Willkommen!',
+            showBack: false,
+            leading: CareenaHeaderAction(
+              tooltip: 'App-Guide testen',
+              icon: Icons.help_outline,
+              onPressed: _startGuide,
+            ),
+            trailing: widget.themeController.isSimpleView
+                ? null
+                : CareenaThemeHeaderAction(
+                    key: _themeKey,
+                    onPressed: widget.themeController.toggleTheme,
+                    isDarkMode: widget.themeController.isDarkMode,
+                  ),
+          ),
+          body: SafeArea(
+            child: ResponsivePageBody(
+              maxWidth: 720,
+              child: Column(
+                children: [
+                  CareenaHeroCard(
+                    guideTargetKey: _careenaKey,
+                    onTap: () => _navigateToChat(context),
+                    isSimpleView: widget.themeController.isSimpleView,
+                  ),
+                  if (!widget.themeController.isSimpleView)
+                    HomeSearchBar(
+                      guideTargetKey: _searchKey,
+                      isCompact: isCompact,
+                    ),
+                  HomeFunctionList(
+                    guideTargetKey: _featuresKey,
+                    features: features,
+                    isSimpleView: widget.themeController.isSimpleView,
+                  ),
+                ],
               ),
-      ),
-      body: SafeArea(
-        child: ResponsivePageBody(
-          maxWidth: 720,
-          child: Column(
-            children: [
-              CareenaHeroCard(
-                onTap: () => _navigateToChat(context),
-                isSimpleView: themeController.isSimpleView,
-              ),
-              if (!themeController.isSimpleView)
-                HomeSearchBar(isCompact: isCompact),
-              HomeFunctionList(
-                features: features,
-                isSimpleView: themeController.isSimpleView,
-              ),
-            ],
+            ),
+          ),
+          bottomNavigationBar: CustomBottomNav(
+            guideTargetKey: _navigationKey,
+            isSimpleView: widget.themeController.isSimpleView,
+            onTap: (index) => _onBottomNavigationTap(context, index),
           ),
         ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        isSimpleView: themeController.isSimpleView,
-        onTap: (index) => _onBottomNavigationTap(context, index),
-      ),
+        if (_guideStep != null)
+          AppGuideOverlay(
+            targetKey: _targetKey(_visibleGuideSteps[_guideStep!].target),
+            step: _visibleGuideSteps[_guideStep!],
+            currentStep: _guideStep!,
+            stepCount: _visibleGuideSteps.length,
+            onPrevious: _guideStep == 0 ? null : _previousGuideStep,
+            onNext: _nextGuideStep,
+            onSkip: _finishGuide,
+          ),
+      ],
     );
   }
 
   void _onBottomNavigationTap(BuildContext context, int index) {
-    if (themeController.isSimpleView && index == 1) {
+    if (widget.themeController.isSimpleView && index == 1) {
       _openSettings(context);
       return;
     }
@@ -100,13 +162,45 @@ class HomeScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => SettingsPage(
-          themeController: themeController,
-          authSession: authSession,
-          authApiService: authApiService,
+          themeController: widget.themeController,
+          authSession: widget.authSession,
+          authApiService: widget.authApiService,
         ),
       ),
     );
   }
+
+  void _startGuide() {
+    if (!mounted) return;
+    setState(() => _guideStep = 0);
+  }
+
+  void _nextGuideStep() {
+    final nextStep = (_guideStep ?? 0) + 1;
+    if (nextStep >= _visibleGuideSteps.length) {
+      _finishGuide();
+      return;
+    }
+    setState(() => _guideStep = nextStep);
+  }
+
+  void _previousGuideStep() {
+    if ((_guideStep ?? 0) == 0) return;
+    setState(() => _guideStep = _guideStep! - 1);
+  }
+
+  Future<void> _finishGuide() async {
+    setState(() => _guideStep = null);
+    await AppGuideStore().markCompleted(widget.authSession?.account?.id ?? 0);
+  }
+
+  GlobalKey _targetKey(AppGuideTarget target) => switch (target) {
+    AppGuideTarget.careena => _careenaKey,
+    AppGuideTarget.search => _searchKey,
+    AppGuideTarget.features => _featuresKey,
+    AppGuideTarget.theme => _themeKey,
+    AppGuideTarget.navigation => _navigationKey,
+  };
 
   /// Navigates to the chat while preserving the existing controller instance.
   void _navigateToChat(BuildContext context) {
@@ -114,8 +208,8 @@ class HomeScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => ChatScreen(
-          controller: controller,
-          themeController: themeController,
+          controller: widget.controller,
+          themeController: widget.themeController,
         ),
       ),
     );
@@ -134,7 +228,7 @@ class HomeScreen extends StatelessWidget {
       ),
       HomeFeature(
         icon: Icons.medication,
-        title: "Medikamentenplan",
+        title: "Medikamententagebuch",
         backgroundColor: featureColor,
         onTap: () => _navigateToMedicationPlan(context),
       ),
@@ -164,7 +258,7 @@ class HomeScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            MedicationPlanPage(themeController: themeController),
+            MedicationPlanPage(themeController: widget.themeController),
       ),
     );
   }
@@ -174,7 +268,7 @@ class HomeScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            SymptomDiaryPage(themeController: themeController),
+            SymptomDiaryPage(themeController: widget.themeController),
       ),
     );
   }

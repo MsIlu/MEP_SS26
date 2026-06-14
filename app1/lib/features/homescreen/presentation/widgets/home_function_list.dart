@@ -7,11 +7,13 @@ class HomeFunctionList extends StatelessWidget {
   /// Features rendered below the list heading.
   final List<HomeFeature> features;
   final bool isSimpleView;
+  final Key? guideTargetKey;
 
   const HomeFunctionList({
     super.key,
     required this.features,
     this.isSimpleView = false,
+    this.guideTargetKey,
   });
 
   @override
@@ -24,6 +26,7 @@ class HomeFunctionList extends StatelessWidget {
 
     return Expanded(
       child: ListView.separated(
+        key: guideTargetKey,
         padding: EdgeInsets.fromLTRB(
           horizontalPadding,
           0,

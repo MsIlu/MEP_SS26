@@ -2,7 +2,7 @@
 # Created as part of the authentication and profile management implementation.
 # This module defines request and response schemas for profile endpoints.
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ class ProfileCreateRequest(BaseModel):
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
     symptom_diary_summary: Optional[str] = None
+    ai_disclaimer_accepted_at: Optional[datetime] = None
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -36,6 +37,7 @@ class ProfileUpdateRequest(BaseModel):
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
     symptom_diary_summary: Optional[str] = None
+    ai_disclaimer_accepted_at: Optional[datetime] = None
 
 
 class ProfileResponse(BaseModel):
@@ -53,6 +55,7 @@ class ProfileResponse(BaseModel):
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
     symptom_diary_summary: Optional[str] = None
+    ai_disclaimer_accepted_at: Optional[datetime] = None
     role: Optional[str] = None
 
     class Config:

@@ -112,6 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (result == null) {
       if (!mounted) return;
       Navigator.of(context).pop();
+      return;
     } // ChatScreen verlassen
     if (activeProfileId == null) {
       await _warningController.acceptWarning(null);

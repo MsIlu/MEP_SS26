@@ -8,12 +8,14 @@ class AuthProfile {
   final int id;
   final String displayName;
   final String profileType;
+  final String? aiDisclaimerAcceptedAt;
   final String? role;
 
   const AuthProfile({
     required this.id,
     required this.displayName,
     required this.profileType,
+    this.aiDisclaimerAcceptedAt,
     this.role,
   });
 
@@ -22,7 +24,21 @@ class AuthProfile {
       id: json['id'] as int,
       displayName: json['display_name'] as String,
       profileType: json['profile_type'] as String,
+      aiDisclaimerAcceptedAt: json['ai_disclaimer_accepted_at'] as String?,
       role: json['role'] as String?,
+    );
+  }
+
+  AuthProfile copyWith({
+    String? aiDisclaimerAcceptedAt,
+  }) {
+    return AuthProfile(
+      id: id,
+      displayName: displayName,
+      profileType: profileType,
+      aiDisclaimerAcceptedAt:
+          aiDisclaimerAcceptedAt ?? this.aiDisclaimerAcceptedAt,
+      role: role,
     );
   }
 }

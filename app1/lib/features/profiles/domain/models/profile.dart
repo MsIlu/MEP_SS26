@@ -11,6 +11,7 @@ class Profile {
   final String? relevantPreconditionsSummary;
   final String? relevantMedicationsSummary;
   final String? symptomDiarySummary;
+  final String? aiDisclaimerAcceptedAt;
   final String? role;
 
   const Profile({
@@ -22,6 +23,7 @@ class Profile {
     this.relevantPreconditionsSummary,
     this.relevantMedicationsSummary,
     this.symptomDiarySummary,
+    this.aiDisclaimerAcceptedAt,
     this.role,
   });
 
@@ -37,6 +39,7 @@ class Profile {
       relevantMedicationsSummary:
       json['relevant_medications_summary'] as String?,
       symptomDiarySummary: json['symptom_diary_summary'] as String?,
+      aiDisclaimerAcceptedAt: json['ai_disclaimer_accepted_at'] as String?,
       role: json['role'] as String?,
     );
   }

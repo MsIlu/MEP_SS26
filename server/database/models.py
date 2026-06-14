@@ -49,6 +49,8 @@ class Profile(SQLModel, table=True):
     relevant_medications_summary: Optional[str] = Field(default=None)
     symptom_diary_summary: Optional[str] = Field(default=None)
 
+    ai_disclaimer_accepted_at: Optional[datetime] = Field(default=None)
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = Field(default=None)

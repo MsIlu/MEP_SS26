@@ -19,6 +19,7 @@ import '../widgets/symptom_list.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
 import 'package:app1/app/app_dependencies_scope.dart';
+
 /// Main conversational UI for Careena.
 ///
 /// This screen owns only presentation state such as input focus, scrolling,
@@ -70,11 +71,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Wait for the first frame before requesting focus so Flutter has attached
     // the input field to the widget tree.
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
-      _warningController = AppDependenciesScope.of(context).chatWarningController;
-      
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _warningController = AppDependenciesScope.of(
+        context,
+      ).chatWarningController;
+
       await _runWarningFlow();
-      
+
       if (!mounted) return;
 
       _inputFocusNode.requestFocus();
@@ -82,21 +85,46 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _runWarningFlow() async {
-    // Checks whether the warning has already been accepted by the user
-    final shouldShow = await _warningController.shouldShowWarning();
+    final authSession = widget.controller.authSession;
+    final activeProfile = authSession.activeProfile;
+    final activeProfileId = activeProfile?.id;
+
+    bool shouldShow = false;
+
+    if (activeProfileId == null) {
+      shouldShow = await _warningController.shouldShowWarning(null, null);
+    } else {
+      // Checks whether the warning has already been accepted by the user
+      shouldShow = await _warningController.shouldShowWarning(
+        activeProfileId,
+        activeProfile?.aiDisclaimerAcceptedAt,
+      );
+    }
 
     if (!mounted || !shouldShow) return;
 
     // Shows a mandatory dialog that blocks interaction until confirmed
-    await showDialog(
+    final result = await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const ChatWarningDialog(),
     );
-
-    await _warningController.acceptWarning();
+    if (result == null) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      return;
+    } // ChatScreen verlassen
+    if (activeProfileId == null) {
+      await _warningController.acceptWarning(null);
+    } else {
+      final acceptedAt = await _warningController.acceptWarning(
+        activeProfileId,
+      );
+      if (acceptedAt != "") {
+        authSession.setActiveProfileAiDisclaimerAcceptedAt(acceptedAt);
+      }
+    }
   }
-
 
   Future<void> _handleSend() async {
     if (_isSending) return;
@@ -162,8 +190,8 @@ class _ChatScreenState extends State<ChatScreen> {
     if (lastMessage.isLoading) return;
     if (lastMessage.isUser) return;
     if (lastMessage.isStreaming) return;
-    if (lastMessage.text.isEmpty) return;  
-    
+    if (lastMessage.text.isEmpty) return;
+
     // Generate smart replies from the latest assistant message
     setState(() {
       _smartReplies = SmartReplies.generate(lastMessage.text);

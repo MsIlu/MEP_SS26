@@ -117,7 +117,8 @@ Homescreen-Darstellung werden getrennt getestet.
 `features/app_guide` enthält den einmaligen Guide nach einer erfolgreichen
 Registrierung. Die Guide-Schritte liegen als einfache Datenobjekte vor, die
 Presentation hebt vorhandene Home-Bereiche mit einem Coachmark-Overlay hervor
-und `AppGuideStore` speichert den Abschluss getrennt je Konto.
+  und `AppGuideStore` speichert den Abschluss getrennt je Konto sowie unter
+  einem expliziten SchlÃ¼ssel fÃ¼r GÃ¤ste.
 - `ApiClient`
 - `ChatApi`
 - `ChatService`

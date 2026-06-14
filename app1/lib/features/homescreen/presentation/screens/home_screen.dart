@@ -191,7 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _finishGuide() async {
     setState(() => _guideStep = null);
-    await AppGuideStore().markCompleted(widget.authSession?.account?.id ?? 0);
+    final accountId = widget.authSession?.account?.id;
+    final userKey = accountId == null
+        ? AppGuideStore.guestKey
+        : AppGuideStore.accountKey(accountId);
+    await AppGuideStore().markCompleted(userKey);
   }
 
   GlobalKey _targetKey(AppGuideTarget target) => switch (target) {

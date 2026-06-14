@@ -66,7 +66,7 @@ void main() {
       await _nextStep(tester);
 
       expect(find.byKey(const ValueKey('app-guide-next-button')), findsNothing);
-      expect(await AppGuideStore().isCompleted(0), isTrue);
+      expect(await AppGuideStore().isCompleted(AppGuideStore.guestKey), isTrue);
     });
 
     testWidgets('stays usable in simple view on a small screen', (

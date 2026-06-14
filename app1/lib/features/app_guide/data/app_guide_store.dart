@@ -3,16 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Persists whether an account has completed the first-use app guide.
 class AppGuideStore {
   static const _keyPrefix = 'careena_app_guide_completed_';
+  static const guestKey = 'guest';
 
-  Future<bool> isCompleted(int accountId) async {
+  static String accountKey(int accountId) => accountId.toString();
+
+  Future<bool> isCompleted(String userKey) async {
     final preferences = await SharedPreferences.getInstance();
-    return preferences.getBool(_key(accountId)) ?? false;
+    return preferences.getBool(_key(userKey)) ?? false;
   }
 
-  Future<void> markCompleted(int accountId) async {
+  Future<void> markCompleted(String userKey) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool(_key(accountId), true);
+    await preferences.setBool(_key(userKey), true);
   }
 
-  String _key(int accountId) => '$_keyPrefix$accountId';
+  String _key(String userKey) => '$_keyPrefix$userKey';
 }

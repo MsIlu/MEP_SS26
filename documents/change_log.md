@@ -64,6 +64,9 @@ und Abgabe.
 
 ### Changed
 
+- Der Abschluss des App-Guides wird fÃ¼r nicht eingeloggte Nutzer unter einem
+  expliziten Guest-Key statt unter einer impliziten Account-ID `0` gespeichert.
+  Bestehende numerische Account-SchlÃ¼ssel bleiben dabei kompatibel.
 - Das App-Guide-Overlay wurde nach Verantwortung in Overlay-Orchestrierung,
   Spotlight-Painter, Careena-Companion und Guide-Aktionen aufgeteilt. Die
   Homescreen-Widget-Tests wurden entsprechend in Darstellung, Guide-Ablauf und

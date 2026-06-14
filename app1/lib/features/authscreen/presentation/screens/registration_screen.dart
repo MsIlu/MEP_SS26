@@ -251,7 +251,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       final guideStore = AppGuideStore();
       final hasCompletedGuide = await guideStore.isCompleted(
-        authResponse.account.id,
+        AppGuideStore.accountKey(authResponse.account.id),
       );
 
       if (!mounted) return;

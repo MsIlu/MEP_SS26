@@ -72,6 +72,28 @@ class AuthSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates the warning acceptance timestamp for the active profile.
+  void setActiveProfileAiDisclaimerAcceptedAt(String acceptedAt) {
+    final activeProfile = _activeProfile;
+
+    if (activeProfile == null) {
+      return;
+    }
+
+    final updatedProfile = activeProfile.copyWith(
+      aiDisclaimerAcceptedAt: acceptedAt,
+    );
+
+    _profiles = _profiles
+        .map((profile) => profile.id == updatedProfile.id
+            ? updatedProfile
+            : profile)
+        .toList();
+    _activeProfile = updatedProfile;
+
+    notifyListeners();
+  }
+
   /// Clears all frontend authentication and profile session data.
   void clear() {
     _accessToken = null;

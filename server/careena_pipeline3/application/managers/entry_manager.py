@@ -10,6 +10,9 @@ from careena_pipeline3.application.services.recommendation_transition_service im
 from careena_pipeline3.application.services.recommendation_request_service import (
     RecommendationRequestService,
 )
+from careena_pipeline3.application.services.safety_clarification_resolver import (
+    SafetyClarificationResolver,
+)
 from careena_pipeline3.models.turn import EntryDecision, TurnContext, TurnInput
 
 
@@ -49,6 +52,7 @@ class EntryManager:
         recommendation_choice_resolution_service: (
             RecommendationChoiceResolutionService | None
         ) = None,
+        safety_clarification_resolver: SafetyClarificationResolver | None = None,
     ):
         self.call2_operation_mode_service = (
             call2_operation_mode_service or Call2OperationModeService()
@@ -62,6 +66,9 @@ class EntryManager:
         self.recommendation_choice_resolution_service = (
             recommendation_choice_resolution_service
             or RecommendationChoiceResolutionService()
+        )
+        self.safety_clarification_resolver = (
+            safety_clarification_resolver or SafetyClarificationResolver()
         )
 
     def evaluate(
@@ -79,6 +86,33 @@ class EntryManager:
                 concern_relation="dialogue_only",
                 latest_turn_role="unclear",
                 trace_notes=["empty_message"],
+            )
+
+        pending_safety_clarification = (
+            context.dialogue_state.pending_safety_clarification
+            if context is not None
+            else None
+        )
+        if pending_safety_clarification is not None:
+            safety_resolution = self.safety_clarification_resolver.resolve(
+                pending=pending_safety_clarification,
+                answer_code=message,
+            )
+            return EntryDecision(
+                extraction_required=False,
+                recommendation_requested=False,
+                clear_pending_safety_clarification=(
+                    safety_resolution.clear_pending_clarification
+                ),
+                safety_clarification_resolution=safety_resolution,
+                concern_relation="dialogue_only",
+                latest_turn_role="dialogue_response",
+                trace_notes=[
+                    "pending_safety_clarification:red_flag_clarification",
+                    "safety_clarification_outcome:"
+                    f"{safety_resolution.outcome.value}",
+                    *safety_resolution.trace_notes,
+                ],
             )
 
         pending_choice_prompt = (

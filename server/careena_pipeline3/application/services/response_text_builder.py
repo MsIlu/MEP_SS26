@@ -41,11 +41,7 @@ class ResponseTextBuilder:
             )
 
         if response_mode == "ask_safety_question":
-            return (
-                "Ich moechte eine sicherheitsrelevante Angabe noch kurz gezielt "
-                "klaeren. Diese Safety-Rueckfrage ist in `careena_pipeline3` "
-                "aber aktuell nur als Andockstelle vorbereitet."
-            )
+            return _safety_question_text(context=context)
 
         if response_mode == "ask_followup":
             followup = context.dialogue_state.pending_followup
@@ -140,4 +136,24 @@ def _followup_text(*, followup) -> str:
     return FOLLOWUP_TEXT_BY_SLOT.get(
         followup.slot,
         f"Ich brauche noch eine kurze Rueckfrage zu: {followup.slot}",
+    )
+
+
+def _safety_question_text(*, context: TurnContext) -> str:
+    pending = context.dialogue_state.pending_safety_clarification
+    if pending is None:
+        return "Ich moechte eine sicherheitsrelevante Angabe noch kurz gezielt klaeren."
+
+    evidence_hint = ""
+    if pending.evidence_terms:
+        evidence_hint = (
+            " Hintergrund ist diese Angabe: "
+            f"{', '.join(pending.evidence_terms)}."
+        )
+
+    options = ", ".join(option.label for option in pending.guided_input.options)
+    return (
+        "Ich moechte kurz eine sicherheitsrelevante Angabe klaeren."
+        f"{evidence_hint} "
+        f"Bitte antworten Sie mit einer der folgenden Optionen: {options}."
     )

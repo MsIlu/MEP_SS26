@@ -194,7 +194,7 @@ class DialogueManager:
         response_plan = self.response_manager.plan(
             context=context,
             entry_decision=entry_decision,
-            raw_safety=raw_safety,
+            raw_safety=context.raw_safety,
             extraction_safety=extraction_safety,
             case_safety=case_safety,
             latest_user_message=turn_input.message,
@@ -238,6 +238,17 @@ class DialogueManager:
             context.dialogue_state.recommendation_requested
             or entry_decision.recommendation_requested
         )
+        if entry_decision.safety_clarification_resolution is not None:
+            resolution = entry_decision.safety_clarification_resolution
+            context.raw_safety = resolution.safety_state
+            if entry_decision.clear_pending_safety_clarification:
+                context.dialogue_state.pending_safety_clarification = None
+            elif resolution.safety_state.requires_safety_clarification:
+                self._set_pending_safety_clarification(
+                    context=context,
+                    stage="raw",
+                    safety_state=resolution.safety_state,
+                )
         if entry_decision.clear_pending_choice_prompt:
             context.dialogue_state.pending_choice_prompt = None
         context.trace_notes.extend(entry_decision.trace_notes)
@@ -282,18 +293,10 @@ class DialogueManager:
             raise ValueError(f"unknown safety stage: {stage}")
         context.trace_notes.extend(safety_state.trace_notes)
         if safety_state.requires_safety_clarification:
-            """ Store suspected red flags as dialogue process state.
-                This keeps safety clarification separate from MedicalCase truth
-                and prevents premature emergency responses."""
-            context.dialogue_state.pending_safety_clarification = (
-                PendingSafetyClarification(
-                    question_code=(
-                        safety_state.clarification_question_code
-                        or "raw_red_flag_clarification"
-                    ),
-                    source_stage=stage,
-                    evidence_terms=list(safety_state.evidence_terms),
-                )
+            self._set_pending_safety_clarification(
+                context=context,
+                stage=stage,
+                safety_state=safety_state,
             )
 
     def _apply_response_contract(
@@ -313,6 +316,25 @@ class DialogueManager:
                 prompt_code="recommendation_choice",
             )
         context.trace_notes.extend(response_plan.trace_notes)
+
+    @staticmethod
+    def _set_pending_safety_clarification(
+        *,
+        context: TurnContext,
+        stage: str,
+        safety_state: SafetyState,
+    ) -> None:
+        """Persist one open safety clarification as dialogue process state."""
+        context.dialogue_state.pending_safety_clarification = (
+            PendingSafetyClarification(
+                question_code=(
+                    safety_state.clarification_question_code
+                    or "raw_red_flag_clarification"
+                ),
+                source_stage=stage,
+                evidence_terms=list(safety_state.evidence_terms),
+            )
+        )
 
     def _apply_confirmation_contract(
         self,

@@ -7,6 +7,7 @@ from careena_pipeline3.models.common import (
     PipelineModel,
 )
 from careena_pipeline3.models.domain import ConcernRelation, ConcernTurnRole
+from careena_pipeline3.models.turn.safety_state import SafetyClarificationResolution
 
 
 class EntryDecision(PipelineModel):
@@ -26,4 +27,6 @@ class EntryDecision(PipelineModel):
     active_modules: list[str] = Field(default_factory=list)
     call2_tasks: list[Call2Task] = Field(default_factory=list)
     call2_operation_mode: Call2OperationMode = "focused_new_fact_extraction"
+    clear_pending_safety_clarification: bool = False
+    safety_clarification_resolution: SafetyClarificationResolution | None = None
     trace_notes: list[str] = Field(default_factory=list)

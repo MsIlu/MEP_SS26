@@ -100,6 +100,14 @@ class RecommendationStateService:
                 reason_tags=["policy:return_to_medical", *readiness.reason_tags],
             )
 
+        if dialogue_state.pending_safety_clarification is not None:
+            return RecommendationGateDecision(
+                gate_status="safety_clarification",
+                allowed_next_step="safety_question",
+                active_prompt_kind=active_choice_prompt_kind,
+                reason_tags=["gate:pending_safety_clarification", *readiness.reason_tags],
+            )
+
         if dialogue_state.pending_followup is not None:
             return RecommendationGateDecision(
                 gate_status="concern_clarification",

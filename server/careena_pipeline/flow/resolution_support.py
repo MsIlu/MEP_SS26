@@ -1,0 +1,203 @@
+from careena_pipeline.core.exceptions import (
+    EmptyLLMResponseError,
+    InvalidJSONError,
+    SchemaValidationError,
+)
+from careena_pipeline.llm import LLMCaseUpdateExtractor, LLMIntentGatewayExtractor
+from careena_pipeline.models import (
+    DialogueState,
+    IntentGateway,
+    MedicalCase,
+    MessageUpdate,
+    StagedFollowupAnswer,
+)
+from careena_pipeline.observability import log_json
+from careena_pipeline.planning import SlotFiller
+from careena_pipeline.planning.requirement_state import PendingFollowupContext
+
+
+class CaseUpdateResolutionError(Exception):
+    pass
+
+
+class IntentClassificationService:
+    def __init__(
+        self,
+        *,
+        intent_gateway_extractor: LLMIntentGatewayExtractor | None,
+    ):
+        self.intent_gateway_extractor = intent_gateway_extractor
+
+    def classify(
+        self,
+        *,
+        text: str,
+        existing_case: MedicalCase | None,
+        dialogue_state: DialogueState,
+        pending_slot: str | None,
+        conversation_messages: list[dict[str, str]] | None,
+    ) -> IntentGateway | None:
+        if self.intent_gateway_extractor is None:
+            return None
+
+        try:
+            return self.intent_gateway_extractor.classify(
+                text,
+                existing_case=existing_case,
+                dialogue_state=dialogue_state,
+                pending_slot=pending_slot,
+                conversation_messages=conversation_messages,
+            )
+        except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
+            log_json(
+                "INTENT GATEWAY FAILED",
+                {
+                    "error": str(exc),
+                    "pending_slot": pending_slot,
+                    "has_existing_case": existing_case is not None,
+                },
+            )
+            return None
+
+
+class FollowupShortcutService:
+    def __init__(
+        self,
+        *,
+        slot_filler: SlotFiller,
+    ):
+        self.slot_filler = slot_filler
+
+    def resolve(
+        self,
+        *,
+        text: str,
+        existing_case: MedicalCase | None,
+        pending_followup: PendingFollowupContext,
+        intent_gateway: IntentGateway | None,
+    ) -> list[StagedFollowupAnswer] | None:
+        if not self.should_attempt(
+            existing_case=existing_case,
+            pending_followup=pending_followup,
+            intent_gateway=intent_gateway,
+        ):
+            return None
+
+        slot_result = self.slot_filler.fill(
+            existing_case,
+            pending_followup,
+            text,
+        )
+        if not slot_result.filled:
+            return None
+
+        log_json(
+            "SLOT FILL STAGED",
+            {
+                "slot": pending_followup.normalized_slot,
+                "requirement": (
+                    pending_followup.resolved_field.key
+                    if pending_followup.resolved_field is not None
+                    else None
+                ),
+                "text": text,
+                "staged_answers": slot_result.staged_answers,
+            },
+        )
+        return slot_result.staged_answers
+
+    @staticmethod
+    def should_attempt(
+        *,
+        existing_case: MedicalCase | None,
+        pending_followup: PendingFollowupContext,
+        intent_gateway: IntentGateway | None,
+    ) -> bool:
+        if existing_case is None or pending_followup.normalized_slot is None:
+            return False
+        if intent_gateway is None:
+            return True
+        return intent_gateway.message_role == "answer_to_followup"
+
+
+class CaseUpdateResolutionService:
+    def __init__(
+        self,
+        *,
+        case_update_extractor: LLMCaseUpdateExtractor,
+    ):
+        self.case_update_extractor = case_update_extractor
+
+    def extract(
+        self,
+        *,
+        text: str,
+        existing_case: MedicalCase | None,
+        dialogue_state: DialogueState,
+        pending_slot: str | None,
+        intent_gateway: IntentGateway | None,
+        staged_followup_answers: list[StagedFollowupAnswer] | None,
+        conversation_messages: list[dict[str, str]] | None,
+    ) -> MessageUpdate:
+        try:
+            message_update = self.case_update_extractor.extract_update(
+                text,
+                existing_case=existing_case,
+                dialogue_state=dialogue_state,
+                pending_slot=pending_slot,
+                intent_gateway=intent_gateway,
+                staged_followup_answers=staged_followup_answers,
+                conversation_messages=conversation_messages,
+            )
+        except (EmptyLLMResponseError, InvalidJSONError, SchemaValidationError) as exc:
+            raise CaseUpdateResolutionError() from exc
+
+        log_json("CASE UPDATE", message_update)
+        return message_update
+
+
+class ResolutionFallbackPolicy:
+    def fallback_for_case_update_error(
+        self,
+        *,
+        text: str,
+        existing_case: MedicalCase | None,
+        pending_followup: PendingFollowupContext,
+        pending_slot: str | None,
+        intent_gateway: IntentGateway | None,
+        request_recommendation: bool,
+        staged_followup_answers: list[StagedFollowupAnswer] | None,
+        shortcut_service: FollowupShortcutService,
+        build_pending_followup_update,
+        result_factory,
+        error: Exception,
+    ):
+        log_json(
+            "CASE UPDATE EXTRACTION FAILED",
+            {
+                "error": str(error),
+                "pending_slot": pending_slot,
+                "has_existing_case": existing_case is not None,
+            },
+        )
+        if shortcut_service.should_attempt(
+            existing_case=existing_case,
+            pending_followup=pending_followup,
+            intent_gateway=intent_gateway,
+        ):
+            return result_factory(
+                message_update=build_pending_followup_update(
+                    text=text,
+                    pending_followup=pending_followup,
+                    request_recommendation=request_recommendation,
+                    mark_resolved=False,
+                    staged_followup_answers=staged_followup_answers,
+                ),
+                request_recommendation=request_recommendation,
+                force_deterministic_gate=True,
+            )
+
+        return result_factory(
+            request_recommendation=request_recommendation,
+            early_response_mode="cannot_assess",
+        )

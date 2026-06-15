@@ -1,3 +1,4 @@
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -25,12 +26,15 @@ class OnboardingScreen extends StatelessWidget {
 
   final AuthApiService authApiService;
 
+  final SymptomRepository symptomRepository;
+
   const OnboardingScreen({
     super.key,
     required this.chatController,
     required this.themeController,
     required this.authSession,
     required this.authApiService,
+    required this.symptomRepository,
   });
 
   @override
@@ -207,6 +211,7 @@ class OnboardingScreen extends StatelessWidget {
           themeController: themeController,
           authSession: authSession,
           authApiService: authApiService,
+          symptomRepository: symptomRepository,
         ),
       ),
     );
@@ -221,6 +226,7 @@ class OnboardingScreen extends StatelessWidget {
           themeController: themeController,
           authSession: authSession,
           authApiService: authApiService,
+          symptomRepository: symptomRepository,
         ),
       ),
     );
@@ -232,6 +238,7 @@ class OnboardingScreen extends StatelessWidget {
         builder: (context) => HomeScreen(
           controller: chatController,
           themeController: themeController,
+          authSession: authSession,
         ),
       ),
     );

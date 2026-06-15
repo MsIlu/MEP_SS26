@@ -14,6 +14,7 @@ import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/warningscreen/presentation/screens/warning_page.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/chatscreen/presentation/widgets/chat_warning_dialog.dart';
 
 void main() {
   late ChatController chatController;
@@ -74,7 +75,7 @@ void main() {
 
     await tester.pumpWidget(
       AppDependenciesScope(
-        dependencies: dependencies, 
+        dependencies: dependencies,
         child: MaterialApp(
           home: ChatScreen(
             controller: chatController,
@@ -108,6 +109,57 @@ void main() {
     expect(find.text('Handlungsempfehlung'), findsOneWidget);
     expect(find.text('Achtung: Möglicher Notfall'), findsOneWidget);
     expect(find.textContaining('Notruf 112'), findsWidgets);
+  });
+
+  testWidgets('shows warning title, content and button', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(builder: (context) => const ChatWarningDialog()),
+      ),
+    );
+
+    expect(find.text('Wichtiger Hinweis'), findsOneWidget);
+
+    expect(
+      find.textContaining('Diese Antworten dienen ausschließlich'),
+      findsOneWidget,
+    );
+
+    expect(find.text('Verstanden'), findsOneWidget);
+  });
+
+  testWidgets('closes dialog when accepted', (tester) async {
+    final authSession = AuthSession();
+    final dependencies = AppDependencies(authSession: authSession);
+
+    await tester.pumpWidget(
+      AppDependenciesScope(
+        dependencies: dependencies,
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) {
+              Future.microtask(() {
+                showDialog(
+                  context: context,
+                  builder: (_) => const ChatWarningDialog(),
+                );
+              });
+
+              return const Scaffold();
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    await tester.tap(find.text('Verstanden'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
   });
 }
 

@@ -5,6 +5,8 @@ import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_p
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
 import 'package:app1/features/authscreen/data/auth_api_service.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -25,6 +27,7 @@ class HomeScreen extends StatelessWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final AuthApiService? authApiService;
+  final SymptomApiService? symptomApiService;
 
   const HomeScreen({
     super.key,
@@ -32,6 +35,7 @@ class HomeScreen extends StatelessWidget {
     required this.themeController,
     this.authSession,
     this.authApiService,
+    this.symptomApiService,
   });
 
   @override
@@ -150,12 +154,13 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: featureColor,
         onTap: () {},
       ),
-      HomeFeature(
-        icon: Icons.menu_book_outlined,
-        title: "Symptomtagebuch",
-        backgroundColor: featureColor,
-        onTap: () => _navigateToSymptomDiary(context),
-      ),
+      if (authSession?.activeProfileId != null)
+        HomeFeature(
+          icon: Icons.menu_book_outlined,
+          title: "Symptomtagebuch",
+          backgroundColor: featureColor,
+          onTap: () => _navigateToSymptomDiary(context),
+        ),
     ];
   }
 
@@ -170,11 +175,17 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _navigateToSymptomDiary(BuildContext context) {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            SymptomDiaryPage(themeController: themeController),
+        builder: (context) => SymptomDiaryPage(
+          themeController: themeController,
+          authSession: authSession,
+          symptomApiService:
+              symptomApiService ?? dependencies?.symptomApiService,
+        ),
       ),
     );
   }

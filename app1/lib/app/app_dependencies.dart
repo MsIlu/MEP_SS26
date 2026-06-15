@@ -9,6 +9,9 @@ import '../features/chatscreen/services/chat_session_service.dart';
 import '../features/chatscreen/services/symptom_draft_service.dart';
 import '../features/authscreen/data/auth_api_service.dart';
 import '../features/authscreen/state/auth_session.dart';
+import '../features/symptom_diary/data/symptom_api_service.dart';
+import '../features/symptom_diary/data/symptom_sync_service.dart';
+import '../features/profiles/data/profile_api_service.dart';
 
 /// Composition root for services shared across multiple screens.
 class AppDependencies {
@@ -17,11 +20,17 @@ class AppDependencies {
   late final ChatController chatController;
   late final ChatWarningController chatWarningController;
   late final AuthApiService authApiService;
+  late final SymptomApiService symptomApiService;
+  late final SymptomSyncService symptomSyncService;
+  late final ProfileApiService profileApiService;
 
   AppDependencies({http.Client? httpClient, required AuthSession authSession})
     : _httpClient = httpClient ?? http.Client() {
     apiClient = ApiClient(_httpClient);
     authApiService = AuthApiService(apiClient);
+    symptomApiService = SymptomApiService(apiClient);
+    symptomSyncService = SymptomSyncService(symptomApiService);
+    profileApiService = ProfileApiService(apiClient);
     final chatApi = ChatApi(apiClient);
     chatController = ChatController(
       chatApi: chatApi,
@@ -31,7 +40,7 @@ class AppDependencies {
       authSession: authSession,
     );
 
-    chatWarningController = ChatWarningController();
+    chatWarningController = ChatWarningController(profileApiService);
   }
 
   void dispose() {

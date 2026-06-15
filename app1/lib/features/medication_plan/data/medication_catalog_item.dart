@@ -28,6 +28,17 @@ class MedicationCatalogItem {
     };
   }
 
+  /// Serializes catalog metadata for the FastAPI medication endpoints.
+  Map<String, dynamic> toApiJson() {
+    return {
+      'id': id,
+      'name': name,
+      'active_substance': activeSubstance,
+      'strength': strength,
+      'dosage_form': dosageForm,
+    };
+  }
+
   /// Restores catalog metadata from local medication storage.
   factory MedicationCatalogItem.fromJson(Map<String, dynamic> json) {
     return MedicationCatalogItem(
@@ -36,6 +47,17 @@ class MedicationCatalogItem {
       activeSubstance: json['activeSubstance'] as String,
       strength: json['strength'] as String,
       dosageForm: json['dosageForm'] as String,
+    );
+  }
+
+  /// Restores catalog metadata returned by the FastAPI medication endpoints.
+  factory MedicationCatalogItem.fromApiJson(Map<String, dynamic> json) {
+    return MedicationCatalogItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      activeSubstance: json['active_substance'] as String,
+      strength: json['strength'] as String,
+      dosageForm: json['dosage_form'] as String,
     );
   }
 }

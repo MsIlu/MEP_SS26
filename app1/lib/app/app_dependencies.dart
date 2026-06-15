@@ -17,6 +17,7 @@ import '../features/profiles/data/profile_api_service.dart';
 /// Composition root for services shared across multiple screens.
 class AppDependencies {
   final http.Client _httpClient;
+  final AuthSession authSession;
   late final ApiClient apiClient;
   late final ChatController chatController;
   late final ChatWarningController chatWarningController;
@@ -25,7 +26,7 @@ class AppDependencies {
   late final SymptomSyncService symptomSyncService;
   late final ProfileApiService profileApiService;
 
-  AppDependencies({http.Client? httpClient, required AuthSession authSession})
+  AppDependencies({http.Client? httpClient, required this.authSession})
     : _httpClient = httpClient ?? http.Client() {
     apiClient = ApiClient(_httpClient);
     authApiService = AuthApiService(apiClient);

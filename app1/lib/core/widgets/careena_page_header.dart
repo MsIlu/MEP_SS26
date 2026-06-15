@@ -6,6 +6,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBack;
   final VoidCallback? onBack;
+  final Widget? leading;
   final Widget? trailing;
 
   const CareenaPageHeader({
@@ -13,6 +14,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.showBack = true,
     this.onBack,
+    this.leading,
     this.trailing,
   });
 
@@ -39,13 +41,15 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: showBack
-                ? CareenaHeaderAction(
-                    tooltip: 'Zurück',
-                    icon: Icons.arrow_back,
-                    onPressed: onBack ?? () => Navigator.maybePop(context),
-                  )
-                : const SizedBox.square(dimension: 48),
+            child:
+                leading ??
+                (showBack
+                    ? CareenaHeaderAction(
+                        tooltip: 'Zurück',
+                        icon: Icons.arrow_back,
+                        onPressed: onBack ?? () => Navigator.maybePop(context),
+                      )
+                    : const SizedBox.square(dimension: 48)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 64),

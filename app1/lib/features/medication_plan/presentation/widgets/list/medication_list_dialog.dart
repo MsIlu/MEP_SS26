@@ -12,6 +12,7 @@ class MedicationListDialog extends StatelessWidget {
   final VoidCallback onClose;
   final void Function(MedicationEntry entry, bool remindersEnabled)
   onToggleReminder;
+  final ValueChanged<MedicationEntry> onEdit;
   final ValueChanged<MedicationEntry> onDelete;
 
   const MedicationListDialog({
@@ -21,6 +22,7 @@ class MedicationListDialog extends StatelessWidget {
     required this.onAdd,
     required this.onClose,
     required this.onToggleReminder,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -38,6 +40,7 @@ class MedicationListDialog extends StatelessWidget {
               isLoading: isLoading,
               entries: entries,
               onToggleReminder: onToggleReminder,
+              onEdit: onEdit,
               onDelete: onDelete,
               showTitle: false,
             ),

@@ -2,6 +2,8 @@ import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
@@ -10,15 +12,22 @@ import '../widgets/symptom_entry_form.dart';
 /// Page for daily symptom tracking and reviewing recent symptom intensity.
 class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
+  final AuthSession? authSession;
+  final SymptomApiService? symptomApiService;
 
-  const SymptomDiaryPage({super.key, required this.themeController});
+  const SymptomDiaryPage({
+    super.key,
+    required this.themeController,
+    this.authSession,
+    this.symptomApiService,
+  });
 
   @override
   State<SymptomDiaryPage> createState() => _SymptomDiaryPageState();
 }
 
 class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
-  final _controller = SymptomDiaryController();
+  late final SymptomDiaryController _controller;
 
   late final DateTime _today;
   late DateTime _selectedDate;
@@ -29,6 +38,10 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     _selectedDate = _today;
+    _controller = SymptomDiaryController(
+      apiService: widget.symptomApiService,
+      profileId: widget.authSession?.activeProfileId,
+    );
     _controller.loadEntries();
   }
 
@@ -121,13 +134,40 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required int intensity,
     required String note,
   }) async {
-    await _controller.addEntry(
-      date: _selectedDate,
+    final entryDate = _selectedDate;
+
+    final localEntry = await _controller.addEntry(
+      date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
       note: note,
     );
+
+    final activeProfileId = widget.authSession?.activeProfileId;
+
+    if (activeProfileId != null && widget.symptomApiService != null) {
+      try {
+        final remoteEntry = await widget.symptomApiService!.createSymptom(
+          profileId: activeProfileId,
+          date: entryDate,
+          symptom: symptom,
+          bodyArea: bodyArea,
+          intensity: intensity,
+          note: note,
+        );
+        await _controller.markEntrySynced(localEntry, remoteEntry.id);
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Symptom lokal gespeichert')),
+        );
+        return;
+      }
+    }
 
     if (!mounted) {
       return;

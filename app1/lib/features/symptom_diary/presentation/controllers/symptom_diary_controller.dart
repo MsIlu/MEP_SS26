@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../data/symptom_api_service.dart';
 import '../../data/symptom_entry.dart';
 import '../../data/symptom_repository.dart';
 import '../utils/symptom_date_format.dart';
@@ -7,9 +8,16 @@ import '../utils/symptom_date_format.dart';
 /// Coordinates symptom diary state, local persistence, and derived summaries.
 class SymptomDiaryController extends ChangeNotifier {
   final SymptomRepository _repository;
+  final SymptomApiService? _apiService;
+  final int? _profileId;
 
-  SymptomDiaryController({SymptomRepository? repository})
-    : _repository = repository ?? SymptomRepository();
+  SymptomDiaryController({
+    SymptomRepository? repository,
+    SymptomApiService? apiService,
+    int? profileId,
+  })  : _repository = repository ?? SymptomRepository(),
+        _apiService = apiService,
+        _profileId = profileId;
 
   final List<SymptomEntry> _entries = [];
   bool _isLoading = true;
@@ -32,7 +40,7 @@ class SymptomDiaryController extends ChangeNotifier {
   }
 
   /// Adds one symptom record for the selected calendar day.
-  Future<void> addEntry({
+  Future<SymptomEntry> addEntry({
     required DateTime date,
     required String symptom,
     String bodyArea = '',
@@ -41,28 +49,42 @@ class SymptomDiaryController extends ChangeNotifier {
   }) async {
     final normalizedSymptom = symptom.trim();
     if (normalizedSymptom.isEmpty) {
-      return;
+      throw ArgumentError('Symptom darf nicht leer sein.');
     }
 
     final now = DateTime.now();
-    _entries.add(
-      SymptomEntry(
-        id: now.microsecondsSinceEpoch,
-        date: DateTime(date.year, date.month, date.day),
-        symptom: normalizedSymptom,
-        bodyArea: bodyArea.trim(),
-        intensity: intensity.clamp(1, 10),
-        note: note.trim(),
-        createdAt: now,
-      ),
+    final entry = SymptomEntry(
+      id: now.microsecondsSinceEpoch,
+      date: DateTime(date.year, date.month, date.day),
+      symptom: normalizedSymptom,
+      bodyArea: bodyArea.trim(),
+      intensity: intensity.clamp(1, 10),
+      note: note.trim(),
+      createdAt: now,
     );
+    _entries.add(entry);
     _sortEntries();
     await _saveAndNotify();
+    return entry;
   }
 
   /// Removes an entry without touching other days.
   Future<void> deleteEntry(SymptomEntry entry) async {
+    if (entry.isSynced && _profileId != null && _apiService != null) {
+      await _apiService.deleteSymptom(
+        profileId: _profileId,
+        entryId: entry.id,
+      );
+    }
+
     _entries.removeWhere((item) => item.id == entry.id);
+    await _saveAndNotify();
+  }
+
+  /// Updates a newly created local entry to the backend-assigned id.
+  Future<void> markEntrySynced(SymptomEntry entry, int remoteId) async {
+    entry.id = remoteId;
+    entry.isSynced = true;
     await _saveAndNotify();
   }
 

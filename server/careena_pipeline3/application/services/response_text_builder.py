@@ -45,6 +45,18 @@ class ResponseTextBuilder:
 
         if response_mode == "ask_followup":
             followup = context.dialogue_state.pending_followup
+            if response_strategy.kind == "static_requirement_followup_invalid":
+                followup_text = _followup_text(followup=followup) if followup is not None else "Bitte beantworten Sie nur die Rueckfrage."
+                return (
+                    "Ich brauche dazu nur eine kurze Antwort auf diese Frage: "
+                    f"{followup_text}"
+                )
+            if response_strategy.kind == "static_requirement_followup_unclear":
+                followup_text = _followup_text(followup=followup) if followup is not None else "Bitte beantworten Sie die Rueckfrage noch etwas genauer."
+                return (
+                    "Bitte beantworten Sie die Rueckfrage noch etwas genauer: "
+                    f"{followup_text}"
+                )
             if followup is None:
                 if context.dialogue_state.recommendation_requested:
                     return (
@@ -99,6 +111,8 @@ class ResponseTextBuilder:
         if response_mode == "continue":
             if response_strategy.kind == "static_return_to_medical":
                 return "Okay, dann beschreiben Sie bitte kurz die weiteren Beschwerden."
+            if response_strategy.kind == "static_followup_resolution_ack":
+                return "Danke, das hilft mir weiter."
             if response_strategy.kind == "static_medical_acknowledgement":
                 if context.latest_turn_role == "medical_clarification":
                     return "Danke, das hilft mir weiter."

@@ -1,7 +1,11 @@
 from careena_pipeline3.domain.requirement_policy import RequirementPolicy
 from careena_pipeline3.models.domain import DialogueState, MedicalCase, PendingFollowup
 from careena_pipeline3.domain.case_update import DialogueConsequence
-from careena_pipeline3.models.turn import ProcessStateSignals, ProcessStateUpdate
+from careena_pipeline3.models.turn import (
+    ProcessStateSignals,
+    ProcessStateUpdate,
+    ResolvedFollowup,
+)
 
 
 class DialogueStateService:
@@ -43,7 +47,6 @@ class DialogueStateService:
         )
         return ProcessStateUpdate(
             dialogue_state=updated_state,
-            pending_followup=updated_state.pending_followup,
             process_state_signals=process_state_signals,
         )
 
@@ -63,11 +66,15 @@ class DialogueStateService:
                 previous_pending_followup.requirement_key
                 in dialogue_state.resolved_requirements
             ):
-                signals.answered_pending_followup = True
-                signals.answered_requirement_key = (
-                    previous_pending_followup.requirement_key
+                signals.resolved_followup = ResolvedFollowup(
+                    requirement_key=previous_pending_followup.requirement_key,
+                    slot=previous_pending_followup.slot,
+                    kind=previous_pending_followup.kind,
+                    focus_observation_id=(
+                        previous_pending_followup.focus_observation_id
+                    ),
+                    focus_label=previous_pending_followup.focus_label,
                 )
-                signals.answered_slot = previous_pending_followup.slot
                 signals.trace_notes.append(
                     "process_state:answered_pending_followup:"
                     f"{previous_pending_followup.requirement_key}"
@@ -77,7 +84,7 @@ class DialogueStateService:
                 signals.trace_notes.append(
                     "process_state:additional_medical_information_detected"
                 )
-                if signals.answered_pending_followup:
+                if signals.resolved_followup is not None:
                     signals.trace_notes.append(
                         "process_state:mixed_followup_and_additional_information"
                     )

@@ -37,7 +37,11 @@ class LLMResponseGenerationService:
     ) -> str:
         del recommendation_result
 
-        if response_strategy.kind not in {"llm_continue", "llm_bounded_response"}:
+        if response_strategy.kind not in {
+            "llm_continue",
+            "llm_bounded_response",
+            "llm_followup_resolved_continue",
+        }:
             raise ValueError(
                 f"unsupported LLM response strategy: {response_strategy.kind}"
             )
@@ -99,6 +103,9 @@ def _build_system_prompt() -> str:
         "- Wenn dort nur eine bestaetigende medizinische Weiterfuehrung "
         "erlaubt ist, antworten Sie kurz und stellen Sie keine zusaetzliche "
         "zweite Frage.\n"
+        "- Wenn in diesem Turn ein medizinisches Follow-up bereits beantwortet "
+        "wurde, duerfen Sie genau diese Rueckfrage nicht erneut stellen oder "
+        "paraphrasieren.\n"
     )
 
 
@@ -143,6 +150,19 @@ def _build_user_prompt(
         if pending_followup is not None
         else "none"
     )
+    resolved_followup = context.process_state_signals.resolved_followup
+    resolved_followup_slot = (
+        resolved_followup.slot if resolved_followup is not None else "none"
+    )
+    resolved_followup_focus = (
+        resolved_followup.focus_label if resolved_followup is not None else "none"
+    )
+    resolved_followup_this_turn = "true" if resolved_followup is not None else "false"
+    additional_medical_information_detected = (
+        "true"
+        if context.process_state_signals.additional_medical_information_detected
+        else "false"
+    )
     return (
         f"Antwortstrategie: {response_strategy.kind}\n"
         f"Response Mode: {response_mode}\n"
@@ -162,6 +182,11 @@ def _build_user_prompt(
         f"Recommendation angefragt: {context.dialogue_state.recommendation_requested}\n"
         f"Pending Follow-up: {pending_followup_text}\n"
         f"Pending Follow-up Focus: {followup_focus_label or 'none'}\n"
+        f"Resolved Follow-up Slot: {resolved_followup_slot}\n"
+        f"Resolved Follow-up Focus: {resolved_followup_focus}\n"
+        f"Resolved Follow-up This Turn: {resolved_followup_this_turn}\n"
+        "Additional Medical Information Detected: "
+        f"{additional_medical_information_detected}\n"
         f"Case Frame: {case_frame or 'none'}\n"
         f"Erlaubte Antwortfamilie: {_allowed_response_family(response_mode=response_mode, gate_decision=context.gate_decision)}\n"
         "Letzte Konversation:\n"
@@ -174,6 +199,8 @@ def _build_user_prompt(
         "- Bleiben Sie innerhalb des erlaubten naechsten Zugs.\n"
         "- Wenn eine Rueckfrage sinnvoll ist, fragen Sie genau einen naechsten "
         "relevanten Punkt.\n"
+        "- Wiederholen Sie keine in diesem Turn bereits beantwortete "
+        "medizinische Rueckfrage.\n"
         "- Antworten Sie nicht bloss mit einer generischen Bestaetigung.\n"
         "- Erfinden Sie keine Symptome, keine Dauerangaben und keine "
         "Subjektinformationen.\n"

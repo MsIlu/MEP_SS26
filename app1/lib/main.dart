@@ -1,4 +1,5 @@
 import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
@@ -53,6 +54,7 @@ class _AppBootState extends State<_AppBoot> {
   late final ThemeController _themeController;
   late final AuthSession _authSession;
   late final AuthApiService _authApiService;
+  late final SymptomRepository _symptomRepository;
 
   @override
   void initState() {
@@ -73,6 +75,10 @@ class _AppBootState extends State<_AppBoot> {
         widget.externalAuthApiService ?? _ownedDependencies!.authApiService;
 
     _themeController = ThemeController();
+
+    _symptomRepository = SymptomRepository();
+
+
   }
 
   @override
@@ -104,6 +110,7 @@ class _AppBootState extends State<_AppBoot> {
               themeController: _themeController,
               authSession: _authSession,
               authApiService: _authApiService,
+              symptomRepository: _symptomRepository,
             ),
           );
         },

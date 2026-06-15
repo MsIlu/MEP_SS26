@@ -8,6 +8,8 @@ import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
+import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
+import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
@@ -25,6 +27,7 @@ void main() {
       chatApi: _FakeChatApi(),
       chatService: ChatService(),
       authSession: AuthSession(),
+      chatHistoryRepository: _FakeChatHistoryRepository(),
     );
     themeController = ThemeController();
   });
@@ -89,6 +92,49 @@ void main() {
     expect(find.byType(ChatScreen), findsOneWidget);
     expect(find.text('Careena'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('red flag response replaces chat with warning page', (
+    WidgetTester tester,
+  ) async {
+    final authSession = AuthSession();
+    final dependencies = AppDependencies(authSession: authSession);
+    final redFlagController = ChatController(
+      chatApi: _FakeChatApi(
+        response: const ChatResponse(
+          text: 'Bitte sofort den Notruf 112 kontaktieren.',
+          redFlag: false,
+          action: 'Notruf 112',
+        ),
+      ),
+      chatService: ChatService(),
+      authSession: authSession,
+      chatHistoryRepository: _FakeChatHistoryRepository(),
+    );
+
+    addTearDown(dependencies.dispose);
+    addTearDown(redFlagController.dispose);
+    addTearDown(authSession.dispose);
+
+    await tester.pumpWidget(
+      AppDependenciesScope(
+        dependencies: dependencies,
+        child: MaterialApp(
+          home: ChatScreen(
+            controller: redFlagController,
+            themeController: themeController,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'Ich blute stark');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WarningPage), findsOneWidget);
+    expect(find.byType(ChatScreen), findsNothing);
   });
 
   testWidgets('Warning page shows emergency action', (
@@ -164,7 +210,11 @@ void main() {
 }
 
 class _FakeChatApi extends ChatApi {
-  _FakeChatApi() : super(ApiClient(http.Client()));
+  final ChatResponse response;
+
+  _FakeChatApi({
+    this.response = const ChatResponse(text: 'Testantwort', redFlag: false),
+  }) : super(ApiClient(http.Client()));
 
   @override
   Future<String> createSession([int? profileId]) async => 'test-session';
@@ -178,7 +228,7 @@ class _FakeChatApi extends ChatApi {
     String sessionId,
     int? profileId,
   ) async {
-    return const ChatResponse(text: 'Testantwort', redFlag: false);
+    return response;
   }
 
   @override
@@ -196,4 +246,14 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<void> cancelInputDraft(String sessionId) async {}
+}
+
+class _FakeChatHistoryRepository extends ChatHistoryRepository {
+  @override
+  Future<List<ChatHistoryEntry>> loadEntries({required int profileId}) async {
+    return [];
+  }
+
+  @override
+  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {}
 }

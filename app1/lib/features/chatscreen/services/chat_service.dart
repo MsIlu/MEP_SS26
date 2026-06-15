@@ -66,6 +66,7 @@ class ChatService {
         responseText.contains('hinweis:');
   }
 
+
   bool hasAppointmentRecommendation(ChatResponse response) {
     final responseText = response.text.toLowerCase();
     final actionText = response.action?.toLowerCase() ?? '';
@@ -91,6 +92,42 @@ class ChatService {
     }
 
     return 'Arzttermin vereinbaren';
+
+  bool isEmergencyRecommendation(ChatResponse response) {
+    final responseText = response.text.toLowerCase();
+    final actionText = response.action?.toLowerCase() ?? '';
+    final severityText = response.severity?.toLowerCase() ?? '';
+    final ruleText = response.ruleName?.toLowerCase() ?? '';
+    final categoryText = response.category?.toLowerCase() ?? '';
+    final messageKeyText = response.messageKey?.toLowerCase() ?? '';
+    final matchedKeywordText = response.matchedKeywords.join(' ').toLowerCase();
+    final combinedText =
+        '$responseText $actionText $severityText $ruleText '
+        '$categoryText $messageKeyText $matchedKeywordText';
+
+    return response.redFlag ||
+        severityText.contains('sofort') ||
+        severityText.contains('hoch') ||
+        severityText.contains('high') ||
+        severityText.contains('emergency') ||
+        categoryText.contains('emergency') ||
+        categoryText.contains('notfall') ||
+        combinedText.contains('notruf 112') ||
+        combinedText.contains('112') ||
+        combinedText.contains('notruf') ||
+        combinedText.contains('rettungsdienst') ||
+        combinedText.contains('notarzt') ||
+        combinedText.contains('akute notfallsituation') ||
+        combinedText.contains('akuter notfall') ||
+        combinedText.contains('sofort medizinische hilfe') ||
+        combinedText.contains('notaufnahme') ||
+        combinedText.contains('umgehend medizinische hilfe') ||
+        combinedText.contains('wählen sie sofort') ||
+        combinedText.contains('waehlen sie sofort') ||
+        combinedText.contains('rufen sie sofort') ||
+        combinedText.contains('holen sie umgehend') ||
+        combinedText.contains('lebensgefahr');
+
   }
 
   Stream<String> streamText(

@@ -1,16 +1,19 @@
 import 'dart:convert';
 
+import '../domain/symptom_response.dart';
+
 /// Locally persisted symptom note for one calendar day.
 class SymptomEntry {
-  final int id;
+  int id;
   final DateTime date;
   final String symptom;
   final String bodyArea;
   final int intensity;
   final String note;
   final DateTime createdAt;
+  bool isSynced;
 
-  const SymptomEntry({
+  SymptomEntry({
     required this.id,
     required this.date,
     required this.symptom,
@@ -18,6 +21,7 @@ class SymptomEntry {
     required this.intensity,
     required this.note,
     required this.createdAt,
+    this.isSynced = false,
   });
 
   /// Converts this entry into a SharedPreferences-friendly JSON map.
@@ -30,7 +34,26 @@ class SymptomEntry {
       'intensity': intensity,
       'note': note,
       'createdAt': createdAt.toIso8601String(),
+      'isSynced': isSynced,
     };
+  }
+
+  /// Converts a backend response into a locally stored diary entry.
+  factory SymptomEntry.fromResponse(SymptomResponse response) {
+    return SymptomEntry(
+      id: response.id,
+      date: DateTime(
+        response.date.year,
+        response.date.month,
+        response.date.day,
+      ),
+      symptom: response.symptom,
+      bodyArea: response.bodyArea,
+      intensity: response.intensity,
+      note: response.note,
+      createdAt: response.createdAt,
+      isSynced: true,
+    );
   }
 
   /// Restores an entry from local JSON.
@@ -43,6 +66,7 @@ class SymptomEntry {
       intensity: json['intensity'] as int,
       note: json['note'] as String? ?? '',
       createdAt: DateTime.parse(json['createdAt'] as String),
+      isSynced: json['isSynced'] as bool? ?? false,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 
 import '../../../chatscreen/controllers/chat_controller.dart';
@@ -21,6 +22,7 @@ class RegistrationScreen extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession authSession;
   final AuthApiService authApiService;
+  final SymptomRepository symptomRepository;
 
   const RegistrationScreen({
     super.key,
@@ -28,6 +30,7 @@ class RegistrationScreen extends StatefulWidget {
     required this.themeController,
     required this.authSession,
     required this.authApiService,
+    required this.symptomRepository,
   });
 
   @override
@@ -187,6 +190,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           themeController: widget.themeController,
           authSession: widget.authSession,
           authApiService: widget.authApiService,
+          symptomRepository: widget.symptomRepository,
         ),
       ),
     );
@@ -253,6 +257,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           builder: (context) => HomeScreen(
             controller: widget.chatController,
             themeController: widget.themeController,
+            authSession: widget.authSession,
           ),
         ),
       );

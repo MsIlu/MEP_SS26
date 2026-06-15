@@ -4,6 +4,7 @@ import '../core/network/api_client.dart';
 import '../features/chatscreen/controllers/chat_controller.dart';
 import '../features/chatscreen/controllers/chat_warning_controller.dart';
 import '../features/chatscreen/data/chat_api.dart';
+import '../features/chatscreen/data/chat_history_repository.dart';
 import '../features/chatscreen/services/chat_service.dart';
 import '../features/chatscreen/services/chat_session_service.dart';
 import '../features/chatscreen/services/symptom_draft_service.dart';
@@ -37,6 +38,7 @@ class AppDependencies {
       chatService: ChatService(),
       chatSessionService: ChatSessionService(chatApi),
       symptomDraftService: SymptomDraftService(chatApi),
+      chatHistoryRepository: ApiChatHistoryRepository(apiClient),
       authSession: authSession,
     );
 

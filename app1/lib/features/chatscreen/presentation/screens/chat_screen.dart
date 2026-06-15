@@ -170,8 +170,13 @@ class _ChatScreenState extends State<ChatScreen> {
       _showLongProcessingHint = false;
     });
 
-    if (response?.redFlag == true) {
-      Navigator.push(
+    if (response != null &&
+        widget.controller.chatService.isEmergencyRecommendation(response)) {
+      await widget.controller.resetChat();
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
       );
@@ -250,6 +255,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _handleSmartReplySelected(String reply) {
+    if (widget.controller.isCompleted.value) return;
+
     final currentText = _textController.text.trim();
     final newText = currentText.isEmpty ? reply : '$currentText $reply';
 
@@ -359,6 +366,19 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               children: [
                 Expanded(child: _buildMessageList()),
+                ValueListenableBuilder(
+                  valueListenable: widget.controller.isCompleted,
+                  builder: (context, bool isCompleted, _) {
+                    if (!isCompleted) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return const Padding(
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
+                      child: _CompletedChatNotice(),
+                    );
+                  },
+                ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -380,14 +400,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                   ],
                 ),
-                ChatInputField(
-                  controller: _textController,
-                  focusNode: _inputFocusNode,
-                  isSending: _isSending,
-                  onSend: _handleSend,
-                  smartReplies: _smartReplies,
-                  onSmartReplySelected: _handleSmartReplySelected,
-                  speechService: _speechService,
+                ValueListenableBuilder(
+                  valueListenable: widget.controller.isCompleted,
+                  builder: (context, bool isCompleted, _) {
+                    return ChatInputField(
+                      controller: _textController,
+                      focusNode: _inputFocusNode,
+                      isSending: _isSending,
+                      isEnabled: !isCompleted,
+                      onSend: _handleSend,
+                      smartReplies: isCompleted ? const [] : _smartReplies,
+                      onSmartReplySelected: _handleSmartReplySelected,
+                      speechService: _speechService,
+                    );
+                  },
                 ),
               ],
             ),
@@ -443,6 +469,31 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompletedChatNotice extends StatelessWidget {
+  const _CompletedChatNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Text(
+          'Dieser Chat wurde als Verlauf gespeichert. Du kannst die Empfehlung exportieren oder zur Startseite zurückgehen.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

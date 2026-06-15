@@ -1,0 +1,1216 @@
+{
+  "schema_version": "1.0",
+  "catalog_type": "sts_consultation_reason_seed",
+  "source": {
+    "system": "STS",
+    "version": "1.10",
+    "language": "de",
+    "year": 2018,
+    "document": "Triage-Verzeichnis und Beschreibung der Konsultationsgruende zur Ersteinschaetzung von Patienten in der Notfallstation"
+  },
+  "usage_note": "Internal Careena development seed. Do not publish or redistribute STS-derived content without legal/source review.",
+  "consultation_reasons": [
+    {
+      "sts_id": "1001",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Herzstillstand, Atemstillstand",
+      "source_sts_levels_present": [
+        1
+      ],
+      "careena_key": "sts_1001",
+      "careena_label_de": "Herzstillstand, Atemstillstand",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1002",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Thoraxschmerzen",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1002",
+      "careena_label_de": "Thoraxschmerzen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1003",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Tachykardie, Rhythmusstoerung, Palpitationen",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1003",
+      "careena_label_de": "Tachykardie, Rhythmusstoerung, Palpitationen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1004",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Bradykardie",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1004",
+      "careena_label_de": "Bradykardie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1005",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Hypertonie",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1005",
+      "careena_label_de": "Hypertonie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1006",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Hypotonie",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1006",
+      "careena_label_de": "Hypotonie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1007",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Extremitaet, Schmerzen und / oder Oedem",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1007",
+      "careena_label_de": "Extremitaet, Schmerzen und / oder Oedem",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1008",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Atemsymptome (Dyspnoe, Tachypnoe, Bradypnoe, ungenuegende O2-Saettigung)",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1008",
+      "careena_label_de": "Atemsymptome (Dyspnoe, Tachypnoe, Bradypnoe, ungenuegende O2-Saettigung)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1009",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Husten, Auswurf",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1009",
+      "careena_label_de": "Husten, Auswurf",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1010",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Bluthusten (Haemoptyse)",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1010",
+      "careena_label_de": "Bluthusten (Haemoptyse)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1101",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Bewusstlosigkeit / Bewusstseinsdefizit ohne offensichtliche Ursache",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1101",
+      "careena_label_de": "Bewusstlosigkeit / Bewusstseinsdefizit ohne offensichtliche Ursache",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1102",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Erregungszustand, Aggressivitaet",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1102",
+      "careena_label_de": "Erregungszustand, Aggressivitaet",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1103",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Verwirrtheit, Verhaltensauffaelligkeiten, kognitive Stoerungen",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1103",
+      "careena_label_de": "Verwirrtheit, Verhaltensauffaelligkeiten, kognitive Stoerungen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1104",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Krampfereignis / unwillkuerliche Bewegungen akut bestehend oder kuerzlich geschehen",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1104",
+      "careena_label_de": "Krampfereignis / unwillkuerliche Bewegungen akut bestehend oder kuerzlich geschehen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1105",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Stoerung von Sprache, Gedaechtnis, Sehen, Gleichgewicht; Einschraenkung / Ausfall von Motorik, Sensibilitaet, Gesichtsfeld",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1105",
+      "careena_label_de": "Stoerung von Sprache, Gedaechtnis, Sehen, Gleichgewicht; Einschraenkung / Ausfall von Motorik, Sensibilitaet, Gesichtsfeld",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1106",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Kopfschmerzen heftig oder ungewohnt",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1106",
+      "careena_label_de": "Kopfschmerzen heftig oder ungewohnt",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1107",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Kopfschmerzen leichtgradig oder ueber einen laengeren Zeitraum bestehend",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1107",
+      "careena_label_de": "Kopfschmerzen leichtgradig oder ueber einen laengeren Zeitraum bestehend",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1108",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Unwohlsein mit oder ohne Bewusstlosigkeit (Synkope / Praesynkope)",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1108",
+      "careena_label_de": "Unwohlsein mit oder ohne Bewusstlosigkeit (Synkope / Praesynkope)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1109",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Akuter Angstzustand, Suizidgedanken, Mutismus",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1109",
+      "careena_label_de": "Akuter Angstzustand, Suizidgedanken, Mutismus",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1110",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Angst / Aengstlichkeit / Unruhe, depressive Symptomatik",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1110",
+      "careena_label_de": "Angst / Aengstlichkeit / Unruhe, depressive Symptomatik",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1111",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Missbrauch / Intoxikation Medikamente, Drogen",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1111",
+      "careena_label_de": "Missbrauch / Intoxikation Medikamente, Drogen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1112",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Missbrauch / Intoxikation Alkohol",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1112",
+      "careena_label_de": "Missbrauch / Intoxikation Alkohol",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1113",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Entzugssymptome, Entzugswunsch",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1113",
+      "careena_label_de": "Entzugssymptome, Entzugswunsch",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1114",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Halluzinationen",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1114",
+      "careena_label_de": "Halluzinationen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1115",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Muedigkeit, Schlaflosigkeit",
+      "source_sts_levels_present": [
+        4
+      ],
+      "careena_key": "sts_1115",
+      "careena_label_de": "Muedigkeit, Schlaflosigkeit",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1201",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Polytrauma",
+      "source_sts_levels_present": [
+        1
+      ],
+      "careena_key": "sts_1201",
+      "careena_label_de": "Polytrauma",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1202",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Verlust einer Extremitaet",
+      "source_sts_levels_present": [
+        1
+      ],
+      "careena_key": "sts_1202",
+      "careena_label_de": "Verlust einer Extremitaet",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1203",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Ruecken- / WS-Trauma mit neurologischem Defizit",
+      "source_sts_levels_present": [
+        1
+      ],
+      "careena_key": "sts_1203",
+      "careena_label_de": "Ruecken- / WS-Trauma mit neurologischem Defizit",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1204",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Ruecken- / WS-Trauma ohne neurologisches Defizit",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1204",
+      "careena_label_de": "Ruecken- / WS-Trauma ohne neurologisches Defizit",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1205",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Thoraxtrauma, Thoraxkontusion",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1205",
+      "careena_label_de": "Thoraxtrauma, Thoraxkontusion",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1206",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Abdominaltrauma",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1206",
+      "careena_label_de": "Abdominaltrauma",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1207",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "SHT mit Bewusstlosigkeit / mit Amnesie",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1207",
+      "careena_label_de": "SHT mit Bewusstlosigkeit / mit Amnesie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1208",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "SHT ohne Bewusstlosigkeit / ohne Amnesie",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1208",
+      "careena_label_de": "SHT ohne Bewusstlosigkeit / ohne Amnesie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1209",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Beckentrauma",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1209",
+      "careena_label_de": "Beckentrauma",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1210",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Extremitaetentrauma",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1210",
+      "careena_label_de": "Extremitaetentrauma",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1211",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Kiefer, Gesicht, Halsregion - Traumata",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1211",
+      "careena_label_de": "Kiefer, Gesicht, Halsregion - Traumata",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1212",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Tiefe Wunde",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1212",
+      "careena_label_de": "Tiefe Wunde",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1213",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Oberflaechliche Wunde",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1213",
+      "careena_label_de": "Oberflaechliche Wunde",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1214",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Verbrennung, Veraetzung",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1214",
+      "careena_label_de": "Verbrennung, Veraetzung",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1215",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Erfrierung",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1215",
+      "careena_label_de": "Erfrierung",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1216",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Bisswunde",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1216",
+      "careena_label_de": "Bisswunde",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1301",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Bluterbrechen, Teerstuhl (Melaena)",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1301",
+      "careena_label_de": "Bluterbrechen, Teerstuhl (Melaena)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1302",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Frischblutabgang ab ano",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1302",
+      "careena_label_de": "Frischblutabgang ab ano",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1303",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Bauchschmerzen",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1303",
+      "careena_label_de": "Bauchschmerzen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1304",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Uebelkeit, Erbrechen",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1304",
+      "careena_label_de": "Uebelkeit, Erbrechen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1305",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Oberbauchschmerzen / Schmerzen im Epigastrium",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1305",
+      "careena_label_de": "Oberbauchschmerzen / Schmerzen im Epigastrium",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1306",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Obstipation",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1306",
+      "careena_label_de": "Obstipation",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1307",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Diarrhoe",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1307",
+      "careena_label_de": "Diarrhoe",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1308",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Brust / Brustwarze, Beschwerden im Bereich",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1308",
+      "careena_label_de": "Brust / Brustwarze, Beschwerden im Bereich",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1309",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Analschmerzen, Symptome in der Analregion",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1309",
+      "careena_label_de": "Analschmerzen, Symptome in der Analregion",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1310",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Unterbauch-, Leistenschmerzen",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1310",
+      "careena_label_de": "Unterbauch-, Leistenschmerzen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1311",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Uteruskontraktionen, Geburt",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1311",
+      "careena_label_de": "Uteruskontraktionen, Geburt",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1312",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Vaginale Blutung",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1312",
+      "careena_label_de": "Vaginale Blutung",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1313",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Vaginaler Ausfluss",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1313",
+      "careena_label_de": "Vaginaler Ausfluss",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1314",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Genitalprolaps",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1314",
+      "careena_label_de": "Genitalprolaps",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1315",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Nachlassen der fetalen Kindsbewegungen",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1315",
+      "careena_label_de": "Nachlassen der fetalen Kindsbewegungen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1316",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Kontrolle der fetalen Vitalfunktionen",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1316",
+      "careena_label_de": "Kontrolle der fetalen Vitalfunktionen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1317",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Nabelschnurvorfall",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1317",
+      "careena_label_de": "Nabelschnurvorfall",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1318",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Fetale Tachykardie",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1318",
+      "careena_label_de": "Fetale Tachykardie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1319",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Fetale Bradykardie",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1319",
+      "careena_label_de": "Fetale Bradykardie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1401",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Flankenschmerzen",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1401",
+      "careena_label_de": "Flankenschmerzen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1402",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Blutbeimengung im Urin / Makrohaematurie",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1402",
+      "careena_label_de": "Blutbeimengung im Urin / Makrohaematurie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1403",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Anurie / Urinretention",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1403",
+      "careena_label_de": "Anurie / Urinretention",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1404",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Brennen beim Urinieren / Pollakisurie",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1404",
+      "careena_label_de": "Brennen beim Urinieren / Pollakisurie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1405",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Hodenbeschwerden, Penisbeschwerden",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1405",
+      "careena_label_de": "Hodenbeschwerden, Penisbeschwerden",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1406",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie)",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1406",
+      "careena_label_de": "Hyperglykaemie, Hypoglykaemie; gesteigerte Urinausscheidung (Polyurie), gesteigertes Durstgefuehl (Polydipsie)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1407",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Urininkontinenz",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1407",
+      "careena_label_de": "Urininkontinenz",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1501",
+      "source_category_de": "Infektsymptome",
+      "source_label_de": "Fieber",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1501",
+      "careena_label_de": "Fieber",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1502",
+      "source_category_de": "Infektsymptome",
+      "source_label_de": "Grippales Syndrom / Erkaeltungssymptome",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1502",
+      "careena_label_de": "Grippales Syndrom / Erkaeltungssymptome",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1503",
+      "source_category_de": "Infektsymptome",
+      "source_label_de": "Hypothermie",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1503",
+      "careena_label_de": "Hypothermie",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1601",
+      "source_category_de": "HNO",
+      "source_label_de": "Drehschwindel mit wahrscheinlicher peripherer Ursache",
+      "source_sts_levels_present": [
+        3
+      ],
+      "careena_key": "sts_1601",
+      "careena_label_de": "Drehschwindel mit wahrscheinlicher peripherer Ursache",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1602",
+      "source_category_de": "HNO",
+      "source_label_de": "HNO-Beschwerden",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1602",
+      "careena_label_de": "HNO-Beschwerden",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1603",
+      "source_category_de": "HNO",
+      "source_label_de": "Nasenbluten (Epistaxis)",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1603",
+      "careena_label_de": "Nasenbluten (Epistaxis)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1701",
+      "source_category_de": "Dermatologie",
+      "source_label_de": "Allergische Reaktion",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1701",
+      "careena_label_de": "Allergische Reaktion",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1702",
+      "source_category_de": "Dermatologie",
+      "source_label_de": "Genitalbereich; Symptome im Genitalbereich",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1702",
+      "careena_label_de": "Genitalbereich; Symptome im Genitalbereich",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1703",
+      "source_category_de": "Dermatologie",
+      "source_label_de": "Haut, Weichteile; Beschwerden / Infekt",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1703",
+      "careena_label_de": "Haut, Weichteile; Beschwerden / Infekt",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1801",
+      "source_category_de": "Rheumatologie",
+      "source_label_de": "Rueckenschmerzen, Nackenschmerzen",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1801",
+      "careena_label_de": "Rueckenschmerzen, Nackenschmerzen",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1802",
+      "source_category_de": "Rheumatologie",
+      "source_label_de": "Gelenkschmerzen (Arthralgie), Muskelschmerzen (Myalgie), Nervenschmerzen (Neuralgie)",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1802",
+      "careena_label_de": "Gelenkschmerzen (Arthralgie), Muskelschmerzen (Myalgie), Nervenschmerzen (Neuralgie)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1901",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Augenbeschwerden",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1901",
+      "careena_label_de": "Augenbeschwerden",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1902",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Tauchunfall (Dekompressions-, Barotrauma)",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1902",
+      "careena_label_de": "Tauchunfall (Dekompressions-, Barotrauma)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1903",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Toxische Substanz; Einnahme, Inhalation, Exposition",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1903",
+      "careena_label_de": "Toxische Substanz; Einnahme, Inhalation, Exposition",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1904",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Fremdkoerper; Einnahme, Inhalation, Einfuehren",
+      "source_sts_levels_present": [
+        1,
+        2,
+        3
+      ],
+      "careena_key": "sts_1904",
+      "careena_label_de": "Fremdkoerper; Einnahme, Inhalation, Einfuehren",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1905",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Elektrounfall",
+      "source_sts_levels_present": [
+        1,
+        2
+      ],
+      "careena_key": "sts_1905",
+      "careena_label_de": "Elektrounfall",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1906",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Bodpacking",
+      "source_sts_levels_present": [
+        3
+      ],
+      "careena_key": "sts_1906",
+      "careena_label_de": "Bodpacking",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1907",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Soziale Hospitalisation",
+      "source_sts_levels_present": [
+        4
+      ],
+      "careena_key": "sts_1907",
+      "careena_label_de": "Soziale Hospitalisation",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1908",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Verlegung, Uebernahme aus externem Spital / externer Institution",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1908",
+      "careena_label_de": "Verlegung, Uebernahme aus externem Spital / externer Institution",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1909",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Pathologische Untersuchungsergebnisse",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1909",
+      "careena_label_de": "Pathologische Untersuchungsergebnisse",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1910",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Zahnproblem",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1910",
+      "careena_label_de": "Zahnproblem",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1911",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Verschlechterung des Allgemeinzustands",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1911",
+      "careena_label_de": "Verschlechterung des Allgemeinzustands",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1912",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Sturz einer aelteren Person",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1912",
+      "careena_label_de": "Sturz einer aelteren Person",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1913",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Geplante Transplantation",
+      "source_sts_levels_present": [
+        2,
+        3
+      ],
+      "careena_key": "sts_1913",
+      "careena_label_de": "Geplante Transplantation",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1914",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Beratung, Arztzeugnis, Rezept",
+      "source_sts_levels_present": [
+        4
+      ],
+      "careena_key": "sts_1914",
+      "careena_label_de": "Beratung, Arztzeugnis, Rezept",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1915",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Postexpositionsprophylaxe (PEP); Exposition mit biologischen Fluessigkeiten (EBF)",
+      "source_sts_levels_present": [
+        3
+      ],
+      "careena_key": "sts_1915",
+      "careena_label_de": "Postexpositionsprophylaxe (PEP); Exposition mit biologischen Fluessigkeiten (EBF)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1916",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Sexuelle Aggression",
+      "source_sts_levels_present": [
+        2,
+        3,
+        4
+      ],
+      "careena_key": "sts_1916",
+      "careena_label_de": "Sexuelle Aggression",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1917",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Befundaufnahme nach Gewaltdelikt",
+      "source_sts_levels_present": [
+        4
+      ],
+      "careena_key": "sts_1917",
+      "careena_label_de": "Befundaufnahme nach Gewaltdelikt",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1918",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Schluckauf (Singultus)",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1918",
+      "careena_label_de": "Schluckauf (Singultus)",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1919",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Medizinisch-technische Verrichtungen, Untersuchung, Schwangerschaftsdatierung",
+      "source_sts_levels_present": [
+        3,
+        4
+      ],
+      "careena_key": "sts_1919",
+      "careena_label_de": "Medizinisch-technische Verrichtungen, Untersuchung, Schwangerschaftsdatierung",
+      "mapping_status": "source_indexed"
+    },
+    {
+      "sts_id": "1920",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Geplante Konsultation",
+      "source_sts_levels_present": [
+        4
+      ],
+      "careena_key": "sts_1920",
+      "careena_label_de": "Geplante Konsultation",
+      "mapping_status": "source_indexed"
+    }
+  ]
+}

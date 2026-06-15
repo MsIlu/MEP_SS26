@@ -1,0 +1,595 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Documents risk-based STS source-alignment samples for the Careena catalog. This file is a review artifact and is not runtime medical logic.",
+  "sampling_rule": {
+    "minimum_per_category": 2,
+    "risk_based_selection": "At least one high-risk or safety-sensitive sample per category where applicable.",
+    "miscellaneous_category_rule": "The heterogeneous miscellaneous category uses four samples instead of two."
+  },
+  "allowed_review_statuses": [
+    "pending_source_review",
+    "reviewed_ok",
+    "needs_revision",
+    "source_unclear"
+  ],
+  "review_samples": [
+    {
+      "sts_id": "1001",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Herzstillstand, Atemstillstand",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Critical cardiac/respiratory arrest sample; also covers the GCS review finding.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "breathing_and_responsiveness_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "breathing_and_responsiveness_observed",
+        "glasgow_coma_scale_observer_assisted"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1009",
+      "source_category_de": "Kardiovaskulaer und respiratorisch",
+      "source_label_de": "Husten, Auswurf",
+      "review_type": "routine_sample",
+      "selection_reason": "Frequent respiratory complaint sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "cough_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "dyspnea_self_reported",
+        "fever_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1105",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Stoerung von Sprache, Gedaechtnis, Sehen, Gleichgewicht; Einschraenkung / Ausfall von Motorik, Sensibilitaet, Gesichtsfeld",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Stroke-like focal neurological deficit sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "focal_neurological_deficit_self_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "dizziness_or_near_syncope_self_reported",
+        "focal_neurological_deficit_self_reported_or_observed",
+        "symptom_onset_or_duration"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1107",
+      "source_category_de": "Neurologie - Psychiatrie",
+      "source_label_de": "Kopfschmerzen leichtgradig oder ueber einen laengeren Zeitraum bestehend",
+      "review_type": "routine_sample",
+      "selection_reason": "Lower-acuity headache sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "headache_duration_or_recurrent_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1201",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Polytrauma",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Polytrauma sample with high safety relevance.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "high_energy_trauma_mechanism_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "breathing_and_responsiveness_observed",
+        "consciousness_level_observed",
+        "high_energy_trauma_mechanism_reported",
+        "severe_bleeding_observed"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1213",
+      "source_category_de": "Traumatologie",
+      "source_label_de": "Oberflaechliche Wunde",
+      "review_type": "routine_sample",
+      "selection_reason": "Superficial wound sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "superficial_wound_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "wound_contamination_or_infection_risk_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1317",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Nabelschnurvorfall",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Umbilical cord prolapse sample with high obstetric safety relevance.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "umbilical_cord_prolapse_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "pregnancy_status_or_possible_pregnancy_self_reported",
+        "umbilical_cord_prolapse_reported_or_observed",
+        "uterine_contractions_or_labor_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1307",
+      "source_category_de": "Magen - Darm - Gynaekologie",
+      "source_label_de": "Diarrhoe",
+      "review_type": "routine_sample",
+      "selection_reason": "Diarrhea sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "diarrhea_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "dehydration_or_inability_to_keep_fluids_self_reported",
+        "fever_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1403",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Anurie / Urinretention",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Anuria/urinary retention sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "anuria_or_urinary_retention_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "abdominal_pain_self_reported",
+        "anuria_or_urinary_retention_self_reported",
+        "pain_intensity_0_10"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1404",
+      "source_category_de": "Urologie - Nephrologie",
+      "source_label_de": "Brennen beim Urinieren / Pollakisurie",
+      "review_type": "routine_sample",
+      "selection_reason": "Dysuria/pollakisuria sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "dysuria_or_pollakisuria_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "fever_self_reported",
+        "flank_pain_self_reported",
+        "gross_hematuria_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1501",
+      "source_category_de": "Infektsymptome",
+      "source_label_de": "Fieber",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Fever/systemic infection sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "fever_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "consciousness_level_observed",
+        "fever_self_reported",
+        "immunosuppression_or_high_risk_infection_context_self_reported",
+        "systemic_infection_symptoms_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1503",
+      "source_category_de": "Infektsymptome",
+      "source_label_de": "Hypothermie",
+      "review_type": "routine_sample",
+      "selection_reason": "Rash/exanthem sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "rash_or_skin_eruption_self_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "fever_self_reported",
+        "immunosuppression_or_high_risk_infection_context_self_reported",
+        "rash_or_skin_eruption_self_reported_or_observed",
+        "systemic_infection_symptoms_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1603",
+      "source_category_de": "HNO",
+      "source_label_de": "Nasenbluten (Epistaxis)",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Epistaxis sample with bleeding safety relevance.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "epistaxis_self_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "dizziness_or_near_syncope_self_reported",
+        "epistaxis_self_reported_or_observed",
+        "severe_bleeding_observed"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1602",
+      "source_category_de": "HNO",
+      "source_label_de": "HNO-Beschwerden",
+      "review_type": "routine_sample",
+      "selection_reason": "Common ENT complaint sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "ear_nose_throat_complaint_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "dyspnea_self_reported",
+        "fever_self_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1701",
+      "source_category_de": "Dermatologie",
+      "source_label_de": "Allergische Reaktion",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Allergic reaction sample with possible airway safety relevance.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "allergic_reaction_self_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "allergic_reaction_self_reported_or_observed",
+        "dyspnea_self_reported",
+        "face_lip_tongue_or_throat_swelling_observed",
+        "rash_or_skin_eruption_self_reported_or_observed"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1703",
+      "source_category_de": "Dermatologie",
+      "source_label_de": "Haut, Weichteile; Beschwerden / Infekt",
+      "review_type": "routine_sample",
+      "selection_reason": "Skin/soft tissue complaint sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "skin_soft_tissue_complaint_self_reported_or_observed"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "fever_self_reported",
+        "localized_infection_signs_self_reported_or_observed"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1801",
+      "source_category_de": "Rheumatologie",
+      "source_label_de": "Rueckenschmerzen, Nackenschmerzen",
+      "review_type": "safety_sensitive_sample",
+      "selection_reason": "Back/neck pain sample with neurological red-flag supporting criteria.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "back_or_neck_pain_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "focal_neurological_deficit_self_reported_or_observed",
+        "spinal_trauma_neurological_deficit_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1802",
+      "source_category_de": "Rheumatologie",
+      "source_label_de": "Gelenkschmerzen (Arthralgie), Muskelschmerzen (Myalgie), Nervenschmerzen (Neuralgie)",
+      "review_type": "routine_sample",
+      "selection_reason": "Joint/muscle/nerve pain sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "joint_muscle_or_nerve_pain_self_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "deformity_or_function_loss_observed"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1903",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Toxische Substanz; Einnahme, Inhalation, Exposition",
+      "review_type": "high_risk_sample",
+      "selection_reason": "Toxic substance exposure sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "toxic_substance_exposure_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "consciousness_level_observed",
+        "dyspnea_self_reported",
+        "nausea_or_vomiting_self_reported",
+        "toxic_substance_exposure_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1916",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Sexuelle Aggression",
+      "review_type": "sensitive_sample",
+      "selection_reason": "Sexual assault sample; safeguarding and trauma-informed handling.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "sexual_assault_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [
+        "acute_psychiatric_crisis_self_reported_or_observed",
+        "biological_fluid_exposure_or_pep_request_reported",
+        "severe_bleeding_observed",
+        "sexual_assault_reported"
+      ],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1914",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Beratung, Arztzeugnis, Rezept",
+      "review_type": "routine_sample",
+      "selection_reason": "Administrative medical request sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "administrative_medical_request_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    },
+    {
+      "sts_id": "1920",
+      "source_category_de": "Verschiedene Konsultationsmotive",
+      "source_label_de": "Geplante Konsultation",
+      "review_type": "routine_sample",
+      "selection_reason": "Planned consultation sample.",
+      "review_status": "pending_source_review",
+      "primary_criteria_at_selection": [
+        "planned_consultation_context_reported"
+      ],
+      "safety_relevant_criteria_at_selection": [],
+      "review_checklist": {
+        "source_id_checked": false,
+        "source_label_checked": false,
+        "source_category_checked": false,
+        "source_levels_checked": false,
+        "primary_criteria_mapping_checked": false,
+        "supporting_safety_mapping_checked": false,
+        "lay_capture_feasibility_checked": false,
+        "non_lay_criteria_limitations_checked": false
+      },
+      "review_notes": "Selected for manual STS source-alignment review. Do not mark as reviewed_ok until checked against the STS source document."
+    }
+  ]
+}

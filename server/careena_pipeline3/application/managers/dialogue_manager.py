@@ -6,11 +6,11 @@ from careena_pipeline3.application.managers.entry_manager import EntryManager
 from careena_pipeline3.application.managers.extraction_manager import ExtractionManager
 from careena_pipeline3.application.managers.response_manager import ResponseManager
 from careena_pipeline3.application.managers.safety_manager import SafetyManager
-from careena_pipeline3.models.domain import PendingSafetyClarification
 from careena_pipeline3.application.services import (
     ConcernStateService,
     DialogueStateService,
     RecommendationStateService,
+    SafetyClarificationBuilder,
 )
 from careena_pipeline3.models.domain import PendingChoicePrompt
 from careena_pipeline3.models.turn import (
@@ -64,6 +64,7 @@ class DialogueManager:
         concern_state_service: ConcernStateService | None = None,
         dialogue_state_service: DialogueStateService | None = None,
         recommendation_state_service: RecommendationStateService | None = None,
+        safety_clarification_builder: SafetyClarificationBuilder | None = None,
     ):
         self.entry_manager = entry_manager or EntryManager()
         self.extraction_manager = extraction_manager or ExtractionManager()
@@ -75,6 +76,9 @@ class DialogueManager:
         self.dialogue_state_service = dialogue_state_service or DialogueStateService()
         self.recommendation_state_service = (
             recommendation_state_service or RecommendationStateService()
+        )
+        self.safety_clarification_builder = (
+            safety_clarification_builder or SafetyClarificationBuilder()
         )
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
@@ -317,24 +321,36 @@ class DialogueManager:
             )
         context.trace_notes.extend(response_plan.trace_notes)
 
-    @staticmethod
     def _set_pending_safety_clarification(
+        self,
         *,
         context: TurnContext,
         stage: str,
         safety_state: SafetyState,
     ) -> None:
         """Persist one open safety clarification as dialogue process state."""
-        context.dialogue_state.pending_safety_clarification = (
-            PendingSafetyClarification(
-                question_code=(
-                    safety_state.clarification_question_code
-                    or "raw_red_flag_clarification"
-                ),
+        pending_clarification = (
+            self.safety_clarification_builder.build_pending_clarification(
+                safety_state=safety_state,
                 source_stage=stage,
-                evidence_terms=list(safety_state.evidence_terms),
             )
         )
+
+        context.dialogue_state.pending_safety_clarification = pending_clarification
+        context.trace_notes.append(
+            f"safety_clarification:{pending_clarification.catalog_mapping_status}"
+        )
+
+        if pending_clarification.consultation_reason_source_id:
+            context.trace_notes.append(
+                "safety_catalog_reason:"
+                f"{pending_clarification.consultation_reason_source_id}"
+            )
+
+        if pending_clarification.criterion_key:
+            context.trace_notes.append(
+                f"safety_catalog_criterion:{pending_clarification.criterion_key}"
+            )
 
     def _apply_confirmation_contract(
         self,

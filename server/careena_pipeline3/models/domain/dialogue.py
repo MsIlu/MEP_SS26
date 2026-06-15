@@ -30,6 +30,7 @@ class PendingFollowup(PipelineModel):
 
 class PendingChoicePrompt(PipelineModel):
     """Visible process contract for one open system choice prompt."""
+
     kind: Literal["recommendation_choice"]
     prompt_code: str | None = None
     allowed_actions: list[str] = Field(
@@ -43,6 +44,23 @@ class PendingSafetyClarification(PipelineModel):
     kind: Literal["red_flag_clarification"] = "red_flag_clarification"
     question_code: str = "raw_red_flag_clarification"
     source_stage: Literal["raw", "extraction", "case"] = "raw"
+
+    question_text: str | None = None
+
+    # Reference metadata for the catalog criterion that caused this clarification.
+    source_system: Literal["STS"] = "STS"
+    source_version: str | None = None
+    consultation_reason_source_id: str | None = None
+    consultation_reason_key: str | None = None
+    criterion_key: str | None = None
+    criterion_role: str | None = None
+    urgency_effect: str | None = None
+    catalog_mapping_status: Literal[
+        "unmapped",
+        "catalog_matched",
+        "fallback_no_catalog_match",
+    ] = "unmapped"
+
     guided_input: GuidedInputContract = Field(
         default_factory=lambda: GuidedInputContract(
             mode=GuidedInputMode.STRUCTURED_REQUIRED,
@@ -71,6 +89,7 @@ class PendingSafetyClarification(PipelineModel):
             ],
         )
     )
+
     evidence_terms: list[str] = Field(default_factory=list)
     focus_observation_id: str | None = None
 
@@ -85,8 +104,10 @@ class DialogueState(PipelineModel):
     pending_followup: PendingFollowup | None = None
     pending_choice_prompt: PendingChoicePrompt | None = None
     pending_safety_clarification: PendingSafetyClarification | None = None
+
     # Legacy recommendation intent hook for future recommendation routing.
     recommendation_requested: bool = False
+    recommendation_ready: bool = False
     recommended_modules: list[PlannerModule] = Field(default_factory=list)
     focus_observation_id: str | None = None
     focus_label: str | None = None

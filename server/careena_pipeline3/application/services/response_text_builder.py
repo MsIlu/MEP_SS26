@@ -144,6 +144,16 @@ def _safety_question_text(*, context: TurnContext) -> str:
     if pending is None:
         return "Ich moechte eine sicherheitsrelevante Angabe noch kurz gezielt klaeren."
 
+    options = ", ".join(option.label for option in pending.guided_input.options)
+
+    if pending.question_text:
+        if options:
+            return (
+                f"{pending.question_text} "
+                f"Bitte antworten Sie mit einer der folgenden Optionen: {options}."
+            )
+        return pending.question_text
+
     evidence_hint = ""
     if pending.evidence_terms:
         evidence_hint = (
@@ -151,7 +161,6 @@ def _safety_question_text(*, context: TurnContext) -> str:
             f"{', '.join(pending.evidence_terms)}."
         )
 
-    options = ", ".join(option.label for option in pending.guided_input.options)
     return (
         "Ich moechte kurz eine sicherheitsrelevante Angabe klaeren."
         f"{evidence_hint} "

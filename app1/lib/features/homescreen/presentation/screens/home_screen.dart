@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToChatHistory(BuildContext context) {
-    final activeProfileId = controller.authSession.activeProfileId;
+    final activeProfileId = widget.controller.authSession.activeProfileId;
 
     if (activeProfileId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,9 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ChatHistoryScreen(
-          themeController: themeController,
+          themeController: widget.themeController,
           profileId: activeProfileId,
-          repository: controller.chatHistoryRepository,
+          repository: widget.controller.chatHistoryRepository,
         ),
       ),
     );

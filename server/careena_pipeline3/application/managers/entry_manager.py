@@ -210,15 +210,9 @@ class EntryManager:
             text=turn_input.message,
             existing_case=(context.medical_case if context is not None else None),
             dialogue_state=(context.dialogue_state if context is not None else None),
-            pending_slot=(
-                context.dialogue_state.pending_followup.slot
-                if (
-                    context is not None
-                    and context.dialogue_state.pending_followup is not None
-                    and context.dialogue_state.pending_followup.kind == "requirement"
-                )
-                else None
-            ),
+            # Legacy requirement followup path; inactive for pending
+            # requirement followups because those turns resolve before intent.
+            pending_slot=None,
             entry_history_messages=turn_input.entry_history_messages,
         )
         if gateway is None:

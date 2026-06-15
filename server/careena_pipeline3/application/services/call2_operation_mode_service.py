@@ -8,6 +8,11 @@ from careena_pipeline3.models.workflow import IntentGateway
 class Call2OperationModeService:
     """Derives a constrained Call-2 operating mode from Call 1 and dialogue state."""
 
+    LEGACY_REQUIREMENT_FOLLOWUP_MODES = {
+        "followup_slot_update",
+        "mixed_update_and_new_info",
+    }
+
     @staticmethod
     def _requirement_followup_pending(context: TurnContext | None) -> bool:
         if context is None:
@@ -22,6 +27,10 @@ class Call2OperationModeService:
         context: TurnContext | None = None,
     ) -> Call2OperationMode:
         explicit_mode = gateway.explicit_call2_operation_mode
+        if explicit_mode in self.LEGACY_REQUIREMENT_FOLLOWUP_MODES:
+            # Legacy requirement followup path; active requirement followups
+            # resolve before Call 1/Call 2 and no longer use these modes.
+            explicit_mode = None
         if explicit_mode is not None:
             return explicit_mode
 
@@ -32,11 +41,9 @@ class Call2OperationModeService:
         role = gateway.message_role
 
         if pending_followup:
-            if gateway.additional_medical_information:
-                return "mixed_update_and_new_info"
-            if role in {"answer_to_followup", "confirmation", "correction"}:
-                return "followup_slot_update"
-            return "mixed_update_and_new_info"
+            # Legacy requirement followup path; active requirement followups
+            # no longer steer general Call 2.
+            return "focused_new_fact_extraction"
 
         if role in {"confirmation", "correction"}:
             return "existing_fact_revision"

@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/core/widgets/careena_action_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +13,11 @@ import 'time_selector.dart';
 
 /// Form card for entering medication name, dose, time, and reminder state.
 class MedicationFormCard extends StatelessWidget {
+  final String title;
+  final String submitLabel;
+  final IconData submitIcon;
+  final bool isSubmitting;
+  final String? errorMessage;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final FocusNode nameFocusNode;
@@ -33,6 +38,11 @@ class MedicationFormCard extends StatelessWidget {
 
   const MedicationFormCard({
     super.key,
+    this.title = 'Neues Medikament',
+    this.submitLabel = 'Eintrag speichern',
+    this.submitIcon = Icons.add,
+    this.isSubmitting = false,
+    this.errorMessage,
     required this.formKey,
     required this.nameController,
     required this.nameFocusNode,
@@ -77,7 +87,7 @@ class MedicationFormCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Neues Medikament',
+                    title,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 18,
@@ -176,10 +186,21 @@ class MedicationFormCard extends StatelessWidget {
               onChanged: onReminderChanged,
             ),
             const SizedBox(height: 8),
+            if (errorMessage != null) ...[
+              Text(
+                errorMessage!,
+                style: TextStyle(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+            ],
             CareenaPrimaryIconButton(
-              onPressed: onSubmit,
-              icon: Icons.add,
-              label: 'Eintrag speichern',
+              onPressed: isSubmitting ? null : onSubmit,
+              icon: submitIcon,
+              label: isSubmitting ? 'Speichert...' : submitLabel,
             ),
           ],
         ),

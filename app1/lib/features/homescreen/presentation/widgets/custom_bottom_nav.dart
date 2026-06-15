@@ -5,8 +5,14 @@ import 'package:app1/core/themes/app_colors.dart';
 class CustomBottomNav extends StatelessWidget {
   final ValueChanged<int>? onTap;
   final bool isSimpleView;
+  final Key? guideTargetKey;
 
-  const CustomBottomNav({super.key, this.onTap, this.isSimpleView = false});
+  const CustomBottomNav({
+    super.key,
+    this.onTap,
+    this.isSimpleView = false,
+    this.guideTargetKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +21,7 @@ class CustomBottomNav extends StatelessWidget {
 
     final navBackgroundColor = isDarkMode
         ? AppColors.darkElevatedSurface
-        : Colors.white;
+        : AppColors.lightCard;
 
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant.withValues(alpha: 0.45)
@@ -30,8 +36,8 @@ class CustomBottomNav extends StatelessWidget {
         : AppColors.careenaSoftAccent;
 
     final shadowColor = isDarkMode
-        ? Colors.black.withValues(alpha: 0.18)
-        : Colors.black.withValues(alpha: 0.05);
+        ? AppColors.darkBackground.withValues(alpha: 0.18)
+        : AppColors.darkBackground.withValues(alpha: 0.05);
 
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(15, 0, 15, 12),
@@ -41,6 +47,7 @@ class CustomBottomNav extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Container(
+            key: guideTargetKey,
             decoration: BoxDecoration(
               color: navBackgroundColor,
               borderRadius: BorderRadius.circular(40),
@@ -57,7 +64,7 @@ class CustomBottomNav extends StatelessWidget {
               borderRadius: BorderRadius.circular(40),
               child: BottomNavigationBar(
                 elevation: 0,
-                backgroundColor: Colors.transparent,
+                backgroundColor: AppColors.transparent,
                 type: BottomNavigationBarType.fixed,
                 selectedItemColor: selectedColor,
                 unselectedItemColor: unselectedColor,

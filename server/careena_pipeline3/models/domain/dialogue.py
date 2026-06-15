@@ -59,6 +59,7 @@ class PendingSafetyClarification(PipelineModel):
         "unmapped",
         "catalog_matched",
         "fallback_no_catalog_match",
+        "fallback_catalog_unavailable",
     ] = "unmapped"
 
     guided_input: GuidedInputContract = Field(

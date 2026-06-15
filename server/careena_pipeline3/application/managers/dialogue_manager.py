@@ -9,6 +9,7 @@ from careena_pipeline3.application.managers.safety_manager import SafetyManager
 from careena_pipeline3.application.services import (
     ConcernStateService,
     DialogueStateService,
+    RequirementFieldUpdateService,
     RecommendationStateService,
     SafetyClarificationBuilder,
 )
@@ -65,6 +66,7 @@ class DialogueManager:
         dialogue_state_service: DialogueStateService | None = None,
         recommendation_state_service: RecommendationStateService | None = None,
         safety_clarification_builder: SafetyClarificationBuilder | None = None,
+        requirement_field_update_service: RequirementFieldUpdateService | None = None,
     ):
         self.entry_manager = entry_manager or EntryManager()
         self.extraction_manager = extraction_manager or ExtractionManager()
@@ -79,6 +81,9 @@ class DialogueManager:
         )
         self.safety_clarification_builder = (
             safety_clarification_builder or SafetyClarificationBuilder()
+        )
+        self.requirement_field_update_service = (
+            requirement_field_update_service or RequirementFieldUpdateService()
         )
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
@@ -107,6 +112,10 @@ class DialogueManager:
         # Read small entry signals before deciding whether extraction runs.
         entry_decision = self.entry_manager.evaluate(turn_input, context=context)
         self._apply_entry_contract(context=context, entry_decision=entry_decision)
+        self._apply_requirement_followup_update(
+            context=context,
+            entry_decision=entry_decision,
+        )
         (
             context.concern_state,
             concern_entry_trace_notes,
@@ -255,7 +264,24 @@ class DialogueManager:
                 )
         if entry_decision.clear_pending_choice_prompt:
             context.dialogue_state.pending_choice_prompt = None
+        if entry_decision.clear_pending_followup:
+            context.dialogue_state.pending_followup = None
         context.trace_notes.extend(entry_decision.trace_notes)
+
+    def _apply_requirement_followup_update(
+        self,
+        *,
+        context: TurnContext,
+        entry_decision: EntryDecision,
+    ) -> None:
+        if entry_decision.requirement_field_update is None:
+            return
+        updated_case, trace_notes = self.requirement_field_update_service.apply(
+            medical_case=context.medical_case,
+            update=entry_decision.requirement_field_update,
+        )
+        context.medical_case = updated_case
+        context.trace_notes.extend(trace_notes)
 
     def _apply_process_state_update(
         self,

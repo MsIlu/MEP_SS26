@@ -18,6 +18,12 @@ from careena_pipeline3.application.services.intent_classification_service import
 from careena_pipeline3.application.services.python_extraction_result_normalizer import (
     PythonExtractionResultNormalizer,
 )
+from careena_pipeline3.application.services.requirement_field_update_service import (
+    RequirementFieldUpdateService,
+)
+from careena_pipeline3.application.services.requirement_followup_resolution_service import (
+    RequirementFollowupResolutionService,
+)
 from careena_pipeline3.application.services.llm_response_generation_service import (
     LLMResponseGenerationService,
 )
@@ -62,6 +68,8 @@ __all__ = [
     "LLMResponseGenerationService",
     "NoOpExtractionService",
     "PythonExtractionResultNormalizer",
+    "RequirementFieldUpdateService",
+    "RequirementFollowupResolutionService",
     "RecommendationChoiceResolutionService",
     "RecommendationRequestService",
     "RecommendationResultBuilder",

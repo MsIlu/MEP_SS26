@@ -53,7 +53,6 @@ class RecommendationStateService:
         return ReadinessStateUpdate(
             dialogue_state=dialogue_state,
             assessment_readiness=readiness,
-            pending_followup=dialogue_state.pending_followup,
             gate_decision=gate_decision,
         )
 

@@ -8,6 +8,10 @@ from careena_pipeline3.models.common import (
 )
 from careena_pipeline3.models.domain import ConcernRelation, ConcernTurnRole
 from careena_pipeline3.models.turn.safety_state import SafetyClarificationResolution
+from careena_pipeline3.models.turn.requirement_followup import (
+    RequirementFieldUpdate,
+    RequirementFollowupResolutionResult,
+)
 
 
 class EntryDecision(PipelineModel):
@@ -29,4 +33,7 @@ class EntryDecision(PipelineModel):
     call2_operation_mode: Call2OperationMode = "focused_new_fact_extraction"
     clear_pending_safety_clarification: bool = False
     safety_clarification_resolution: SafetyClarificationResolution | None = None
+    clear_pending_followup: bool = False
+    requirement_followup_resolution: RequirementFollowupResolutionResult | None = None
+    requirement_field_update: RequirementFieldUpdate | None = None
     trace_notes: list[str] = Field(default_factory=list)

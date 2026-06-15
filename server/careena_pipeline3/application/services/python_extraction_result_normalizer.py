@@ -143,21 +143,15 @@ class PythonExtractionResultNormalizer:
             return
 
         if operation_mode == "followup_slot_update":
-            self._normalize_followup_slot_update(
-                result,
-                text=text,
-                existing_case=existing_case,
-                pending_slot=pending_slot,
-            )
+            # Legacy requirement followup path; active requirement followups
+            # no longer repair Call-2 output via pending-slot normalization.
+            result.trace_notes.append("legacy_followup_slot_update_inactive")
             return
 
         if operation_mode == "mixed_update_and_new_info":
-            self._normalize_mixed_update_and_new_info(
-                result,
-                text=text,
-                existing_case=existing_case,
-                pending_slot=pending_slot,
-            )
+            # Legacy requirement followup path; active requirement followups
+            # no longer repair Call-2 output via pending-slot normalization.
+            result.trace_notes.append("legacy_mixed_update_and_new_info_inactive")
             return
 
         if operation_mode == "existing_fact_revision":
@@ -179,7 +173,7 @@ class PythonExtractionResultNormalizer:
     ) -> Call2CaseExtensionStatus:
         if not result.all_observations():
             if self._has_write_relevant_subject(result.subject_update):
-                if operation_mode in {"followup_slot_update", "existing_fact_revision"}:
+                if operation_mode == "existing_fact_revision":
                     return "updates_existing_information"
                 return "adds_new_information"
             return "no_relevant_change"
@@ -194,7 +188,7 @@ class PythonExtractionResultNormalizer:
         if focus_update_present:
             return "updates_existing_information"
 
-        if operation_mode in {"followup_slot_update", "existing_fact_revision"}:
+        if operation_mode == "existing_fact_revision":
             return "updates_existing_information"
         return "no_relevant_change"
 
@@ -206,6 +200,8 @@ class PythonExtractionResultNormalizer:
         existing_case: MedicalCase | None,
         pending_slot: str | None,
     ) -> None:
+        # Legacy requirement followup path; kept temporarily as reference while
+        # the general Call-2 followup modes are being retired.
         if pending_slot is None or existing_case is None:
             return
 
@@ -239,6 +235,8 @@ class PythonExtractionResultNormalizer:
         existing_case: MedicalCase | None,
         pending_slot: str | None,
     ) -> None:
+        # Legacy requirement followup path; kept temporarily as reference while
+        # the general Call-2 followup modes are being retired.
         if pending_slot is None or existing_case is None:
             return
 
@@ -334,6 +332,8 @@ def _followup_attributes_from_slot(
     source: ExtractedObservation,
     raw_text: str,
 ) -> dict[str, object] | None:
+    # Legacy requirement followup helper; active requirement followups now
+    # resolve through their dedicated resolver instead of Call-2 repair.
     if pending_slot == "severity":
         severity_value = _severity_from_source(source, fallback=raw_text)
         if severity_value is None:

@@ -8,6 +8,10 @@ from careena_pipeline3.models.turn.context import TurnContext
 from careena_pipeline3.models.turn.entry_decision import EntryDecision
 from careena_pipeline3.models.turn.extraction_payload import ExtractionPayload
 from careena_pipeline3.models.turn.input import TurnInput
+from careena_pipeline3.models.turn.requirement_followup import (
+    RequirementFieldUpdate,
+    RequirementFollowupResolutionResult,
+)
 from careena_pipeline3.models.turn.result import TurnResult
 from careena_pipeline3.models.turn.response_plan import ResponsePlan
 from careena_pipeline3.models.turn.response_state import ResponseState
@@ -18,6 +22,7 @@ from careena_pipeline3.models.turn.state_updates import (
     ProcessStateUpdate,
     ReadinessStateUpdate,
     RecommendationGateDecision,
+    ResolvedFollowup,
 )
 from careena_pipeline3.models.workflow import RecommendationResult
 
@@ -32,6 +37,9 @@ __all__ = [
     "ProcessStateUpdate",
     "ReadinessStateUpdate",
     "RecommendationGateDecision",
+    "ResolvedFollowup",
+    "RequirementFieldUpdate",
+    "RequirementFollowupResolutionResult",
     "ResponsePlan",
     "ResponseState",
     "ResponseStrategy",

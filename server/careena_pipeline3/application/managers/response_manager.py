@@ -77,6 +77,7 @@ class ResponseManager:
             context=context,
             response_mode=response_mode,
             response_state=response_state,
+            entry_decision=entry_decision,
         )
         recommendation_result = self._build_recommendation_result(
             response_mode=response_mode,
@@ -174,6 +175,7 @@ class ResponseManager:
         context: TurnContext,
         response_mode: str,
         response_state: ResponseState,
+        entry_decision: EntryDecision,
     ) -> ResponseStrategy:
         if response_mode == "emergency":
             return ResponseStrategy(kind="static_emergency")
@@ -183,6 +185,12 @@ class ResponseManager:
             # Formal safety hook only; real safety-question policy is added later.
             return ResponseStrategy(kind="static_safety_followup")
         if response_mode == "ask_followup":
+            resolution = entry_decision.requirement_followup_resolution
+            if resolution is not None:
+                if resolution.status == "invalid_answer":
+                    return ResponseStrategy(kind="static_requirement_followup_invalid")
+                if resolution.status == "unclear":
+                    return ResponseStrategy(kind="static_requirement_followup_unclear")
             return ResponseStrategy(kind="static_followup")
         if response_mode == "guide_next_step":
             return ResponseStrategy(kind="static_recommendation_transition")
@@ -191,6 +199,14 @@ class ResponseManager:
         if response_mode == "continue":
             if response_state.transition_state == "return_to_medical":
                 return ResponseStrategy(kind="static_return_to_medical")
+            if (
+                context.process_state_signals.resolved_followup is not None
+                and context.dialogue_state.pending_followup is None
+            ):
+                if entry_decision.call2_operation_mode == "followup_slot_update":
+                    return ResponseStrategy(kind="static_followup_resolution_ack")
+                if entry_decision.call2_operation_mode == "mixed_update_and_new_info":
+                    return ResponseStrategy(kind="llm_followup_resolved_continue")
             return ResponseStrategy(kind="llm_bounded_response")
         return ResponseStrategy(kind="static_out_of_scope")
 

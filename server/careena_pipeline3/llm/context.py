@@ -177,11 +177,15 @@ def _focus_observation_for_call2(
     if existing_case is None:
         return None
 
-    needs_focus = pending_slot is not None or operation_mode in {
+    if pending_slot is not None or operation_mode in {
         "followup_slot_update",
-        "existing_fact_revision",
         "mixed_update_and_new_info",
-    }
+    }:
+        # Legacy requirement followup path; active requirement followups no
+        # longer derive Call-2 focus from pending slots or followup modes.
+        return None
+
+    needs_focus = operation_mode in {"existing_fact_revision"}
     if not needs_focus:
         return None
 

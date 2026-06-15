@@ -1,4 +1,4 @@
-# Author: Ilu
+﻿# Author: Ilu
 # This file handles the database connection.
 # It connects FastAPI to PostgreSQL, creates tables, and provides database sessions.
 
@@ -10,6 +10,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from . import models
 from sqlmodel import Session
 from sqlalchemy import text
+from .catalog import models as catalog_models
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]

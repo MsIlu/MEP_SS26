@@ -42,14 +42,9 @@ class ExtractionManager:
             turn_input.message,
             existing_case=context.medical_case,
             dialogue_state=context.dialogue_state,
-            pending_slot=(
-                context.dialogue_state.pending_followup.slot
-                if (
-                    context.dialogue_state.pending_followup is not None
-                    and context.dialogue_state.pending_followup.kind == "requirement"
-                )
-                else None
-            ),
+            # Legacy requirement followup path; active requirement turns do not
+            # enter general extraction anymore.
+            pending_slot=None,
             profile=entry_decision.call2_profile,
             call2_tasks=entry_decision.call2_tasks,
             operation_mode=entry_decision.call2_operation_mode,

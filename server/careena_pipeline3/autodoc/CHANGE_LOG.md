@@ -119,6 +119,285 @@ Number muss jedes mal um eins erhoeht werden und datum und uhrzeit falls das ein
   - DEV_NOTE:
     - `workbench@freddy`
 
+=== CHAT NUMBER: 160 Datum: 15-06-26 16:05 ===
+  - Nutzer:
+    - die alte Requirement-Follow-up-Mechanik im allgemeinen
+      `Call 2`
+      gezielt totschalten
+      und die Reststellen sichtbar als Legacy markieren,
+      statt direkt den naechsten grossen Umbau zu erzwingen
+  - Antwort:
+    - die aktive Requirement-Altspur an den Runtime-Grenzen deaktiviert:
+      `EntryManager`
+      und
+      `ExtractionManager`
+      reichen kein
+      `pending_slot`
+      mehr in den allgemeinen Intent-/Extraction-Pfad,
+      `Call2OperationModeService`
+      neutralisiert die alten
+      `followup_slot_update`-
+      und
+      `mixed_update_and_new_info`-
+      Modi,
+      `llm/context.py`
+      baut dafuer keinen
+      `primary_observation()`-
+      Fokus mehr
+      und die Python-Normalisierung behandelt diese Follow-up-Modi nur noch
+      als inaktive Legacy-Reste
+  - Kontextwirkung:
+    - der neue Requirement-Resolver bleibt damit die einzige aktive Wahrheit
+      fuer offene Pflichtfeld-Follow-ups,
+      waehrend der allgemeine
+      `Call 2`
+      von dieser verdeckten Nebenverantwortung befreit wird
+      und spaeter klarer separat ueberarbeitet werden kann
+  - Betroffene Dateien/Bereiche:
+    - `server/careena_pipeline3/application/managers/entry_manager.py`
+    - `server/careena_pipeline3/application/managers/extraction_manager.py`
+    - `server/careena_pipeline3/application/services/call2_operation_mode_service.py`
+    - `server/careena_pipeline3/application/services/python_extraction_result_normalizer.py`
+    - `server/careena_pipeline3/llm/context.py`
+  - DEV_NOTE:
+    - `workbench@freddy`
+
+## 2026-06-15 13:27 - Requirement-Follow-ups vorerst am Intent vorbei als eigener Resolver-Pfad
+
+  - Was:
+    - hardcoded Requirement-Follow-ups aus der allgemeinen
+      Intent-/Call-1-
+      und
+      Call-2-
+      Erkennung herausgezogen:
+      bei offenem
+      `dialogue_state.pending_followup`
+      vom Typ
+      `requirement`
+      laeuft der naechste Turn jetzt zuerst in einen neuen
+      `RequirementFollowupResolutionService`
+      statt in den normalen
+      `IntentClassificationService`
+    - dafuer einen eigenen kleinen LLM-Resolver
+      `LLMRequirementFollowupResolver`
+      plus Prompt
+      `llm/prompts/requirement_followup.py`
+      eingefuehrt;
+      der Call wertet genau einen offenen Slot aus
+      und liefert nur
+      `resolved`,
+      `invalid_answer`
+      oder
+      `unclear`
+      samt konservativem Normalwert oder Ablehnungsgrund
+    - einen kleinen direkten Write-Vertrag
+      `RequirementFieldUpdate`
+      und den dazugehoerigen
+      `RequirementFieldUpdateService`
+      eingefuehrt;
+      Requirement-Antworten laufen damit nicht mehr ueber
+      `case_update_bridge`,
+      `Call2ExtractionResult`
+      oder den allgemeinen
+      `ExtractionManager`-
+      Merge-Pfad
+    - `EntryDecision`
+      um Requirement-Follow-up-Aufloesung erweitert
+      (`requirement_followup_resolution`,
+      `requirement_field_update`,
+      `clear_pending_followup`)
+      und
+      `DialogueManager`
+      um eine kleine fruehe Apply-Stufe fuer direkte Requirement-Field-Writes
+      ergaenzt
+    - die spaete Response fuer Requirement-Ablehnungen/-Unklarheiten klein
+      explizit gemacht:
+      bei offenem Requirement-Follow-up und
+      `invalid_answer`/
+      `unclear`
+      kommt jetzt ein statischer Reask-Text statt freier Weiterverarbeitung
+  - Warum:
+    - die Live-Logs zeigten,
+      dass Requirement-Follow-ups zwar als offene Rueckfragen sichtbar waren,
+      die naechste Antwort aber weiter ueber allgemeine
+      Intent-/Fokus-/Extraction-
+      Ketten lief
+      und dadurch den falschen Fokus treffen konnte
+    - fuer den ersten robusten Schnitt sollte die offene Requirement-Frage
+      selbst den Turn dominieren,
+      so wie die Safety-Klaerung heute bereits am normalen Intent vorbei
+      behandelt wird
+  - Wirkung:
+    - bei offenem Requirement-Follow-up muss die naechste Nachricht nicht mehr
+      erst als
+      `answer_to_followup`
+      erraten werden,
+      sondern wird primaer als Antwort auf genau diesen Slot aufgeloest
+    - Requirement-Turns benutzen nicht mehr
+      `pending_slot`,
+      `Call2OperationModeService`
+      oder
+      `focus_observation = primary_observation()`
+      als zentrale Aufloesungsmechanik
+    - Zusatzinhalt im selben Requirement-Turn kann jetzt konservativ
+      abgelehnt werden,
+      ohne dass freie medizinische Extraction daneben mitlaeuft
+    - Verifikation:
+      `compileall`
+      fuer
+      `server/careena_pipeline3`
+      und
+      `server/careena3.py`
+      lief erfolgreich durch
+    - Verifikation:
+      ein direkter Orchestrierungs-Smoke mit gestubbtem Requirement-Resolver
+      und absichtlich unbenutzbarem Intent-Service bestaetigte,
+      dass ein offenes Requirement-Follow-up am Intent vorbeilaeuft,
+      den Slot direkt schreibt,
+      `pending_followup` schliesst
+      und die Observation korrekt aktualisiert
+    - Verifikationsgrenze:
+      ein voller Runtime-/LLM-Smoke gegen die echte lokale Pipeline war in der
+      gebuendelten Python hier nicht voll moeglich,
+      weil
+      `dotenv`,
+      `openai`
+      und
+      `sqlmodel`
+      in dieser Laufumgebung fehlen
+  - Betroffene Dateien/Bereiche:
+    - `server/careena_pipeline3/models/turn/requirement_followup.py`
+    - `server/careena_pipeline3/models/turn/entry_decision.py`
+    - `server/careena_pipeline3/models/turn/response_strategy.py`
+    - `server/careena_pipeline3/models/turn/__init__.py`
+    - `server/careena_pipeline3/llm/requirement_followup_resolver.py`
+    - `server/careena_pipeline3/llm/prompts/requirement_followup.py`
+    - `server/careena_pipeline3/llm/call_control.py`
+    - `server/careena_pipeline3/llm/__init__.py`
+    - `server/careena_pipeline3/application/services/requirement_followup_resolution_service.py`
+    - `server/careena_pipeline3/application/services/requirement_field_update_service.py`
+    - `server/careena_pipeline3/application/services/response_text_builder.py`
+    - `server/careena_pipeline3/application/services/__init__.py`
+    - `server/careena_pipeline3/application/managers/entry_manager.py`
+    - `server/careena_pipeline3/application/managers/dialogue_manager.py`
+    - `server/careena_pipeline3/application/managers/response_manager.py`
+    - `server/careena_pipeline3/runtime.py`
+  - Naechster Punkt:
+    - als naechstes gegen echte Pipeline-Logs pruefen,
+      ob die konservative Ablehnung von Zusatzinhalt in Requirement-Turns
+      praktisch tragfaehig genug ist
+      oder ob ein zweiter expliziter Mischpfad spaeter doch noch noetig wird
+  - DEV_NOTE:
+    - `workbench@freddy`
+
+## 2026-06-15 12:51 - Sichtbare medizinische Follow-up-Aufloesung zwischen Process State und Response
+
+  - Was:
+    - fuer beantwortete medizinische Rueckfragen einen kleinen turn-lokalen
+      Vertragsknoten `ResolvedFollowup` in
+      `ProcessStateSignals`
+      eingefuehrt und die alten booleans
+      `answered_pending_followup`,
+      `answered_requirement_key`
+      und
+      `answered_slot`
+      entfernt
+    - `DialogueStateService`
+      erzeugt diese Sicht jetzt genau dann,
+      wenn ein vorher offenes
+      `requirement`-
+      Follow-up nach dem Case-Update in
+      `resolved_requirements`
+      aufgeht;
+      `pending_followup`
+      bleibt weiterhin ausschliesslich kanonische persistierte Wahrheit im
+      `DialogueState`
+    - die Restspiegel
+      `ProcessStateUpdate.pending_followup`
+      und
+      `ReadinessStateUpdate.pending_followup`
+      entfernt
+    - im
+      `ResponseManager`
+      den
+      `continue`-
+      Pfad explizit aufgeloest:
+      reine
+      `followup_slot_update`-
+      Antworten gehen jetzt ueber
+      `static_followup_resolution_ack`,
+      Mischfaelle ueber
+      `llm_followup_resolved_continue`
+    - `ResponseTextBuilder`
+      und
+      `LLMResponseGenerationService`
+      an diese neue Antwortstrategie gebunden;
+      der freie LLM-Pfad bekommt jetzt sichtbare Prompt-Signale
+      `Resolved Follow-up ...`
+      sowie die Regel,
+      die gerade beantwortete Rueckfrage in demselben Turn nicht zu
+      wiederholen
+    - neue gezielte Tests fuer
+      Prozessvertrag,
+      Response-Policy
+      und einen orchestrierten Dialogfall angelegt
+  - Warum:
+    - die Antwort auf die Rueckfrage wurde bereits korrekt in Entry und
+      Extraction erkannt,
+      verlor aber nach dem Schliessen von
+      `pending_followup`
+      ihre Sichtbarkeit fuer die spaete freie Response-Schicht
+    - die Wiederholungs-Sperre sollte nicht als implizite Historienheuristik
+      entstehen,
+      sondern als kleiner expliziter Stage-Vertrag analog zum Safety-Muster,
+      aber ohne neue persistierte Dialogwahrheit
+  - Wirkung:
+    - beantwortete medizinische Rueckfragen koennen jetzt im selben Turn
+      sichtbar als aufgeloest weitergetragen werden,
+      ohne einen zweiten persistierten Follow-up-Status einzufuehren
+    - reine Slot-Antworten kippen nicht mehr sofort in freien
+      `llm_bounded_response`-
+      Text und stellen dadurch nicht dieselbe Rueckfrage erneut
+    - Mischturns mit zusaetzlicher neuer medizinischer Information bleiben
+      weiterfuehrbar,
+      bekommen aber einen enger gefuehrten LLM-Prompt
+    - Verifikation:
+      ein lokaler Python-Smoke-Runner mit gestubbten
+      `openai`-
+      und
+      `dotenv`-
+      Modulen bestaetigte erfolgreich:
+      `test_dialogue_state_followup_resolution.py`,
+      `test_response_manager_followup_resolution.py`
+      und
+      `test_dialogue_manager_followup_resolution.py`
+    - Verifikation:
+      `compileall`
+      fuer
+      `server/careena_pipeline3`
+      lief im selben Smoke-Runner erfolgreich durch
+  - Betroffene Dateien/Bereiche:
+    - `server/careena_pipeline3/models/turn/state_updates.py`
+    - `server/careena_pipeline3/models/turn/response_strategy.py`
+    - `server/careena_pipeline3/models/turn/__init__.py`
+    - `server/careena_pipeline3/application/services/dialogue_state_service.py`
+    - `server/careena_pipeline3/application/services/recommendation_state_service.py`
+    - `server/careena_pipeline3/application/services/response_generation_service.py`
+    - `server/careena_pipeline3/application/services/response_text_builder.py`
+    - `server/careena_pipeline3/application/services/llm_response_generation_service.py`
+    - `server/careena_pipeline3/application/managers/response_manager.py`
+    - `server/tests/test_dialogue_state_followup_resolution.py`
+    - `server/tests/test_response_manager_followup_resolution.py`
+    - `server/tests/test_dialogue_manager_followup_resolution.py`
+  - Naechster Punkt:
+    - als naechstes beobachten,
+      ob fuer Mischturns die neue
+      `llm_followup_resolved_continue`-
+      Strategie noch weitere sichtbare Antwortgrenzen braucht
+      oder ob der kleine turn-lokale Vertrag bereits ausreicht
+  - DEV_NOTE:
+    - `workbench@freddy`
+
 === CHANGE NUMBER: 118 Datum: 14-06-26 09:52 ===
   - Kategorie:
     - `refactor`

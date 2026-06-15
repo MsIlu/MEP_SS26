@@ -5,6 +5,8 @@ import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
+import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
+import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +23,7 @@ void main() {
         chatApi: ChatApi(apiClient),
         chatService: ChatService(),
         authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
       );
 
       addTearDown(controller.dispose);
@@ -37,6 +40,7 @@ void main() {
         chatApi: chatApi,
         chatService: ChatService(),
         authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
       );
 
       addTearDown(controller.dispose);
@@ -74,6 +78,7 @@ void main() {
         chatApi: chatApi,
         chatService: ChatService(),
         authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
       );
 
       addTearDown(controller.dispose);
@@ -113,6 +118,234 @@ void main() {
       expect(controller.chatSessionService.profileId, 43);
       expect(chatApi.createdProfileIds, [42, 43]);
     });
+
+    test(
+      'saves recommendation history and blocks follow-up messages',
+      () async {
+        final authSession = AuthSession();
+        authSession.setAuthResponse(
+          AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: const Account(id: 1, email: 'test@example.com'),
+            profiles: const [
+              AuthProfile(
+                id: 42,
+                displayName: 'Anna',
+                profileType: 'self',
+                role: 'owner',
+              ),
+            ],
+          ),
+        );
+        final chatApi = _FakeChatApi()
+          ..nextResponse = const ChatResponse(
+            text: 'Bitte heute aerztlich abklaeren.',
+            redFlag: false,
+            action: 'Termin vereinbaren',
+          );
+        final historyRepository = _FakeChatHistoryRepository();
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: historyRepository,
+        );
+
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        await controller.init();
+        await controller.updateSymptomsDirectly(['Kopfschmerzen']);
+        final response = await controller.sendMessage('Ich habe Schmerzen');
+        final secondResponse = await controller.sendMessage('Noch eine Frage');
+
+        expect(response, isNotNull);
+        expect(secondResponse, isNull);
+        expect(controller.isCompleted.value, isTrue);
+        expect(chatApi.sentTexts, ['Ich habe Schmerzen']);
+        expect(historyRepository.savedEntries, hasLength(1));
+        expect(historyRepository.savedEntries.single.profileId, 42);
+        expect(
+          historyRepository.savedEntries.single.symptomTitle,
+          'Kopfschmerzen',
+        );
+        expect(historyRepository.savedEntries.single.isEmergency, isFalse);
+        expect(
+          historyRepository.savedEntries.single.recommendation,
+          'Bitte heute aerztlich abklaeren.',
+        );
+      },
+    );
+
+    test('completes anonymous recommendation without saving history', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()
+        ..nextResponse = const ChatResponse(
+          text: 'Bitte heute aerztlich abklaeren.',
+          redFlag: false,
+          action: 'Termin vereinbaren',
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      final response = await controller.sendMessage('Ich habe Schmerzen');
+
+      expect(response, isNotNull);
+      expect(controller.isCompleted.value, isTrue);
+      expect(historyRepository.savedEntries, isEmpty);
+    });
+
+    test('saves red flag recommendation history and completes chat', () async {
+      final authSession = AuthSession();
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
+      final chatApi = _FakeChatApi()
+        ..nextResponse = const ChatResponse(
+          text: 'Bitte sofort den Notruf 112 kontaktieren.',
+          redFlag: true,
+          action: 'Notruf 112',
+          ruleName: 'Starke Blutung',
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.updateSymptomsDirectly(['Blutung']);
+      final response = await controller.sendMessage('Ich blute stark');
+      final secondResponse = await controller.sendMessage('Noch eine Frage');
+
+      expect(response?.redFlag, isTrue);
+      expect(secondResponse, isNull);
+      expect(controller.isCompleted.value, isTrue);
+      expect(historyRepository.savedEntries, hasLength(1));
+      expect(historyRepository.savedEntries.single.symptomTitle, 'Blutung');
+      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+      expect(
+        historyRepository.savedEntries.single.recommendation,
+        'Bitte sofort den Notruf 112 kontaktieren.',
+      );
+    });
+
+    test('treats notruf recommendation text as emergency history', () async {
+      final authSession = AuthSession();
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
+      final chatApi = _FakeChatApi()
+        ..nextResponse = const ChatResponse(
+          text:
+              'Wichtiger Hinweis:\nIhre Angaben koennen auf eine akute Notfallsituation hinweisen.\n\nNächster Schritt:\nBitte wählen Sie sofort den Notruf 112.',
+          redFlag: false,
+          action: 'Notruf 112',
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.updateSymptomsDirectly(['Atemnot']);
+      final response = await controller.sendMessage('Ich habe Atemnot');
+
+      expect(response?.redFlag, isFalse);
+      expect(controller.isCompleted.value, isTrue);
+      expect(historyRepository.savedEntries, hasLength(1));
+      expect(historyRepository.savedEntries.single.symptomTitle, 'Atemnot');
+      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+    });
+
+    test('treats urgent red flag metadata as emergency history', () async {
+      final authSession = AuthSession();
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
+      final chatApi = _FakeChatApi()
+        ..nextResponse = const ChatResponse(
+          text: 'Bitte holen Sie umgehend medizinische Hilfe.',
+          redFlag: false,
+          severity: 'sofort',
+          category: 'emergency',
+          matchedKeywords: ['starke atemnot'],
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.updateSymptomsDirectly(['Atemnot']);
+      await controller.sendMessage('Ich bekomme schlecht Luft');
+
+      expect(controller.isCompleted.value, isTrue);
+      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+    });
   });
 }
 
@@ -122,9 +355,16 @@ class _FakeChatApi extends ChatApi {
   String? lastText;
   String? lastSessionId;
   int? lastProfileId;
+  ChatResponse nextResponse = const ChatResponse(
+    text: 'Antwort',
+    redFlag: false,
+    action: null,
+  );
   int createSessionCalls = 0;
   final List<int?> createdProfileIds = [];
   final List<String> cancelledSessionIds = [];
+  final List<String> sentTexts = [];
+  List<String> symptoms = [];
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -145,13 +385,14 @@ class _FakeChatApi extends ChatApi {
     lastText = text;
     lastSessionId = sessionId;
     lastProfileId = profileId;
+    sentTexts.add(text);
 
-    return ChatResponse(text: 'Antwort', redFlag: false, action: null);
+    return nextResponse;
   }
 
   @override
   Future<List<String>> getInputDraftSymptoms(String sessionId) async {
-    return [];
+    return symptoms;
   }
 
   @override
@@ -159,11 +400,27 @@ class _FakeChatApi extends ChatApi {
     String sessionId,
     List<String> symptoms,
   ) async {
+    this.symptoms = symptoms;
     return symptoms;
   }
 
   @override
   Future<void> cancelInputDraft(String sessionId) async {
     cancelledSessionIds.add(sessionId);
+    symptoms = [];
+  }
+}
+
+class _FakeChatHistoryRepository extends ChatHistoryRepository {
+  final List<ChatHistoryEntry> savedEntries = [];
+
+  @override
+  Future<List<ChatHistoryEntry>> loadEntries({required int profileId}) async {
+    return savedEntries.where((entry) => entry.profileId == profileId).toList();
+  }
+
+  @override
+  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {
+    savedEntries.add(entry);
   }
 }

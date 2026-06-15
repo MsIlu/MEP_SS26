@@ -106,6 +106,13 @@ class MedicationEntry(SQLModel, table=True):
    through the existing profile permission model.
    """
     __tablename__ = "medication_entries"
+class ChatHistory(SQLModel, table=True):
+    """
+   Persisted completed chat history for one medical profile.
+
+   A history entry is created after the chat produces a care recommendation.
+   """
+    __tablename__ = "chat_history"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     profile_id: int = Field(foreign_key="profiles.id", index=True)
@@ -134,3 +141,10 @@ class MedicationEntry(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = Field(default=None)
+    title: Optional[str] = Field(default=None, max_length=80)
+    is_emergency: bool = Field(default=False)
+    recommendation: str
+    next_steps: Optional[str] = Field(default=None)
+    messages: list[dict] = Field(default_factory=list, sa_column=Column(JSON))
+
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)

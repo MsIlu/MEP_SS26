@@ -10,6 +10,7 @@ import 'package:app1/features/app_guide/presentation/widgets/app_guide_overlay.d
 import 'package:app1/features/authscreen/data/auth_api_service.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
+import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
 import 'package:app1/features/homescreen/data/home_feature.dart';
 import 'package:app1/features/homescreen/presentation/widgets/careena_hero_card.dart';
@@ -156,10 +157,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (index == 2) {
-      _navigateToChat(context);
+      _navigateToChatHistory(context);
     } else if (index == 3) {
       _openSettings(context);
     }
+  }
+
+  void _navigateToChatHistory(BuildContext context) {
+    final activeProfileId = controller.authSession.activeProfileId;
+
+    if (activeProfileId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Melde dich an, um gespeicherte Verläufe zu sehen.'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatHistoryScreen(
+          themeController: themeController,
+          profileId: activeProfileId,
+          repository: controller.chatHistoryRepository,
+        ),
+      ),
+    );
   }
 
   void _openSettings(BuildContext context) {

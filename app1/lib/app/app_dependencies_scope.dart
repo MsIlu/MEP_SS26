@@ -22,6 +22,13 @@ class AppDependenciesScope extends InheritedWidget {
     return scope!.dependencies;
   }
 
+  /// Optional access point for screens that can also run in isolation.
+  static AppDependencies? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<AppDependenciesScope>()
+        ?.dependencies;
+  }
+
   /// No rebuilds needed because dependencies are static
   @override
   bool updateShouldNotify(AppDependenciesScope oldWidget) => false;

@@ -1,6 +1,11 @@
+import logging
+
 from careena_pipeline3.application.repositories import SafetyCatalogRepository
 from careena_pipeline3.models.domain import PendingSafetyClarification, SafetyCatalogMatch
 from careena_pipeline3.models.turn import SafetyState
+
+
+logger = logging.getLogger(__name__)
 
 
 class SafetyClarificationBuilder:
@@ -34,7 +39,19 @@ class SafetyClarificationBuilder:
                 evidence_terms=evidence_terms,
             )
 
-        match = self._find_best_catalog_match(evidence_terms)
+        try:
+            match = self._find_best_catalog_match(evidence_terms)
+        except Exception:
+            logger.exception(
+                "Safety catalog lookup failed; using generic safety clarification fallback."
+            )
+            return PendingSafetyClarification(
+                question_code=question_code,
+                source_stage=source_stage,
+                source_system="STS",
+                catalog_mapping_status="fallback_catalog_unavailable",
+                evidence_terms=evidence_terms,
+            )
 
         if match is not None:
             return PendingSafetyClarification(

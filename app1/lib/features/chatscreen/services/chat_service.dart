@@ -66,7 +66,6 @@ class ChatService {
         responseText.contains('hinweis:');
   }
 
-
   bool hasAppointmentRecommendation(ChatResponse response) {
     final responseText = response.text.toLowerCase();
     final actionText = response.action?.toLowerCase() ?? '';
@@ -92,6 +91,7 @@ class ChatService {
     }
 
     return 'Arzttermin vereinbaren';
+  }
 
   bool isEmergencyRecommendation(ChatResponse response) {
     final responseText = response.text.toLowerCase();
@@ -127,7 +127,6 @@ class ChatService {
         combinedText.contains('rufen sie sofort') ||
         combinedText.contains('holen sie umgehend') ||
         combinedText.contains('lebensgefahr');
-
   }
 
   Stream<String> streamText(

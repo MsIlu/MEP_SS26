@@ -1,3 +1,4 @@
+
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:app1/features/app_guide/data/app_guide_steps.dart';
 import 'package:app1/features/app_guide/presentation/widgets/app_guide_overlay.dart';
 import 'package:app1/features/authscreen/data/auth_api_service.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
@@ -19,6 +21,7 @@ import 'package:app1/features/homescreen/presentation/widgets/home_function_list
 import 'package:app1/features/homescreen/presentation/widgets/home_search_bar.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
+import '../../../appointmentscreen/presentation/screens/appointment_screen.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:flutter/material.dart';
@@ -256,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.access_time,
         title: 'Terminplanung',
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToAppointments(context),
       ),
       HomeFeature(
         icon: Icons.medication,
@@ -319,6 +322,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+
+  void _navigateToAppointments(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AppointmentScreen(),
+),
+  );
+}
 
   AppDependenciesScope? _dependenciesFromContext(BuildContext context) {
     return context

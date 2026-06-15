@@ -13,6 +13,7 @@ from careena_pipeline3.application.managers import (
 )
 from careena_pipeline3.application.services import (
     IntentClassificationService,
+    RequirementFollowupResolutionService,
     RecommendationChoiceResolutionService,
     LLMResponseGenerationService,
     PythonExtractionResultNormalizer,
@@ -29,6 +30,7 @@ from careena_pipeline3.llm.call_control import CallModelConfig, build_call_model
 from careena_pipeline3.llm import (
     LLMCaseExtractionExtractor,
     LLMIntentGatewayExtractor,
+    LLMRequirementFollowupResolver,
     LLMRecommendationChoiceExtractor,
 )
 
@@ -51,8 +53,10 @@ class PipelineRuntimeServices:
     intent_gateway_extractor: LLMIntentGatewayExtractor
     case_extraction_extractor: LLMCaseExtractionExtractor
     recommendation_choice_extractor: LLMRecommendationChoiceExtractor
+    requirement_followup_resolver: LLMRequirementFollowupResolver
     extraction_result_normalizer: PythonExtractionResultNormalizer
     intent_classification_service: IntentClassificationService
+    requirement_followup_resolution_service: RequirementFollowupResolutionService
     recommendation_choice_resolution_service: RecommendationChoiceResolutionService
     safety_catalog_repository: SqlSafetyCatalogRepository
     safety_clarification_builder: SafetyClarificationBuilder
@@ -110,15 +114,23 @@ def build_pipeline_runtime(
         extraction_engine,
         call_models=call_model_config,
     )
+    requirement_followup_resolver = LLMRequirementFollowupResolver(
+        extraction_engine,
+        call_models=call_model_config,
+    )
     extraction_result_normalizer = PythonExtractionResultNormalizer()
     intent_classification_service = IntentClassificationService(
         intent_gateway_extractor=intent_gateway_extractor,
+    )
+    requirement_followup_resolution_service = RequirementFollowupResolutionService(
+        resolver=requirement_followup_resolver,
     )
     recommendation_choice_resolution_service = RecommendationChoiceResolutionService(
         extractor=recommendation_choice_extractor,
     )
     entry_manager = EntryManager(
         intent_classification=intent_classification_service,
+        requirement_followup_resolution_service=requirement_followup_resolution_service,
         recommendation_choice_resolution_service=recommendation_choice_resolution_service,
     )
     extraction_manager = ExtractionManager(
@@ -152,8 +164,10 @@ def build_pipeline_runtime(
         intent_gateway_extractor=intent_gateway_extractor,
         case_extraction_extractor=case_extraction_extractor,
         recommendation_choice_extractor=recommendation_choice_extractor,
+        requirement_followup_resolver=requirement_followup_resolver,
         extraction_result_normalizer=extraction_result_normalizer,
         intent_classification_service=intent_classification_service,
+        requirement_followup_resolution_service=requirement_followup_resolution_service,
         recommendation_choice_resolution_service=recommendation_choice_resolution_service,
         safety_catalog_repository=safety_catalog_repository,
         safety_clarification_builder=safety_clarification_builder,

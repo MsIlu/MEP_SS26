@@ -6,9 +6,23 @@ from careena_pipeline3.models.common import PipelineModel
 from careena_pipeline3.models.domain import (
     ConcernAllowedNextStep,
     DialogueState,
-    PendingFollowup,
 )
 from careena_pipeline3.models.workflow import AssessmentReadiness
+
+
+class ResolvedFollowup(PipelineModel):
+    """
+    Turn-local visibility contract for one follow-up resolved by this turn.
+
+    This is intentionally not persisted dialogue truth. The canonical open
+    follow-up state still lives in `DialogueState.pending_followup`.
+    """
+
+    requirement_key: str
+    slot: str
+    kind: str = "requirement"
+    focus_observation_id: str | None = None
+    focus_label: str | None = None
 
 
 class ProcessStateSignals(PipelineModel):
@@ -20,9 +34,7 @@ class ProcessStateSignals(PipelineModel):
     a second truth source.
     """
 
-    answered_pending_followup: bool = False
-    answered_requirement_key: str | None = None
-    answered_slot: str | None = None
+    resolved_followup: ResolvedFollowup | None = None
     additional_medical_information_detected: bool = False
     trace_notes: list[str] = Field(default_factory=list)
 
@@ -36,7 +48,6 @@ class ProcessStateUpdate(PipelineModel):
     """
 
     dialogue_state: DialogueState
-    pending_followup: PendingFollowup | None = None
     process_state_signals: ProcessStateSignals = Field(
         default_factory=ProcessStateSignals
     )
@@ -54,13 +65,10 @@ class ReadinessStateUpdate(PipelineModel):
       `dialogue_state`
     - derived assessment:
       `assessment_readiness`, `gate_decision`
-    - transition-period compatibility:
-      `pending_followup`
     """
 
     dialogue_state: DialogueState
     assessment_readiness: AssessmentReadiness
-    pending_followup: PendingFollowup | None = None
     gate_decision: RecommendationGateDecision | None = None
 
 

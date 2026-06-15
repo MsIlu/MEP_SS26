@@ -43,7 +43,12 @@ class ResponseGenerationService:
         recommendation_result: RecommendationResult | None = None,
     ) -> str:
         if (
-            response_strategy.kind in {"llm_continue", "llm_bounded_response"}
+            response_strategy.kind
+            in {
+                "llm_continue",
+                "llm_bounded_response",
+                "llm_followup_resolved_continue",
+            }
             and self.llm_response_generation is not None
         ):
             try:

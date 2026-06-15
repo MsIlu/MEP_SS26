@@ -4,6 +4,9 @@ from careena_pipeline3.application.services.call2_operation_mode_service import 
 from careena_pipeline3.application.services.intent_classification_service import (
     IntentClassificationService,
 )
+from careena_pipeline3.application.services.requirement_followup_resolution_service import (
+    RequirementFollowupResolutionService,
+)
 from careena_pipeline3.application.services.recommendation_transition_service import (
     RecommendationChoiceResolutionService,
 )
@@ -52,6 +55,9 @@ class EntryManager:
         recommendation_choice_resolution_service: (
             RecommendationChoiceResolutionService | None
         ) = None,
+        requirement_followup_resolution_service: (
+            RequirementFollowupResolutionService | None
+        ) = None,
         safety_clarification_resolver: SafetyClarificationResolver | None = None,
     ):
         self.call2_operation_mode_service = (
@@ -66,6 +72,10 @@ class EntryManager:
         self.recommendation_choice_resolution_service = (
             recommendation_choice_resolution_service
             or RecommendationChoiceResolutionService()
+        )
+        self.requirement_followup_resolution_service = (
+            requirement_followup_resolution_service
+            or RequirementFollowupResolutionService()
         )
         self.safety_clarification_resolver = (
             safety_clarification_resolver or SafetyClarificationResolver()
@@ -114,6 +124,37 @@ class EntryManager:
                     *safety_resolution.trace_notes,
                 ],
             )
+
+        pending_followup = context.dialogue_state.pending_followup if context is not None else None
+        if pending_followup is not None and pending_followup.kind == "requirement":
+            resolution, field_update = self.requirement_followup_resolution_service.resolve(
+                latest_user_message=turn_input.message,
+                pending_followup=pending_followup,
+                medical_case=(context.medical_case if context is not None else None),
+                dialogue_state=(context.dialogue_state if context is not None else None),
+                history_messages=turn_input.entry_history_messages,
+            )
+            if resolution is not None:
+                return EntryDecision(
+                    extraction_required=False,
+                    recommendation_requested=False,
+                    clear_pending_followup=(field_update is not None),
+                    requirement_followup_resolution=resolution,
+                    requirement_field_update=field_update,
+                    message_role="answer_to_followup",
+                    concern_relation="same_concern",
+                    latest_turn_role="medical_clarification",
+                    trace_notes=[
+                        "pending_requirement_followup",
+                        f"requirement_followup_status:{resolution.status}",
+                        (
+                            "requirement_followup_contains_extra_medical_information"
+                            if resolution.contains_extra_medical_information
+                            else "requirement_followup_without_extra_medical_information"
+                        ),
+                        *resolution.trace_notes,
+                    ],
+                )
 
         pending_choice_prompt = (
             context.dialogue_state.pending_choice_prompt if context is not None else None

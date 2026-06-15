@@ -31,6 +31,7 @@ from careena_pipeline3.models.domain.guided_input import (
 
 from careena_pipeline3.models.domain.provenance import Provenance
 from careena_pipeline3.models.domain.subject import Subject
+from careena_pipeline3.models.domain.safety_catalog import SafetyCatalogMatch
 
 __all__ = [
     "CaseObservation",
@@ -56,4 +57,5 @@ __all__ = [
     "GuidedInputContract",
     "GuidedInputMode",
     "GuidedInputOption",
+    "SafetyCatalogMatch",
 ]

@@ -66,3 +66,14 @@ def test_dialogue_manager_stores_pending_safety_clarification():
         "keeps_clarification_open",
         "confirms_emergency",
     ]
+    
+    # The pending safety clarification keeps STS/catalog traceability.
+    assert pending.question_text is None
+    assert pending.source_system == "STS"
+    assert pending.source_version is None
+    assert pending.consultation_reason_source_id is None
+    assert pending.consultation_reason_key is None
+    assert pending.criterion_key is None
+    assert pending.criterion_role is None
+    assert pending.urgency_effect is None
+    assert pending.catalog_mapping_status == "unmapped"

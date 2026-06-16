@@ -41,4 +41,22 @@ class AppointmentController {
       return appointment;
     }).toList();
   }
+
+  bool addRecommendedAppointmentIfMissing(Appointment appointment) {
+    final normalizedDoctorName = appointment.doctorName.trim().toLowerCase();
+
+    final alreadyExists = appointments.value.any((existingAppointment) {
+      return existingAppointment.isRecommendation &&
+          existingAppointment.appointmentDate == null &&
+          existingAppointment.doctorName.trim().toLowerCase() ==
+              normalizedDoctorName;
+    });
+
+    if (alreadyExists) {
+      return false;
+    }
+
+    addAppointment(appointment);
+    return true;
+  }
 }

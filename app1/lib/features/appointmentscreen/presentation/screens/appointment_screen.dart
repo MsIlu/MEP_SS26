@@ -383,13 +383,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               Appointment(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 doctorName: doctorController.text.trim(),
-                appointmentDate: DateTime(
-                  selectedDate?.year ?? DateTime.now().year,
-                  selectedDate?.month ?? DateTime.now().month,
-                  selectedDate?.day ?? DateTime.now().day,
-                  selectedTime?.hour ?? 0,
-                  selectedTime?.minute ?? 0,
-                ),
+                appointmentDate: _buildAppointmentDate(null),
                 note: noteController.text.trim(),
               ),
             );

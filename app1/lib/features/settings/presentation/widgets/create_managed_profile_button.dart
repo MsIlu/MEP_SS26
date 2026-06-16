@@ -61,6 +61,9 @@ class CreateManagedProfileButton extends StatelessWidget {
 
       session.setProfiles([...session.profiles, authProfile]);
       session.setActiveProfileById(authProfile.id);
+      
+      if (!context.mounted) return;
+
       await _refreshProfileData(context, authProfile.id);
 
       if (!context.mounted) return;

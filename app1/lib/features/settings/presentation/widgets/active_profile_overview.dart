@@ -97,6 +97,7 @@ class ActiveProfileOverview extends StatelessWidget {
 
     if (selectedProfileId != null) {
       session.setActiveProfileById(selectedProfileId);
+      if (!context.mounted) return;
       await _refreshProfileData(context, selectedProfileId);
     }
   }

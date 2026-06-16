@@ -16,6 +16,8 @@ class ProfileCreateRequest(BaseModel):
     display_name: str
     date_of_birth: Optional[date] = None
     biological_sex: Optional[str] = None
+    height_cm: Optional[int] = None
+    weight_kg: Optional[float] = None
     profile_type: str = "other"
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
@@ -33,6 +35,8 @@ class ProfileUpdateRequest(BaseModel):
     display_name: Optional[str] = None
     date_of_birth: Optional[date] = None
     biological_sex: Optional[str] = None
+    height_cm: Optional[int] = None
+    weight_kg: Optional[float] = None
     profile_type: Optional[str] = None
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
@@ -51,6 +55,8 @@ class ProfileResponse(BaseModel):
     display_name: str
     date_of_birth: Optional[date] = None
     biological_sex: Optional[str] = None
+    height_cm: Optional[int] = None
+    weight_kg: Optional[float] = None
     profile_type: str
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None

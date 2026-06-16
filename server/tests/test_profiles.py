@@ -59,6 +59,8 @@ def test_create_child_profile_creates_guardian_access(client, db_session):
             "display_name": "Ben",
             "date_of_birth": "2015-08-20",
             "biological_sex": "male",
+            "height_cm": 140,
+            "weight_kg": 35.5,
             "profile_type": "child",
             "relevant_preconditions_summary": "Asthma",
             "relevant_medications_summary": "Salbutamol bei Bedarf",
@@ -71,6 +73,8 @@ def test_create_child_profile_creates_guardian_access(client, db_session):
     data = response.json()
     assert data["display_name"] == "Ben"
     assert data["profile_type"] == "child"
+    assert data["height_cm"] == 140
+    assert data["weight_kg"] == 35.5
     assert data["role"] == "guardian"
 
     profile = db_session.get(Profile, data["id"])
@@ -82,6 +86,8 @@ def test_create_child_profile_creates_guardian_access(client, db_session):
 
     assert profile is not None
     assert profile.display_name == "Ben"
+    assert profile.height_cm == 140
+    assert profile.weight_kg == 35.5
     assert profile.relevant_preconditions_summary == "Asthma"
 
     assert access is not None
@@ -109,6 +115,8 @@ def test_patch_profile_updates_profile_for_allowed_role(client):
         headers=auth["headers"],
         json={
             "display_name": "Anna Updated",
+            "height_cm": 171,
+            "weight_kg": 70.5,
             "relevant_preconditions_summary": "Migräne",
         },
     )
@@ -117,6 +125,8 @@ def test_patch_profile_updates_profile_for_allowed_role(client):
 
     data = response.json()
     assert data["display_name"] == "Anna Updated"
+    assert data["height_cm"] == 171
+    assert data["weight_kg"] == 70.5
     assert data["relevant_preconditions_summary"] == "Migräne"
     assert data["role"] == "owner"
 

@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t05-chat-logic-und-session-kontext
+
 from chat.logic import ChatLogic
 from inputs.draft_service import cancel_symptom_draft, get_symptom_draft
 from inputs.symptom_draft_extraction import SymptomDraftExtractionService

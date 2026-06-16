@@ -1,3 +1,4 @@
+# Test case references: documents/Testfaelle_Backend.md#test-infrastruktur
 # Created as part of the authentication and profile management test setup.
 # Provides an isolated FastAPI test app with an in-memory SQLite database.
 

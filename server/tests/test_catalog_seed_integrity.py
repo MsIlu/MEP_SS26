@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t08-katalog-und-sts-seed-integrity
+
 from __future__ import annotations
 
 import json

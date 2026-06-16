@@ -48,6 +48,11 @@ def register_account(request: RegisterRequest, session: Session) -> AuthResponse
         display_name=request.display_name,
         date_of_birth=request.date_of_birth,
         biological_sex=request.biological_sex,
+        height_cm=request.height_cm,
+        weight_kg=request.weight_kg,
+        relevant_preconditions_summary=request.relevant_preconditions_summary,
+        relevant_medications_summary=request.relevant_medications_summary,
+        symptom_diary_summary=request.symptom_diary_summary,
         profile_type="self",
     )
 

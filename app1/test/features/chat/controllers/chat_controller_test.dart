@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 
 /// Unit tests for chat controller state and profile-aware chat requests.
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t02-chat-history
   group('ChatController', () {
     test('starts with an empty message list before initialization', () {
       final httpClient = http.Client();

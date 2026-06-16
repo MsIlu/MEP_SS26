@@ -29,7 +29,12 @@ if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is missing. Please check .env-File in MEP_SS26.")
 
 #connects to postgresSQL-Database
-engine = create_engine(DATABASE_URL, echo=True)
+engine_options = {"echo": True}
+
+if DATABASE_URL.startswith(("postgresql://", "postgresql+")):
+    engine_options["connect_args"] = {"options": "-csearch_path=public"}
+
+engine = create_engine(DATABASE_URL, **engine_options)
 
 
 def _get_table_columns(connection, table_name: str) -> set[str]:
@@ -170,10 +175,32 @@ def _migrate_chat_history_schema():
         )
 
 
+def _ensure_postgres_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("CREATE SCHEMA IF NOT EXISTS public"))
+        connection.execute(text("SET search_path TO public"))
+
+
 #creates all tables from db_models.py
 def create_db_and_tables():
+    _ensure_postgres_schema()
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
+        session.exec(
+            text(
+                "ALTER TABLE profiles "
+                "ADD COLUMN IF NOT EXISTS height_cm INTEGER"
+            )
+        )
+        session.exec(
+            text(
+                "ALTER TABLE profiles "
+                "ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION"
+            )
+        )
         session.exec(
             text(
                 "ALTER TABLE profiles "

@@ -47,7 +47,7 @@ class AuthSession extends ChangeNotifier {
   /// Throws if the profile is not part of the current authenticated session.
   void setActiveProfileById(int profileId) {
     final matchingProfiles = _profiles.where(
-          (profile) => profile.id == profileId,
+      (profile) => profile.id == profileId,
     );
 
     if (matchingProfiles.isEmpty) {
@@ -72,6 +72,26 @@ class AuthSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates the active profile display name in local session state.
+  void setActiveProfileDisplayName(String displayName) {
+    final activeProfile = _activeProfile;
+
+    if (activeProfile == null) {
+      return;
+    }
+
+    final updatedProfile = activeProfile.copyWith(displayName: displayName);
+    _profiles = _profiles
+        .map(
+          (profile) =>
+              profile.id == updatedProfile.id ? updatedProfile : profile,
+        )
+        .toList();
+    _activeProfile = updatedProfile;
+
+    notifyListeners();
+  }
+
   /// Updates the warning acceptance timestamp for the active profile.
   void setActiveProfileAiDisclaimerAcceptedAt(String acceptedAt) {
     final activeProfile = _activeProfile;
@@ -85,9 +105,10 @@ class AuthSession extends ChangeNotifier {
     );
 
     _profiles = _profiles
-        .map((profile) => profile.id == updatedProfile.id
-            ? updatedProfile
-            : profile)
+        .map(
+          (profile) =>
+              profile.id == updatedProfile.id ? updatedProfile : profile,
+        )
         .toList();
     _activeProfile = updatedProfile;
 

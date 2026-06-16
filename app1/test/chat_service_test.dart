@@ -3,6 +3,7 @@ import 'package:app1/features/chatscreen/data/models/message_model.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   group('ChatService', () {
     final service = ChatService();
 

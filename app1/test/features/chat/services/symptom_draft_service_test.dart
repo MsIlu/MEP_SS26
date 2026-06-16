@@ -6,6 +6,7 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/symptom_draft_service.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t03-symptome-erkennen-input-drafts
   group('SymptomDraftService', () {
     test('returns empty symptoms without a session id', () async {
       final chatApi = _FakeChatApi();
@@ -38,6 +39,34 @@ void main() {
 
       expect(await service.loadSymptoms('session-1'), isEmpty);
     });
+
+    test('returns empty symptoms when loading fails', () async {
+      final chatApi = _FakeChatApi()..shouldFailOnLoad = true;
+      final service = SymptomDraftService(chatApi);
+
+      expect(await service.loadSymptoms('session-1'), isEmpty);
+      expect(chatApi.loadedSessionIds, ['session-1']);
+    });
+
+    test('requires an initialized session before updating symptoms', () async {
+      final chatApi = _FakeChatApi();
+      final service = SymptomDraftService(chatApi);
+
+      await expectLater(
+        service.updateSymptoms(null, ['Husten']),
+        throwsA(isA<Exception>()),
+      );
+      expect(chatApi.symptomsBySession, isEmpty);
+    });
+
+    test('ignores cancel failures so the chat can continue', () async {
+      final chatApi = _FakeChatApi()..shouldFailOnCancel = true;
+      final service = SymptomDraftService(chatApi);
+
+      await service.cancelDraft('session-1');
+
+      expect(chatApi.cancelledSessionIds, ['session-1']);
+    });
   });
 }
 
@@ -46,10 +75,16 @@ class _FakeChatApi extends ChatApi {
 
   final Map<String, List<String>> symptomsBySession = {};
   final List<String> loadedSessionIds = [];
+  final List<String> cancelledSessionIds = [];
+  bool shouldFailOnLoad = false;
+  bool shouldFailOnCancel = false;
 
   @override
   Future<List<String>> getInputDraftSymptoms(String sessionId) async {
     loadedSessionIds.add(sessionId);
+    if (shouldFailOnLoad) {
+      throw Exception('loading failed');
+    }
     return symptomsBySession[sessionId] ?? [];
   }
 
@@ -64,6 +99,10 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<void> cancelInputDraft(String sessionId) async {
+    cancelledSessionIds.add(sessionId);
+    if (shouldFailOnCancel) {
+      throw Exception('cancel failed');
+    }
     symptomsBySession.remove(sessionId);
   }
 }

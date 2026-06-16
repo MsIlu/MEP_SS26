@@ -17,6 +17,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t10-settings
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });

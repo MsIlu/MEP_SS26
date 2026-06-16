@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t03-chat-history
+
 def register_user(client, email="history@example.com"):
     response = client.post(
         "/auth/register",

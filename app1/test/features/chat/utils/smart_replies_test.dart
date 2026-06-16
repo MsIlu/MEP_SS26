@@ -3,6 +3,7 @@ import 'package:app1/features/chatscreen/utils/smart_replies.dart';
 
 /// Unit tests for deterministic smart reply keyword paths.
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   group('SmartReplies', () {
     test('generates pain follow-ups for pain-related input', () {
       final result = SmartReplies.generate('Ich habe starke Bauchschmerzen');

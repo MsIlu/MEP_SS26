@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t04-symptome-und-input-drafts
+
 from inputs.draft_service import cancel_symptom_draft, get_symptom_draft
 from inputs.symptom_draft_extraction import SymptomDraftExtractionService
 from extraction.models.llm.observation_event import (

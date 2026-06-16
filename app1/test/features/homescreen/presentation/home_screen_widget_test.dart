@@ -19,6 +19,7 @@ import 'package:http/http.dart' as http;
 import 'home_screen_test_harness.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t07-home-screen
   group('HomeScreen', () {
     testWidgets('renders the welcome area and Careena entry card', (
       tester,

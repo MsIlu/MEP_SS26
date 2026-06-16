@@ -1,4 +1,4 @@
-from careena4.application.dialogue.question_builder import QuestionBuilder
+﻿from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
@@ -117,6 +117,60 @@ class TurnEngine:
                 safety_state=raw_safety
             )
             conversation_state.phase = "followup"
+
+            active_question = conversation_state.active_question
+            safety_context = active_question.safety_context if active_question is not None else None
+            trace_notes.extend(
+                [
+                    "safety_clarification:"
+                    f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
+                    *(
+                        [
+                            "safety_catalog_reason:"
+                            f"{safety_context.consultation_reason_source_id}"
+                        ]
+                        if safety_context is not None
+                        and safety_context.consultation_reason_source_id
+                        else []
+                    ),
+                    *(
+                        [
+                            "safety_catalog_criterion:"
+                            f"{safety_context.criterion_key}"
+                        ]
+                        if safety_context is not None
+                        and safety_context.criterion_key
+                        else []
+                    ),
+                ]
+            )
+
+            decision = TurnDecision(
+                kind="ask_safety_question",
+                response_mode="ask_safety_question",
+                active_question=active_question,
+                recommendation_requested=conversation_state.recommendation_requested,
+                recommendation_ready=False,
+                trace_notes=["turn:safety_clarification_opened"],
+            )
+            response_text = self._build_response_text(
+                turn_input=turn_input,
+                decision=decision,
+                case_topic=case_topic,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                active_question=active_question,
+            )
+            return TurnResult(
+                turn_id=turn_input.turn_id,
+                response_mode=decision.response_mode,
+                response_text=response_text,
+                case_topic=case_topic,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                trace_notes=trace_notes + decision.trace_notes,
+            )
 
         entry_assessment = self.entry_classifier.classify(
             message=turn_input.message,
@@ -544,3 +598,4 @@ class TurnEngine:
             latest_user_message=turn_input.message,
             resolved_question=resolved_question,
         )
+

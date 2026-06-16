@@ -8,6 +8,7 @@ import 'package:app1/core/network/api_client.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t08-profile-management
   group('ProfileApiService', () {
     test('getProfiles parses profile list and sends authorization header', () async {
       String? authorizationHeader;

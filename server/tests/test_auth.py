@@ -1,3 +1,4 @@
+# Test case references: documents/Testfaelle_Backend.md#t01-auth-und-account-management
 # Created as part of the authentication and profile management test setup.
 # Tests registration and duplicate email handling.
 

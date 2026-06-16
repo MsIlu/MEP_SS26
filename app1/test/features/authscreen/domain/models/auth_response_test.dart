@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t04-auth-und-registrierung
   group('AuthResponse', () {
     test('fromJson parses account, token and profiles', () {
       final response = AuthResponse.fromJson({

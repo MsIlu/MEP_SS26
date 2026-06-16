@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t05-core-network-und-shared-widgets
   testWidgets('centers the title between header sides', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

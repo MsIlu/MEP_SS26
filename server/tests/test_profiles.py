@@ -1,3 +1,4 @@
+# Test case references: documents/Testfaelle_Backend.md#t02-profile-management
 # Created as part of the authentication and profile management test setup.
 # Tests profile listing, creation, updating, access protection, and soft deletion.
 

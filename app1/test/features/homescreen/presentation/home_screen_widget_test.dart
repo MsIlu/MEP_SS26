@@ -18,6 +18,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 
 /// Widget tests for the home screen presentation layer.
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t07-home-screen
   group('HomeScreen', () {
     testWidgets('renders the welcome area and Careena entry card', (
       WidgetTester tester,

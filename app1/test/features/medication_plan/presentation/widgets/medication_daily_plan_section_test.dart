@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
   group('MedicationDailyPlanSection', () {
     testWidgets('shows the selected day doses with 24-hour times', (
       WidgetTester tester,

@@ -8,6 +8,7 @@ import 'package:app1/core/network/api_client.dart';
 import 'package:app1/features/authscreen/data/auth_api_service.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t04-auth-und-registrierung
   group('AuthApiService', () {
     test('login parses auth response and stores token in ApiClient', () async {
       String? authorizationHeaderForProtectedRequest;

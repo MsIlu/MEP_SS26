@@ -8,6 +8,7 @@ import 'package:app1/features/homescreen/data/home_feature.dart';
 /// (wie Terminplanung, Dokumente) Daten integer speichert und der Konstruktor Werte
 /// korrekt zuweist. Das verhindert Fehler bei UI-Renderings durch Null-Pointer oder falsche Typen.
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t07-home-screen
   group('HomeFeature - Datenmodell Validierung', () {
     
     test('Konstruktor muss alle übergebenen Attribute korrekt in die Felder mappen', () {

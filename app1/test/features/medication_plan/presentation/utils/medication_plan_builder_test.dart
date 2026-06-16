@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
   group('plannedMedicationDosesForDate', () {
     test('returns no doses before the medication was added', () {
       // The selected day must respect the medication creation date.
@@ -83,6 +84,32 @@ void main() {
 
       expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 5)), isTrue);
       expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 6)), isFalse);
+    });
+
+    test('keeps same-day and later daily medication visible', () {
+      final entries = [
+        _entry(createdAt: DateTime(2026, 6, 2)),
+      ];
+
+      expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 2)), isTrue);
+      expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 9)), isTrue);
+    });
+
+    test('orders doses from multiple medications by intake time', () {
+      final doses = plannedMedicationDosesForDate([
+        _entry(
+          id: 1,
+          name: 'Abends',
+          intakeTime: const TimeOfDay(hour: 21, minute: 0),
+        ),
+        _entry(
+          id: 2,
+          name: 'Morgens',
+          intakeTime: const TimeOfDay(hour: 7, minute: 15),
+        ),
+      ], DateTime(2026, 6, 2));
+
+      expect(doses.map((dose) => dose.entry.name), ['Morgens', 'Abends']);
     });
   });
 }

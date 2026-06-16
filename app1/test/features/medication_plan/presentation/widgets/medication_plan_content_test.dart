@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
   group('MedicationPlanContent', () {
     testWidgets('renders the page title and bottom medication actions', (
       WidgetTester tester,

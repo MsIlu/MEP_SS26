@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t09-symptom-diary
   group('SymptomDiaryController', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});

@@ -24,6 +24,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Local HAPI FHIR server for development and adapter testing
+  fhir-server:
+    image: hapiproject/hapi:latest
+    container_name: careena_fhir_server
+    restart: unless-stopped
+
+    # FHIR server web UI and REST API
+    ports:
+      - "8080:8080"
+
 # Named Docker volume for PostgreSQL persistence
 volumes:
   postgres_data:

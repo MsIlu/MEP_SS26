@@ -5,6 +5,7 @@ import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../../../profiles/data/profile_api_service.dart';
 import '../settings_icons.dart';
 import '../widgets/display_settings_section.dart';
 import '../widgets/profile_settings_section.dart';
@@ -16,12 +17,14 @@ class SettingsPage extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final AuthApiService? authApiService;
+  final ProfileApiService? profileApiService;
 
   const SettingsPage({
     super.key,
     required this.themeController,
     this.authSession,
     this.authApiService,
+    this.profileApiService,
   });
 
   @override
@@ -123,7 +126,10 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: 'Verwalte Profile und persönliche Angaben.',
             icon: SettingsIcons.profiles,
             showSectionHeader: false,
-            child: ProfileSettingsSection(authSession: session),
+            child: ProfileSettingsSection(
+              authSession: session,
+              profileApiService: widget.profileApiService,
+            ),
           ),
         ),
       ),

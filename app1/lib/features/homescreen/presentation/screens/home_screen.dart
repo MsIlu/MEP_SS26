@@ -1,4 +1,3 @@
-
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -64,14 +63,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
-          ? appGuideSteps
-              .where(
-                (step) =>
-                    step.target != AppGuideTarget.search &&
-                    step.target != AppGuideTarget.theme,
-              )
-              .toList()
-          : appGuideSteps;
+      ? appGuideSteps
+            .where(
+              (step) =>
+                  step.target != AppGuideTarget.search &&
+                  step.target != AppGuideTarget.theme,
+            )
+            .toList()
+      : appGuideSteps;
 
   @override
   void initState() {
@@ -198,6 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
           themeController: widget.themeController,
           authSession: widget.authSession,
           authApiService: widget.authApiService,
+          profileApiService: _dependenciesFromContext(
+            context,
+          )?.dependencies.profileApiService,
         ),
       ),
     );
@@ -232,12 +234,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   GlobalKey _targetKey(AppGuideTarget target) => switch (target) {
-        AppGuideTarget.careena => _careenaKey,
-        AppGuideTarget.search => _searchKey,
-        AppGuideTarget.features => _featuresKey,
-        AppGuideTarget.theme => _themeKey,
-        AppGuideTarget.navigation => _navigationKey,
-      };
+    AppGuideTarget.careena => _careenaKey,
+    AppGuideTarget.search => _searchKey,
+    AppGuideTarget.features => _featuresKey,
+    AppGuideTarget.theme => _themeKey,
+    AppGuideTarget.navigation => _navigationKey,
+  };
 
   void _navigateToChat(BuildContext context) {
     Navigator.push(
@@ -323,15 +325,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   void _navigateToAppointments(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => AppointmentScreen(),
-),
-  );
-}
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AppointmentScreen()),
+    );
+  }
 
   AppDependenciesScope? _dependenciesFromContext(BuildContext context) {
     return context

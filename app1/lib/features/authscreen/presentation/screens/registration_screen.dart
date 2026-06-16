@@ -132,6 +132,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return '$year-$month-$day';
   }
 
+  String? _biologicalSexForBackend(String value) {
+    return switch (value) {
+      'Weiblich' => 'female',
+      'Männlich' => 'male',
+      _ => null,
+    };
+  }
+
+  int? _heightForBackend(String value) {
+    return int.tryParse(value.trim());
+  }
+
+  double? _weightForBackend(String value) {
+    return double.tryParse(value.trim().replaceAll(',', '.'));
+  }
+
+  String? _conditionsForBackend() {
+    if (_form.conditions.isEmpty) {
+      return null;
+    }
+
+    return _form.conditions.join(', ');
+  }
+
+  String? _notesForBackend() {
+    final notes = _form.notesController.text.trim();
+    return notes.isEmpty ? null : notes;
+  }
+
   Widget _buildStep() {
     return switch (_step) {
       0 => RegistrationPersonalDataStep(
@@ -246,7 +275,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         password: _form.passwordController.text,
         displayName: displayName,
         dateOfBirth: _normalizeBirthDate(_form.birthDateController.text),
-        biologicalSex: _form.sex,
+        biologicalSex: _biologicalSexForBackend(_form.sex),
+        heightCm: _heightForBackend(_form.heightController.text),
+        weightKg: _weightForBackend(_form.weightController.text),
+        relevantPreconditionsSummary: _conditionsForBackend(),
+        symptomDiarySummary: _notesForBackend(),
       );
 
       widget.authSession.setAuthResponse(authResponse);

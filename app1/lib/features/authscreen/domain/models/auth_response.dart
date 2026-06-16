@@ -29,12 +29,10 @@ class AuthProfile {
     );
   }
 
-  AuthProfile copyWith({
-    String? aiDisclaimerAcceptedAt,
-  }) {
+  AuthProfile copyWith({String? displayName, String? aiDisclaimerAcceptedAt}) {
     return AuthProfile(
       id: id,
-      displayName: displayName,
+      displayName: displayName ?? this.displayName,
       profileType: profileType,
       aiDisclaimerAcceptedAt:
           aiDisclaimerAcceptedAt ?? this.aiDisclaimerAcceptedAt,

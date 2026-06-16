@@ -18,17 +18,22 @@ class AuthApiService {
     required String displayName,
     String? dateOfBirth,
     String? biologicalSex,
+    int? heightCm,
+    double? weightKg,
+    String? relevantPreconditionsSummary,
+    String? symptomDiarySummary,
   }) async {
-    final response = await _apiClient.post(
-      '/auth/register',
-      {
-        'email': email,
-        'password': password,
-        'display_name': displayName,
-        'date_of_birth': dateOfBirth,
-        'biological_sex': biologicalSex,
-      },
-    );
+    final response = await _apiClient.post('/auth/register', {
+      'email': email,
+      'password': password,
+      'display_name': displayName,
+      'date_of_birth': dateOfBirth,
+      'biological_sex': biologicalSex,
+      'height_cm': heightCm,
+      'weight_kg': weightKg,
+      'relevant_preconditions_summary': relevantPreconditionsSummary,
+      'symptom_diary_summary': symptomDiarySummary,
+    });
 
     final authResponse = AuthResponse.fromJson(response);
     _apiClient.setAccessToken(authResponse.accessToken);
@@ -41,13 +46,10 @@ class AuthApiService {
     required String email,
     required String password,
   }) async {
-    final response = await _apiClient.post(
-      '/auth/login',
-      {
-        'email': email,
-        'password': password,
-      },
-    );
+    final response = await _apiClient.post('/auth/login', {
+      'email': email,
+      'password': password,
+    });
 
     final authResponse = AuthResponse.fromJson(response);
     _apiClient.setAccessToken(authResponse.accessToken);

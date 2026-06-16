@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlmodel import SQLModel, Session, create_engine
 from . import models
+from sqlmodel import Session
+from sqlalchemy import text
 from .catalog import models as catalog_models
 
 #determines the projects main folder
@@ -140,10 +142,47 @@ def _migrate_legacy_user_schema():
             )
 
 
+def _migrate_chat_history_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    with engine.begin() as connection:
+        columns = _get_table_columns(connection, "chat_history")
+
+        if not columns:
+            return
+
+        connection.execute(
+            text("ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS title VARCHAR(80)")
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS is_emergency BOOLEAN DEFAULT FALSE"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE chat_history "
+                "SET is_emergency = FALSE "
+                "WHERE is_emergency IS NULL"
+            )
+        )
+
+
 #creates all tables from db_models.py
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.exec(
+            text(
+                "ALTER TABLE profiles "
+                "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
+            )
+        )
+        session.commit()
     _migrate_legacy_user_schema()
+    _migrate_chat_history_schema()
 
 #creates database-session
 def get_db_session():

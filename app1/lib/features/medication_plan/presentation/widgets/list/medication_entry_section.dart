@@ -10,6 +10,7 @@ class MedicationEntrySection extends StatelessWidget {
   final List<MedicationEntry> entries;
   final void Function(MedicationEntry entry, bool remindersEnabled)
   onToggleReminder;
+  final ValueChanged<MedicationEntry> onEdit;
   final ValueChanged<MedicationEntry> onDelete;
   final bool showTitle;
 
@@ -18,6 +19,7 @@ class MedicationEntrySection extends StatelessWidget {
     required this.isLoading,
     required this.entries,
     required this.onToggleReminder,
+    required this.onEdit,
     required this.onDelete,
     this.showTitle = true,
   });
@@ -52,6 +54,7 @@ class MedicationEntrySection extends StatelessWidget {
             child: MedicationTile(
               entry: entry,
               onToggleReminder: (value) => onToggleReminder(entry, value),
+              onEdit: () => onEdit(entry),
               onDelete: () => onDelete(entry),
             ),
           ),

@@ -23,7 +23,10 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
 from auth.router import router as auth_router
+from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
+from medications.router import router as medications_router
+from symptoms.router import router as symptoms_router
 from inputs.draft_router import router as draft_router, set_session_manager
 from inputs.symptom_draft_extraction import SymptomDraftExtractionService
 from chat.logic import ChatLogic
@@ -44,6 +47,9 @@ set_session_manager(session_manager)
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
+app.include_router(medications_router)
+app.include_router(chat_history_router)
+app.include_router(symptoms_router)
 app.include_router(draft_router)
 
 # CORS is permissive for local Flutter development.

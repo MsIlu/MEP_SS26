@@ -39,6 +39,8 @@ class ChatService {
   }
 
   Message buildAssistantMessage(ChatResponse response) {
+    final canCreateAppointment = hasAppointmentRecommendation(response);
+
     return Message(
       text: response.text,
       isUser: false,
@@ -46,6 +48,10 @@ class ChatService {
       exportTitle: 'Handlungsempfehlung',
       exportRecommendation: response.text,
       exportNextSteps: response.action,
+      canCreateAppointment: canCreateAppointment,
+      appointmentTitle: canCreateAppointment
+          ? _appointmentTitleForRecommendation(response.text)
+          : null,
     );
   }
 
@@ -58,6 +64,69 @@ class ChatService {
         responseText.contains('nächster schritt:') ||
         responseText.contains('naechster schritt:') ||
         responseText.contains('hinweis:');
+  }
+
+  bool hasAppointmentRecommendation(ChatResponse response) {
+    final responseText = response.text.toLowerCase();
+    final actionText = response.action?.toLowerCase() ?? '';
+    final combinedText = '$responseText $actionText';
+
+    return combinedText.contains('hausarzt') ||
+        combinedText.contains('facharzt') ||
+        combinedText.contains('arztbesuch') ||
+        combinedText.contains('arzttermin') ||
+        combinedText.contains('ärztlich') ||
+        combinedText.contains('aerztlich');
+  }
+
+  String _appointmentTitleForRecommendation(String text) {
+    final lowerText = text.toLowerCase();
+
+    if (lowerText.contains('hausarzt')) {
+      return 'Hausarzttermin vereinbaren';
+    }
+
+    if (lowerText.contains('facharzt')) {
+      return 'Facharzttermin vereinbaren';
+    }
+
+    return 'Arzttermin vereinbaren';
+  }
+
+  bool isEmergencyRecommendation(ChatResponse response) {
+    final responseText = response.text.toLowerCase();
+    final actionText = response.action?.toLowerCase() ?? '';
+    final severityText = response.severity?.toLowerCase() ?? '';
+    final ruleText = response.ruleName?.toLowerCase() ?? '';
+    final categoryText = response.category?.toLowerCase() ?? '';
+    final messageKeyText = response.messageKey?.toLowerCase() ?? '';
+    final matchedKeywordText = response.matchedKeywords.join(' ').toLowerCase();
+    final combinedText =
+        '$responseText $actionText $severityText $ruleText '
+        '$categoryText $messageKeyText $matchedKeywordText';
+
+    return response.redFlag ||
+        severityText.contains('sofort') ||
+        severityText.contains('hoch') ||
+        severityText.contains('high') ||
+        severityText.contains('emergency') ||
+        categoryText.contains('emergency') ||
+        categoryText.contains('notfall') ||
+        combinedText.contains('notruf 112') ||
+        combinedText.contains('112') ||
+        combinedText.contains('notruf') ||
+        combinedText.contains('rettungsdienst') ||
+        combinedText.contains('notarzt') ||
+        combinedText.contains('akute notfallsituation') ||
+        combinedText.contains('akuter notfall') ||
+        combinedText.contains('sofort medizinische hilfe') ||
+        combinedText.contains('notaufnahme') ||
+        combinedText.contains('umgehend medizinische hilfe') ||
+        combinedText.contains('wählen sie sofort') ||
+        combinedText.contains('waehlen sie sofort') ||
+        combinedText.contains('rufen sie sofort') ||
+        combinedText.contains('holen sie umgehend') ||
+        combinedText.contains('lebensgefahr');
   }
 
   Stream<String> streamText(

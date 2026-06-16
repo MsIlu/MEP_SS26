@@ -16,6 +16,7 @@ class ChatInputField extends StatefulWidget {
 
   /// Disables submission while the previous message is still processing.
   final bool isSending;
+  final bool isEnabled;
 
   final SpeechService speechService;
 
@@ -28,6 +29,7 @@ class ChatInputField extends StatefulWidget {
     required this.onSend,
     required this.focusNode,
     required this.isSending,
+    this.isEnabled = true,
     required this.smartReplies,
     required this.onSmartReplySelected,
     required this.speechService,
@@ -167,6 +169,7 @@ class _ChatInputFieldState extends State<ChatInputField>
         final bottomPadding = isShortViewport ? 8.0 : 16.0;
         final fieldVerticalPadding = isShortViewport ? 10.0 : 16.0;
         final buttonSize = isShortViewport ? 40.0 : (isCompact ? 44.0 : 48.0);
+        final isInputEnabled = widget.isEnabled && !widget.isSending;
 
         return Container(
           padding: EdgeInsets.fromLTRB(
@@ -175,9 +178,7 @@ class _ChatInputFieldState extends State<ChatInputField>
             horizontalPadding,
             bottomPadding,
           ),
-          decoration: BoxDecoration(
-            color: outerBackground,
-          ),
+          decoration: BoxDecoration(color: outerBackground),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -213,7 +214,8 @@ class _ChatInputFieldState extends State<ChatInputField>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (widget.smartReplies.isNotEmpty)
+                            if (widget.isEnabled &&
+                                widget.smartReplies.isNotEmpty)
                               Padding(
                                 padding: EdgeInsets.fromLTRB(
                                   isShortViewport ? 8 : 12,
@@ -228,8 +230,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                               ),
 
                             Row(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 SizedBox(width: isCompact ? 8 : 10),
 
@@ -238,6 +239,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     controller: widget.controller,
                                     focusNode: widget.focusNode,
                                     autofocus: true,
+                                    enabled: widget.isEnabled,
                                     textInputAction: TextInputAction.send,
                                     keyboardType: TextInputType.text,
                                     minLines: 1,
@@ -249,16 +251,18 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     onSubmitted: (_) {
                                       // Pressing Enter should behave
                                       // like tapping send.
-                                      if (!widget.isSending) {
+                                      if (isInputEnabled) {
                                         widget.onSend();
                                       }
                                     },
                                     decoration: InputDecoration(
                                       hintText: _isListening
                                           ? '🎤 Ich höre zu...'
-                                          : (isCompact
-                                                ? 'Beschwerden beschreiben'
-                                                : 'Beschreiben Sie kurz Ihre Beschwerden'),
+                                          : (!widget.isEnabled
+                                                ? 'Chat abgeschlossen'
+                                                : (isCompact
+                                                      ? 'Beschwerden beschreiben'
+                                                      : 'Beschreiben Sie kurz Ihre Beschwerden')),
                                       hintStyle: TextStyle(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -283,7 +287,9 @@ class _ChatInputFieldState extends State<ChatInputField>
                                         : 'Spracheingabe starten',
 
                                     child: GestureDetector(
-                                      onTap: _toggleListening,
+                                      onTap: widget.isEnabled
+                                          ? _toggleListening
+                                          : null,
 
                                       child: AnimatedSwitcher(
                                         duration: const Duration(
@@ -329,12 +335,14 @@ class _ChatInputFieldState extends State<ChatInputField>
                   SizedBox(width: isCompact ? 6 : 10),
                   Semantics(
                     button: true,
-                    enabled: !widget.isSending,
+                    enabled: isInputEnabled,
                     label: widget.isSending
                         ? 'Nachricht wird verarbeitet'
+                        : !widget.isEnabled
+                        ? 'Chat ist abgeschlossen'
                         : 'Symptombeschreibung senden',
                     child: IconButton.filled(
-                      onPressed: widget.isSending ? null : widget.onSend,
+                      onPressed: isInputEnabled ? widget.onSend : null,
                       style: IconButton.styleFrom(
                         backgroundColor: sendButtonColor,
                         disabledBackgroundColor: sendingButtonColor,
@@ -342,9 +350,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                       ),
                       icon: Icon(
                         widget.isSending ? Icons.hourglass_top : Icons.send,
-                        color: widget.isSending
-                            ? sendingIconColor
-                            : Colors.white,
+                        color: isInputEnabled ? Colors.white : sendingIconColor,
                         size: 20,
                       ),
                     ),

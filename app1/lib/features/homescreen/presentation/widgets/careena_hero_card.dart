@@ -9,11 +9,13 @@ class CareenaHeroCard extends StatelessWidget {
   /// Called when the user taps the hero action.
   final VoidCallback onTap;
   final bool isSimpleView;
+  final Key? guideTargetKey;
 
   const CareenaHeroCard({
     super.key,
     required this.onTap,
     this.isSimpleView = false,
+    this.guideTargetKey,
   });
 
   @override
@@ -30,58 +32,61 @@ class CareenaHeroCard extends StatelessWidget {
             ? AppColors.darkElevatedSurface
             : AppColors.careenaInfoBorder;
 
-        return Container(
-          margin: EdgeInsets.symmetric(
+        return Padding(
+          padding: EdgeInsets.symmetric(
             horizontal: isCompact ? 14 : 20,
             vertical: 10,
           ),
-          padding: EdgeInsets.all(isCompact ? 16 : 20),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: AppColors.careenaGlow, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.careenaGlow.withValues(
-                  alpha: isDarkMode ? 0.15 : 0.08,
+          child: Container(
+            key: guideTargetKey,
+            padding: EdgeInsets.all(isCompact ? 16 : 20),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: AppColors.careenaGlow, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.careenaGlow.withValues(
+                    alpha: isDarkMode ? 0.15 : 0.08,
+                  ),
+                  blurRadius: isDarkMode ? 12 : 8,
+                  spreadRadius: 1,
                 ),
-                blurRadius: isDarkMode ? 12 : 8,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: isCompact
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: FloatingAvatar(
-                        imagePath: AppAssets.careenaDoctor,
-                        size: avatarSize,
+              ],
+            ),
+            child: isCompact
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: FloatingAvatar(
+                          imagePath: AppAssets.careenaDoctor,
+                          size: avatarSize,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    _HeroTextAndAction(
-                      onTap: onTap,
-                      isSimpleView: isSimpleView,
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    FloatingAvatar(
-                      imagePath: AppAssets.careenaDoctor,
-                      size: avatarSize,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _HeroTextAndAction(
+                      const SizedBox(height: 14),
+                      _HeroTextAndAction(
                         onTap: onTap,
                         isSimpleView: isSimpleView,
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      FloatingAvatar(
+                        imagePath: AppAssets.careenaDoctor,
+                        size: avatarSize,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _HeroTextAndAction(
+                          onTap: onTap,
+                          isSimpleView: isSimpleView,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         );
       },
     );

@@ -20,6 +20,8 @@ und Abgabe.
 
 ### Added
 
+- Der App-Guide erklÃ¤rt nun auch den Light-/Darkmode-Schalter oben rechts.
+
 - `app/app_dependencies.dart` als zentraler Composition Root für langlebige
   Frontend-Abhängigkeiten ergänzt.
 - `ApiException` und `ApiErrorType` für typisierte API-Fehler ergänzt.
@@ -48,8 +50,44 @@ und Abgabe.
   inklusive einfacher Körpergrafik und Speicherung der betroffenen Stelle.
 - Körpergrafik im Symptomtagebuch ist jetzt antippbar und erscheint nur bei
   Schmerz-/körperbezogenen Symptomen.
+- Ein einmaliger Careena-App-Guide hebt nach erfolgreicher Registrierung die
+  vorhandenen Home-Bereiche direkt hervor und erklärt Chat, Suche, Funktionen
+  und Navigation schrittweise.
+- Ein kleiner Hilfe-Button im Home-Header öffnet den App-Guide jederzeit zu
+  Testzwecken erneut.
+- Der App-Guide legt nun einen transparent-weißen Schleier über nicht erklärte
+  Bereiche. Careena beschreibt den klar sichtbaren Zielbereich in einer
+  kompakten Speechbubble statt in einem großen Textfenster.
+- Die App-Tour verwendet nun einen sauberen abgerundeten Spotlight-Ausschnitt,
+  handlungsorientierte Erklärungen, gut sichtbaren Fortschritt, große
+  Weiter-Aktionen und eine Zurück-Navigation.
 
 ### Changed
+
+- Der Abschluss des App-Guides wird fÃ¼r nicht eingeloggte Nutzer unter einem
+  expliziten Guest-Key statt unter einer impliziten Account-ID `0` gespeichert.
+  Bestehende numerische Account-SchlÃ¼ssel bleiben dabei kompatibel.
+- Das App-Guide-Overlay wurde nach Verantwortung in Overlay-Orchestrierung,
+  Spotlight-Painter, Careena-Companion und Guide-Aktionen aufgeteilt. Die
+  Homescreen-Widget-Tests wurden entsprechend in Darstellung, Guide-Ablauf und
+  eine gemeinsame Test-Fixture getrennt.
+- Der Guide erklÃ¤rt den Light-/Darkmode-Schalter nun vor dem
+  Funktionsbereich.
+- Der Guide-ZurÃ¼ck-Button verwendet nun eine kontrastreiche Careena-FlÃ¤che;
+  die Aktion zum Beenden der Tour nutzt einen passenden Careena-Farbton.
+- Die Speechbubble von ErklÃ¤r-Careena verwendet im Dark-Mode nun eine dunkle
+  Careena-FlÃ¤che mit heller Schrift; das Onboarding-Design bleibt unverÃ¤ndert.
+- Direkte Farben in den vom Guide wiederverwendeten Home-, Avatar- und
+  Speechbubble-Komponenten wurden durch zentrale `AppColors`-Tokens ersetzt.
+  Das ungenutzte Icon-Feld der Guide-Schritte wurde entfernt.
+- Der Funktionsschritt des App-Guides hebt nun den gesamten sichtbaren
+  Funktionsbereich statt nur der ersten Funktionskarte hervor.
+- Der Guide verwendet den vorhandenen winkenden Careena-Avatar ohne
+  kreisfÃ¶rmigen Hintergrund.
+- Der App-Guide verwendet im Dark-Mode einen dunklen Schleier und richtet
+  seine abgerundeten Spotlight-Ausschnitte direkt an den sichtbaren
+  Home-Karten statt an deren umgebenden Layout-Flächen aus. Innerhalb des
+  Ausschnitts bleibt der unveränderte Original-Screen vollständig sichtbar.
 
 - Die Speicheraktionen für persönliche Daten und Gesundheitsangaben verwenden
   nun denselben zentralen Toolbar-Farbton wie der Zurück-Button.

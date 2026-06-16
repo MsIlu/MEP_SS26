@@ -2,7 +2,7 @@
 # Created as part of the authentication and profile management implementation.
 # This module defines request and response schemas for authentication endpoints.
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -49,6 +49,7 @@ class ProfileResponse(BaseModel):
     id: int
     display_name: str
     profile_type: str
+    ai_disclaimer_accepted_at: Optional[datetime] = None
     role: Optional[str] = None
 
     class Config:

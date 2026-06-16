@@ -1,5 +1,7 @@
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 
+import '../../../app_guide/data/app_guide_store.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../view_models/registration_form_controller.dart';
@@ -21,6 +23,7 @@ class RegistrationScreen extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession authSession;
   final AuthApiService authApiService;
+  final SymptomRepository symptomRepository;
 
   const RegistrationScreen({
     super.key,
@@ -28,6 +31,7 @@ class RegistrationScreen extends StatefulWidget {
     required this.themeController,
     required this.authSession,
     required this.authApiService,
+    required this.symptomRepository,
   });
 
   @override
@@ -187,6 +191,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           themeController: widget.themeController,
           authSession: widget.authSession,
           authApiService: widget.authApiService,
+          symptomRepository: widget.symptomRepository,
         ),
       ),
     );
@@ -248,12 +253,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       if (!mounted) return;
 
+      final guideStore = AppGuideStore();
+      final hasCompletedGuide = await guideStore.isCompleted(
+        AppGuideStore.accountKey(authResponse.account.id),
+      );
+
+      if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreen(
-            controller: widget.chatController,
-            themeController: widget.themeController,
-          ),
+          builder: (context) =>
+              _buildHomeScreen(startGuide: !hasCompletedGuide),
         ),
       );
     } catch (_) {
@@ -270,5 +280,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
       }
     }
+  }
+
+  HomeScreen _buildHomeScreen({bool startGuide = false}) {
+    return HomeScreen(
+      controller: widget.chatController,
+      themeController: widget.themeController,
+      authSession: widget.authSession,
+      authApiService: widget.authApiService,
+      startGuide: startGuide,
+    );
   }
 }

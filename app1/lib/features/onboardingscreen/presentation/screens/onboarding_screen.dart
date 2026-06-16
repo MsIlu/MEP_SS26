@@ -134,6 +134,31 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
 
+                  
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => _showPrivacyInfo(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDarkMode
+                              ? AppColors.toolbarButtonBackgroundDark
+                              : AppColors.careenaTeal,
+                        ),
+                        icon: const Icon(
+                          Icons.privacy_tip_outlined,
+                          size: 18,
+                        ),
+                        label: const Text('Datenschutzhinweise anzeigen'),
+                      ),
+                    ),
+                  ),
+
+
                   const SizedBox(height: 16),
 
                   Padding(
@@ -241,6 +266,46 @@ class OnboardingScreen extends StatelessWidget {
           authSession: authSession,
         ),
       ),
+    );
+  }
+
+  void _showPrivacyInfo(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Datenschutzhinweise'),
+          content: const SingleChildScrollView(
+            child: Text(
+              'Careena verarbeitet deine Angaben, um dich bei der ersten '
+              'Einordnung deiner Beschwerden zu unterstützen und passende '
+              'nächste Schritte vorzuschlagen.\n\n'
+              'Zwecke der Verarbeitung:\n'
+              '- Ersteinschätzung von Beschwerden\n'
+              '- Patientensteuerung und Empfehlung nächster Schritte\n'
+              '- personalisierte Unterstützung anhand deiner Angaben\n'
+              '- Dokumentation von Beschwerden im Symptomtagebuch\n'
+              '- Registrierung, Anmeldung und Kontoverwaltung\n\n'
+              'Verarbeitete Datenkategorien:\n'
+              '- Kontoangaben, z. B. E-Mail-Adresse und Passwort\n'
+              '- Profildaten, z. B. Name, Geburtsdatum und biologisches Geschlecht\n'
+              '- Gesundheitsangaben, z. B. Größe, Gewicht, Vorerkrankungen und Hinweise\n'
+              '- Chatdaten, z. B. Symptombeschreibungen und Empfehlungen\n'
+              '- Symptomtagebuch-Einträge, z. B. Symptom, Datum, Intensität und Notizen\n'
+              '- technische Daten, z. B. Session-ID und Zugriffstoken\n\n'
+              'Careena ersetzt keine ärztliche Diagnose, Behandlung oder '
+              'Notfallversorgung. In akuten Notfällen ist der Notruf 112 '
+              'oder medizinisches Fachpersonal zu kontaktieren.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Verstanden'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

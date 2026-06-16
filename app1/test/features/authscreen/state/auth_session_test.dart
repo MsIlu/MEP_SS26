@@ -5,7 +5,7 @@ import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t04-auth-und-registrierung
+  // Test case references: documents/Testfaelle_Frontend.md#t04-auth-und-registrierung
   group('AuthSession', () {
     test('stores auth response and selects first profile as active profile', () {
       final session = AuthSession();

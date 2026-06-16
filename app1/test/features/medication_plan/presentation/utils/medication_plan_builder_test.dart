@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
+  // Test case references: documents/Testfaelle_Frontend.md#t01-medicationbook
   group('plannedMedicationDosesForDate', () {
     test('returns no doses before the medication was added', () {
       // The selected day must respect the medication creation date.

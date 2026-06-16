@@ -3,7 +3,7 @@ import 'package:app1/features/chatscreen/data/models/message_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t02-chat-history
+  // Test case references: documents/Testfaelle_Frontend.md#t02-chat-history
   group('ChatHistoryEntry', () {
     test('parses UTC timestamps into local user time', () {
       final entry = ChatHistoryEntry.fromJson({

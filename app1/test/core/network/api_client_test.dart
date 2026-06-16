@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t05-core-network-und-shared-widgets
+  // Test case references: documents/Testfaelle_Frontend.md#t05-core-network-und-shared-widgets
   group('Email registration error', () {
     test('extracts the backend detail from HTTP errors', () async {
       final client = ApiClient(

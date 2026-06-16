@@ -6,7 +6,7 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/symptom_draft_service.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t03-symptome-erkennen-input-drafts
+  // Test case references: documents/Testfaelle_Frontend.md#t03-symptome-erkennen-input-drafts
   group('SymptomDraftService', () {
     test('returns empty symptoms without a session id', () async {
       final chatApi = _FakeChatApi();

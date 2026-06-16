@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t06-chat-core-und-ui
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   group('ChatResponse', () {
     test('maps normal backend responses', () {
       final response = ChatResponse.fromJson({

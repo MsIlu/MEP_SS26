@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t03-symptome-erkennen-input-drafts
+  // Test case references: documents/Testfaelle_Frontend.md#t03-symptome-erkennen-input-drafts
   group('ChatApi input drafts', () {
     test('T03.2.1 loads draft symptoms from the session endpoint', () async {
       late Uri requestedUri;

@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
+  // Test case references: documents/Testfaelle_Frontend.md#t01-medicationbook
   group('MedicationRepository', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});

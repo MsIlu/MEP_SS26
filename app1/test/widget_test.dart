@@ -19,7 +19,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/presentation/widgets/chat_warning_dialog.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t11-app-smoke-warning-flow
+  // Test case references: documents/Testfaelle_Frontend.md#t11-app-smoke-warning-flow
   late ChatController chatController;
   late ThemeController themeController;
 

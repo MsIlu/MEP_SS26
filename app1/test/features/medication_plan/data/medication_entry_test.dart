@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t01-medicationbook
+  // Test case references: documents/Testfaelle_Frontend.md#t01-medicationbook
   group('MedicationEntry', () {
     test('T01.2.1 preserves schedule, second dose, and taken state in JSON', () {
       final entry = MedicationEntry(

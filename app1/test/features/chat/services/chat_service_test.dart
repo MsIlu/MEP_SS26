@@ -4,7 +4,7 @@ import 'package:app1/features/chatscreen/data/models/message_model.dart';
 
 /// Unit tests for pure chat message list operations.
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t06-chat-core-und-ui
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   group('ChatService', () {
     final chatService = ChatService();
 

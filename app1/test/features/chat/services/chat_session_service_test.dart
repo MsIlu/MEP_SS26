@@ -6,7 +6,7 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/services/chat_session_service.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t06-chat-core-und-ui
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   group('ChatSessionService', () {
     test('creates and warms up a session only once', () async {
       final chatApi = _FakeChatApi();

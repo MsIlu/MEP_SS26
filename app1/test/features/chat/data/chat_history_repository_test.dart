@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  // Test case references: documents/Testfaelle_Frontend_Aufgaben.md#t02-chat-history
+  // Test case references: documents/Testfaelle_Frontend.md#t02-chat-history
   group('ApiChatHistoryRepository', () {
     test('T02.2.1 loads profile history sorted newest first', () async {
       late Uri requestedUri;

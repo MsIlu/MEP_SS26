@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../app/app_dependencies_scope.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
 import '../../../authscreen/state/auth_session.dart';
@@ -96,6 +97,24 @@ class ActiveProfileOverview extends StatelessWidget {
 
     if (selectedProfileId != null) {
       session.setActiveProfileById(selectedProfileId);
+      await _refreshProfileData(context, selectedProfileId);
+    }
+  }
+
+  Future<void> _refreshProfileData(
+    BuildContext context,
+    int profileId,
+  ) async {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    if (dependencies == null) {
+      return;
+    }
+
+    try {
+      await dependencies.symptomRepository.clearEntries();
+      await dependencies.symptomSyncService.syncActiveProfile(profileId);
+    } catch (_) {
+      // Profile switch should still work even if symptom reload fails.
     }
   }
 }

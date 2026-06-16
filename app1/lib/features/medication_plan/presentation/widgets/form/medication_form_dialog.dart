@@ -1,12 +1,15 @@
 import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:app1/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_catalog_item.dart';
+import '../../../data/medication_entry.dart';
 import '../../../data/medication_schedule.dart';
 import 'medication_form_card.dart';
 
 /// Dialog that owns add-medication form state and delegates saving upward.
 class MedicationFormDialog extends StatefulWidget {
+  final MedicationEntry? initialEntry;
   final Future<void> Function(
     String name,
     String dose,
@@ -18,7 +21,11 @@ class MedicationFormDialog extends StatefulWidget {
   )
   onSave;
 
-  const MedicationFormDialog({super.key, required this.onSave});
+  const MedicationFormDialog({
+    super.key,
+    this.initialEntry,
+    required this.onSave,
+  });
 
   @override
   State<MedicationFormDialog> createState() => _MedicationFormDialogState();
@@ -36,10 +43,13 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
   TimeOfDay _secondSelectedTime = const TimeOfDay(hour: 20, minute: 0);
   MedicationFrequency _frequency = MedicationFrequency.daily;
   bool _remindersEnabled = true;
+  bool _isSaving = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _prefillFromInitialEntry();
     _nameController.addListener(_clearCatalogSelectionForManualInput);
   }
 
@@ -65,6 +75,15 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
             bottom: MediaQuery.viewInsetsOf(context).bottom,
           ),
           child: MedicationFormCard(
+            title: widget.initialEntry == null
+                ? 'Neues Medikament'
+                : 'Medikament bearbeiten',
+            submitLabel: widget.initialEntry == null
+                ? 'Eintrag speichern'
+                : 'Änderungen speichern',
+            submitIcon: widget.initialEntry == null ? Icons.add : Icons.check,
+            isSubmitting: _isSaving,
+            errorMessage: _errorMessage,
             formKey: _formKey,
             nameController: _nameController,
             nameFocusNode: _nameFocusNode,
@@ -128,24 +147,70 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
       return;
     }
 
-    await widget.onSave(
-      _nameController.text,
-      _formattedDose,
-      _selectedTime,
-      _frequency == MedicationFrequency.twiceDaily ? _secondSelectedTime : null,
-      _frequency,
-      _remindersEnabled,
-      _selectedCatalogItem,
-    );
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
 
-    if (mounted) {
-      Navigator.pop(context, true);
+    try {
+      await widget.onSave(
+        _nameController.text,
+        _formattedDose,
+        _selectedTime,
+        _frequency == MedicationFrequency.twiceDaily
+            ? _secondSelectedTime
+            : null,
+        _frequency,
+        _remindersEnabled,
+        _selectedCatalogItem,
+      );
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = _saveErrorMessage(error);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
+  }
+
+  String _saveErrorMessage(Object error) {
+    if (error is ApiException && error.statusCode == 409) {
+      return 'Dieses Medikament ist bereits in deinem Medikationsplan vorhanden.';
+    }
+
+    return 'Medikament konnte nicht gespeichert werden. Bitte erneut versuchen.';
   }
 
   /// Stores metadata from the demo catalog while keeping the text field editable.
   void _selectCatalogItem(MedicationCatalogItem item) {
     setState(() => _selectedCatalogItem = item);
+  }
+
+  /// Initializes the form with the selected medication when editing.
+  void _prefillFromInitialEntry() {
+    final entry = widget.initialEntry;
+    if (entry == null) {
+      return;
+    }
+
+    final parsedDose = _parseDose(entry.dose);
+    _nameController.text = entry.name;
+    _doseAmountController.text = parsedDose.amount;
+    _doseUnitController.text = parsedDose.unit;
+    _selectedTime = entry.intakeTime;
+    _secondSelectedTime =
+        entry.secondIntakeTime ?? const TimeOfDay(hour: 20, minute: 0);
+    _frequency = entry.frequency;
+    _remindersEnabled = entry.remindersEnabled;
+    _selectedCatalogItem = entry.catalogItem;
   }
 
   /// Drops catalog metadata once the user changes the selected medication name.
@@ -162,4 +227,25 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
   String get _formattedDose {
     return '${_doseAmountController.text.trim()} ${_doseUnitController.text.trim()}';
   }
+
+  _ParsedDose _parseDose(String dose) {
+    final normalized = dose.trim();
+    final separatorIndex = normalized.indexOf(' ');
+
+    if (separatorIndex == -1) {
+      return _ParsedDose(amount: normalized, unit: '');
+    }
+
+    return _ParsedDose(
+      amount: normalized.substring(0, separatorIndex).trim(),
+      unit: normalized.substring(separatorIndex + 1).trim(),
+    );
+  }
+}
+
+class _ParsedDose {
+  final String amount;
+  final String unit;
+
+  const _ParsedDose({required this.amount, required this.unit});
 }

@@ -21,6 +21,12 @@ class Message {
   /// Optional next steps used for the exported PDF.
   final String? exportNextSteps;
 
+  /// Whether this assistant message can create an appointment recommendation.
+  final bool canCreateAppointment;
+
+  /// Suggested appointment title shown in the appointment screen.
+  final String? appointmentTitle;
+
   Message({
     required this.text,
     required this.isUser,
@@ -31,6 +37,8 @@ class Message {
     this.exportTitle,
     this.exportRecommendation,
     this.exportNextSteps,
+    this.canCreateAppointment = false,
+    this.appointmentTitle,
   }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a new instance of [Message] with updated values.
@@ -45,6 +53,8 @@ class Message {
     String? exportTitle,
     String? exportRecommendation,
     String? exportNextSteps,
+    bool? canCreateAppointment,
+    String? appointmentTitle,
   }) {
     return Message(
       text: text ?? this.text,
@@ -56,6 +66,8 @@ class Message {
       exportTitle: exportTitle ?? this.exportTitle,
       exportRecommendation: exportRecommendation ?? this.exportRecommendation,
       exportNextSteps: exportNextSteps ?? this.exportNextSteps,
+      canCreateAppointment: canCreateAppointment ?? this.canCreateAppointment,
+      appointmentTitle: appointmentTitle ?? this.appointmentTitle,
     );
   }
 

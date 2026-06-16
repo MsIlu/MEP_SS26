@@ -1,6 +1,7 @@
 import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 
+import '../../../app_guide/data/app_guide_store.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../view_models/registration_form_controller.dart';
@@ -252,13 +253,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       if (!mounted) return;
 
+      final guideStore = AppGuideStore();
+      final hasCompletedGuide = await guideStore.isCompleted(
+        AppGuideStore.accountKey(authResponse.account.id),
+      );
+
+      if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreen(
-            controller: widget.chatController,
-            themeController: widget.themeController,
-            authSession: widget.authSession,
-          ),
+          builder: (context) =>
+              _buildHomeScreen(startGuide: !hasCompletedGuide),
         ),
       );
     } catch (_) {
@@ -275,5 +280,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
       }
     }
+  }
+
+  HomeScreen _buildHomeScreen({bool startGuide = false}) {
+    return HomeScreen(
+      controller: widget.chatController,
+      themeController: widget.themeController,
+      authSession: widget.authSession,
+      authApiService: widget.authApiService,
+      startGuide: startGuide,
+    );
   }
 }

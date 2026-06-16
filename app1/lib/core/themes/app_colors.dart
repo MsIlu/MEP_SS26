@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  static const Color transparent = Colors.transparent;
+
   // Brand colors
   static const Color primary = Color(0xFF4A90E2);
   static const Color accent = Color(0xFF2ECC71);

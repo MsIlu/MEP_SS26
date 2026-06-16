@@ -5,6 +5,7 @@ import '../../utils/medical_terms.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
+import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// UI component that displays a single chat message.
@@ -125,13 +126,26 @@ class ChatBubble extends StatelessWidget {
                           message.canExportPdf &&
                           !message.isStreaming) ...[
                         const SizedBox(height: 12),
-                        ExportRecommendationPdfButton(
-                          title: message.exportTitle ?? 'Handlungsempfehlung',
-                          patientSummary:
-                              'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                          recommendation:
-                              message.exportRecommendation ?? message.text,
-                          nextSteps: message.exportNextSteps ?? '',
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ExportRecommendationPdfButton(
+                              title:
+                                  message.exportTitle ?? 'Handlungsempfehlung',
+                              patientSummary:
+                                  'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                              recommendation:
+                                  message.exportRecommendation ?? message.text,
+                              nextSteps: message.exportNextSteps ?? '',
+                            ),
+                            if (message.canCreateAppointment)
+                              CreateRecommendedAppointmentButton(
+                                title:
+                                    message.appointmentTitle ??
+                                    'Arzttermin vereinbaren',
+                              ),
+                          ],
                         ),
                       ],
                     ],

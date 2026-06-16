@@ -1,4 +1,4 @@
-from careena4.models.domain import ActiveQuestion
+﻿from careena4.models.domain import ActiveQuestion
 from careena4.models.turn import (
     SafetyAction,
     SafetyClarificationOutcome,
@@ -24,8 +24,8 @@ class SafetyClarificationResolver:
                     red_flag_detected=True,
                     red_flag_status=SafetyRedFlagStatus.SUSPECTED,
                     action=SafetyAction.ASK_SAFETY_CLARIFICATION,
-                    evidence_terms=list(question.safety_evidence_terms),
-                    clarification_question_code=question.safety_question_code,
+                    evidence_terms=self._evidence_terms(question),
+                    clarification_question_code=self._question_code(question),
                     trace_notes=["safety_clarification:invalid_answer"],
                 ),
                 clear_pending_clarification=False,
@@ -40,7 +40,7 @@ class SafetyClarificationResolver:
                     red_flag_status=SafetyRedFlagStatus.CONFIRMED,
                     action=SafetyAction.EMERGENCY,
                     severity="critical",
-                    evidence_terms=list(question.safety_evidence_terms),
+                    evidence_terms=self._evidence_terms(question),
                     trace_notes=["safety_clarification:confirmed_red_flag"],
                 ),
                 clear_pending_clarification=True,
@@ -54,7 +54,7 @@ class SafetyClarificationResolver:
                     red_flag_detected=False,
                     red_flag_status=SafetyRedFlagStatus.CLARIFIED_NEGATIVE,
                     action=SafetyAction.NONE,
-                    evidence_terms=list(question.safety_evidence_terms),
+                    evidence_terms=self._evidence_terms(question),
                     trace_notes=["safety_clarification:cleared_red_flag"],
                 ),
                 clear_pending_clarification=True,
@@ -69,8 +69,8 @@ class SafetyClarificationResolver:
                     red_flag_status=SafetyRedFlagStatus.SUSPECTED,
                     action=SafetyAction.ASK_SAFETY_CLARIFICATION,
                     severity="unclear",
-                    evidence_terms=list(question.safety_evidence_terms),
-                    clarification_question_code=question.safety_question_code,
+                    evidence_terms=self._evidence_terms(question),
+                    clarification_question_code=self._question_code(question),
                     trace_notes=["safety_clarification:still_unclear"],
                 ),
                 clear_pending_clarification=False,
@@ -84,12 +84,28 @@ class SafetyClarificationResolver:
                 red_flag_status=SafetyRedFlagStatus.CONFIRMED,
                 action=SafetyAction.EMERGENCY,
                 severity="critical",
-                evidence_terms=list(question.safety_evidence_terms),
+                evidence_terms=self._evidence_terms(question),
                 trace_notes=["safety_clarification:confirmed_emergency"],
             ),
             clear_pending_clarification=True,
             trace_notes=["safety_clarification:confirmed_emergency"],
         )
+
+    @staticmethod
+    def _evidence_terms(question: ActiveQuestion) -> list[str]:
+        """Read safety evidence from the new context, with legacy fallback."""
+
+        if question.safety_context is not None:
+            return list(question.safety_context.evidence_terms)
+        return list(question.safety_evidence_terms)
+
+    @staticmethod
+    def _question_code(question: ActiveQuestion) -> str | None:
+        """Read the safety question code from the new context, with legacy fallback."""
+
+        if question.safety_context is not None:
+            return question.safety_context.question_code
+        return question.safety_question_code
 
     @staticmethod
     def _find_option(*, question: ActiveQuestion, answer_code: str):
@@ -102,3 +118,4 @@ class SafetyClarificationResolver:
             if option.label.strip().casefold() == normalized_answer_code:
                 return option
         return None
+

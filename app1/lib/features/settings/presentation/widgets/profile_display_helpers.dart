@@ -10,19 +10,21 @@ IconData profileIcon(String profileType) => switch (profileType) {
 };
 
 String profileDescription(AuthProfile profile) {
-  if (profile.profileType == 'child') {
-    return 'Betreutes Profil';
-  }
-
-  if (profile.profileType == 'self') {
-    return 'Eigenes Profil';
-  }
-
-  return profile.role == null ? 'Weiteres Profil' : 'Rolle: ${profile.role}';
+  return switch (profile.profileType) {
+    'child' => 'Kind',
+    'family' => 'Familienmitglied',
+    'other' => 'Andere betreute Person',
+    'self' => 'Eigenes Profil',
+    _ => 'Betreutes Profil',
+  };
 }
 
 String profileTypeForRelationship(String relationship) =>
-    relationship == 'Kind' ? 'child' : 'other';
+    switch (relationship) {
+      'Kind' => 'child',
+      'Familienmitglied' => 'family',
+      _ => 'other',
+    };
 
 AuthProfile authProfileFromProfile(Profile profile) {
   return AuthProfile(

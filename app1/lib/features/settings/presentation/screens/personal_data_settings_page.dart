@@ -7,6 +7,7 @@ import '../../../authscreen/utils/auth_validators.dart';
 import '../../../authscreen/utils/birth_date_utils.dart';
 import '../../../profiles/data/profile_api_service.dart';
 import '../settings_icons.dart';
+import '../widgets/profile_display_helpers.dart';
 import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
 
@@ -22,11 +23,27 @@ class PersonalDataSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = authSession;
+
+    if (session != null) {
+      return AnimatedBuilder(
+        animation: session,
+        builder: (context, _) => _buildContent(context),
+      );
+    }
+
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final activeProfileId = authSession?.activeProfileId;
+
     return SettingsDetailScaffold(
       title: 'Persönliche Daten',
       subtitle: 'Daten des aktuell ausgewählten Profils.',
       icon: SettingsIcons.personalData,
       child: PersonalDataSettingsForm(
+        key: ValueKey('personal-data-page-$activeProfileId'),
         authSession: authSession,
         profileApiService: profileApiService,
       ),
@@ -89,9 +106,10 @@ class _PersonalDataSettingsFormState extends State<PersonalDataSettingsForm> {
   @override
   Widget build(BuildContext context) {
     final session = widget.authSession;
-    final profileType = session?.activeProfile?.profileType == 'child'
-        ? 'Betreutes Profil'
-        : 'Eigenes Profil';
+    final activeProfile = session?.activeProfile;
+    final profileType = activeProfile == null
+        ? 'Nicht verfügbar'
+        : profileDescription(activeProfile);
 
     return Form(
       key: _formKey,

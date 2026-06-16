@@ -42,6 +42,12 @@ class ActiveProfileOverview extends StatelessWidget {
                 : () => _showProfileSwitcher(context, activeProfile),
             icon: const Icon(Icons.swap_horiz),
             label: const Text('Wechseln'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.careenaDark,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColors.careenaBorder,
+              disabledForegroundColor: AppColors.careenaMuted,
+            ),
           ),
         ),
       ],

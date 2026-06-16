@@ -21,8 +21,22 @@ class ProfileDataSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = authSession;
+
+    if (session != null) {
+      return AnimatedBuilder(
+        animation: session,
+        builder: (context, _) => _buildContent(context),
+      );
+    }
+
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
     final profileName =
         authSession?.activeProfile?.displayName ?? 'das aktive Profil';
+    final activeProfileId = authSession?.activeProfileId;
 
     return SettingsDetailScaffold(
       title: 'Profildaten',
@@ -35,6 +49,7 @@ class ProfileDataSettingsPage extends StatelessWidget {
             icon: SettingsIcons.personalData,
             title: '1. Persönliche Angaben',
             child: PersonalDataSettingsForm(
+              key: ValueKey('personal-data-$activeProfileId'),
               authSession: authSession,
               profileApiService: profileApiService,
             ),
@@ -44,6 +59,7 @@ class ProfileDataSettingsPage extends StatelessWidget {
             icon: SettingsIcons.healthData,
             title: '2. Gesundheitsangaben',
             child: HealthDataSettingsForm(
+              key: ValueKey('health-data-$activeProfileId'),
               authSession: authSession,
               profileApiService: profileApiService,
             ),

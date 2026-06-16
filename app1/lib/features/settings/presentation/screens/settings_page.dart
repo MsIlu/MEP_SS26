@@ -44,7 +44,10 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.themeController,
+      animation: Listenable.merge([
+        widget.themeController,
+        if (widget.authSession != null) widget.authSession!,
+      ]),
       builder: (context, _) {
         final simpleView = widget.themeController.isSimpleView;
         final visibleItems = _items(

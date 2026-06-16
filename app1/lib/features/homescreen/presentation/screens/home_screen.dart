@@ -82,74 +82,91 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final features = _buildFeatures(context);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final isCompact = MediaQuery.sizeOf(context).width < 360;
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        widget.themeController,
+        if (widget.authSession != null) widget.authSession!,
+      ]),
+      builder: (context, _) {
+        final features = _buildFeatures(context);
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+        final isCompact = MediaQuery.sizeOf(context).width < 360;
 
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: isDarkMode
-              ? Theme.of(context).scaffoldBackgroundColor
-              : AppColors.headerBackgroundLight,
-          appBar: CareenaPageHeader(
-            title: 'Willkommen!',
-            showBack: false,
-            leading: CareenaHeaderAction(
-              tooltip: 'App-Guide testen',
-              icon: Icons.help_outline,
-              onPressed: _startGuide,
-            ),
-            trailing: widget.themeController.isSimpleView
-                ? null
-                : CareenaThemeHeaderAction(
-                    key: _themeKey,
-                    onPressed: widget.themeController.toggleTheme,
-                    isDarkMode: widget.themeController.isDarkMode,
+        return Stack(
+          children: [
+            Scaffold(
+              backgroundColor: isDarkMode
+                  ? Theme.of(context).scaffoldBackgroundColor
+                  : AppColors.headerBackgroundLight,
+              appBar: CareenaPageHeader(
+                title: _welcomeTitle,
+                showBack: false,
+                leading: CareenaHeaderAction(
+                  tooltip: 'App-Guide testen',
+                  icon: Icons.help_outline,
+                  onPressed: _startGuide,
+                ),
+                trailing: widget.themeController.isSimpleView
+                    ? null
+                    : CareenaThemeHeaderAction(
+                        key: _themeKey,
+                        onPressed: widget.themeController.toggleTheme,
+                        isDarkMode: widget.themeController.isDarkMode,
+                      ),
+              ),
+              body: SafeArea(
+                child: ResponsivePageBody(
+                  maxWidth: 720,
+                  child: Column(
+                    children: [
+                      CareenaHeroCard(
+                        guideTargetKey: _careenaKey,
+                        onTap: () => _navigateToChat(context),
+                        isSimpleView: widget.themeController.isSimpleView,
+                      ),
+                      if (!widget.themeController.isSimpleView)
+                        HomeSearchBar(
+                          guideTargetKey: _searchKey,
+                          isCompact: isCompact,
+                        ),
+                      HomeFunctionList(
+                        guideTargetKey: _featuresKey,
+                        features: features,
+                        isSimpleView: widget.themeController.isSimpleView,
+                      ),
+                    ],
                   ),
-          ),
-          body: SafeArea(
-            child: ResponsivePageBody(
-              maxWidth: 720,
-              child: Column(
-                children: [
-                  CareenaHeroCard(
-                    guideTargetKey: _careenaKey,
-                    onTap: () => _navigateToChat(context),
-                    isSimpleView: widget.themeController.isSimpleView,
-                  ),
-                  if (!widget.themeController.isSimpleView)
-                    HomeSearchBar(
-                      guideTargetKey: _searchKey,
-                      isCompact: isCompact,
-                    ),
-                  HomeFunctionList(
-                    guideTargetKey: _featuresKey,
-                    features: features,
-                    isSimpleView: widget.themeController.isSimpleView,
-                  ),
-                ],
+                ),
+              ),
+              bottomNavigationBar: CustomBottomNav(
+                guideTargetKey: _navigationKey,
+                isSimpleView: widget.themeController.isSimpleView,
+                onTap: (index) => _onBottomNavigationTap(context, index),
               ),
             ),
-          ),
-          bottomNavigationBar: CustomBottomNav(
-            guideTargetKey: _navigationKey,
-            isSimpleView: widget.themeController.isSimpleView,
-            onTap: (index) => _onBottomNavigationTap(context, index),
-          ),
-        ),
-        if (_guideStep != null)
-          AppGuideOverlay(
-            targetKey: _targetKey(_visibleGuideSteps[_guideStep!].target),
-            step: _visibleGuideSteps[_guideStep!],
-            currentStep: _guideStep!,
-            stepCount: _visibleGuideSteps.length,
-            onPrevious: _guideStep == 0 ? null : _previousGuideStep,
-            onNext: _nextGuideStep,
-            onSkip: _finishGuide,
-          ),
-      ],
+            if (_guideStep != null)
+              AppGuideOverlay(
+                targetKey: _targetKey(_visibleGuideSteps[_guideStep!].target),
+                step: _visibleGuideSteps[_guideStep!],
+                currentStep: _guideStep!,
+                stepCount: _visibleGuideSteps.length,
+                onPrevious: _guideStep == 0 ? null : _previousGuideStep,
+                onNext: _nextGuideStep,
+                onSkip: _finishGuide,
+              ),
+          ],
+        );
+      },
     );
+  }
+
+  String get _welcomeTitle {
+    final name = widget.authSession?.activeProfile?.displayName.trim();
+    if (name == null || name.isEmpty) {
+      return 'Willkommen!';
+    }
+    final firstName = name.split(RegExp(r'\s+')).first;
+    return 'Willkommen $firstName!';
   }
 
   void _onBottomNavigationTap(BuildContext context, int index) {

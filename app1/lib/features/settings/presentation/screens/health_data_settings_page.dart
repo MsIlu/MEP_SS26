@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/data/registration_condition_options.dart';
 import '../../../authscreen/presentation/widgets/common/auth_fields.dart';
 import '../../../authscreen/state/auth_session.dart';
@@ -21,14 +22,29 @@ class HealthDataSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = authSession;
+
+    if (session != null) {
+      return AnimatedBuilder(
+        animation: session,
+        builder: (context, _) => _buildContent(context),
+      );
+    }
+
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
     final profileName =
         authSession?.activeProfile?.displayName ?? 'dieses Profil';
+    final activeProfileId = authSession?.activeProfileId;
 
     return SettingsDetailScaffold(
       title: 'Gesundheitsangaben',
       subtitle: 'Medizinischer Kontext für $profileName.',
       icon: SettingsIcons.healthData,
       child: HealthDataSettingsForm(
+        key: ValueKey('health-data-page-$activeProfileId'),
         authSession: authSession,
         profileApiService: profileApiService,
       ),
@@ -133,6 +149,25 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
                 FilterChip(
                   label: Text(condition),
                   selected: _conditions.contains(condition),
+                  selectedColor: AppColors.careenaSoftAccent,
+                  checkmarkColor: AppColors.careenaDark,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkMutedSurface
+                      : AppColors.careenaNoteBackground,
+                  side: BorderSide(
+                    color: _conditions.contains(condition)
+                        ? AppColors.careenaPrimary
+                        : AppColors.careenaBorder,
+                  ),
+                  labelStyle: TextStyle(
+                    color: _conditions.contains(condition)
+                        ? AppColors.careenaDark
+                        : null,
+                    fontWeight: _conditions.contains(condition)
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                  ),
                   onSelected: (selected) => setState(() {
                     selected
                         ? _conditions.add(condition)

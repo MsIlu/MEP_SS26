@@ -105,6 +105,11 @@ class ChatController {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
+    if (trimmed.toLowerCase() == '/hp') {
+      _addTestRecommendation();
+      return null;
+    }
+
     _addMessage(message: Message(text: trimmed, isUser: true));
     _addMessage(
       message: Message(
@@ -276,6 +281,27 @@ class ChatController {
     }
 
     return null;
+  }
+
+  void _addTestRecommendation() {
+    const recommendationText = '''Dringlichkeit: Nicht akut
+    Empfohlene Versorgungsebene: Hausarzt
+    Nächster Schritt: Bitte vereinbaren Sie einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
+    Hinweis: Diese Test-Handlungsempfehlung dient nur der Frontend-Entwicklung und ersetzt keine ärztliche Diagnose.''';
+
+    _addMessage(message: Message(text: '/hp', isUser: true));
+    _addMessage(
+      message: Message(
+        text: recommendationText,
+        isUser: false,
+        canExportPdf: true,
+        exportTitle: 'Handlungsempfehlung',
+        exportRecommendation: recommendationText,
+        exportNextSteps: 'Termin beim Hausarzt vereinbaren.',
+        canCreateAppointment: true,
+        appointmentTitle: 'Hausarzttermin vereinbaren',
+      ),
+    );
   }
 
   bool _hasOfflineMessage() {

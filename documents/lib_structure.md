@@ -32,6 +32,9 @@ app1/lib/
 |   `-- widgets/
 |       `-- responsive_frame.dart
 `-- features/
+    |-- app_guide/
+    |   |-- data/
+    |   `-- presentation/
     |-- chatscreen/
     |   |-- controllers/
     |   |-- data/
@@ -98,6 +101,24 @@ jedes Text-Widget einzeln anzupassen.
 Objekte einmal erstellt und gemeinsam verwendet:
 
 - `http.Client`
+
+## App-Guide
+
+Die sichtbaren Home-Komponenten stellen ihre exakten Guide-Ziele bereit. Das
+Overlay übernimmt ausschließlich Positionierung und themeabhängige
+Darstellung. Guide-Schritte kÃ¶nnen dadurch sowohl Inhaltskarten als auch
+gemeinsame Header-Aktionen hervorheben.
+
+Die Guide-Presentation trennt Overlay-Orchestrierung, Spotlight-Painter,
+Careena-Companion und Aktionen in eigene Widgets. Gemeinsames Homescreen-Test-
+Setup liegt in einer kleinen Test-Fixture; Guide-Ablauf und allgemeine
+Homescreen-Darstellung werden getrennt getestet.
+
+`features/app_guide` enthält den einmaligen Guide nach einer erfolgreichen
+Registrierung. Die Guide-Schritte liegen als einfache Datenobjekte vor, die
+Presentation hebt vorhandene Home-Bereiche mit einem Coachmark-Overlay hervor
+  und `AppGuideStore` speichert den Abschluss getrennt je Konto sowie unter
+  einem expliziten SchlÃ¼ssel fÃ¼r GÃ¤ste.
 - `ApiClient`
 - `ChatApi`
 - `ChatService`

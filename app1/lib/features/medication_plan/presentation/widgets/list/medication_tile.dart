@@ -8,12 +8,14 @@ import '../../utils/medication_time_format.dart';
 class MedicationTile extends StatelessWidget {
   final MedicationEntry entry;
   final ValueChanged<bool> onToggleReminder;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const MedicationTile({
     super.key,
     required this.entry,
     required this.onToggleReminder,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -93,10 +95,20 @@ class MedicationTile extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: 'Löschen',
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Bearbeiten',
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'Löschen',
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ],
               ),
             ],
           ),

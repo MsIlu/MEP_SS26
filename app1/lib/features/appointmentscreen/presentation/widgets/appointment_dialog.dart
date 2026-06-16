@@ -13,6 +13,7 @@ class AppointmentDialog extends StatelessWidget {
   final VoidCallback onPickTime;
 
   final VoidCallback onSave;
+  final VoidCallback? onCancel;
 
   const AppointmentDialog({
     super.key,
@@ -24,6 +25,7 @@ class AppointmentDialog extends StatelessWidget {
     required this.onPickDate,
     required this.onPickTime,
     required this.onSave,
+    this.onCancel,
   });
 
   InputDecoration _inputDecoration(String label, IconData icon) {
@@ -37,10 +39,7 @@ class AppointmentDialog extends StatelessWidget {
       prefixIcon: Icon(icon, color: AppColors.careenaTeal),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppColors.careenaTeal,
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: AppColors.careenaTeal, width: 2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -52,18 +51,17 @@ class AppointmentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
 
-      content: SingleChildScrollView(
+content: SizedBox(
+  width: 420,
+      child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
+        
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -88,7 +86,15 @@ class AppointmentDialog extends StatelessWidget {
               const SizedBox(height: 12),
               TextField(
                 controller: noteController,
-                decoration: _inputDecoration('Notiz', Icons.note_alt_outlined),
+                minLines: 3,
+                maxLines: 6,
+                maxLength: 300,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                decoration: _inputDecoration(
+                  'Notiz (optional)',
+                  Icons.note_alt_outlined,
+                ),
               ),
             ],
           ),
@@ -96,10 +102,8 @@ class AppointmentDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.careenaTeal,
-          ),
-          onPressed: () => Navigator.pop(context),
+          style: TextButton.styleFrom(foregroundColor: AppColors.careenaTeal),
+          onPressed: onCancel ?? () => Navigator.pop(context),
           child: const Text(
             'Abbrechen',
             style: TextStyle(fontWeight: FontWeight.bold),

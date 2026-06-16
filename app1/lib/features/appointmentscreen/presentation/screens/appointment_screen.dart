@@ -358,6 +358,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _showAddAppointmentDialog() {
+    _clearAppointmentForm();
     showDialog(
       context: context,
       builder: (context) {
@@ -369,6 +370,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           noteController: noteController,
           onPickDate: _pickDate,
           onPickTime: _pickTime,
+          onCancel: () {
+            _clearAppointmentForm();
+            Navigator.pop(context);
+            },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -389,12 +394,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               ),
             );
 
-            doctorController.clear();
-            noteController.clear();
-            dateController.clear();
-            timeController.clear();
-            selectedDate = null;
-            selectedTime = null;
+            _clearAppointmentForm();
             Navigator.pop(context);
             _showSuccessMessage('Termin gespeichert');
             setState(() {});
@@ -474,6 +474,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           noteController: noteController,
           onPickDate: _pickDate,
           onPickTime: _pickTime,
+          onCancel: () {
+            _clearAppointmentForm();
+            Navigator.pop(context);
+          },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -495,6 +499,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 isCompleted: appointment.isCompleted,
               ),
             );
+            _clearAppointmentForm();
             _showSuccessMessage('Termin aktualisiert');
             Navigator.pop(context);
           },
@@ -533,6 +538,15 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       ),
     );
   }
+
+  void _clearAppointmentForm() {
+  doctorController.clear();
+  noteController.clear();
+  dateController.clear();
+  timeController.clear();
+  selectedDate = null;
+  selectedTime = null;
+}
 }
 
 class _AppointmentSectionHeader extends StatelessWidget {

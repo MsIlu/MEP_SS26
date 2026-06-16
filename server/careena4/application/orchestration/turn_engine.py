@@ -4,6 +4,7 @@ from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetect
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
+from careena4.application.input import SymptomChipBuilder
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
@@ -50,6 +51,7 @@ class TurnEngine:
         self.topic_manager = topic_manager or TopicManager()
         self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner()
         self.medical_extractor = medical_extractor or MedicalExtractor()
+        self.symptom_chip_builder = SymptomChipBuilder()
         self.case_write_planner = case_write_planner or CaseWritePlanner()
         self.case_writer = case_writer or CaseWriter()
         self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator()
@@ -67,6 +69,7 @@ class TurnEngine:
         medical_case = turn_input.persisted_medical_case or MedicalCase()
         conversation_state = turn_input.persisted_conversation_state or ConversationState()
         recommendation_state = turn_input.persisted_recommendation_state or RecommendationState()
+        symptom_input_draft = turn_input.persisted_symptom_input_draft
         trace_notes: list[str] = []
         resolved_question: ActiveQuestion | None = None
         resolution_additional_information = False
@@ -106,6 +109,7 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -169,6 +173,7 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -206,6 +211,7 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -242,6 +248,7 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
@@ -270,6 +277,7 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
@@ -310,6 +318,7 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
                     recommendation_result=recommendation_result,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
@@ -368,6 +377,7 @@ class TurnEngine:
                             medical_case=medical_case,
                             conversation_state=conversation_state,
                             recommendation_state=recommendation_state,
+                            symptom_input_draft=symptom_input_draft,
                             trace_notes=trace_notes + decision.trace_notes,
                         )
 
@@ -388,6 +398,13 @@ class TurnEngine:
             )
 
         if claims is not None:
+            if symptom_input_draft is not None:
+                symptom_input_draft = self.symptom_chip_builder.update_from_claims(
+                    draft=symptom_input_draft,
+                    claims=claims,
+                )
+                trace_notes.append("symptom_input_draft:updated_from_claims")
+
             case_topic = self.topic_manager.ensure_topic(
                 existing_topic=case_topic,
                 medical_case=medical_case,
@@ -430,6 +447,7 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
             if case_topic is not None:
@@ -498,6 +516,7 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -542,6 +561,7 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -570,6 +590,7 @@ class TurnEngine:
             medical_case=medical_case,
             conversation_state=conversation_state,
             recommendation_state=recommendation_state,
+            symptom_input_draft=symptom_input_draft,
             trace_notes=trace_notes + decision.trace_notes,
         )
 

@@ -30,25 +30,26 @@ class ProfileApiService {
     required String displayName,
     String? dateOfBirth,
     String? biologicalSex,
+    int? heightCm,
+    double? weightKg,
     String profileType = 'other',
     String? relevantPreconditionsSummary,
     String? relevantMedicationsSummary,
     String? symptomDiarySummary,
     String? aiDisclaimerAcceptedAt,
   }) async {
-    final response = await _apiClient.post(
-      '/profiles',
-      {
-        'display_name': displayName,
-        'date_of_birth': dateOfBirth,
-        'biological_sex': biologicalSex,
-        'profile_type': profileType,
-        'relevant_preconditions_summary': relevantPreconditionsSummary,
-        'relevant_medications_summary': relevantMedicationsSummary,
-        'symptom_diary_summary': symptomDiarySummary,
-        'ai_disclaimer_accepted_at': aiDisclaimerAcceptedAt,
-      },
-    );
+    final response = await _apiClient.post('/profiles', {
+      'display_name': displayName,
+      'date_of_birth': dateOfBirth,
+      'biological_sex': biologicalSex,
+      'height_cm': heightCm,
+      'weight_kg': weightKg,
+      'profile_type': profileType,
+      'relevant_preconditions_summary': relevantPreconditionsSummary,
+      'relevant_medications_summary': relevantMedicationsSummary,
+      'symptom_diary_summary': symptomDiarySummary,
+      'ai_disclaimer_accepted_at': aiDisclaimerAcceptedAt,
+    });
 
     return Profile.fromJson(response);
   }
@@ -59,6 +60,8 @@ class ProfileApiService {
     String? displayName,
     String? dateOfBirth,
     String? biologicalSex,
+    int? heightCm,
+    double? weightKg,
     String? profileType,
     String? relevantPreconditionsSummary,
     String? relevantMedicationsSummary,
@@ -76,16 +79,20 @@ class ProfileApiService {
     if (biologicalSex != null) {
       body['biological_sex'] = biologicalSex;
     }
+    if (heightCm != null) {
+      body['height_cm'] = heightCm;
+    }
+    if (weightKg != null) {
+      body['weight_kg'] = weightKg;
+    }
     if (profileType != null) {
       body['profile_type'] = profileType;
     }
     if (relevantPreconditionsSummary != null) {
-      body['relevant_preconditions_summary'] =
-          relevantPreconditionsSummary;
+      body['relevant_preconditions_summary'] = relevantPreconditionsSummary;
     }
     if (relevantMedicationsSummary != null) {
-      body['relevant_medications_summary'] =
-          relevantMedicationsSummary;
+      body['relevant_medications_summary'] = relevantMedicationsSummary;
     }
     if (symptomDiarySummary != null) {
       body['symptom_diary_summary'] = symptomDiarySummary;
@@ -95,6 +102,14 @@ class ProfileApiService {
     }
 
     final response = await _apiClient.patch('/profiles/$profileId', body);
+    return Profile.fromJson(response);
+  }
+
+  Future<Profile> updateProfileFields({
+    required int profileId,
+    required Map<String, dynamic> fields,
+  }) async {
+    final response = await _apiClient.patch('/profiles/$profileId', fields);
     return Profile.fromJson(response);
   }
 

@@ -121,18 +121,22 @@ class SettingsIconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(large ? 14 : 10),
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.careenaTeal : AppColors.careenaInfoBorder,
-        borderRadius: BorderRadius.circular(large ? 18 : 14),
-      ),
-      child: Icon(
-        icon,
-        size: large ? 32 : 24,
-        color: isActive
-            ? AppColors.toolbarButtonForeground
-            : AppColors.careenaDark,
+    final size = large ? 60.0 : 44.0;
+
+    return SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.careenaTeal : AppColors.careenaInfoBorder,
+          borderRadius: BorderRadius.circular(large ? 18 : 14),
+        ),
+        child: Icon(
+          icon,
+          size: large ? 32 : 24,
+          color: isActive
+              ? AppColors.toolbarButtonForeground
+              : AppColors.careenaDark,
+        ),
       ),
     );
   }

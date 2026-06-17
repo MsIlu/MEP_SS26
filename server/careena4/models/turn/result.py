@@ -1,7 +1,9 @@
+from careena4.models.understanding import CurrentTurnUnderstanding
 from pydantic import Field
 
 from careena4.models.common import PipelineModel, ResponseMode
 from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.models.input import SymptomInputDraft
 from careena4.models.workflow import RecommendationResult
 
 
@@ -14,4 +16,6 @@ class TurnResult(PipelineModel):
     conversation_state: ConversationState
     recommendation_state: RecommendationState
     recommendation_result: RecommendationResult | None = None
+    symptom_input_draft: SymptomInputDraft | None = None
+    current_turn_understanding: CurrentTurnUnderstanding | None = None
     trace_notes: list[str] = Field(default_factory=list)

@@ -1,3 +1,4 @@
+# Test case references: documents/Testfaelle_Backend.md#t01-auth-und-account-management
 # Created as part of the authentication and profile management test setup.
 # Tests registration and duplicate email handling.
 
@@ -15,6 +16,10 @@ def test_register_creates_user_profile_and_access_entry(client, db_session):
             "display_name": "Anna",
             "date_of_birth": "2000-04-12",
             "biological_sex": "female",
+            "height_cm": 170,
+            "weight_kg": 70.5,
+            "relevant_preconditions_summary": "Asthma",
+            "symptom_diary_summary": "Keine akuten Beschwerden",
         },
     )
 
@@ -44,6 +49,12 @@ def test_register_creates_user_profile_and_access_entry(client, db_session):
 
     assert profile.display_name == "Anna"
     assert profile.profile_type == "self"
+    assert profile.date_of_birth.isoformat() == "2000-04-12"
+    assert profile.biological_sex == "female"
+    assert profile.height_cm == 170
+    assert profile.weight_kg == 70.5
+    assert profile.relevant_preconditions_summary == "Asthma"
+    assert profile.symptom_diary_summary == "Keine akuten Beschwerden"
 
     assert access.account_id == user.id
     assert access.profile_id == profile.id

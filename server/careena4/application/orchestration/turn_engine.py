@@ -1,9 +1,10 @@
-from careena4.application.dialogue.question_builder import QuestionBuilder
+﻿from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
+from careena4.application.input import SymptomChipBuilder
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
@@ -16,6 +17,10 @@ from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.quality.observation_quality_evaluator import ObservationQualityEvaluator
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
 from careena4.models.domain import ActiveQuestion, CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.application.input import UnderstandingSymptomDraftAdapter
+from careena4.application.safety import StructuredRedFlagEvaluator
+from careena4.application.understanding import MedGemmaTurnUnderstandingService
+from careena4.models.safety import CurrentTurnSafetyEvidence
 from careena4.models.turn import TurnDecision, TurnInput, TurnResult
 from careena4.server_log import log_event
 
@@ -42,6 +47,9 @@ class TurnEngine:
         recommendation_builder: RecommendationBuilder | None = None,
         response_policy: ResponsePolicy | None = None,
         response_builder: ResponseBuilder | None = None,
+        turn_understanding_service: MedGemmaTurnUnderstandingService | None = None,
+        understanding_symptom_draft_adapter: UnderstandingSymptomDraftAdapter | None = None,
+        structured_red_flag_evaluator: StructuredRedFlagEvaluator | None = None,
     ):
         self.raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
         self.safety_clarification_builder = safety_clarification_builder or SafetyClarificationBuilder()
@@ -50,6 +58,7 @@ class TurnEngine:
         self.topic_manager = topic_manager or TopicManager()
         self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner()
         self.medical_extractor = medical_extractor or MedicalExtractor()
+        self.symptom_chip_builder = SymptomChipBuilder()
         self.case_write_planner = case_write_planner or CaseWritePlanner()
         self.case_writer = case_writer or CaseWriter()
         self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator()
@@ -61,13 +70,20 @@ class TurnEngine:
         self.recommendation_builder = recommendation_builder or RecommendationBuilder()
         self.response_policy = response_policy or ResponsePolicy()
         self.response_builder = response_builder or ResponseBuilder()
+        self.turn_understanding_service = turn_understanding_service
+        self.understanding_symptom_draft_adapter = (
+            understanding_symptom_draft_adapter or UnderstandingSymptomDraftAdapter()
+        )
+        self.structured_red_flag_evaluator = structured_red_flag_evaluator or StructuredRedFlagEvaluator()
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
         case_topic = turn_input.persisted_case_topic
         medical_case = turn_input.persisted_medical_case or MedicalCase()
         conversation_state = turn_input.persisted_conversation_state or ConversationState()
         recommendation_state = turn_input.persisted_recommendation_state or RecommendationState()
+        symptom_input_draft = turn_input.persisted_symptom_input_draft
         trace_notes: list[str] = []
+        current_turn_understanding = None
         resolved_question: ActiveQuestion | None = None
         resolution_additional_information = False
 
@@ -106,8 +122,117 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes + decision.trace_notes,
             )
+
+
+        if self.turn_understanding_service is not None:
+            current_turn_understanding = self.turn_understanding_service.extract(
+                message=turn_input.message,
+            )
+            trace_notes.extend(current_turn_understanding.trace_notes)
+            symptom_input_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
+                draft=symptom_input_draft,
+                understanding=current_turn_understanding,
+                session_id=turn_input.session_id,
+            )
+            if current_turn_understanding.symptoms:
+                trace_notes.append("symptom_input_draft:updated_from_understanding")
+            for symptom in current_turn_understanding.symptoms:
+                trace_notes.append(
+                    "understanding:symptom:"
+                    f"{symptom.normalized_label_de or symptom.source_label}"
+                )
+            for match in current_turn_understanding.sts_matches:
+                trace_notes.append(f"understanding:sts:{match.sts_id}")
+
+        if current_turn_understanding is not None and current_turn_understanding.symptoms:
+            structured_safety_evidence = CurrentTurnSafetyEvidence.from_turn_understanding(
+                raw_message=turn_input.message,
+                understanding=current_turn_understanding,
+            )
+            structured_safety = self.structured_red_flag_evaluator.evaluate(
+                evidence=structured_safety_evidence,
+            )
+            trace_notes.extend(structured_safety.trace_notes)
+
+            if structured_safety.requires_emergency_response:
+                decision = TurnDecision(
+                    kind="ask_safety_question",
+                    response_mode="emergency",
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:structured_emergency_shortcut"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
+
+            if structured_safety.requires_safety_clarification and (
+                conversation_state.active_question is None
+                or conversation_state.active_question.kind != "safety_clarification"
+            ):
+                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                    safety_state=structured_safety.to_safety_state()
+                )
+                conversation_state.phase = "followup"
+
+                active_question = conversation_state.active_question
+                safety_context = active_question.safety_context if active_question is not None else None
+                trace_notes.extend(
+                    [
+                        "safety_clarification:"
+                        f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
+                        "turn:structured_safety_clarification_opened",
+                    ]
+                )
+
+                decision = TurnDecision(
+                    kind="ask_safety_question",
+                    response_mode="ask_safety_question",
+                    active_question=active_question,
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:safety_clarification_selected"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    active_question=active_question,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
 
         if raw_safety.requires_safety_clarification and (
             conversation_state.active_question is None
@@ -117,6 +242,62 @@ class TurnEngine:
                 safety_state=raw_safety
             )
             conversation_state.phase = "followup"
+
+            active_question = conversation_state.active_question
+            safety_context = active_question.safety_context if active_question is not None else None
+            trace_notes.extend(
+                [
+                    "safety_clarification:"
+                    f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
+                    *(
+                        [
+                            "safety_catalog_reason:"
+                            f"{safety_context.consultation_reason_source_id}"
+                        ]
+                        if safety_context is not None
+                        and safety_context.consultation_reason_source_id
+                        else []
+                    ),
+                    *(
+                        [
+                            "safety_catalog_criterion:"
+                            f"{safety_context.criterion_key}"
+                        ]
+                        if safety_context is not None
+                        and safety_context.criterion_key
+                        else []
+                    ),
+                ]
+            )
+
+            decision = TurnDecision(
+                kind="ask_safety_question",
+                response_mode="ask_safety_question",
+                active_question=active_question,
+                recommendation_requested=conversation_state.recommendation_requested,
+                recommendation_ready=False,
+                trace_notes=["turn:safety_clarification_opened"],
+            )
+            response_text = self._build_response_text(
+                turn_input=turn_input,
+                decision=decision,
+                case_topic=case_topic,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                active_question=active_question,
+            )
+            return TurnResult(
+                turn_id=turn_input.turn_id,
+                response_mode=decision.response_mode,
+                response_text=response_text,
+                case_topic=case_topic,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
+                trace_notes=trace_notes + decision.trace_notes,
+            )
 
         entry_assessment = self.entry_classifier.classify(
             message=turn_input.message,
@@ -152,6 +333,8 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -188,6 +371,8 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
@@ -216,6 +401,8 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
@@ -256,6 +443,8 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
                     recommendation_result=recommendation_result,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
@@ -314,6 +503,8 @@ class TurnEngine:
                             medical_case=medical_case,
                             conversation_state=conversation_state,
                             recommendation_state=recommendation_state,
+                            symptom_input_draft=symptom_input_draft,
+                            current_turn_understanding=current_turn_understanding,
                             trace_notes=trace_notes + decision.trace_notes,
                         )
 
@@ -334,6 +525,20 @@ class TurnEngine:
             )
 
         if claims is not None:
+            understanding_has_symptoms = (
+                current_turn_understanding is not None
+                and bool(current_turn_understanding.symptoms)
+            )
+
+            if symptom_input_draft is not None and not understanding_has_symptoms:
+                symptom_input_draft = self.symptom_chip_builder.update_from_claims(
+                    draft=symptom_input_draft,
+                    claims=claims,
+                )
+                trace_notes.append("symptom_input_draft:updated_from_claims")
+            elif symptom_input_draft is not None and understanding_has_symptoms:
+                trace_notes.append("symptom_input_draft:claims_update_skipped_after_understanding")
+
             case_topic = self.topic_manager.ensure_topic(
                 existing_topic=case_topic,
                 medical_case=medical_case,
@@ -376,6 +581,8 @@ class TurnEngine:
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
             if case_topic is not None:
@@ -444,6 +651,8 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -488,6 +697,8 @@ class TurnEngine:
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
@@ -516,6 +727,8 @@ class TurnEngine:
             medical_case=medical_case,
             conversation_state=conversation_state,
             recommendation_state=recommendation_state,
+            symptom_input_draft=symptom_input_draft,
+            current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes + decision.trace_notes,
         )
 
@@ -544,3 +757,4 @@ class TurnEngine:
             latest_user_message=turn_input.message,
             resolved_question=resolved_question,
         )
+

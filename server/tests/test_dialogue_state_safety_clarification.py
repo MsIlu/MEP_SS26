@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t07-dialogue-und-response-management
+
 import sys
 from pathlib import Path
 

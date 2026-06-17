@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/features/chatscreen/presentation/widgets/symptom_list.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t03-symptome-erkennen-input-drafts
   testWidgets('shows symptom chips when symptoms exist', (tester) async {
     final symptoms = ValueNotifier<List<String>>([
       'Kopfschmerzen',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   const defaultMessage =
       'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
       'Der aktuelle Chat wird nicht gespeichert.';

@@ -43,6 +43,8 @@ class Profile(SQLModel, table=True):
     display_name: str = Field(max_length=100)
     date_of_birth: Optional[date] = Field(default=None)
     biological_sex: Optional[str] = Field(default=None, max_length=30)
+    height_cm: Optional[int] = Field(default=None)
+    weight_kg: Optional[float] = Field(default=None)
 
     profile_type: str = Field(default="self", max_length=30)
 

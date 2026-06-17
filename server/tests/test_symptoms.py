@@ -1,3 +1,5 @@
+# Test case references: documents/Testfaelle_Backend.md#t04-symptome-und-input-drafts
+
 from sqlmodel import select
 
 from database.models import SymptomDiaryEntry

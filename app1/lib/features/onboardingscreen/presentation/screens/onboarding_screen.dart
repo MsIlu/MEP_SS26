@@ -49,6 +49,20 @@ class OnboardingScreen extends StatelessWidget {
       appBar: CareenaPageHeader(
         title: 'MedBitAid',
         showBack: false,
+        leading: TextButton.icon(
+          onPressed: () => _navigateToHome(context),
+          style: TextButton.styleFrom(
+            foregroundColor: isDarkMode
+                ? AppColors.toolbarButtonBackgroundDark
+                : AppColors.careenaTeal,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          icon: const Icon(Icons.home_outlined, size: 18),
+          label: const Text(
+            'Test',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
         trailing: CareenaThemeHeaderAction(
           onPressed: themeController.toggleTheme,
           isDarkMode: themeController.isDarkMode,
@@ -57,7 +71,7 @@ class OnboardingScreen extends StatelessWidget {
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 560,
-          scrollable: true,
+          scrollable: false,
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Builder(
             builder: (context) {
@@ -71,71 +85,7 @@ class OnboardingScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   OnboardingHeroCard(onPressed: () => _navigateToChat(context)),
-                  const SizedBox(height: 24),
-
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? colorScheme.surface : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.careenaTeal,
-                          width: 2,
-                        ),
-                      ),
-
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 20,
-                            color: isDarkMode
-                                ? Colors.white
-                                : AppColors.careenaTeal,
-                          ),
-
-                          const SizedBox(width: 8),
-
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hinweis',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : AppColors.careenaTeal,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 4),
-
-                                Text(
-                                  'Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
-                                  'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
+                  const SizedBox(height: 18),
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: horizontalPadding,
@@ -160,18 +110,6 @@ class OnboardingScreen extends StatelessWidget {
                           foregroundColor: colorScheme.onSurface,
                           borderRadius: 22,
                           elevation: 2,
-                        ),
-                        const SizedBox(height: 12),
-                        // Todo: remove when testing is done
-                        TextButton.icon(
-                          onPressed: () => _navigateToHome(context),
-                          style: TextButton.styleFrom(
-                            foregroundColor: isDarkMode
-                                ? AppColors.toolbarButtonBackgroundDark
-                                : AppColors.careenaTeal,
-                          ),
-                          icon: const Icon(Icons.home_outlined, size: 18),
-                          label: const Text('Test: direkt zur Homepage'),
                         ),
                       ],
                     ),

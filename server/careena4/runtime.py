@@ -8,6 +8,7 @@ from careena4.application import TurnEngine
 from careena4.application.dialogue import QuestionBuilder, QuestionResolver, SafetyClarificationBuilder, SafetyClarificationResolver
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
+from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.response import ResponseBuilder
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
@@ -47,6 +48,14 @@ ENV_LLM_MODEL = (
 )
 DEFAULT_LLM_TIMEOUT_SECONDS = 60.0
 DEFAULT_LLM_MAX_RETRIES = 1
+
+
+def _env_flag(name: str, *, default: bool = False) -> bool:
+    """Read a boolean feature flag from the environment."""
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @dataclass
@@ -126,6 +135,11 @@ def build_runtime(
         llm_client=llm_client,
         call_model_config=call_model_config,
     )
+    turn_understanding_service = None
+    if _env_flag("CAREENA4_MEDGEMMA_UNDERSTANDING_ENABLED"):
+        turn_understanding_service = MedGemmaTurnUnderstandingService(
+            extraction_engine=extraction_engine,
+        )
     turn_engine = TurnEngine(
         safety_clarification_builder=safety_clarification_builder,
         entry_classifier=entry_classifier,
@@ -133,6 +147,7 @@ def build_runtime(
         medical_extractor=medical_extractor,
         question_builder=question_builder,
         response_builder=response_builder,
+        turn_understanding_service=turn_understanding_service,
     )
     session_store = Careena4SessionStore()
     return Careena4RuntimeServices(

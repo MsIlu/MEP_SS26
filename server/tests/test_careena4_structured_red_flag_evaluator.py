@@ -1,6 +1,7 @@
 from careena4.application.safety import StructuredRedFlagEvaluator
 from careena4.models.safety import CurrentTurnSafetyEvidence, SymptomSafetyEvidence
 from careena4.models.turn import SafetyAction, SafetyRedFlagStatus
+from careena4.models.understanding import CurrentTurnUnderstanding, ExtractedSymptomCandidate
 
 
 def test_structured_dyspnea_mapping_needs_safety_clarification():
@@ -115,3 +116,32 @@ def test_structured_result_converts_to_existing_safety_state_contract():
     assert safety_state.action == SafetyAction.ASK_SAFETY_CLARIFICATION
     assert safety_state.requires_safety_clarification is True
     assert "structured_red_flag:suspected_needs_clarification" in safety_state.trace_notes
+
+
+def test_safety_evidence_from_turn_understanding_maps_dyspnea():
+    understanding = CurrentTurnUnderstanding(
+        raw_message="Ich kann nicht atme",
+        symptoms=[
+            ExtractedSymptomCandidate(
+                source_label="Ich kann nicht atme",
+                normalized_label_de="Atemnot",
+                clinical_term_de="Dyspnoe",
+                confidence=0.95,
+            )
+        ],
+    )
+
+    evidence = CurrentTurnSafetyEvidence.from_turn_understanding(
+        raw_message=understanding.raw_message,
+        understanding=understanding,
+    )
+
+    assert len(evidence.symptom_evidence) == 1
+    assert "atemnot" in evidence.searchable_text()
+    assert "dyspnoe" in evidence.searchable_text()
+
+    result = StructuredRedFlagEvaluator().evaluate(evidence=evidence)
+
+    assert result.red_flag_status == SafetyRedFlagStatus.SUSPECTED
+    assert result.action == SafetyAction.ASK_SAFETY_CLARIFICATION
+    assert "structured_suspected_dyspnea" in result.matched_rule_ids

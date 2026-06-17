@@ -160,6 +160,7 @@ def chat(req: ChatRequest):
     session.medical_case = turn_result.medical_case
     session.conversation_state = turn_result.conversation_state
     session.recommendation_state = turn_result.recommendation_state
+    session.last_turn_understanding = turn_result.current_turn_understanding
     if turn_result.symptom_input_draft is not None:
         session.symptom_input_draft = turn_result.symptom_input_draft
     session.messages.append({"role": "user", "content": req.message})
@@ -180,6 +181,11 @@ def get_case(session_id: str):
         "conversation_state": session.conversation_state.model_dump(),
         "recommendation_state": session.recommendation_state.model_dump(),
         "symptom_input_draft": session.symptom_input_draft.model_dump(),
+        "last_turn_understanding": (
+            session.last_turn_understanding.model_dump()
+            if session.last_turn_understanding is not None
+            else None
+        ),
     }
 
 

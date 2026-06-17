@@ -13,6 +13,7 @@ SafetyEvidenceSource = Literal[
     "local_mapping",
     "raw_message",
     "extraction_claim",
+    "turn_understanding",
 ]
 
 
@@ -60,6 +61,64 @@ class CurrentTurnSafetyEvidence(PipelineModel):
     raw_message: str = ""
     symptom_evidence: list[SymptomSafetyEvidence] = Field(default_factory=list)
     trace_notes: list[str] = Field(default_factory=list)
+
+    @classmethod
+    def from_turn_understanding(
+        cls,
+        *,
+        understanding: Any,
+        raw_message: str = "",
+    ) -> "CurrentTurnSafetyEvidence":
+        """
+        Build current-turn safety evidence from MedGemma turn understanding.
+
+        This method intentionally reads only the understanding of the current
+        user message. It does not read MedicalCase and does not read the full
+        persisted symptom draft, so old red-flag evidence cannot dominate later
+        harmless turns.
+        """
+
+        symptom_evidence: list[SymptomSafetyEvidence] = []
+
+        for symptom in getattr(understanding, "symptoms", []):
+            is_medical = getattr(symptom, "is_medical", True)
+            if is_medical is False:
+                continue
+
+            source_label = (
+                _optional_str(getattr(symptom, "source_label", None))
+                or _optional_str(getattr(symptom, "normalized_label_de", None))
+                or _optional_str(getattr(symptom, "clinical_term_de", None))
+            )
+            normalized_label_de = _optional_str(
+                getattr(symptom, "normalized_label_de", None)
+            )
+            clinical_term_de = _optional_str(
+                getattr(symptom, "clinical_term_de", None)
+            )
+            confidence = _optional_float(getattr(symptom, "confidence", None))
+
+            if not any([source_label, normalized_label_de, clinical_term_de]):
+                continue
+
+            symptom_evidence.append(
+                SymptomSafetyEvidence(
+                    source_label=source_label or "unknown_symptom",
+                    normalized_label_de=normalized_label_de,
+                    clinical_term_de=clinical_term_de,
+                    mapping_confidence=confidence,
+                    source="turn_understanding",
+                    trace_notes=[
+                        "current_turn_evidence:from_turn_understanding_symptom"
+                    ],
+                )
+            )
+
+        return cls(
+            raw_message=raw_message or getattr(understanding, "raw_message", ""),
+            symptom_evidence=symptom_evidence,
+            trace_notes=["current_turn_safety_evidence:from_turn_understanding"],
+        )
 
     @classmethod
     def from_symptom_input_draft(

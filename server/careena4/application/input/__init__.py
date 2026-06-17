@@ -1,5 +1,5 @@
-from careena4.application.input.medgemma_symptom_mapping_provider import (
-    MedGemmaSymptomMappingProvider,
+﻿from careena4.application.input.understanding_symptom_draft_adapter import (
+    UnderstandingSymptomDraftAdapter,
 )
 from careena4.application.input.symptom_chip_builder import SymptomChipBuilder
 from careena4.application.input.symptom_mapping_service import (
@@ -9,9 +9,9 @@ from careena4.application.input.symptom_mapping_service import (
 )
 
 __all__ = [
+    "UnderstandingSymptomDraftAdapter",
     "LocalSymptomMappingProvider",
     "SymptomChipBuilder",
     "SymptomMappingProvider",
     "SymptomMappingService",
-    "MedGemmaSymptomMappingProvider",
 ]

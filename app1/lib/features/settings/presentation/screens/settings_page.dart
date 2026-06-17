@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/themes/app_colors.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -171,6 +172,13 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       _SettingsItem(
+        icon: SettingsIcons.language,
+        title: 'Sprache ändern',
+        description: 'Deutsch ist aktuell ausgewählt',
+        keywords: const ['sprache', 'language', 'deutsch', 'englisch'],
+        onTap: () => _open(context, const _LanguageSettingsPage()),
+      ),
+      _SettingsItem(
         icon: SettingsIcons.privacy,
         title: 'Datenschutz und Sicherheit',
         description: 'Umgang mit deinen Daten',
@@ -201,7 +209,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void _logout(BuildContext context) {
     widget.authApiService?.logout();
     widget.authSession?.clear();
-    Navigator.maybePop(context);
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).popUntil((route) => route.isFirst);
   }
 }
 
@@ -236,6 +247,75 @@ class _AboutSettingsPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LanguageSettingsPage extends StatelessWidget {
+  const _LanguageSettingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SettingsDetailScaffold(
+      title: 'Sprache ändern',
+      subtitle: 'Wähle die Sprache für Careena.',
+      icon: SettingsIcons.language,
+      child: SettingsPanel(
+        children: [
+          _LanguageOptionTile(
+            title: 'Deutsch',
+            description: 'Aktuelle App-Sprache',
+            isSelected: true,
+          ),
+          _LanguageOptionTile(
+            title: 'English',
+            description: 'Demnächst verfügbar',
+          ),
+          _LanguageOptionTile(
+            title: 'Türkçe',
+            description: 'Demnächst verfügbar',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageOptionTile extends StatelessWidget {
+  final String title;
+  final String description;
+  final bool isSelected;
+
+  const _LanguageOptionTile({
+    required this.title,
+    required this.description,
+    this.isSelected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ListTile(
+      leading: SettingsIconBadge(
+        icon: isSelected ? Icons.check_circle_outline : Icons.translate,
+        isActive: isSelected,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        description,
+        style: TextStyle(color: colorScheme.onSurfaceVariant),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: AppColors.careenaTeal)
+          : const Icon(Icons.lock_outline, color: AppColors.careenaMuted),
+      enabled: isSelected,
     );
   }
 }

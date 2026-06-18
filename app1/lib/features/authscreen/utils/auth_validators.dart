@@ -38,10 +38,33 @@ class AuthValidators {
   }
 
   static String? newPassword(String? value) {
-    if ((value ?? '').length < 8) {
-      return 'Das Passwort braucht mindestens 8 Zeichen.';
+    final password = value ?? '';
+    if (!isStrongPassword(password)) {
+      return 'Bitte erfülle alle Passwort-Anforderungen.';
     }
     return null;
+  }
+
+  static bool hasMinPasswordLength(String value) => value.length >= 8;
+
+  static bool hasPasswordLowercase(String value) =>
+      RegExp(r'[a-z]').hasMatch(value);
+
+  static bool hasPasswordUppercase(String value) =>
+      RegExp(r'[A-Z]').hasMatch(value);
+
+  static bool hasPasswordNumber(String value) => RegExp(r'\d').hasMatch(value);
+
+  static bool hasPasswordSpecialCharacter(String value) {
+    return RegExp(r'[^A-Za-z0-9]').hasMatch(value);
+  }
+
+  static bool isStrongPassword(String value) {
+    return hasMinPasswordLength(value) &&
+        hasPasswordLowercase(value) &&
+        hasPasswordUppercase(value) &&
+        hasPasswordNumber(value) &&
+        hasPasswordSpecialCharacter(value);
   }
 
   static String? passwordConfirmation(String? value, String password) {

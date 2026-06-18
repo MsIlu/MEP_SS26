@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
+import 'package:app1/core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
 
@@ -33,10 +34,7 @@ class OnboardingHeroCard extends StatelessWidget {
               color: cardColor,
               borderRadius: BorderRadius.circular(20),
 
-              border: Border.all(
-                color: AppColors.careenaGlow,
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.careenaGlow, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.careenaGlow.withValues(
@@ -75,10 +73,7 @@ class OnboardingHeroCard extends StatelessWidget {
                       : Colors.white,
                   borderRadius: 40,
                   height: 58,
-                  side: BorderSide(
-                    color: AppColors.careenaGlow,
-                    width: 3,
-                  ),
+                  side: BorderSide(color: AppColors.careenaGlow, width: 3),
                 ),
               ],
             ),
@@ -119,7 +114,7 @@ class _RegularHeroBody extends StatelessWidget {
               Positioned(
                 bottom: 0,
                 left: constraints.maxWidth * 0.24,
-                child: Image.asset("assets/images/careena_hi.png", height: 140),
+                child: Image.asset(AppAssets.careenaHi, height: 140),
               ),
             ],
           );
@@ -148,7 +143,7 @@ class _CompactHeroBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Center(child: Image.asset("assets/images/careena_hi.png", height: 118)),
+        Center(child: Image.asset(AppAssets.careenaHi, height: 118)),
       ],
     );
   }

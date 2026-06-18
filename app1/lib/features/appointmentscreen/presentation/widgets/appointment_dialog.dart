@@ -57,8 +57,10 @@ class AppointmentDialog extends StatelessWidget {
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
 
-content: SizedBox(
-  width: 420,
+content: ConstrainedBox(
+  constraints: const BoxConstraints(maxWidth: 420),
+  child: SizedBox(
+    width: double.maxFinite,
       child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         
@@ -97,6 +99,7 @@ content: SizedBox(
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

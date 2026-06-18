@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../data/models/appointment.dart';
 
-class AppointmentTile extends StatelessWidget {
+class AppointmentTile extends StatefulWidget {
   final Appointment appointment;
   final VoidCallback onToggleCompleted;
   final VoidCallback onDelete;
@@ -17,7 +17,15 @@ class AppointmentTile extends StatelessWidget {
   });
 
   @override
+  State<AppointmentTile> createState() => _AppointmentTileState();
+}
+
+class _AppointmentTileState extends State<AppointmentTile> {
+  bool isNoteExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final appointment = widget.appointment;
     final appointmentDate = appointment.appointmentDate;
     final isPendingRecommendation =
         appointment.isRecommendation && appointmentDate == null;
@@ -38,8 +46,8 @@ class AppointmentTile extends StatelessWidget {
       color: appointment.isCompleted
           ? Theme.of(context).colorScheme.surfaceContainerHighest
           : isPendingRecommendation
-              ? AppColors.careenaTeal.withValues(alpha: 0.08)
-              : null,
+          ? AppColors.careenaTeal.withValues(alpha: 0.08)
+          : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -74,7 +82,7 @@ class AppointmentTile extends StatelessWidget {
                   Checkbox(
                     value: appointment.isCompleted,
                     activeColor: AppColors.careenaTeal,
-                    onChanged: (_) => onToggleCompleted(),
+                    onChanged: (_) => widget.onToggleCompleted(),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -100,7 +108,7 @@ class AppointmentTile extends StatelessWidget {
                     Icons.edit_outlined,
                     color: AppColors.careenaTeal,
                   ),
-                  onPressed: onEdit,
+                  onPressed: widget.onEdit,
                 ),
 
                 const SizedBox(width: 4),
@@ -119,7 +127,7 @@ class AppointmentTile extends StatelessWidget {
                       color: Colors.red,
                       size: 22,
                     ),
-                    onPressed: onDelete,
+                    onPressed: widget.onDelete,
                   ),
                 ),
               ],
@@ -182,7 +190,6 @@ class AppointmentTile extends StatelessWidget {
 
             if (shouldShowNote) ...[
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -192,14 +199,62 @@ class AppointmentTile extends StatelessWidget {
                     color: AppColors.careenaTeal,
                   ),
                   const SizedBox(width: 8),
-
-                  Expanded(child: Text(appointment.note)),
+                  Expanded(
+                    child: _ExpandableNote(
+                      text: appointment.note,
+                      isExpanded: isNoteExpanded,
+                      onToggle: () {
+                        setState(() {
+                          isNoteExpanded = !isNoteExpanded;
+                        });
+                      },
+                    ),
+                  ),
                 ],
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ExpandableNote extends StatelessWidget {
+  final String text;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+
+  const _ExpandableNote({
+    required this.text,
+    required this.isExpanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLongNote = text.length > 90;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          text,
+          maxLines: isExpanded ? null : 1,
+          overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+        ),
+        if (isLongNote)
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.careenaTeal,
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: onToggle,
+            child: Text(isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'),
+          ),
+      ],
     );
   }
 }

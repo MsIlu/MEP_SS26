@@ -337,6 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
           symptomApiService:
               widget.symptomApiService ??
               dependencies?.dependencies.symptomApiService,
+          profileApiService: dependencies?.dependencies.profileApiService,
         ),
       ),
     );

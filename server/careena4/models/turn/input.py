@@ -2,6 +2,7 @@ from pydantic import Field
 
 from careena4.models.common import PipelineModel
 from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.models.input import SymptomInputDraft
 
 
 ENTRY_HISTORY_LIMIT = 4
@@ -20,6 +21,7 @@ class TurnInput(PipelineModel):
     persisted_medical_case: MedicalCase | None = None
     persisted_conversation_state: ConversationState | None = None
     persisted_recommendation_state: RecommendationState | None = None
+    persisted_symptom_input_draft: SymptomInputDraft | None = None
 
     @classmethod
     def from_persisted_state(
@@ -33,6 +35,7 @@ class TurnInput(PipelineModel):
         persisted_medical_case: MedicalCase | None = None,
         persisted_conversation_state: ConversationState | None = None,
         persisted_recommendation_state: RecommendationState | None = None,
+        persisted_symptom_input_draft: SymptomInputDraft | None = None,
     ) -> "TurnInput":
         history = list(conversation_messages or [])
         return cls(
@@ -46,6 +49,7 @@ class TurnInput(PipelineModel):
             persisted_medical_case=persisted_medical_case,
             persisted_conversation_state=persisted_conversation_state,
             persisted_recommendation_state=persisted_recommendation_state,
+            persisted_symptom_input_draft=persisted_symptom_input_draft,
         )
 
 

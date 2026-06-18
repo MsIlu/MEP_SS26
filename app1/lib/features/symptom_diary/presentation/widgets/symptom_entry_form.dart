@@ -35,6 +35,7 @@ enum _SymptomEntryStep {
 
 /// Coordinates the multi-step form for one symptom diary entry.
 class SymptomEntryForm extends StatefulWidget {
+  final String? biologicalSex;
   final Future<void> Function({
     required String symptom,
     required String bodyArea,
@@ -47,6 +48,7 @@ class SymptomEntryForm extends StatefulWidget {
 
   const SymptomEntryForm({
     super.key,
+    this.biologicalSex,
     required this.onSave,
     this.onCancel,
     this.onSaved,
@@ -63,6 +65,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   String _bodyArea = '';
   int _currentStepIndex = 0;
   int _intensity = 5;
+  double _temperature = 37.0;
   bool _isSaving = false;
 
   @override
@@ -133,12 +136,19 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       ),
       _SymptomEntryStep.bodyArea => BodyAreaSelector(
         selectedArea: _bodyArea,
+        biologicalSex: widget.biologicalSex,
         onChanged: (area) => setState(() => _bodyArea = area),
       ),
       _SymptomEntryStep.details => SymptomDetailsStep(
         intensity: _intensity,
+        usesTemperature: _usesTemperature,
+        temperature: _temperature,
         noteController: _noteController,
         onIntensityChanged: (value) => setState(() => _intensity = value),
+        onTemperatureChanged: (value) => setState(() {
+          _temperature = value;
+          _intensity = _intensityForTemperature(value);
+        }),
       ),
     };
   }
@@ -173,8 +183,10 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     await widget.onSave(
       symptom: _symptom,
       bodyArea: _needsBodyArea ? _bodyArea : '',
-      intensity: _intensity,
-      note: _noteController.text,
+      intensity: _usesTemperature
+          ? _intensityForTemperature(_temperature)
+          : _intensity,
+      note: _usesTemperature ? _noteWithTemperature : _noteController.text,
     );
 
     if (!mounted) {
@@ -216,6 +228,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       _bodyArea = '';
       _currentStepIndex = 0;
       _intensity = 5;
+      _temperature = 37.0;
       _isSaving = false;
     });
   }
@@ -234,9 +247,43 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
 
   String get _symptom => _symptomController.text.trim();
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
+  bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
   bool get _isLastStep => _currentStepIndex == _lastStepIndex;
   int get _lastStepIndex => _activeSteps.length - 1;
+
+  int _intensityForTemperature(double temperature) {
+    if (temperature <= 37.4) {
+      return 1;
+    }
+    if (temperature <= 38.0) {
+      return 3;
+    }
+    if (temperature < 39) {
+      return 5;
+    }
+    if (temperature < 40) {
+      return 7;
+    }
+    return 9;
+  }
+
+  String get _noteWithTemperature {
+    final formattedTemperature = _temperature
+        .toStringAsFixed(1)
+        .replaceAll('.', ',');
+    final temperatureNote = 'Temperatur: $formattedTemperature °C';
+    final note = _noteController.text.trim();
+
+    if (note.isEmpty) {
+      return temperatureNote;
+    }
+    if (note.toLowerCase().contains('temperatur:')) {
+      return note;
+    }
+
+    return '$temperatureNote\n$note';
+  }
 
   List<String> get _stepLabels {
     return _activeSteps.map((step) => step.label).toList(growable: false);

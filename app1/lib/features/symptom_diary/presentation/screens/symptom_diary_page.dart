@@ -3,6 +3,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../controllers/symptom_diary_controller.dart';
@@ -14,12 +15,14 @@ class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final SymptomApiService? symptomApiService;
+  final ProfileApiService? profileApiService;
 
   const SymptomDiaryPage({
     super.key,
     required this.themeController,
     this.authSession,
     this.symptomApiService,
+    this.profileApiService,
   });
 
   @override
@@ -31,6 +34,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
   late final DateTime _today;
   late DateTime _selectedDate;
+  String? _biologicalSex;
 
   @override
   void initState() {
@@ -43,6 +47,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       profileId: widget.authSession?.activeProfileId,
     );
     _controller.loadEntries();
+    _loadActiveProfileSex();
   }
 
   @override
@@ -116,6 +121,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
               child: SymptomEntryForm(
+                biologicalSex: _biologicalSex,
                 onSave: _addEntry,
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
@@ -176,5 +182,26 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Symptom gespeichert')));
+  }
+
+  Future<void> _loadActiveProfileSex() async {
+    final profileId = widget.authSession?.activeProfileId;
+    final profileApiService = widget.profileApiService;
+
+    if (profileId == null || profileApiService == null) {
+      return;
+    }
+
+    try {
+      final profile = await profileApiService.getProfile(profileId);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _biologicalSex = profile.biologicalSex);
+    } catch (_) {
+      // Falls das Profil nicht geladen werden kann, bleibt die neutrale/männliche
+      // Standard-Silhouette aktiv.
+    }
   }
 }

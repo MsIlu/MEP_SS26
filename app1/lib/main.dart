@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
 import 'core/themes/app_theme.dart';
 import 'core/themes/theme_controller.dart';
+import 'core/widgets/app_keyboard_navigation.dart';
 import 'features/chatscreen/controllers/chat_controller.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 import 'features/authscreen/state/auth_session.dart';
@@ -19,11 +20,7 @@ class MyApp extends StatelessWidget {
   final ChatController? chatController;
   final AuthApiService? authApiService;
 
-  const MyApp({
-    super.key,
-    this.chatController,
-    this.authApiService,
-  });
+  const MyApp({super.key, this.chatController, this.authApiService});
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +31,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class _AppBoot extends StatefulWidget {
   final ChatController? externalChatController;
   final AuthApiService? externalAuthApiService;
 
-  const _AppBoot({
-    this.externalChatController,
-    this.externalAuthApiService,
-  });
+  const _AppBoot({this.externalChatController, this.externalAuthApiService});
 
   @override
   State<_AppBoot> createState() => _AppBootState();
@@ -63,8 +56,8 @@ class _AppBootState extends State<_AppBoot> {
     _authSession = AuthSession();
 
     _ownedDependencies =
-    widget.externalChatController == null &&
-        widget.externalAuthApiService == null
+        widget.externalChatController == null &&
+            widget.externalAuthApiService == null
         ? AppDependencies(authSession: _authSession)
         : null;
 
@@ -77,8 +70,6 @@ class _AppBootState extends State<_AppBoot> {
     _themeController = ThemeController();
 
     _symptomRepository = SymptomRepository();
-
-
   }
 
   @override
@@ -92,7 +83,7 @@ class _AppBootState extends State<_AppBoot> {
   @override
   Widget build(BuildContext context) {
     return AppDependenciesScope(
-      dependencies: _ownedDependencies!, 
+      dependencies: _ownedDependencies!,
       child: AnimatedBuilder(
         animation: _themeController,
         builder: (context, _) {
@@ -105,6 +96,11 @@ class _AppBootState extends State<_AppBoot> {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: _themeController.themeMode,
+            builder: (context, child) {
+              return AppKeyboardNavigation(
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
             home: OnboardingScreen(
               chatController: _chatController,
               themeController: _themeController,

@@ -7,6 +7,7 @@ abstract final class SettingsIcons {
   static const display = Icons.palette_outlined;
   static const language = Icons.language_outlined;
   static const privacy = Icons.lock_outline;
+  static const glossary = Icons.menu_book_outlined;
   static const help = Icons.support_agent_outlined;
   static const about = Icons.info_outline;
   static const personalData = Icons.badge_outlined;

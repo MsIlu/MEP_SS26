@@ -12,6 +12,7 @@ import '../widgets/display_settings_section.dart';
 import '../widgets/profile_settings_section.dart';
 import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
+import 'glossary_settings_page.dart';
 import 'settings_text_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -184,6 +185,19 @@ class _SettingsPageState extends State<SettingsPage> {
         description: 'Umgang mit deinen Daten',
         keywords: const ['datenschutz', 'privacy', 'sicherheit'],
         onTap: () => _open(context, const SettingsTextPage.privacy()),
+      ),
+      _SettingsItem(
+        icon: SettingsIcons.glossary,
+        title: 'Glossar',
+        description: 'Medizinische Fachbegriffe kurz erklärt',
+        keywords: const [
+          'glossar',
+          'fachbegriffe',
+          'medizin',
+          'erklärung',
+          'begriff',
+        ],
+        onTap: () => _open(context, const GlossarySettingsPage()),
       ),
       _SettingsItem(
         icon: SettingsIcons.help,

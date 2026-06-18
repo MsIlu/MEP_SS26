@@ -199,12 +199,14 @@ class SettingsSearchField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final bool simpleView;
+  final String hintText;
 
   const SettingsSearchField({
     super.key,
     required this.controller,
     required this.onChanged,
     required this.simpleView,
+    this.hintText = 'Einstellung suchen...',
   });
 
   @override
@@ -216,7 +218,7 @@ class SettingsSearchField extends StatelessWidget {
       onChanged: onChanged,
       style: TextStyle(fontSize: simpleView ? 18 : 16),
       decoration: InputDecoration(
-        hintText: 'Einstellung suchen...',
+        hintText: hintText,
         prefixIcon: const Icon(Icons.search, color: AppColors.careenaTeal),
         suffixIcon: controller.text.isEmpty
             ? null
@@ -250,7 +252,12 @@ class SettingsSearchField extends StatelessWidget {
 }
 
 class SettingsEmptySearchResult extends StatelessWidget {
-  const SettingsEmptySearchResult({super.key});
+  final String message;
+
+  const SettingsEmptySearchResult({
+    super.key,
+    this.message = 'Keine passende Einstellung gefunden.',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +268,7 @@ class SettingsEmptySearchResult extends StatelessWidget {
           const Icon(Icons.search_off, size: 42, color: AppColors.careenaMuted),
           const SizedBox(height: 12),
           Text(
-            'Keine passende Einstellung gefunden.',
+            message,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,

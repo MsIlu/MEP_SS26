@@ -10,7 +10,7 @@ Die tatsächliche Testausführung sowie die dazugehörigen Testergebnisse werden
 
 ---
 
-## FA5.4.1 – Testfälle für unterschiedliche Dringlichkeitsstufen
+## FA5.4.1: Testfälle für unterschiedliche Dringlichkeitsstufen erstellen
 
 | Testfall-ID | Eingabe | Erwartete Dringlichkeitsstufe |
 |------------|--------|-------------------------------|
@@ -24,7 +24,7 @@ Die tatsächliche Testausführung sowie die dazugehörigen Testergebnisse werden
 
 ---
 
-## FA5.4.2 – Testfälle für unterschiedliche Versorgungsebenen
+## FA5.4.2: Testfälle für unterschiedliche Versorgungsebenen erstellen
 
 | Testfall-ID | Eingabe | Erwartete Versorgungsebene |
 |------------|--------|----------------------------|
@@ -38,7 +38,7 @@ Die tatsächliche Testausführung sowie die dazugehörigen Testergebnisse werden
 
 ---
 
-## FA5.4.3 – Red-Flag-Fälle (Notfall muss ausgelöst werden)
+## FA5.4.3: Testen, ob Red-Flag-Fälle korrekt zu einer Notfallmaßnahme führen
 
 | Testfall-ID | Eingabe | Erwartetes Ergebnis |
 |------------|--------|---------------------|
@@ -52,7 +52,7 @@ Die tatsächliche Testausführung sowie die dazugehörigen Testergebnisse werden
 
 ---
 
-## FA5.4.4 – Keine unnötigen Notfallempfehlungen (False-Positive-Tests)
+## FA5.4.4: Testen, ob nicht dringende Fälle keine unnötige Notfallempfehlung erhalten
 
 | Testfall-ID | Eingabe | Erwartetes Ergebnis |
 |------------|--------|---------------------|

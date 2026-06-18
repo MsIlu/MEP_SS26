@@ -156,7 +156,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
 #3. save profile_id
 #4. build TurnInput
 #5. Careena4 processes TurnInput
-#6. wri@app.deletete new state in session
+#6. write new state in session
 #7. build API-Response for Flutter
 @app.post("/chatscreen")
 def chat(

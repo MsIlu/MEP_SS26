@@ -7,6 +7,7 @@ import '../../controllers/chat_warning_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
 import '../../utils/smart_replies.dart';
+import '../../../recommendation_export/presentation/recommendation_page.dart';
 import '../../../warningscreen/presentation/screens/warning_page.dart';
 import '../dialogs/leave_chat.dart';
 import '../widgets/chat_app_bar.dart';
@@ -179,6 +180,31 @@ class _ChatScreenState extends State<ChatScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
+      );
+      return;
+    }
+
+    if (response != null &&
+        widget.controller.chatService.hasRecommendation(response)) {
+      final canCreateAppointment = widget.controller.chatService
+          .hasAppointmentRecommendation(response);
+
+      await widget.controller.resetChat();
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RecommendationPage(
+            response: response!,
+            canCreateAppointment: canCreateAppointment,
+            appointmentTitle: canCreateAppointment
+                ? widget.controller.chatService
+                      .appointmentTitleForRecommendation(response.text)
+                : null,
+          ),
+        ),
       );
       return;
     }

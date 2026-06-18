@@ -50,7 +50,7 @@ class ChatService {
       exportNextSteps: response.action,
       canCreateAppointment: canCreateAppointment,
       appointmentTitle: canCreateAppointment
-          ? _appointmentTitleForRecommendation(response.text)
+          ? appointmentTitleForRecommendation(response.text)
           : null,
     );
   }
@@ -79,7 +79,7 @@ class ChatService {
         combinedText.contains('aerztlich');
   }
 
-  String _appointmentTitleForRecommendation(String text) {
+  String appointmentTitleForRecommendation(String text) {
     final lowerText = text.toLowerCase();
 
     if (lowerText.contains('hausarzt')) {

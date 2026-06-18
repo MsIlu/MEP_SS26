@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
-import '../../utils/medical_terms.dart';
 import 'package:app1/core/themes/app_colors.dart';
-import 'medical_term_info_box.dart';
+import 'medical_term_tooltip_text.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
+import 'recommendation_summary_card.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -27,7 +27,6 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-    final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -50,6 +49,8 @@ class ChatBubble extends StatelessWidget {
     final shadowColor = isDarkMode
         ? Colors.black.withValues(alpha: 0.15)
         : Colors.black.withValues(alpha: 0.10);
+    final showRecommendationCard =
+        !isUser && message.canExportPdf && !message.isStreaming;
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -60,6 +61,8 @@ class ChatBubble extends StatelessWidget {
       builder: (context, constraints) {
         final bubbleMaxWidth = constraints.maxWidth < 420
             ? constraints.maxWidth * 0.78
+            : showRecommendationCard
+            ? constraints.maxWidth * 0.92
             : constraints.maxWidth * 0.68;
 
         return Padding(
@@ -116,35 +119,47 @@ class ChatBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        message.text,
-                        style: TextStyle(color: textColor, fontSize: 15),
-                      ),
-                      if (medicalTerm != null)
-                        MedicalTermInfoBox(term: medicalTerm),
-                      if (!isUser &&
-                          message.canExportPdf &&
-                          !message.isStreaming) ...[
+                      if (showRecommendationCard)
+                        RecommendationSummaryCard(
+                          recommendation:
+                              message.exportRecommendation ?? message.text,
+                        )
+                      else
+                        MedicalTermTooltipText(
+                          text: message.text,
+                          enabled: !isUser,
+                          style: TextStyle(color: textColor, fontSize: 15),
+                        ),
+                      if (showRecommendationCard) ...[
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            ExportRecommendationPdfButton(
-                              title:
-                                  message.exportTitle ?? 'Handlungsempfehlung',
-                              patientSummary:
-                                  'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                              recommendation:
-                                  message.exportRecommendation ?? message.text,
-                              nextSteps: message.exportNextSteps ?? '',
-                            ),
-                            if (message.canCreateAppointment)
-                              CreateRecommendedAppointmentButton(
+                            SizedBox(
+                              width: double.infinity,
+                              child: ExportRecommendationPdfButton(
                                 title:
-                                    message.appointmentTitle ??
-                                    'Arzttermin vereinbaren',
+                                    message.exportTitle ??
+                                    'Handlungsempfehlung',
+                                patientSummary:
+                                    'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                                recommendation:
+                                    message.exportRecommendation ??
+                                    message.text,
+                                nextSteps: message.exportNextSteps ?? '',
                               ),
+                            ),
+                            if (message.canCreateAppointment) ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: CreateRecommendedAppointmentButton(
+                                  title:
+                                      message.appointmentTitle ??
+                                      'Arzttermin vereinbaren',
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ],

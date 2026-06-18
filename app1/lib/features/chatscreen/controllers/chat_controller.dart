@@ -106,8 +106,7 @@ class ChatController {
     if (trimmed.isEmpty) return null;
 
     if (trimmed.toLowerCase() == '/hp') {
-      _addTestRecommendation();
-      return null;
+      return _addTestRecommendation();
     }
 
     _addMessage(message: Message(text: trimmed, isUser: true));
@@ -130,13 +129,26 @@ class ChatController {
       _setMessages(chatService.removeLastBotMessage(messages.value));
       await loadSymptoms();
 
-      if (response.redFlag) {
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+      final hasRecommendation = chatService.hasRecommendation(response);
+
+      if (response.redFlag || isEmergency) {
         final botMessage = chatService.buildAssistantMessage(response);
         _addMessage(message: botMessage);
         await _completeChat(
           recommendation: response.text,
           nextSteps: response.action,
-          isEmergency: chatService.isEmergencyRecommendation(response),
+          isEmergency: isEmergency,
+        );
+        return response;
+      }
+
+      if (hasRecommendation) {
+        // Final recommendations are shown on a dedicated screen instead of
+        // being streamed as a regular assistant chat bubble.
+        await _completeChat(
+          recommendation: response.text,
+          nextSteps: response.action,
         );
         return response;
       }
@@ -159,16 +171,6 @@ class ChatController {
           message: botMessage.copyWith(isStreaming: false),
         ),
       );
-
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.hasRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation: response.text,
-          nextSteps: response.action,
-          isEmergency: isEmergency,
-        );
-      }
 
       return response;
     } catch (e) {
@@ -283,25 +285,23 @@ class ChatController {
     return null;
   }
 
-  void _addTestRecommendation() {
+  Future<ChatResponse> _addTestRecommendation() async {
     const recommendationText = '''Dringlichkeit: Nicht akut
     Empfohlene Versorgungsebene: Hausarzt
     Nächster Schritt: Bitte vereinbaren Sie einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
     Hinweis: Diese Test-Handlungsempfehlung dient nur der Frontend-Entwicklung und ersetzt keine ärztliche Diagnose.''';
+    const response = ChatResponse(
+      text: recommendationText,
+      redFlag: false,
+      action: 'Termin beim Hausarzt vereinbaren.',
+    );
 
     _addMessage(message: Message(text: '/hp', isUser: true));
-    _addMessage(
-      message: Message(
-        text: recommendationText,
-        isUser: false,
-        canExportPdf: true,
-        exportTitle: 'Handlungsempfehlung',
-        exportRecommendation: recommendationText,
-        exportNextSteps: 'Termin beim Hausarzt vereinbaren.',
-        canCreateAppointment: true,
-        appointmentTitle: 'Hausarzttermin vereinbaren',
-      ),
+    await _completeChat(
+      recommendation: recommendationText,
+      nextSteps: response.action,
     );
+    return response;
   }
 
   bool _hasOfflineMessage() {

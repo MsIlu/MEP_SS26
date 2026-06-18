@@ -7,10 +7,7 @@ import 'package:flutter/material.dart';
 class CreateRecommendedAppointmentButton extends StatelessWidget {
   final String title;
 
-  const CreateRecommendedAppointmentButton({
-    super.key,
-    required this.title,
-  });
+  const CreateRecommendedAppointmentButton({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       icon: const Icon(Icons.event_available_outlined),
-      label: const Text('Termin erstellen'),
+      label: const Text('Termin vereinbaren'),
       onPressed: () => _createAppointment(context),
     );
   }

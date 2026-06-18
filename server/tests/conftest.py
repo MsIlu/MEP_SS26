@@ -12,10 +12,8 @@ from auth.router import router as auth_router
 from auth.security import get_session
 from medications.router import router as medications_router
 from chat_history.router import router as chat_history_router
-from inputs.draft_router import router as draft_router, set_session_manager
 from profiles.router import router as profiles_router
 from symptoms.router import router as symptoms_router
-from sessions.manager import SessionManager
 
 
 @pytest.fixture()
@@ -41,17 +39,7 @@ def db_session():
 
 
 @pytest.fixture()
-def session_manager():
-    manager = SessionManager()
-    set_session_manager(manager)
-
-    yield manager
-
-    set_session_manager(None)
-
-
-@pytest.fixture()
-def client(db_session, session_manager):
+def client(db_session):
     """
     Create a FastAPI test client with auth and profile routers.
 
@@ -64,7 +52,6 @@ def client(db_session, session_manager):
     app.include_router(medications_router)
     app.include_router(chat_history_router)
     app.include_router(symptoms_router)
-    app.include_router(draft_router)
 
     def get_test_session():
         yield db_session

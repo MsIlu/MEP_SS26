@@ -22,6 +22,9 @@ __pycache__/
 venv/
 env/
 
+# Runtime logs
+server/**/server_log/logs/
+
 # Secrets
 .env
 .env.*

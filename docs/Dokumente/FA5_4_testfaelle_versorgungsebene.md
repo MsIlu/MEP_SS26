@@ -88,7 +88,7 @@ Die tatsächliche Testausführung sowie die dazugehörigen Testergebnisse werden
 | TF-NF-03 | Ich habe leichte Kopfschmerzen ohne weitere Beschwerden | Selbstbeobachtung |
 | TF-NF-04 | Ich habe einen normalen Schnupfen | Selbstbeobachtung |
 | TF-NF-05 | Ich habe mich leicht geschnitten, die Wunde ist schon zu | Selbstbeobachtung |
-| TF-NF-06 | Ich habe leichtes Sodbrennen nach dem Essen | Selbstbeobachtung |
+| TF-NF-06 | Ich habe leichtes Sodbrennen (=Rückfluss von saurem Mageninhalt in die Speiseröhre) nach dem Essen | Selbstbeobachtung |
 | TF-NF-07 | Ich habe Rückenschmerzen nach langem Sitzen | Selbstbeobachtung |
 | TF-NF-08 | Ich bin leicht heiser nach viel Sprechen | Selbstbeobachtung |
 | TF-NF-09 | Ich habe trockenen Husten bei kalter Luft | Selbstbeobachtung |

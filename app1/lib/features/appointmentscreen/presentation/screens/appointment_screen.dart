@@ -149,159 +149,61 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         maxWidth: 1000,
         padding: const EdgeInsets.all(16),
         scrollable: false,
-        child: Column(
-          children: [
-            const AppointmentInfoCard(),
-            const SizedBox(height: 16),
-            const Appointment116117Card(),
-            const SizedBox(height: 24),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Deine Termine',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compactHeight = constraints.maxHeight < 360;
+            final tightHeight = constraints.maxHeight < 300;
+            final smallGap = tightHeight ? 4.0 : (compactHeight ? 8.0 : 16.0);
+            final sectionGap = tightHeight
+                ? 6.0
+                : (compactHeight ? 12.0 : 24.0);
+            final titleGap = tightHeight ? 4.0 : (compactHeight ? 6.0 : 12.0);
+
+            final headerChildren = <Widget>[
+              const AppointmentInfoCard(),
+              SizedBox(height: smallGap),
+              const Appointment116117Card(),
+              SizedBox(height: sectionGap),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Deine Termine',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            AppointmentFilterBar(
-              selectedFilter: selectedFilter,
-              onFilterChanged: (filter) {
-                setState(() {
-                  selectedFilter = filter;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: controller.appointments,
-                builder: (context, appointments, child) {
-                  List<Appointment> filteredAppointments = List.from(
-                    appointments,
-                  );
-
-                  if (selectedFilter == 'Kommend') {
-                    filteredAppointments = filteredAppointments.where((
-                      appointment,
-                    ) {
-                      final appointmentDate = appointment.appointmentDate;
-                      return appointmentDate != null &&
-                          appointmentDate.isAfter(DateTime.now());
-                    }).toList();
-                  }
-
-                  if (selectedFilter == 'Vergangen') {
-                    filteredAppointments = filteredAppointments.where((
-                      appointment,
-                    ) {
-                      final appointmentDate = appointment.appointmentDate;
-                      return appointmentDate != null &&
-                          appointmentDate.isBefore(DateTime.now());
-                    }).toList();
-                  }
-
-                  if (selectedFilter == 'Erledigt') {
-                    filteredAppointments = filteredAppointments.where((
-                      appointment,
-                    ) {
-                      return appointment.isCompleted;
-                    }).toList();
-                  }
-
-                  if (appointments.isEmpty) {
-                    return const AppointmentEmptyState();
-                  }
-
-                  final recommendedAppointments = selectedFilter == 'Alle'
-                      ? filteredAppointments.where((appointment) {
-                          return appointment.isRecommendation &&
-                              appointment.appointmentDate == null;
-                        }).toList()
-                      : <Appointment>[];
-
-                  filteredAppointments = filteredAppointments.where((
-                    appointment,
-                  ) {
-                    return !(appointment.isRecommendation &&
-                        appointment.appointmentDate == null);
-                  }).toList();
-
-                  filteredAppointments.sort((a, b) {
-                    final firstDate = a.appointmentDate;
-                    final secondDate = b.appointmentDate;
-
-                    if (firstDate == null && secondDate == null) return 0;
-                    if (firstDate == null) return -1;
-                    if (secondDate == null) return 1;
-
-                    return firstDate.compareTo(secondDate);
+              SizedBox(height: titleGap),
+              AppointmentFilterBar(
+                selectedFilter: selectedFilter,
+                onFilterChanged: (filter) {
+                  setState(() {
+                    selectedFilter = filter;
                   });
-
-                  if (recommendedAppointments.isEmpty &&
-                      filteredAppointments.isEmpty) {
-                    return const Center(
-                      child: Text('Keine Termine in diesem Filter.'),
-                    );
-                  }
-
-                  return ListView(
-                    children: [
-                      if (recommendedAppointments.isNotEmpty) ...[
-                        _AppointmentSectionHeader(
-                          icon: Icons.auto_awesome_outlined,
-                          title: 'Empfohlene nächste Schritte',
-                          subtitle:
-                              'Von Careena vorgeschlagene Termine, die du noch eintragen kannst.',
-                        ),
-                        const SizedBox(height: 8),
-                        for (final appointment in recommendedAppointments)
-                          AppointmentTile(
-                            appointment: appointment,
-                            onToggleCompleted: () {
-                              controller.toggleAppointment(appointment.id);
-                            },
-                            onDelete: () {
-                              _showDeleteDialog(appointment);
-                            },
-                            onEdit: () {
-                              _showEditDialog(appointment);
-                            },
-                          ),
-                        if (filteredAppointments.isNotEmpty)
-                          const SizedBox(height: 12),
-                      ],
-                      if (filteredAppointments.isNotEmpty) ...[
-                        if (recommendedAppointments.isNotEmpty) ...[
-                          const _AppointmentSectionHeader(
-                            icon: Icons.event_available_outlined,
-                            title: 'Geplante Termine',
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                        for (final appointment in filteredAppointments)
-                          AppointmentTile(
-                            appointment: appointment,
-                            onToggleCompleted: () {
-                              controller.toggleAppointment(appointment.id);
-                            },
-                            onDelete: () {
-                              _showDeleteDialog(appointment);
-                            },
-                            onEdit: () {
-                              _showEditDialog(appointment);
-                            },
-                          ),
-                      ],
-                    ],
-                  );
                 },
               ),
-            ),
-          ],
+              SizedBox(height: smallGap),
+            ];
+
+            if (tightHeight) {
+              return ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ...headerChildren,
+                  _buildAppointmentContent(shrinkWrap: true),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                ...headerChildren,
+                Expanded(child: _buildAppointmentContent()),
+              ],
+            );
+          },
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -326,7 +228,137 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
 
+  Widget _buildAppointmentContent({bool shrinkWrap = false}) {
+    return ValueListenableBuilder(
+      valueListenable: controller.appointments,
+      builder: (context, appointments, child) {
+        List<Appointment> filteredAppointments = List.from(appointments);
+
+        if (selectedFilter == 'Kommend') {
+          filteredAppointments = filteredAppointments.where((appointment) {
+            final appointmentDate = appointment.appointmentDate;
+            return appointmentDate != null &&
+                appointmentDate.isAfter(DateTime.now());
+          }).toList();
+        }
+
+        if (selectedFilter == 'Vergangen') {
+          filteredAppointments = filteredAppointments.where((appointment) {
+            final appointmentDate = appointment.appointmentDate;
+            return appointmentDate != null &&
+                appointmentDate.isBefore(DateTime.now());
+          }).toList();
+        }
+
+        if (selectedFilter == 'Erledigt') {
+          filteredAppointments = filteredAppointments.where((appointment) {
+            return appointment.isCompleted;
+          }).toList();
+        }
+
+        if (appointments.isEmpty) {
+          if (shrinkWrap) {
+            return const SizedBox(height: 180, child: AppointmentEmptyState());
+          }
+
+          return const AppointmentEmptyState();
+        }
+
+        final recommendedAppointments = selectedFilter == 'Alle'
+            ? filteredAppointments.where((appointment) {
+                return appointment.isRecommendation &&
+                    appointment.appointmentDate == null;
+              }).toList()
+            : <Appointment>[];
+
+        filteredAppointments = filteredAppointments.where((appointment) {
+          return !(appointment.isRecommendation &&
+              appointment.appointmentDate == null);
+        }).toList();
+
+        filteredAppointments.sort((a, b) {
+          final firstDate = a.appointmentDate;
+          final secondDate = b.appointmentDate;
+
+          if (firstDate == null && secondDate == null) return 0;
+          if (firstDate == null) return -1;
+          if (secondDate == null) return 1;
+
+          return firstDate.compareTo(secondDate);
+        });
+
+        if (recommendedAppointments.isEmpty && filteredAppointments.isEmpty) {
+          const emptyFilter = Center(
+            child: Text('Keine Termine in diesem Filter.'),
+          );
+
+          if (shrinkWrap) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: emptyFilter,
+            );
+          }
+
+          return emptyFilter;
+        }
+
+        return ListView(
+          shrinkWrap: shrinkWrap,
+          physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+          children: [
+            if (recommendedAppointments.isNotEmpty) ...[
+              _AppointmentSectionHeader(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Empfohlene nächste Schritte',
+                subtitle:
+                    'Von Careena vorgeschlagene Termine, die du noch eintragen kannst.',
+              ),
+              const SizedBox(height: 8),
+              for (final appointment in recommendedAppointments)
+                AppointmentTile(
+                  appointment: appointment,
+                  onToggleCompleted: () {
+                    controller.toggleAppointment(appointment.id);
+                  },
+                  onDelete: () {
+                    _showDeleteDialog(appointment);
+                  },
+                  onEdit: () {
+                    _showEditDialog(appointment);
+                  },
+                ),
+              if (filteredAppointments.isNotEmpty) const SizedBox(height: 12),
+            ],
+            if (filteredAppointments.isNotEmpty) ...[
+              if (recommendedAppointments.isNotEmpty) ...[
+                const _AppointmentSectionHeader(
+                  icon: Icons.event_available_outlined,
+                  title: 'Geplante Termine',
+                ),
+                const SizedBox(height: 8),
+              ],
+              for (final appointment in filteredAppointments)
+                AppointmentTile(
+                  appointment: appointment,
+                  onToggleCompleted: () {
+                    controller.toggleAppointment(appointment.id);
+                  },
+                  onDelete: () {
+                    _showDeleteDialog(appointment);
+                  },
+                  onEdit: () {
+                    _showEditDialog(appointment);
+                  },
+                ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
   void _showAddAppointmentDialog() {
+    _clearAppointmentForm();
     showDialog(
       context: context,
       builder: (context) {
@@ -338,6 +370,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           noteController: noteController,
           onPickDate: _pickDate,
           onPickTime: _pickTime,
+          onCancel: () {
+            _clearAppointmentForm();
+            Navigator.pop(context);
+            },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -347,23 +383,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               Appointment(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 doctorName: doctorController.text.trim(),
-                appointmentDate: DateTime(
-                  selectedDate?.year ?? DateTime.now().year,
-                  selectedDate?.month ?? DateTime.now().month,
-                  selectedDate?.day ?? DateTime.now().day,
-                  selectedTime?.hour ?? 0,
-                  selectedTime?.minute ?? 0,
-                ),
+                appointmentDate: _buildAppointmentDate(null),
                 note: noteController.text.trim(),
               ),
             );
 
-            doctorController.clear();
-            noteController.clear();
-            dateController.clear();
-            timeController.clear();
-            selectedDate = null;
-            selectedTime = null;
+            _clearAppointmentForm();
             Navigator.pop(context);
             _showSuccessMessage('Termin gespeichert');
             setState(() {});
@@ -443,6 +468,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           noteController: noteController,
           onPickDate: _pickDate,
           onPickTime: _pickTime,
+          onCancel: () {
+            _clearAppointmentForm();
+            Navigator.pop(context);
+          },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -458,11 +487,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 doctorName: doctorController.text.trim(),
                 appointmentDate: updatedAppointmentDate,
                 note: noteController.text.trim(),
-                isRecommendation: appointment.isRecommendation &&
+                isRecommendation:
+                    appointment.isRecommendation &&
                     updatedAppointmentDate == null,
                 isCompleted: appointment.isCompleted,
               ),
             );
+            _clearAppointmentForm();
             _showSuccessMessage('Termin aktualisiert');
             Navigator.pop(context);
           },
@@ -501,6 +532,15 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       ),
     );
   }
+
+  void _clearAppointmentForm() {
+  doctorController.clear();
+  noteController.clear();
+  dateController.clear();
+  timeController.clear();
+  selectedDate = null;
+  selectedTime = null;
+}
 }
 
 class _AppointmentSectionHeader extends StatelessWidget {

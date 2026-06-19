@@ -134,6 +134,25 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
 
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => _showPrivacyInfo(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDarkMode
+                              ? AppColors.toolbarButtonBackgroundDark
+                              : AppColors.careenaTeal,
+                        ),
+                        icon: const Icon(Icons.privacy_tip_outlined, size: 18),
+                        label: const Text('Datenschutzhinweise anzeigen'),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 16),
 
                   Padding(
@@ -241,6 +260,50 @@ class OnboardingScreen extends StatelessWidget {
           authSession: authSession,
         ),
       ),
+    );
+  }
+
+  void _showPrivacyInfo(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Datenschutzhinweise'),
+          content: const SingleChildScrollView(
+            child: Text(
+              'Careena ist ein KI-Assistent zur ersten Einordnung von Beschwerden '
+              'und zur Unterstützung bei möglichen nächsten Schritten.\n\n'
+              'Verarbeitungszwecke:\n'
+              '- Ersteinschätzung eingegebener Beschwerden\n'
+              '- Patientensteuerung und Empfehlung nächster Schritte\n'
+              '- personalisierte Unterstützung anhand eingegebener Angaben\n'
+              '- Dokumentation von Beschwerden im Symptomtagebuch\n'
+              '- Registrierung, Anmeldung und Kontoverwaltung\n\n'
+              'Verarbeitete Datenkategorien:\n'
+              '- Kontoangaben, insbesondere E-Mail-Adresse und Authentifizierungsdaten\n'
+              '- Profildaten, insbesondere Name und Geburtsdatum\n'
+              '- medizinisch relevante Angaben, insbesondere biologisches Geschlecht, Größe, Gewicht, Vorerkrankungen und Hinweise\n'
+              '- Chatdaten, insbesondere Symptombeschreibungen und Empfehlungen\n'
+              '- Symptomtagebuch-Einträge, insbesondere Symptom, Datum, Intensität und Notizen\n'
+              '- technische Daten, insbesondere Session-ID und Zugriffstoken\n\n'
+              'Das biologische Geschlecht wird ausschließlich als medizinisch '
+              'relevanter Kontext für die Ersteinschätzung verwendet.\n\n'
+              'Careena ersetzt keine ärztliche Diagnose, Behandlung oder '
+              'Notfallversorgung. In akuten Notfällen ist der Notruf 112 '
+              'oder medizinisches Fachpersonal zu kontaktieren.\n\n'
+              'Diese Hinweise beschreiben den aktuellen Stand und '
+              'ersetzen keine vollständige rechtliche Datenschutzerklärung. '
+              'Die aktive Zustimmung erfolgt im Registrierungsprozess.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Verstanden'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

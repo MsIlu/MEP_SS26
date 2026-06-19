@@ -85,6 +85,31 @@ void main() {
     expect(find.text('Aussehen'), findsOneWidget);
   });
 
+  testWidgets('shows language settings as Careena-styled UI only', (
+    tester,
+  ) async {
+    final themeController = ThemeController();
+    addTearDown(themeController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(home: SettingsPage(themeController: themeController)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sprache ändern'), findsOneWidget);
+    expect(find.text('Deutsch ist aktuell ausgewählt'), findsOneWidget);
+
+    await tester.tap(find.text('Sprache ändern'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wähle die Sprache für Careena.'), findsOneWidget);
+    expect(find.text('Deutsch'), findsOneWidget);
+    expect(find.text('Aktuelle App-Sprache'), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
+    expect(find.text('Türkçe'), findsOneWidget);
+    expect(find.text('Demnächst verfügbar'), findsNWidgets(2));
+  });
+
   testWidgets('reuses settings icons on matching detail pages', (tester) async {
     final themeController = ThemeController();
     addTearDown(themeController.dispose);
@@ -102,6 +127,7 @@ void main() {
     await tester.tap(find.byTooltip('Zurück'));
     await tester.pumpAndSettle();
     expect(find.byIcon(SettingsIcons.help), findsOneWidget);
+    await tester.ensureVisible(find.text('Hilfe und Support'));
     await tester.tap(find.text('Hilfe und Support'));
     await tester.pumpAndSettle();
     expect(find.byIcon(SettingsIcons.help), findsOneWidget);
@@ -356,6 +382,54 @@ void main() {
       find.byKey(const ValueKey('settings-logout-button')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('logout clears the session and returns to the first route', (
+    tester,
+  ) async {
+    final themeController = ThemeController();
+    final authSession = _createProfileSession();
+    addTearDown(themeController.dispose);
+    addTearDown(authSession.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SettingsPage(
+                          themeController: themeController,
+                          authSession: authSession,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Onboarding mock'),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Onboarding mock'));
+    await tester.pumpAndSettle();
+    expect(find.text('Einstellungen'), findsOneWidget);
+    expect(authSession.isAuthenticated, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('settings-logout-button')));
+    await tester.pumpAndSettle();
+
+    expect(authSession.isAuthenticated, isFalse);
+    expect(authSession.activeProfile, isNull);
+    expect(find.text('Onboarding mock'), findsOneWidget);
+    expect(find.text('Einstellungen'), findsNothing);
   });
 
   testWidgets('centers logout and highlights light settings panels', (

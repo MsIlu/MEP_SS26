@@ -440,6 +440,11 @@ class _ChatScreenState extends State<ChatScreen> {
             child: ValueListenableBuilder(
               valueListenable: widget.controller.messages,
               builder: (context, List<Message> messages, _) {
+                final userMessages = messages
+                    .where((message) => message.isUser)
+                    .map((message) => message.text.trim())
+                    .where((text) => text.isNotEmpty)
+                    .toList();
                 return ListView.builder(
                   controller: _scrollController,
                   keyboardDismissBehavior:
@@ -461,6 +466,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: ChatBubble(
                           message: message,
                           symptoms: widget.controller.symptoms.value,
+                          userMessages: userMessages,
                           showLongProcessingHint:
                             message.isLoading && _showLongProcessingHint,
                         ),

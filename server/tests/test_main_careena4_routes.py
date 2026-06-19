@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
-
+import main
 from main import app, careena4_session_profiles, careena4_session_store, careena4_turn_engine
 
 
@@ -18,7 +18,9 @@ def clear_careena4_state():
 
 
 @pytest.fixture()
-def client():
+def client(monkeypatch):
+    monkeypatch.setattr(main, "create_db_and_tables", lambda: None)
+
     with TestClient(app) as test_client:
         yield test_client
 

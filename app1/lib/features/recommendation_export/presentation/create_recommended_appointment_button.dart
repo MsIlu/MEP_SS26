@@ -7,10 +7,7 @@ import 'package:flutter/material.dart';
 class CreateRecommendedAppointmentButton extends StatelessWidget {
   final String title;
 
-  const CreateRecommendedAppointmentButton({
-    super.key,
-    required this.title,
-  });
+  const CreateRecommendedAppointmentButton({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +33,15 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   }
 
   Future<void> _createAppointment(BuildContext context) async {
-    AppointmentController().addAppointment(
-      Appointment(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        doctorName: title,
-        note: 'Von Careena empfohlen',
-        isRecommendation: true,
-      ),
-    );
+    final wasCreated = AppointmentController()
+        .addRecommendedAppointmentIfMissing(
+          Appointment(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            doctorName: title,
+            note: 'Von Careena empfohlen',
+            isRecommendation: true,
+          ),
+        );
 
     if (!context.mounted) return;
 
@@ -51,9 +49,15 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Terminempfehlung hinzugefügt'),
-          content: const Text(
-            'Die Empfehlung wurde deiner Terminplanung hinzugefügt. Du kannst Datum und Uhrzeit dort später ergänzen.',
+          title: Text(
+            wasCreated
+                ? 'Terminempfehlung hinzugefügt'
+                : 'Terminempfehlung bereits vorhanden',
+          ),
+          content: Text(
+            wasCreated
+                ? 'Die Empfehlung wurde deiner Terminplanung hinzugefügt. Du kannst Datum und Uhrzeit dort später ergänzen.'
+                : 'Diese Empfehlung ist bereits in deiner Terminplanung vorhanden.',
           ),
           actions: [
             TextButton(

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:app1/features/profiles/domain/models/profile.dart';
 
 /// Creates a styled PDF document for a generated care recommendation.
 class RecommendationPdfService {
@@ -25,6 +26,8 @@ class RecommendationPdfService {
     required String patientSummary,
     required String recommendation,
     required String nextSteps,
+    required List<String> symptoms,
+    Profile? profile,
   }) async {
     final pdf = pw.Document();
     final logo = await _loadOptionalLogo();
@@ -47,6 +50,20 @@ class RecommendationPdfService {
                 children: [
                   _buildMetaInfo(),
                   pw.SizedBox(height: 18),
+
+                  if (profile != null) ...[
+                    _buildSectionCard(
+                      title: 'Patient / Profil',
+                      text: _formatProfile(profile),
+                    ),
+                    pw.SizedBox(height: 14),
+                  ],
+
+                  _buildSectionCard(
+                    title: 'Im Chat angegebene bzw. erkannte Beschwerden',
+                    text: _formatSymptoms(symptoms),
+                  ),
+                  pw.SizedBox(height: 14),
 
                   _buildSectionCard(
                     title: 'Patientenzusammenfassung',
@@ -451,6 +468,54 @@ class RecommendationPdfService {
       default:
         return trimmed;
     }
+  }
+
+  String _formatSymptoms(List<String> symptoms) {
+    final cleanedSymptoms = symptoms
+        .map((symptom) => symptom.trim())
+        .where((symptom) => symptom.isNotEmpty)
+        .toList();
+
+    if (cleanedSymptoms.isEmpty) {
+      return 'Keine Beschwerden angegeben oder erkannt.';
+    }
+
+    return cleanedSymptoms.map((symptom) => '- $symptom').join('\n');
+  }
+
+  String _formatProfile(Profile profile) {
+    final rows = <String>[
+      'Name / Profil: ${profile.displayName}',
+      if (profile.dateOfBirth != null && profile.dateOfBirth!.isNotEmpty)
+        'Geburtsdatum: ${profile.dateOfBirth}',
+      if (profile.biologicalSex != null && profile.biologicalSex!.isNotEmpty)
+        'Biologisches Geschlecht: ${profile.biologicalSex}',
+      if (profile.heightCm != null) 'Größe: ${profile.heightCm} cm',
+      if (profile.weightKg != null) 'Gewicht: ${profile.weightKg} kg',
+    ];
+
+    if (profile.relevantPreconditionsSummary != null &&
+        profile.relevantPreconditionsSummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Relevante Vorerkrankungen:');
+      rows.add(profile.relevantPreconditionsSummary!.trim());
+    }
+
+    if (profile.relevantMedicationsSummary != null &&
+        profile.relevantMedicationsSummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Relevante Medikamente:');
+      rows.add(profile.relevantMedicationsSummary!.trim());
+    }
+
+    if (profile.symptomDiarySummary != null &&
+        profile.symptomDiarySummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Weitere Gesundheitsnotizen / Symptomtagebuch:');
+      rows.add(profile.symptomDiarySummary!.trim());
+    }
+
+    return rows.join('\n');
   }
 
   String _formatDate(DateTime date) {

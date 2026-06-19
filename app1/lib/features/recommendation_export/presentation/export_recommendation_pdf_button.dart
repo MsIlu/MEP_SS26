@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../data/recommendation_pdf_service.dart';
@@ -9,6 +10,7 @@ class ExportRecommendationPdfButton extends StatelessWidget {
   final String patientSummary;
   final String recommendation;
   final String nextSteps;
+  final List<String> symptoms;
 
   const ExportRecommendationPdfButton({
     super.key,
@@ -16,6 +18,7 @@ class ExportRecommendationPdfButton extends StatelessWidget {
     required this.patientSummary,
     required this.recommendation,
     required this.nextSteps,
+    required this.symptoms,
   });
 
   @override
@@ -40,6 +43,15 @@ class ExportRecommendationPdfButton extends StatelessWidget {
       icon: const Icon(Icons.picture_as_pdf),
       label: const Text('PDF exportieren'),
       onPressed: () async {
+        final dependencies = AppDependenciesScope.maybeOf(context);
+        final authSession = dependencies?.dependencies.authSession;
+        final profileApiService = dependencies?.dependencies.profileApiService;
+        final activeProfileId = authSession?.activeProfileId;
+
+        final profile = activeProfileId != null && profileApiService != null
+            ? await profileApiService.getProfile(activeProfileId)
+            : null;
+
         final pdfService = RecommendationPdfService();
 
         final pdfBytes = await pdfService.buildRecommendationPdf(
@@ -47,6 +59,8 @@ class ExportRecommendationPdfButton extends StatelessWidget {
           patientSummary: patientSummary,
           recommendation: recommendation,
           nextSteps: nextSteps,
+          symptoms: symptoms,
+          profile: profile,
         );
 
         await Printing.layoutPdf(

@@ -460,8 +460,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             : 'Antwort von Careena: $semanticText',
                         child: ChatBubble(
                           message: message,
+                          symptoms: widget.controller.symptoms.value,
                           showLongProcessingHint:
-                              message.isLoading && _showLongProcessingHint,
+                            message.isLoading && _showLongProcessingHint,
                         ),
                       ),
                     );

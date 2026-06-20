@@ -143,7 +143,17 @@ void main() {
           ..nextResponse = const ChatResponse(
             text: 'Bitte heute aerztlich abklaeren.',
             redFlag: false,
-            action: 'Termin vereinbaren',
+            responseMode: 'recommend',
+            recommendationReady: true,
+            recommendationResult: RecommendationResult(
+              allowed: true,
+              summary: 'Bitte heute aerztlich abklaeren.',
+              urgency: 'soon',
+              urgencyLevel: 'moderate',
+              careLevel: 'general_practice',
+              specialty: 'general_practice',
+              nextStep: 'Termin vereinbaren',
+            ),
           );
         final historyRepository = _FakeChatHistoryRepository();
         final controller = ChatController(
@@ -185,7 +195,17 @@ void main() {
         ..nextResponse = const ChatResponse(
           text: 'Bitte heute aerztlich abklaeren.',
           redFlag: false,
-          action: 'Termin vereinbaren',
+          responseMode: 'recommend',
+          recommendationReady: true,
+          recommendationResult: RecommendationResult(
+            allowed: true,
+            summary: 'Bitte heute aerztlich abklaeren.',
+            urgency: 'soon',
+            urgencyLevel: 'moderate',
+            careLevel: 'general_practice',
+            specialty: 'general_practice',
+            nextStep: 'Termin vereinbaren',
+          ),
         );
       final historyRepository = _FakeChatHistoryRepository();
       final controller = ChatController(

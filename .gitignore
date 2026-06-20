@@ -10,15 +10,6 @@ build/
 .pub/
 app1/devtools_options.yaml
 
-# Flutter generated desktop plugin registrants
-app1/linux/flutter/generated_plugin_registrant.cc
-app1/linux/flutter/generated_plugin_registrant.h
-app1/linux/flutter/generated_plugins.cmake
-app1/macos/Flutter/GeneratedPluginRegistrant.swift
-app1/windows/flutter/generated_plugin_registrant.cc
-app1/windows/flutter/generated_plugin_registrant.h
-app1/windows/flutter/generated_plugins.cmake
-
 # Android Studio / IntelliJ
 .idea/
 .vscode/

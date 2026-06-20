@@ -3,6 +3,51 @@
 /// A response can be either a normal assistant answer or a red-flag result that
 /// should redirect the user to the warning flow.
 /// TODO: add other "Handlungsempfehlungen"
+///
+class RecommendationResult {
+  final bool allowed;
+  final String? summary;
+  final String urgency;
+  final String urgencyLevel;
+  final String careLevel;
+  final String specialty;
+  final List<String> reasons;
+  final String? nextStep;
+  final List<String> limitations;
+
+  const RecommendationResult({
+    required this.allowed,
+    this.summary,
+    required this.urgency,
+    required this.urgencyLevel,
+    required this.careLevel,
+    required this.specialty,
+    this.reasons = const [],
+    this.nextStep,
+    this.limitations = const [],
+  });
+
+  factory RecommendationResult.fromJson(Map<String, dynamic> json) {
+    return RecommendationResult(
+      allowed: json['allowed'] == true,
+      summary: json['summary']?.toString(),
+      urgency: json['urgency']?.toString() ?? 'unknown',
+      urgencyLevel: json['urgency_level']?.toString() ?? 'unclear',
+      careLevel: json['care_level']?.toString() ?? 'unknown',
+      specialty: json['specialty']?.toString() ?? 'unknown',
+      reasons: (json['reasons'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList() ??
+          const [],
+      nextStep: json['next_step']?.toString(),
+      limitations: (json['limitations'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList() ??
+          const [],
+    );
+  }
+}
+
 class ChatResponse {
   /// Text intended for the normal chat bubble or warning explanation.
   final String text;
@@ -31,6 +76,10 @@ class ChatResponse {
   /// Keywords that triggered the red-flag rule.
   final List<String> matchedKeywords;
 
+  final String? responseMode;
+  final bool recommendationReady;
+  final RecommendationResult? recommendationResult;
+
   const ChatResponse({
     required this.text,
     required this.redFlag,
@@ -41,6 +90,9 @@ class ChatResponse {
     this.category,
     this.messageKey,
     this.matchedKeywords = const [],
+    this.responseMode,
+    this.recommendationReady = false,
+    this.recommendationResult,
   });
 
   /// Maps raw JSON from the backend into a typed chat response.
@@ -59,6 +111,13 @@ class ChatResponse {
               ?.map((item) => item.toString())
               .toList() ??
           const [],
+      responseMode: json['response_mode']?.toString(),
+      recommendationReady: json['recommendation_ready'] == true,
+      recommendationResult: json['recommendation_result'] is Map<String, dynamic>
+          ? RecommendationResult.fromJson(
+        json['recommendation_result'] as Map<String, dynamic>,
+      )
+          : null,
     );
   }
 }

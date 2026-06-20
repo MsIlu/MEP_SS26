@@ -32,6 +32,18 @@ class EntryClassifier:
         "arm",
         "blut",
     )
+    _LAY_MEDICAL_PHRASES = (
+        "mir ist schlecht",
+        "mir ist komisch",
+        "mir geht es schlecht",
+        "ich fuehle mich schlecht",
+        "ich fuehle mich komisch",
+        "ich fuehle mich schwach",
+        "ich bin schwach",
+        "mir ist schwindelig",
+        "mir ist uebel",
+    )
+
     _OUT_OF_SCOPE_HINTS = ("wetter", "programm", "code", "urlaub", "finanzen", "schule")
 
     def __init__(
@@ -211,6 +223,8 @@ class EntryClassifier:
         )
 
     def _looks_medical(self, normalized: str) -> bool:
+        if any(phrase in normalized for phrase in self._LAY_MEDICAL_PHRASES):
+            return True
         if any(hint in normalized for hint in self._MEDICAL_HINTS):
             return True
         return bool(re.search(r"\b(krank|beschwer|symptom|weh)\b", normalized))

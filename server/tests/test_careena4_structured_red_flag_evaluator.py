@@ -4,7 +4,7 @@ from careena4.models.turn import SafetyAction, SafetyRedFlagStatus
 from careena4.models.understanding import CurrentTurnUnderstanding, ExtractedSymptomCandidate
 
 
-def test_structured_dyspnea_mapping_needs_safety_clarification():
+def test_structured_dyspnea_text_needs_safety_clarification():
     evidence = CurrentTurnSafetyEvidence(
         symptom_evidence=[
             SymptomSafetyEvidence(
@@ -24,7 +24,7 @@ def test_structured_dyspnea_mapping_needs_safety_clarification():
     assert result.requires_safety_clarification is True
     assert result.requires_emergency_response is False
     assert "1008" in result.consultation_reason_source_ids
-    assert "267036007" in result.matched_snomed_codes
+    assert result.matched_snomed_codes == []
     assert "structured_suspected_dyspnea" in result.matched_rule_ids
 
 
@@ -49,10 +49,11 @@ def test_structured_critical_dyspnea_text_confirms_emergency():
     assert result.requires_emergency_response is True
     assert result.requires_safety_clarification is False
     assert "1008" in result.consultation_reason_source_ids
+    assert result.matched_snomed_codes == []
     assert "structured_critical_dyspnea" in result.matched_rule_ids
 
 
-def test_structured_chest_pain_mapping_needs_safety_clarification():
+def test_structured_chest_pain_text_needs_safety_clarification():
     evidence = CurrentTurnSafetyEvidence(
         symptom_evidence=[
             SymptomSafetyEvidence(
@@ -71,8 +72,32 @@ def test_structured_chest_pain_mapping_needs_safety_clarification():
     assert result.action == SafetyAction.ASK_SAFETY_CLARIFICATION
     assert result.requires_safety_clarification is True
     assert "1002" in result.consultation_reason_source_ids
-    assert "29857009" in result.matched_snomed_codes
+    assert result.matched_snomed_codes == []
     assert "structured_suspected_chest_pain" in result.matched_rule_ids
+
+
+def test_structured_ignores_snomed_code_without_matching_text_signal():
+    evidence = CurrentTurnSafetyEvidence(
+        symptom_evidence=[
+            SymptomSafetyEvidence(
+                source_label="Schwindel",
+                clinical_term_de="Schwindel",
+                snomed_code="267036007",
+                mapping_confidence=0.92,
+                validation_status="candidate",
+            )
+        ]
+    )
+
+    result = StructuredRedFlagEvaluator().evaluate(evidence)
+
+    assert result.red_flag_status == SafetyRedFlagStatus.NONE
+    assert result.action == SafetyAction.NONE
+    assert result.red_flag_detected is False
+    assert result.requires_emergency_response is False
+    assert result.requires_safety_clarification is False
+    assert result.matched_snomed_codes == []
+    assert result.trace_notes == ["structured_red_flag:none"]
 
 
 def test_structured_non_safety_symptom_returns_none():
@@ -144,4 +169,5 @@ def test_safety_evidence_from_turn_understanding_maps_dyspnea():
 
     assert result.red_flag_status == SafetyRedFlagStatus.SUSPECTED
     assert result.action == SafetyAction.ASK_SAFETY_CLARIFICATION
+    assert result.matched_snomed_codes == []
     assert "structured_suspected_dyspnea" in result.matched_rule_ids

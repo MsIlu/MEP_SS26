@@ -12,11 +12,11 @@ class SymptomSyncService {
     SymptomRepository? repository,
   }) : _repository = repository ?? SymptomRepository();
 
-  /// Fetches all symptom entries for [profileId] and merges them locally.
+  /// Fetches all symptom entries for [profileId] and replaces the local cache.
   Future<void> syncActiveProfile(int profileId) async {
     final remoteEntries = await _apiService.getSymptoms(profileId: profileId);
     final entries = remoteEntries.map(SymptomEntry.fromResponse).toList();
 
-    await _repository.importServerEntries(entries);
+    await _repository.saveEntries(entries);
   }
 }

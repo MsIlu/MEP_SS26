@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_dependencies_scope.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../profiles/data/profile_api_service.dart';
@@ -60,6 +61,10 @@ class CreateManagedProfileButton extends StatelessWidget {
 
       session.setProfiles([...session.profiles, authProfile]);
       session.setActiveProfileById(authProfile.id);
+      
+      if (!context.mounted) return;
+
+      await _refreshProfileData(context, authProfile.id);
 
       if (!context.mounted) return;
       _showMessage(
@@ -72,6 +77,23 @@ class CreateManagedProfileButton extends StatelessWidget {
         context,
         'Das Profil konnte nicht erstellt werden. Bitte versuche es erneut.',
       );
+    }
+  }
+
+  Future<void> _refreshProfileData(
+    BuildContext context,
+    int profileId,
+  ) async {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    if (dependencies == null) {
+      return;
+    }
+
+    try {
+      await dependencies.symptomRepository.clearEntries();
+      await dependencies.symptomSyncService.syncActiveProfile(profileId);
+    } catch (_) {
+      // Keep profile creation flow working even if symptom reload fails.
     }
   }
 

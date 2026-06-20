@@ -11,6 +11,18 @@ from careena4.models.turn import SafetyAction, SafetyRedFlagStatus, SafetyState
 class RawRedFlagDetector:
     """Detect raw safety signals in the user's current message only."""
 
+    _CRITICAL_DYSPNEA_TERMS = (
+        "bekomme keine luft",
+        "bekomm keine luft",
+        "kriege keine luft",
+        "krieg keine luft",
+        "keine luft mehr",
+        "keine luft",
+        "kann nicht atmen",
+        "bekomme keinen atem",
+        "ersticke",
+    )
+
     _DYSPNEA_TERMS = (
         "schlecht luft",
         "bekomme schlecht luft",
@@ -18,11 +30,6 @@ class RawRedFlagDetector:
         "luftnot",
         "atemnot",
         "dyspnoe",
-        "keine luft",
-        "bekomme keine luft",
-        "bekomm keine luft",
-        "kriege keine luft",
-        "kann nicht atmen",
     )
 
     _NEGATED_DYSPNEA_TERMS = (
@@ -138,6 +145,16 @@ class RawRedFlagDetector:
 
     def _find_confirmed_emergency_terms(self, normalized_message: str) -> list[str]:
         """Return raw terms that are strong enough for immediate emergency handling."""
+
+        critical_dyspnea_terms = self._find_terms(
+            normalized_message,
+            self._CRITICAL_DYSPNEA_TERMS,
+        )
+        if critical_dyspnea_terms and not self._contains_any(
+            normalized_message,
+            self._NEGATED_DYSPNEA_TERMS,
+        ):
+            return self._deduplicate(critical_dyspnea_terms)
 
         unconscious_terms = self._find_terms(normalized_message, self._UNCONSCIOUS_TERMS)
         not_breathing_terms = self._find_terms(

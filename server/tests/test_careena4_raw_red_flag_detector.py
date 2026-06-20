@@ -48,14 +48,14 @@ def test_careena4_does_not_flag_negated_dyspnea_or_chest_pain():
     assert safety_state.requires_safety_clarification is False
 
 
-def test_careena4_keine_luft_stays_suspected_for_clarification():
+def test_careena4_keine_luft_is_confirmed_emergency():
     safety_state = RawRedFlagDetector().detect("Ich bekomme keine Luft.")
 
     assert safety_state.red_flag_detected is True
-    assert safety_state.red_flag_status == SafetyRedFlagStatus.SUSPECTED
-    assert safety_state.action == SafetyAction.ASK_SAFETY_CLARIFICATION
-    assert safety_state.requires_safety_clarification is True
-    assert "bekomme keine luft" in safety_state.evidence_terms
+    assert safety_state.red_flag_status == SafetyRedFlagStatus.CONFIRMED
+    assert safety_state.action == SafetyAction.EMERGENCY
+    assert safety_state.requires_emergency_response is True
+    assert safety_state.requires_safety_clarification is False
 
 
 def test_careena4_detects_acute_neurologic_deficit_as_suspected_red_flag():

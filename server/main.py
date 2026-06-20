@@ -164,10 +164,7 @@ def chat(
         current_user: User | None = Depends(get_optional_current_account),
         session: Session = Depends(get_session),
 ):
-    careena4_session = careena4_session_store.get(req.session_id)
-
-    if careena4_session is None:
-        return {"response": "Fehler: Ungueltige Session-ID", "red_flag": False}
+    careena4_session = require_careena4_session(req.session_id)
 
     if not req.message.strip():
         return {"response": "Fehler: Leere Eingabe.", "red_flag": False}

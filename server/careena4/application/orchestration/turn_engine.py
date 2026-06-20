@@ -1,4 +1,4 @@
-﻿from careena4.application.dialogue.question_builder import QuestionBuilder
+from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
@@ -127,6 +127,109 @@ class TurnEngine:
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
+
+        if (
+            conversation_state.active_question is not None
+            and conversation_state.active_question.kind == "safety_clarification"
+        ):
+            current_question = conversation_state.active_question
+            resolution = self.question_resolver.resolve(
+                question=current_question,
+                message=turn_input.message,
+                history_messages=turn_input.extraction_history_messages,
+            )
+            trace_notes.extend(resolution.trace_notes)
+
+            if resolution.status.startswith("confirmed_"):
+                decision = TurnDecision(
+                    kind="ask_safety_question",
+                    response_mode="emergency",
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:safety_confirmation_emergency"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
+
+            if resolution.status in {"invalid", "unclear", "still_unclear", "invalid_answer"}:
+                decision = TurnDecision(
+                    kind="ask_safety_question",
+                    response_mode="ask_safety_question",
+                    active_question=current_question,
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:repeat_active_question"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    active_question=current_question,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
+
+            if resolution.clear_active_question:
+                resolved_question = current_question
+                conversation_state.active_question = None
+                conversation_state.phase = "exploration" if medical_case.active_observations() else "intake"
+
+                decision = TurnDecision(
+                    kind="request_case_description",
+                    response_mode="request_case_description",
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:early_safety_clarification_cleared"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    resolved_question=resolved_question,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    case_topic=case_topic,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
 
         if self.turn_understanding_service is not None:
             current_turn_understanding = self.turn_understanding_service.extract(

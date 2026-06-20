@@ -2,6 +2,7 @@ from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
+from careena4.application.dialogue.safety_clarification_resolver import SafetyClarificationResolver
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.input import SymptomChipBuilder
@@ -31,6 +32,7 @@ class TurnEngine:
         *,
         raw_red_flag_detector: RawRedFlagDetector | None = None,
         safety_clarification_builder: SafetyClarificationBuilder | None = None,
+        safety_clarification_resolver: SafetyClarificationResolver | None = None,
         entry_classifier: EntryClassifier | None = None,
         question_resolver: QuestionResolver | None = None,
         topic_manager: TopicManager | None = None,
@@ -53,6 +55,9 @@ class TurnEngine:
     ):
         self.raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
         self.safety_clarification_builder = safety_clarification_builder or SafetyClarificationBuilder()
+        self.safety_clarification_resolver = (
+            safety_clarification_resolver or SafetyClarificationResolver()
+        )
         self.entry_classifier = entry_classifier or EntryClassifier()
         self.question_resolver = question_resolver or QuestionResolver()
         self.topic_manager = topic_manager or TopicManager()
@@ -133,14 +138,14 @@ class TurnEngine:
             and conversation_state.active_question.kind == "safety_clarification"
         ):
             current_question = conversation_state.active_question
-            resolution = self.question_resolver.resolve(
+            safety_resolution = self.safety_clarification_resolver.resolve(
                 question=current_question,
-                message=turn_input.message,
-                history_messages=turn_input.extraction_history_messages,
+                answer_code=turn_input.message.strip(),
             )
-            trace_notes.extend(resolution.trace_notes)
+            outcome = safety_resolution.outcome.value
+            trace_notes.extend(safety_resolution.trace_notes)
 
-            if resolution.status.startswith("confirmed_"):
+            if outcome.startswith("confirmed_"):
                 decision = TurnDecision(
                     kind="ask_safety_question",
                     response_mode="emergency",
@@ -168,7 +173,7 @@ class TurnEngine:
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
-            if resolution.status in {"invalid", "unclear", "still_unclear", "invalid_answer"}:
+            if outcome in {"invalid", "unclear", "still_unclear", "invalid_answer"}:
                 decision = TurnDecision(
                     kind="ask_safety_question",
                     response_mode="ask_safety_question",
@@ -198,7 +203,7 @@ class TurnEngine:
                     trace_notes=trace_notes + decision.trace_notes,
                 )
 
-            if resolution.clear_active_question:
+            if safety_resolution.clear_pending_clarification:
                 resolved_question = current_question
                 conversation_state.active_question = None
                 conversation_state.phase = "exploration" if medical_case.active_observations() else "intake"

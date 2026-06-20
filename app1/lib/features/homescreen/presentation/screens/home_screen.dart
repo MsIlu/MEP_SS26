@@ -13,6 +13,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
+import 'package:app1/features/documents/presentation/screens/documents_screen.dart';
 import 'package:app1/features/homescreen/data/home_feature.dart';
 import 'package:app1/features/homescreen/presentation/widgets/careena_hero_card.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
@@ -290,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.description_outlined,
         title: 'Dokumente',
         backgroundColor: featureColor,
-        onTap: () {},
+        onTap: () => _navigateToDocuments(context),
       ),
       HomeFeature(
         icon: Icons.health_and_safety_outlined,
@@ -345,6 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AppointmentScreen()),
+    );
+  }
+
+  void _navigateToDocuments(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const DocumentsScreen()),
     );
   }
 

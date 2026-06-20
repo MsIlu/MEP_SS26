@@ -20,6 +20,15 @@ class MedicalExtractor:
         ("atemnot", "symptom", "Atemnot"),
         ("luftnot", "symptom", "Atemnot"),
         ("schwindel", "symptom", "Schwindel"),
+        ("mir ist schlecht", "symptom", "Uebelkeit"),
+        ("mir ist uebel", "symptom", "Uebelkeit"),
+        ("ich fuehle mich schlecht", "symptom", "Unwohlsein"),
+        ("mir geht es schlecht", "symptom", "Unwohlsein"),
+        ("mir ist komisch", "symptom", "Unwohlsein"),
+        ("ich fuehle mich komisch", "symptom", "Unwohlsein"),
+        ("ich fuehle mich schwach", "symptom", "Schwaeche"),
+        ("ich bin schwach", "symptom", "Schwaeche"),
+        ("schwaeche", "symptom", "Schwaeche"),
         ("uebelkeit", "symptom", "Uebelkeit"),
         ("übelkeit", "symptom", "Uebelkeit"),
         ("Ã¼belkeit", "symptom", "Uebelkeit"),
@@ -265,7 +274,7 @@ class MedicalExtractor:
             return {"relation": "child"}
         if "meine mutter" in normalized or "mein vater" in normalized or "andere person" in normalized:
             return {"relation": "other"}
-        if "ich " in normalized or normalized.startswith("ich") or " mir " in normalized:
+        if re.search(r"\b(ich|mir|mich)\b", normalized):
             return {"relation": "self"}
         return {}
 

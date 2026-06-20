@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 
-from careena4.application.dialogue.safety_clarification_resolver import SafetyClarificationResolver
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.core.engine import ExtractionEngine
 from careena4.llm.call_control import CallModelConfig, FOLLOWUP_CALL
@@ -16,12 +15,10 @@ class QuestionResolver:
     def __init__(
         self,
         *,
-        safety_clarification_resolver: SafetyClarificationResolver | None = None,
         medical_extractor: MedicalExtractor | None = None,
         extraction_engine: ExtractionEngine | None = None,
         call_model_config: CallModelConfig | None = None,
     ):
-        self.safety_clarification_resolver = safety_clarification_resolver or SafetyClarificationResolver()
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.extraction_engine = extraction_engine
         self.call_model_config = call_model_config
@@ -37,12 +34,8 @@ class QuestionResolver:
         normalized = self._normalize(stripped)
 
         if question.kind == "safety_clarification":
-            safety_resolution = self.safety_clarification_resolver.resolve(question=question, answer_code=stripped)
-            return QuestionResolution(
-                status=safety_resolution.outcome.value,
-                answer_kind=safety_resolution.outcome.value,
-                clear_active_question=safety_resolution.clear_pending_clarification,
-                trace_notes=list(safety_resolution.trace_notes),
+            raise ValueError(
+                "Safety clarification answers must be resolved outside the normal QuestionResolver."
             )
 
         if question.kind == "closing_choice":

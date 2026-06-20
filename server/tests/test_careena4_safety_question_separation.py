@@ -1,3 +1,5 @@
+import pytest
+from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.orchestration.turn_engine import TurnEngine
 from careena4.models.domain import ConversationState
@@ -44,3 +46,12 @@ def test_open_safety_clarification_does_not_use_normal_question_resolver():
     assert result.response_mode != "ask_safety_question"
     assert result.conversation_state.active_question is None
     assert "safety_clarification:cleared_red_flag" in result.trace_notes
+
+def test_normal_question_resolver_rejects_safety_clarification_questions():
+    active_question = _open_safety_clarification_state().active_question
+
+    with pytest.raises(ValueError, match="Safety clarification"):
+        QuestionResolver().resolve(
+            question=active_question,
+            message="Nein",
+        )

@@ -122,7 +122,6 @@ def build_runtime(
         call_model_config=call_model_config,
     )
     question_resolver = QuestionResolver(
-        safety_clarification_resolver=safety_clarification_resolver,
         medical_extractor=medical_extractor,
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
@@ -142,6 +141,7 @@ def build_runtime(
         )
     turn_engine = TurnEngine(
         safety_clarification_builder=safety_clarification_builder,
+        safety_clarification_resolver=safety_clarification_resolver,
         entry_classifier=entry_classifier,
         question_resolver=question_resolver,
         medical_extractor=medical_extractor,

@@ -101,6 +101,14 @@ class EntryClassifier:
             )
             return None
 
+        if active_question is not None and active_question.kind != "safety_clarification":
+            result.in_scope = True
+            result.answers_active_question = True
+            result.possible_topic_shift = False
+            result.message_kind = "question_answer"
+            if result.medical_relevance == "non_medical":
+                result.medical_relevance = "medical"
+
         if result.answers_active_question and result.message_kind != "question_answer":
             result.message_kind = "question_answer"
         if not result.in_scope:
@@ -128,8 +136,10 @@ class EntryClassifier:
     ) -> EntryAssessment:
         stripped = message.strip()
         normalized = self._normalize(stripped)
-        in_scope = not any(hint in normalized for hint in self._OUT_OF_SCOPE_HINTS)
         answers_active_question = active_question is not None
+        in_scope = answers_active_question or not any(
+            hint in normalized for hint in self._OUT_OF_SCOPE_HINTS
+        )
         recommendation_requested = self._is_recommendation_request(normalized)
         medical_relevance = "medical" if self._looks_medical(normalized) or answers_active_question else "non_medical"
         contains_new_medical_information = self._looks_medical(normalized)

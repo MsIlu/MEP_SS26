@@ -16,11 +16,15 @@ import '../../../recommendation_export/presentation/export_recommendation_pdf_bu
 /// - Styling chat bubbles based on sender
 class ChatBubble extends StatelessWidget {
   final Message message;
+  final List<String> symptoms;
+  final List<String> userMessages;
   final bool showLongProcessingHint;
 
   const ChatBubble({
     super.key,
     required this.message,
+    required this.symptoms,
+    required this.userMessages,
     this.showLongProcessingHint = false,
   });
 
@@ -134,10 +138,12 @@ class ChatBubble extends StatelessWidget {
                               title:
                                   message.exportTitle ?? 'Handlungsempfehlung',
                               patientSummary:
-                                  'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                                  'Zusammenfassung des Chatverlaufes',
                               recommendation:
                                   message.exportRecommendation ?? message.text,
                               nextSteps: message.exportNextSteps ?? '',
+                              symptoms: symptoms,
+                              userMessages: userMessages,
                             ),
                             if (message.canCreateAppointment)
                               CreateRecommendedAppointmentButton(

@@ -80,40 +80,19 @@ class _SymptomDiaryIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (entriesCount == 0) {
+      return const SizedBox.shrink();
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(Icons.edit_note, color: colorScheme.onPrimaryContainer),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                entriesCount == 0
-                    ? 'Kurz eintragen, wie es dir geht.'
-                    : '$entriesCount Einträge an diesem Tag gespeichert.',
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 14,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return Text(
+      '$entriesCount Einträge an diesem Tag gespeichert.',
+      style: TextStyle(
+        color: colorScheme.onSurfaceVariant,
+        fontSize: 14,
+        height: 1.35,
+      ),
     );
   }
 }

@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       widget.authSession.setAuthResponse(authResponse);
-      widget.symptomRepository.clearEntries(); 
+      await widget.symptomRepository.clearEntries();
       await _syncSymptomDiary();
 
       if (!mounted) return;

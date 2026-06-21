@@ -119,15 +119,139 @@ pip install -r requirements.txt
 
 # 7. Start the Backend Server
 
+The Flutter app uses HTTPS for local backend requests. Each local machine that
+runs the app/backend with HTTPS must trust its local backend certificate. Use
+`mkcert` for this setup.
+
+## 7.1 Create a Trusted Local HTTPS Certificate
+
+Install `mkcert` once on your operating system:
+
+Windows:
+
+```powershell
+winget install FiloSottile.mkcert
+```
+
+Close and reopen PowerShell after the installation, then check:
+
+```powershell
+mkcert --version
+```
+
+If PowerShell still does not recognize `mkcert`, find the installed executable:
+
+```powershell
+Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter mkcert.exe
+```
+
+Use the shown path directly in PowerShell. Replace the example path with the
+path printed by the previous command:
+
+```powershell
+$mkcert = "C:\Users\<YOUR_USER>\AppData\Local\Microsoft\WinGet\Packages\FiloSottile.mkcert_Microsoft.Winget.Source_8wekyb3d8bbwe\mkcert.exe"
+
+& $mkcert --version
+```
+
+If this works, use `& $mkcert` instead of `mkcert` in the commands below. For
+example:
+
+```powershell
+& $mkcert -install
+```
+
+Important: `$mkcert` is only available in the same PowerShell session where it
+was set. If you close PowerShell or open a new terminal, set `$mkcert` again
+before running commands such as `& $mkcert -install`.
+
+If `& $mkcert --version` works, continue with `& $mkcert` for the mkcert
+commands in this setup.
+
+macOS with Homebrew:
+
+```bash
+brew install mkcert
+```
+
+Linux, for example Debian/Ubuntu:
+
+```bash
+sudo apt install mkcert libnss3-tools
+```
+
+Install the local certificate authority into the operating system trust store.
+Chrome uses the system trust store on Windows and macOS. On Linux, `mkcert`
+also uses `libnss3-tools` so browsers such as Chrome/Chromium and Firefox can
+trust the local certificate:
+
+```bash
+mkcert -install
+```
+
+On Windows, a security confirmation dialog can appear during `mkcert -install`.
+This is expected: `mkcert` creates a local development certificate authority and
+adds it to the trusted certificate store. Confirm it if the dialog refers to the
+mkcert local development CA.
+
+If `mkcert -install` prints a Java/keytool warning such as `Access is denied`
+for a Java `cacerts` file, Chrome support can still be installed correctly. For
+Flutter Web in Chrome, the important message is:
+
+```text
+The local CA is now installed in the system trust store!
+```
+
+The Java warning only means that mkcert could not add the local CA to Java's own
+certificate store. This is usually not required for the local Flutter Web and
+FastAPI setup.
+
+Create the backend certificate inside the `server` folder:
+
+```bash
+cd server
+mkdir certs
+mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost-cert.pem localhost 127.0.0.1 10.0.2.2
+```
+
+If the `certs` folder already exists, skip `mkdir certs`.
+
+Restart Chrome after installing the certificate authority. You can also open
+`chrome://restart`.
+
+## 7.2 Start the HTTPS Backend
+
 Start the local-Terminal (not bash-terminal) inside the `server` folder and start the server:
 
 ```bash
-python -m uvicorn main:app --reload
+python -m uvicorn main:app --reload --ssl-keyfile certs/localhost-key.pem --ssl-certfile certs/localhost-cert.pem
+```
+
+# 8. Start the Flutter Frontend
+
+For Flutter Web in Chrome, start the frontend with HTTPS and reuse the local
+certificate files created for the backend. The port can be changed if needed:
+
+```bash
+cd app1
+flutter run -d chrome --web-hostname localhost --web-port 3000 --web-tls-cert-path "../server/certs/localhost-cert.pem" --web-tls-cert-key-path "../server/certs/localhost-key.pem"
+```
+
+With the example port above, open the app at:
+
+```text
+https://localhost:3000
+```
+
+The backend must still be running at:
+
+```text
+https://localhost:8000
 ```
 
 ---
 
-# 8. Verify Database Connection
+# 9. Verify Database Connection
 
 Open the bash-terminal to start PostgreSQL in docker:
 
@@ -149,7 +273,7 @@ To exit PostgreSQL, use the following code:
 
 ---
 
-# 9. Stop Docker
+# 10. Stop Docker
 
 To stop the database:
 
@@ -159,7 +283,7 @@ docker compose down
 
 ---
 
-# 10. Common Issues
+# 11. Common Issues
 
 ## Docker command not found
 

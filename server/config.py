@@ -13,6 +13,10 @@ load_dotenv(BASE_DIR / ".env")
 LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://localhost:4000").rstrip("/")
 LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "")
 SELECTED_MODEL = os.getenv("LITELLM_MODEL", "medgemma:27b")
+CORS_ALLOWED_ORIGIN_REGEX = os.getenv(
+    "CORS_ALLOWED_ORIGIN_REGEX",
+    r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+)
 
 # LLM-Konfiguration
 

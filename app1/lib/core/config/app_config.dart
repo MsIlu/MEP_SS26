@@ -15,11 +15,11 @@ class AppConfig {
   /// Currently only distinguishes between Web and Android Emulator.
   /// For a physical Android device, replace the URL with your machine's local IP.
   static String get baseUrl {
+    // For iOS Simulator, use: "https://localhost:8000"
+    // For a physical Android device, use your PC/FastAPI server IP address.
+
     return kIsWeb
-        ? "http://localhost:8000" // Web
-        : "http://10.0.2.2:8000" // Android Emulator
-       // : "http://localhost:8000" // IOS-Simulator
-    //"PC/FastAPIServerIP"             // Android device (physical) (no //)
-    ;
+        ? "https://localhost:8000" // Web
+        : "https://10.0.2.2:8000"; // Android Emulator
   }
 }

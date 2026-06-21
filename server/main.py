@@ -150,6 +150,16 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             if result.recommendation_result is not None
             else None
         ),
+        "action": (
+            result.recommendation_result.next_step
+            if result.recommendation_result is not None
+            else None
+        ),
+        "severity": (
+            result.recommendation_result.urgency_level
+            if result.recommendation_result is not None
+            else None
+        ),
     }
 
 

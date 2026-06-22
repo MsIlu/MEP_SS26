@@ -53,24 +53,24 @@ class DocumentController extends ChangeNotifier {
   }
 
   void addDocument({
-    required String name,
-    required DocumentCategory category,
-  }) {
-    final normalizedName = name.trim().toLowerCase().endsWith('.pdf')
-        ? name.trim()
-        : '${name.trim()}.pdf';
-
-    repository.addDocument(
-      DocumentEntry(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        name: normalizedName,
-        category: category,
-        createdAt: DateTime.now(),
-        sizeInBytes: 0,
-        source: DocumentSource.uploaded,
-      ),
-    );
-  }
+  required String name,
+  required DocumentCategory category,
+  required Uint8List fileBytes,
+  required String mimeType,
+}) {
+  repository.addDocument(
+    DocumentEntry(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: name.trim(),
+      category: category,
+      createdAt: DateTime.now(),
+      sizeInBytes: fileBytes.lengthInBytes,
+      source: DocumentSource.uploaded,
+      fileBytes: fileBytes,
+      mimeType: mimeType,
+    ),
+  );
+}
 
   void renameDocument(String id, String name) {
     final trimmedName = name.trim();

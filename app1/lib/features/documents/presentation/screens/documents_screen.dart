@@ -12,6 +12,7 @@ import '../widgets/document_list_item.dart';
 import '../widgets/rename_document_dialog.dart';
 import '../widgets/upload_document_dialog.dart';
 import 'document_preview_screen.dart';
+import '../../data/document_repository.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -28,6 +29,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   void initState() {
     super.initState();
     _controller = DocumentController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DocumentRepository.instance.markAllAsSeen();
+    });
   }
 
   @override
@@ -203,7 +208,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
     if (draft == null || !mounted) return;
 
-    _controller.addDocument(name: draft.name, category: draft.category);
+    _controller.addDocument(
+      name: draft.name,
+      category: draft.category,
+      fileBytes: draft.fileBytes,
+      mimeType: draft.mimeType,
+    );
     _showMessage('Dokument hinzugefügt');
   }
 
@@ -225,23 +235,22 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   Future<void> _showDocumentDetails(DocumentEntry document) async {
-  final fileBytes = document.fileBytes;
+    final fileBytes = document.fileBytes;
 
-if (fileBytes != null &&
-    document.mimeType == 'application/pdf') {
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DocumentPreviewScreen(
-        documentName: document.name,
-        fileBytes: fileBytes,
-      ),
-    ),
-  );
-  return;
-}
+    if (fileBytes != null && document.mimeType == 'application/pdf') {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DocumentPreviewScreen(
+            documentName: document.name,
+            fileBytes: fileBytes,
+          ),
+        ),
+      );
+      return;
+    }
 
-  // Danach bleibt dein bisheriger Details-Dialog stehen.
+    // Danach bleibt dein bisheriger Details-Dialog stehen.
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(

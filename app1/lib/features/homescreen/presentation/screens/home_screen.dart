@@ -25,6 +25,7 @@ import '../../../appointmentscreen/presentation/screens/appointment_screen.dart'
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:flutter/material.dart';
+import 'package:app1/features/documents/data/document_repository.dart';
 
 /// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatefulWidget {
@@ -61,6 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final _themeKey = GlobalKey();
   final _navigationKey = GlobalKey();
   int? _guideStep;
+  final DocumentRepository _documentRepository =
+    DocumentRepository.instance;
 
   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
@@ -74,12 +77,33 @@ class _HomeScreenState extends State<HomeScreen> {
       : appGuideSteps;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.startGuide) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _startGuide());
-    }
+void initState() {
+  super.initState();
+
+  _documentRepository.unreadCount.addListener(
+    _onDocumentBadgeChanged,
+  );
+
+  if (widget.startGuide) {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _startGuide(),
+    );
   }
+}
+
+void _onDocumentBadgeChanged() {
+  if (mounted) {
+    setState(() {});
+  }
+}
+
+@override
+void dispose() {
+  _documentRepository.unreadCount.removeListener(
+    _onDocumentBadgeChanged,
+  );
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -291,6 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.description_outlined,
         title: 'Dokumente',
         backgroundColor: featureColor,
+        badgeCount: _documentRepository.unreadCount.value,
         onTap: () => _navigateToDocuments(context),
       ),
       HomeFeature(

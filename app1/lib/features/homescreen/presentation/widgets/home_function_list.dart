@@ -57,6 +57,7 @@ class HomeFunctionList extends StatelessWidget {
             bgColor: feature.backgroundColor,
             onTap: feature.onTap,
             isSimpleView: isSimpleView,
+            badgeCount: feature.badgeCount,
           );
         },
       ),

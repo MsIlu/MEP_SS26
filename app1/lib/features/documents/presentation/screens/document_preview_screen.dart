@@ -29,7 +29,7 @@ Widget build(BuildContext context) {
       allowPrinting: false,
       allowSharing: false,
       pdfPreviewPageDecoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Colors.white,
         boxShadow: const [
           BoxShadow(
             color: Colors.black26,

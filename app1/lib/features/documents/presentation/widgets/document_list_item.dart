@@ -18,16 +18,21 @@ class DocumentListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       margin: EdgeInsets.zero,
       elevation: 1,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: isDarkMode
+              ? colorScheme.outlineVariant.withValues(alpha: 0.55)
+              : colorScheme.outlineVariant,
+        ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         onTap: () => onAction(DocumentAction.open),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),

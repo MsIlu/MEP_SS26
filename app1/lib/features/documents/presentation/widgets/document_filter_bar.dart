@@ -52,10 +52,21 @@ class _FilterChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
-        label: Text(label),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const Icon(Icons.check, size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+            ],
+            Text(label),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        visualDensity: VisualDensity.compact,
+        showCheckmark: false,
         selected: selected,
         selectedColor: AppColors.careenaTeal,
-        checkmarkColor: Colors.white,
         labelStyle: TextStyle(color: selected ? Colors.white : null),
         onSelected: (_) => onSelected(),
       ),

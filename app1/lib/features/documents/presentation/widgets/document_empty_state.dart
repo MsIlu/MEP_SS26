@@ -3,28 +3,24 @@ import 'package:flutter/material.dart';
 
 class DocumentEmptyState extends StatelessWidget {
   final bool hasActiveFilter;
-  final VoidCallback onUpload;
 
-  const DocumentEmptyState({
-    super.key,
-    required this.hasActiveFilter,
-    required this.onUpload,
-  });
+  const DocumentEmptyState({super.key, required this.hasActiveFilter});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
+        constraints: const BoxConstraints(maxWidth: 280),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 36),
+          padding: const EdgeInsets.only(top: 48, bottom: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.folder_open_outlined,
                 size: 64,
-                color: AppColors.careenaTeal,
+                color: AppColors.careenaTeal.withValues(alpha: 0.9),
               ),
               const SizedBox(height: 16),
               Text(
@@ -32,9 +28,10 @@ class DocumentEmptyState extends StatelessWidget {
                     ? 'Keine passenden Dokumente'
                     : 'Noch keine Dokumente',
                 textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.careenaTeal,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -42,15 +39,11 @@ class DocumentEmptyState extends StatelessWidget {
                     ? 'Passe deine Suche oder den ausgewählten Filter an.'
                     : 'Lege wichtige Befunde, Laborwerte und weitere Unterlagen zentral ab.',
                 textAlign: TextAlign.center,
-              ),
-              if (!hasActiveFilter) ...[
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: onUpload,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Dokument hinzufügen'),
+                style: TextStyle(
+                  color: AppColors.careenaTeal.withValues(alpha: 0.75),
+                  height: 1.35,
                 ),
-              ],
+              ),
             ],
           ),
         ),

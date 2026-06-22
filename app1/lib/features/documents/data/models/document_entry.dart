@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 enum DocumentCategory {
   findings('Befunde'),
   laboratory('Labor'),
@@ -18,6 +20,8 @@ class DocumentEntry {
   final DateTime createdAt;
   final int sizeInBytes;
   final DocumentSource source;
+  final Uint8List? fileBytes;
+  final String mimeType;
 
   const DocumentEntry({
     required this.id,
@@ -26,6 +30,8 @@ class DocumentEntry {
     required this.createdAt,
     required this.sizeInBytes,
     required this.source,
+    this.fileBytes,
+    this.mimeType = 'application/pdf',
   });
 
   DocumentEntry copyWith({
@@ -34,6 +40,8 @@ class DocumentEntry {
     DateTime? createdAt,
     int? sizeInBytes,
     DocumentSource? source,
+    Uint8List? fileBytes,
+    String? mimeType,
   }) {
     return DocumentEntry(
       id: id,
@@ -42,6 +50,8 @@ class DocumentEntry {
       createdAt: createdAt ?? this.createdAt,
       sizeInBytes: sizeInBytes ?? this.sizeInBytes,
       source: source ?? this.source,
+      fileBytes: fileBytes ?? this.fileBytes,
+      mimeType: mimeType ?? this.mimeType,
     );
   }
 }

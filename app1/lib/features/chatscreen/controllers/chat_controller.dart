@@ -163,10 +163,10 @@ class ChatController {
 
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
-      if (chatService.hasRecommendation(response) || isEmergency) {
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
         await _completeChat(
-          recommendation: response.text,
-          nextSteps: response.action,
+          recommendation: response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
           isEmergency: isEmergency,
         );
       }

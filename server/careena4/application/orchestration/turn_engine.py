@@ -10,6 +10,7 @@ from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
 from careena4.application.topic.case_frame_refiner import CaseFrameRefiner
 from careena4.application.topic.topic_manager import TopicManager
+from careena4.domain.case_manager import CaseManager
 from careena4.domain.case_write.case_write_planner import CaseWritePlanner
 from careena4.domain.case_write.case_writer import CaseWriter
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
@@ -38,6 +39,7 @@ class TurnEngine:
         medical_extractor: MedicalExtractor | None = None,
         case_write_planner: CaseWritePlanner | None = None,
         case_writer: CaseWriter | None = None,
+        case_manager: CaseManager | None = None,
         quality_evaluator: ObservationQualityEvaluator | None = None,
         followup_need_builder: FollowupNeedBuilder | None = None,
         followup_selector: FollowupSelector | None = None,
@@ -61,6 +63,10 @@ class TurnEngine:
         self.symptom_chip_builder = SymptomChipBuilder()
         self.case_write_planner = case_write_planner or CaseWritePlanner()
         self.case_writer = case_writer or CaseWriter()
+        self.case_manager = case_manager or CaseManager(
+            case_write_planner=self.case_write_planner,
+            case_writer=self.case_writer,
+        )
         self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator()
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder()
         self.followup_selector = followup_selector or FollowupSelector()
@@ -455,21 +461,23 @@ class TurnEngine:
                         if need.followup_id == resolution.resolved_followup_id:
                             need.resolved = True
                 if resolution.answer_kind == "negated" and current_question.target_observation_id is not None:
-                    for observation in medical_case.observations:
-                        if observation.observation_id == current_question.target_observation_id:
-                            observation.negated = True
-                            observation.status = "negated"
+                    medical_case = self.case_manager.negate_observation(
+                        medical_case=medical_case,
+                        observation_id=current_question.target_observation_id,
+                    )
                 elif resolution.extracted_answer_attributes:
                     if "relation" in resolution.extracted_answer_attributes:
-                        medical_case.subject.relation = resolution.extracted_answer_attributes["relation"]  # type: ignore[assignment]
-                        if case_topic is not None:
-                            case_topic.subject_scope = medical_case.subject.relation
+                        medical_case, case_topic = self.case_manager.update_person_relation(
+                            medical_case=medical_case,
+                            relation=resolution.extracted_answer_attributes["relation"],
+                            case_topic=case_topic,
+                        )
                     elif current_question.target_observation_id is not None:
-                        for observation in medical_case.observations:
-                            if observation.observation_id == current_question.target_observation_id:
-                                observation.attributes.update(resolution.extracted_answer_attributes)
-                                if observation.status == "reported":
-                                    observation.status = "enriched"
+                        medical_case = self.case_manager.enrich_observation_from_followup(
+                            medical_case=medical_case,
+                            observation_id=current_question.target_observation_id,
+                            attributes=resolution.extracted_answer_attributes,
+                        )
                 case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
                 resolution_additional_information = resolution.additional_medical_information
                 extra_claims = resolution.extra_claims if resolution.additional_medical_information else None
@@ -585,14 +593,11 @@ class TurnEngine:
                     current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes + decision.trace_notes,
                 )
-            if case_topic is not None:
-                medical_case.topic_id = case_topic.topic_id
-            plan = self.case_write_planner.build(
+            medical_case, write_trace = self.case_manager.apply_claims(
                 medical_case=medical_case,
                 claims=claims,
-                topic_id=case_topic.topic_id if case_topic is not None else None,
+                case_topic=case_topic,
             )
-            medical_case, write_trace = self.case_writer.apply(medical_case=medical_case, plan=plan)
             trace_notes.extend(write_trace)
             case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
         elif case_topic is not None:

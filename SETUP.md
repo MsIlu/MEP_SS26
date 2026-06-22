@@ -227,6 +227,12 @@ Start the local-Terminal (not bash-terminal) inside the `server` folder and star
 python -m uvicorn main:app --reload --ssl-keyfile certs/localhost-key.pem --ssl-certfile certs/localhost-cert.pem
 ```
 
+If HTTPS is disabled for Flutter, start the backend without certificate files:
+
+```bash
+python -m uvicorn main:app --reload
+```
+
 # 8. Start the Flutter Frontend
 
 For Flutter Web in Chrome, start the frontend with HTTPS and reuse the local
@@ -247,6 +253,13 @@ The backend must still be running at:
 
 ```text
 https://localhost:8000
+```
+
+If an Android emulator or physical device does not trust the local certificate,
+start Flutter with HTTPS disabled:
+
+```bash
+flutter run -d chrome --dart-define=BACKEND_USE_HTTPS=false
 ```
 
 ---

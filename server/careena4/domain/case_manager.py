@@ -46,6 +46,30 @@ class CaseManager:
     ) -> tuple[MedicalCase, list[str]]:
         return self.case_writer.apply(medical_case=medical_case, plan=plan)
 
+    @staticmethod
+    def topic_label(*, case_topic: CaseTopic | None) -> str | None:
+        if case_topic is None:
+            return None
+        return case_topic.current_label
+
+    def observation_label(
+        self,
+        *,
+        medical_case: MedicalCase,
+        observation_id: str,
+    ) -> str | None:
+        observation = self._find_observation(
+            medical_case=medical_case,
+            observation_id=observation_id,
+        )
+        if observation is None:
+            return None
+        return observation.label
+
+    @staticmethod
+    def has_active_observations(*, medical_case: MedicalCase) -> bool:
+        return bool(medical_case.active_observations())
+
     def negate_observation(
         self,
         *,

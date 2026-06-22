@@ -11,8 +11,6 @@ from careena4.application.response.response_policy import ResponsePolicy
 from careena4.application.topic.case_frame_refiner import CaseFrameRefiner
 from careena4.application.topic.topic_manager import TopicManager
 from careena4.domain.case_manager import CaseManager
-from careena4.domain.case_write.case_write_planner import CaseWritePlanner
-from careena4.domain.case_write.case_writer import CaseWriter
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.quality.observation_quality_evaluator import ObservationQualityEvaluator
@@ -37,8 +35,6 @@ class TurnEngine:
         topic_manager: TopicManager | None = None,
         case_frame_refiner: CaseFrameRefiner | None = None,
         medical_extractor: MedicalExtractor | None = None,
-        case_write_planner: CaseWritePlanner | None = None,
-        case_writer: CaseWriter | None = None,
         case_manager: CaseManager | None = None,
         quality_evaluator: ObservationQualityEvaluator | None = None,
         followup_need_builder: FollowupNeedBuilder | None = None,
@@ -61,12 +57,7 @@ class TurnEngine:
         self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner()
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.symptom_chip_builder = SymptomChipBuilder()
-        self.case_write_planner = case_write_planner or CaseWritePlanner()
-        self.case_writer = case_writer or CaseWriter()
-        self.case_manager = case_manager or CaseManager(
-            case_write_planner=self.case_write_planner,
-            case_writer=self.case_writer,
-        )
+        self.case_manager = case_manager or CaseManager()
         self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator()
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder()
         self.followup_selector = followup_selector or FollowupSelector()
@@ -520,7 +511,7 @@ class TurnEngine:
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
             claims = self.medical_extractor.extract(
                 message=turn_input.message,
-                case_topic=case_topic.current_label if case_topic is not None else None,
+                case_topic=self.case_manager.topic_label(case_topic=case_topic),
                 history_messages=turn_input.extraction_history_messages,
             )
         elif extra_claims is not None and extra_claims.observations:
@@ -528,7 +519,7 @@ class TurnEngine:
         elif resolution_additional_information and entry_assessment.contains_new_medical_information:
             claims = self.medical_extractor.extract(
                 message=turn_input.message,
-                case_topic=case_topic.current_label if case_topic is not None else None,
+                case_topic=self.case_manager.topic_label(case_topic=case_topic),
                 history_messages=turn_input.extraction_history_messages,
             )
 
@@ -614,13 +605,9 @@ class TurnEngine:
         if followup_need is not None:
             focus_label = None
             if followup_need.observation_id is not None:
-                focus_label = next(
-                    (
-                        observation.label
-                        for observation in medical_case.observations
-                        if observation.observation_id == followup_need.observation_id
-                    ),
-                    None,
+                focus_label = self.case_manager.observation_label(
+                    medical_case=medical_case,
+                    observation_id=followup_need.observation_id,
                 )
             conversation_state.active_question = self.question_builder.build_for_need(
                 need=followup_need,
@@ -709,7 +696,11 @@ class TurnEngine:
 
         # If we have no explicit next question and are not ready, we fall back to an explicit
         # case-description request instead of exposing an open-ended "continue" state.
-        conversation_state.phase = "exploration" if medical_case.active_observations() else "intake"
+        conversation_state.phase = (
+            "exploration"
+            if self.case_manager.has_active_observations(medical_case=medical_case)
+            else "intake"
+        )
         decision = TurnDecision(
             kind="request_case_description",
             response_mode="request_case_description",

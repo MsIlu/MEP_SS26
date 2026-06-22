@@ -6,22 +6,32 @@ Dieser lokale FHIR-Server dient als Test- und Adapterlösung für die technische
 
 Die Anwendung bindet aktuell keine produktive 116117-Schnittstelle an. Da für das Projekt keine offiziell nutzbare produktive 116117-FHIR-Schnittstelle vorliegt, wird ein lokaler HAPI-FHIR-Server verwendet, um FHIR-Ressourcen technisch erzeugen, übertragen und prüfen zu können.
 
+Dadurch kann lokal getestet werden, ob Careena später FHIR-Ressourcen bereitstellen und an einen FHIR-Server übergeben kann, ohne eine echte externe Schnittstelle zu verwenden.
+
 ## Technische Umsetzung
 
 Der lokale FHIR-Server wird über Docker Compose gestartet.
 
-Der lokale FHIR-Server verwendet ein benanntes Docker Volume (`fhir_data`), damit lokale Testdaten und Serverdaten nicht nur im Container selbst liegen. Dadurch bleiben Daten bei einem normalen Neustart des Containers erhalten. Wenn der Container komplett neu erstellt wird, sind die Daten nicht direkt verloren, solange das Docker Volume bestehen bleibt.
-
 Dafür wurde in der bestehenden `docker-compose.yml` ein zusätzlicher Service ergänzt:
 
-```yaml
 fhir-server:
-  image: hapiproject/hapi:latest
+  image: hapiproject/hapi:v8.10.0-1
   container_name: careena_fhir_server
   restart: unless-stopped
   ports:
     - "8080:8080"
-```
+  volumes:
+    - fhir_data:/data/hapi
+
+Für reproduzierbare lokale Tests wird ein konkreter HAPI-FHIR-Docker-Tag verwendet statt latest.
+
+## Lokale Persistenz
+
+Der lokale FHIR-Server verwendet ein benanntes Docker Volume (`fhir_data`), damit lokale Testdaten und Serverdaten nicht nur im Container selbst liegen.
+
+Dadurch bleiben Daten bei einem normalen Neustart des Containers erhalten. Wenn der Container komplett neu erstellt wird, sind die Daten nicht direkt verloren, solange das Docker Volume bestehen bleibt.
+
+Für eine spätere produktionsnähere Umgebung wäre eine explizite Datenbank-Anbindung, z. B. über PostgreSQL, sinnvoll. Für diesen MVP reicht das benannte Docker Volume als lokale Testpersistenz aus.
 
 ## Starten des lokalen FHIR-Servers
 

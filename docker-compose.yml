@@ -26,7 +26,7 @@ services:
 
   # Local HAPI FHIR server for development and adapter testing
   fhir-server:
-    image: hapiproject/hapi:latest
+    image: hapiproject/hapi:v8.10.0-1
     container_name: careena_fhir_server
     restart: unless-stopped
 
@@ -38,13 +38,6 @@ services:
     volumes:
       - fhir_data:/data/hapi
 
-    # Proof of reaching the FHIR server with "healthy" as return
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/fhir/metadata"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
 
 # Named Docker volume for PostgreSQL persistence
 volumes:

@@ -10,6 +10,8 @@ Die Anwendung bindet aktuell keine produktive 116117-Schnittstelle an. Da für d
 
 Der lokale FHIR-Server wird über Docker Compose gestartet.
 
+Der lokale FHIR-Server verwendet ein benanntes Docker Volume (`fhir_data`), damit lokale Testdaten und Serverdaten nicht nur im Container selbst liegen. Dadurch bleiben Daten bei einem normalen Neustart des Containers erhalten. Wenn der Container komplett neu erstellt wird, sind die Daten nicht direkt verloren, solange das Docker Volume bestehen bleibt.
+
 Dafür wurde in der bestehenden `docker-compose.yml` ein zusätzlicher Service ergänzt:
 
 ```yaml
@@ -96,4 +98,5 @@ Careena-interne Daten
 → lokaler HAPI-FHIR-Server
 ```
 
-Diese Adapterlösung dient als Vorbereitung für eine mögliche spätere externe FHIR-Anbindung, ersetzt aber keine produktive Schnittstelle.
+
+

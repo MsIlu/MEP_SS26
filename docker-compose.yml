@@ -33,7 +33,20 @@ services:
     # FHIR server web UI and REST API
     ports:
       - "8080:8080"
+    
+    # Persistent storage for local FHIR server data
+    volumes:
+      - fhir_data:/data/hapi
+
+    # Proof of reaching the FHIR server with "healthy" as return
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/fhir/metadata"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
 # Named Docker volume for PostgreSQL persistence
 volumes:
   postgres_data:
+  fhir_data:

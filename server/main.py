@@ -41,10 +41,13 @@ from careena4.models.input import (
 
 app = FastAPI()
 
-careena4_services = build_default_services(llm_mode="env") #build careena4
-careena4_turn_engine = careena4_services.turn_engine #replace for chat_logic.handle.message(...)
-careena4_session_store = careena4_services.session_store #replace for SessionManager
-careena4_session_profiles: dict[str, int | None] = {} #extra for profile_id
+# Careena4 is the chat runtime used by /session, /chatscreen and /input-drafts.
+# Sessions are kept in memory for the current backend process.
+# This is acceptable for the demo deployment, but sessions are reset on backend restart.
+careena4_services = build_default_services(llm_mode="env")
+careena4_turn_engine = careena4_services.turn_engine
+careena4_session_store = careena4_services.session_store
+careena4_session_profiles: dict[str, int | None] = {}
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
@@ -174,10 +177,7 @@ def chat(
         current_user: User | None = Depends(get_optional_current_account),
         session: Session = Depends(get_session),
 ):
-    careena4_session = careena4_session_store.get(req.session_id)
-
-    if careena4_session is None:
-        return {"response": "Fehler: Ungueltige Session-ID", "red_flag": False}
+    careena4_session = require_careena4_session(req.session_id)
 
     if not req.message.strip():
         return {"response": "Fehler: Leere Eingabe.", "red_flag": False}

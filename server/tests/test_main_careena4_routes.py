@@ -71,7 +71,7 @@ def test_profile_session_requires_auth(client):
     assert response.status_code == 401
 
 
-def test_chat_unknown_session_returns_error_response(client):
+def test_chat_unknown_session_returns_404(client):
     response = client.post(
         "/chatscreen",
         json={
@@ -80,9 +80,8 @@ def test_chat_unknown_session_returns_error_response(client):
         },
     )
 
-    assert response.status_code == 200
-    assert response.json()["red_flag"] is False
-    assert "Session" in response.json()["response"]
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Chat session not found."
 
 
 def test_guest_chat_uses_careena4_turn_engine(client, monkeypatch):

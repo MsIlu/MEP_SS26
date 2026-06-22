@@ -28,8 +28,15 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is missing. Please check .env-File in MEP_SS26.")
 
+def _env_flag(name: str, *, default: bool = False) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 #connects to postgresSQL-Database
-engine_options = {"echo": True}
+engine_options = {"echo": _env_flag("SQL_ECHO")}
 
 if DATABASE_URL.startswith(("postgresql://", "postgresql+")):
     engine_options["connect_args"] = {"options": "-csearch_path=public"}

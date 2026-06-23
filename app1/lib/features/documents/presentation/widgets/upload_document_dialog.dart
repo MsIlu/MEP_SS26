@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/document_entry.dart';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class UploadDocumentDraft {
   final String name;
@@ -30,7 +31,11 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
   final _nameController = TextEditingController();
   DocumentCategory _category = DocumentCategory.findings;
 
-  PlatformFile? _selectedFile;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Uint8List? _selectedBytes;
+  String? _selectedName;
+  String? _selectedMimeType;
   String? _fileError;
 
   @override
@@ -60,25 +65,42 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              OutlinedButton.icon(
-                onPressed: _pickFile,
-                icon: const Icon(Icons.attach_file),
-                label: Text(
-                  _selectedFile == null
-                      ? 'Datei auswählen'
-                      : _selectedFile!.name,
+              Row(
+                children: [
+                  Expanded(
+                    child: _SourceButton(
+                      icon: Icons.attach_file,
+                      label: 'Datei',
+                      onPressed: _pickFile,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _SourceButton(
+                      icon: Icons.photo_library_outlined,
+                      label: 'Foto',
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _SourceButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: 'Kamera',
+                      onPressed: () => _pickImage(ImageSource.camera),
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_selectedName != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _selectedName!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.careenaTeal,
-                  side: const BorderSide(color: AppColors.careenaTeal),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
+              ],
               if (_fileError != null) ...[
                 const SizedBox(height: 6),
                 Text(_fileError!, style: const TextStyle(color: Colors.red)),
@@ -154,24 +176,18 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
             foregroundColor: Colors.white,
           ),
           onPressed:
-              _selectedFile == null || _nameController.text.trim().isEmpty
+              _selectedBytes == null ||
+                  _selectedMimeType == null ||
+                  _nameController.text.trim().isEmpty
               ? null
               : () {
-                  final file = _selectedFile!;
-                  final extension = file.extension?.toLowerCase();
-
                   Navigator.pop(
                     context,
                     UploadDocumentDraft(
                       name: _nameController.text.trim(),
                       category: _category,
-                      fileBytes: file.bytes!,
-                      mimeType: switch (extension) {
-                        'pdf' => 'application/pdf',
-                        'jpg' || 'jpeg' => 'image/jpeg',
-                        'png' => 'image/png',
-                        _ => 'application/octet-stream',
-                      },
+                      fileBytes: _selectedBytes!,
+                      mimeType: _selectedMimeType!,
                     ),
                   );
                 },
@@ -201,6 +217,43 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
       return;
     }
 
+    final extension = file.extension?.toLowerCase();
+
+    _selectDocument(
+      bytes: bytes,
+      name: file.name,
+      mimeType: switch (extension) {
+        'pdf' => 'application/pdf',
+        'jpg' || 'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        _ => 'application/octet-stream',
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final image = await _imagePicker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (image == null) return;
+
+    final bytes = await image.readAsBytes();
+    final extension = image.name.split('.').last.toLowerCase();
+
+    _selectDocument(
+      bytes: bytes,
+      name: image.name,
+      mimeType: extension == 'png' ? 'image/png' : 'image/jpeg',
+    );
+  }
+
+  void _selectDocument({
+    required Uint8List bytes,
+    required String name,
+    required String mimeType,
+  }) {
     const maximumSize = 10 * 1024 * 1024;
 
     if (bytes.lengthInBytes > maximumSize) {
@@ -211,9 +264,48 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
     }
 
     setState(() {
-      _selectedFile = file;
+      _selectedBytes = bytes;
+      _selectedName = name;
+      _selectedMimeType = mimeType;
       _fileError = null;
-      _nameController.text = file.name;
+      _nameController.text = name;
     });
+  }
+}
+
+class _SourceButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _SourceButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.careenaTeal,
+        side: const BorderSide(color: AppColors.careenaTeal, width: 1.5),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 22),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            maxLines: 1,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -13,6 +13,7 @@ import '../widgets/rename_document_dialog.dart';
 import '../widgets/upload_document_dialog.dart';
 import 'document_preview_screen.dart';
 import '../../data/document_repository.dart';
+import 'image_preview_screen.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -242,6 +243,18 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => DocumentPreviewScreen(
+            documentName: document.name,
+            fileBytes: fileBytes,
+          ),
+        ),
+      );
+      return;
+    }
+    if (fileBytes != null && document.mimeType.startsWith('image/')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImagePreviewScreen(
             documentName: document.name,
             fileBytes: fileBytes,
           ),

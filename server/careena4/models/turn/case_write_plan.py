@@ -13,6 +13,7 @@ class CaseWriteStep(PipelineModel):
 
 
 class CaseWritePlan(PipelineModel):
+    topic_id_update: str | None = None
     subject_update: Subject | None = None
     steps: list[CaseWriteStep] = Field(default_factory=list)
     trace_notes: list[str] = Field(default_factory=list)

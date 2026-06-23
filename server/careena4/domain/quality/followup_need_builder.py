@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from careena4.domain.case import CaseManager
 from careena4.domain.quality.observation_quality_evaluator import ObservationQuality
 from careena4.models.domain import CaseTopic, FollowupNeed, MedicalCase, Observation
 
 
 class FollowupNeedBuilder:
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def build(
         self,
         *,
@@ -13,7 +17,14 @@ class FollowupNeedBuilder:
         qualities: list[ObservationQuality],
     ) -> list[FollowupNeed]:
         needs: list[FollowupNeed] = []
-        if medical_case.observations and medical_case.subject.relation == "unclear":
+        active_observations = self.case_manager.active_observations(medical_case=medical_case)
+        topic_label = self.case_manager.topic_label(case_topic=case_topic)
+        topic_extension_kinds = self.case_manager.topic_extension_kinds(case_topic=case_topic)
+
+        if (
+            self.case_manager.has_observations(medical_case=medical_case)
+            and self.case_manager.person_relation(medical_case=medical_case) == "unclear"
+        ):
             needs.append(
                 FollowupNeed(
                     reason="subject_unclear",
@@ -22,21 +33,20 @@ class FollowupNeedBuilder:
                 )
             )
         quality_by_id = {quality.observation_id: quality for quality in qualities}
-        extension_kinds = {extension.kind for extension in (case_topic.extensions if case_topic is not None else [])}
 
         duration_candidates = self._candidate_observations(
-            medical_case=medical_case,
+            observations=active_observations,
             quality_by_id=quality_by_id,
             require_attribute="duration_or_onset",
         )
-        if duration_candidates and "duration_or_onset" not in extension_kinds:
+        if duration_candidates and "duration_or_onset" not in topic_extension_kinds:
             chosen = duration_candidates[0]
             needs.append(
                 FollowupNeed(
                     observation_id=chosen.observation_id,
                     reason="duration_missing",
                     target_extension_kind="duration_or_onset",
-                    case_focus_label=case_topic.current_label if case_topic is not None else chosen.label,
+                    case_focus_label=topic_label or chosen.label,
                     related_observation_ids=[observation.observation_id for observation in duration_candidates],
                     priority="high",
                     blocking=True,
@@ -44,10 +54,10 @@ class FollowupNeedBuilder:
             )
 
         description_candidates = self._description_candidates(
-            medical_case=medical_case,
+            observations=active_observations,
             quality_by_id=quality_by_id,
         )
-        if description_candidates and "description" not in extension_kinds:
+        if description_candidates and "description" not in topic_extension_kinds:
             chosen = description_candidates[0]
             chosen_quality = quality_by_id.get(chosen.observation_id)
             needs.append(
@@ -55,7 +65,7 @@ class FollowupNeedBuilder:
                     observation_id=chosen.observation_id,
                     reason="description_missing",
                     target_extension_kind="description",
-                    case_focus_label=case_topic.current_label if case_topic is not None else chosen.label,
+                    case_focus_label=topic_label or chosen.label,
                     related_observation_ids=[observation.observation_id for observation in description_candidates],
                     priority="medium",
                     blocking=chosen_quality.topic_fit == "central" if chosen_quality is not None else False,
@@ -66,12 +76,12 @@ class FollowupNeedBuilder:
     def _candidate_observations(
         self,
         *,
-        medical_case: MedicalCase,
+        observations: list[Observation],
         quality_by_id: dict[str, ObservationQuality],
         require_attribute: str,
     ) -> list[Observation]:
         candidates: list[tuple[int, Observation]] = []
-        for observation in medical_case.active_observations():
+        for observation in observations:
             quality = quality_by_id.get(observation.observation_id)
             if quality is None:
                 continue
@@ -88,11 +98,11 @@ class FollowupNeedBuilder:
     def _description_candidates(
         self,
         *,
-        medical_case: MedicalCase,
+        observations: list[Observation],
         quality_by_id: dict[str, ObservationQuality],
     ) -> list[Observation]:
         candidates: list[tuple[int, Observation]] = []
-        for observation in medical_case.active_observations():
+        for observation in observations:
             quality = quality_by_id.get(observation.observation_id)
             if quality is None:
                 continue

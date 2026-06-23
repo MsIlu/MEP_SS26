@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena4.llm.call_control import CallModelConfig, RECOMMENDATION_CALL
@@ -16,9 +17,11 @@ class ResponseBuilder:
         *,
         llm_client: LLMClient | None = None,
         call_model_config: CallModelConfig | None = None,
+        case_manager: CaseManager | None = None,
     ):
         self.llm_client = llm_client
         self.call_model_config = call_model_config
+        self.case_manager = case_manager or CaseManager()
 
     def build(
         self,
@@ -119,13 +122,13 @@ class ResponseBuilder:
             "Hinweis: Diese Orientierung ersetzt keine aerztliche Untersuchung oder Diagnose."
         )
 
-    @staticmethod
     def _render_case_description_request(
+        self,
         *,
         medical_case: MedicalCase | None,
         conversation_state: ConversationState | None,
     ) -> str:
-        if medical_case is not None and medical_case.active_observations():
+        if medical_case is not None and self.case_manager.has_active_observations(medical_case=medical_case):
             return "Bitte beschreiben Sie Ihre Beschwerden noch etwas genauer."
         if conversation_state is not None and conversation_state.recommendation_requested:
             return "Damit ich eine Versorgungsempfehlung geben kann, beschreiben Sie bitte Ihr gesundheitliches Anliegen oder Ihre Beschwerden genauer."

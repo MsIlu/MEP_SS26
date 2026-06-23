@@ -1,8 +1,12 @@
+from careena4.domain.case import CaseManager
 from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
 from careena4.models.workflow import AssessmentReadiness
 
 
 class ReadinessEvaluator:
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def evaluate(
         self,
         *,
@@ -10,7 +14,7 @@ class ReadinessEvaluator:
         medical_case: MedicalCase | None,
         conversation_state: ConversationState,
     ) -> RecommendationState:
-        if medical_case is None or not medical_case.active_observations():
+        if medical_case is None or not self.case_manager.has_active_observations(medical_case=medical_case):
             return RecommendationState(
                 request_present=conversation_state.recommendation_requested,
                 readiness="not_ready",
@@ -23,7 +27,7 @@ class ReadinessEvaluator:
             for need in conversation_state.followup_needs
             if need.blocking and not need.resolved
         ]
-        central_observations = medical_case.central_observations()
+        central_observations = self.case_manager.central_observations(medical_case=medical_case)
         ready = bool(
             case_topic is not None
             and central_observations
@@ -46,6 +50,9 @@ class ReadinessEvaluator:
 
 
 class AssessmentReadinessBuilder:
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def build(
         self,
         *,
@@ -54,7 +61,7 @@ class AssessmentReadinessBuilder:
         conversation_state: ConversationState,
         recommendation_state: RecommendationState,
     ) -> AssessmentReadiness:
-        if medical_case is None or not medical_case.active_observations():
+        if medical_case is None or not self.case_manager.has_active_observations(medical_case=medical_case):
             return AssessmentReadiness(
                 ready=False,
                 has_medical_problem=False,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from careena4.domain.case import CaseManager
 from careena4.core.engine import ExtractionEngine
 from careena4.llm.call_control import CallModelConfig, ENTRY_CALL
 from careena4.llm.prompt_registry import load_prompt
@@ -39,9 +40,11 @@ class EntryClassifier:
         *,
         extraction_engine: ExtractionEngine | None = None,
         call_model_config: CallModelConfig | None = None,
+        case_manager: CaseManager | None = None,
     ):
         self.extraction_engine = extraction_engine
         self.call_model_config = call_model_config
+        self.case_manager = case_manager or CaseManager()
 
     def classify(
         self,
@@ -192,7 +195,7 @@ class EntryClassifier:
             if active_question is not None
             else "none"
         )
-        case_topic_text = case_topic.current_label if case_topic is not None else "none"
+        case_topic_text = self.case_manager.topic_label(case_topic=case_topic) or "none"
         return (
             f"Aktives Thema: {case_topic_text}\n"
             f"Offene Frage: {active_question_text}\n"
@@ -219,9 +222,8 @@ class EntryClassifier:
             )
         )
 
-    @staticmethod
-    def _topic_matches(normalized: str, case_topic: CaseTopic) -> bool:
-        topic_tokens = case_topic.search_tokens()
+    def _topic_matches(self, normalized: str, case_topic: CaseTopic) -> bool:
+        topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
         if not topic_tokens:
             return True
         message_tokens = {

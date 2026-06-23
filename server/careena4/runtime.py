@@ -10,6 +10,7 @@ from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.response import ResponseBuilder
+from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
 from careena4.infrastructure import Careena4SessionStore
@@ -113,9 +114,11 @@ def build_runtime(
         safety_catalog_repository=safety_catalog_repository,
     )
     safety_clarification_resolver = SafetyClarificationResolver()
+    case_manager = CaseManager()
     entry_classifier = EntryClassifier(
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
+        case_manager=case_manager,
     )
     medical_extractor = MedicalExtractor(
         extraction_engine=extraction_engine,
@@ -134,6 +137,7 @@ def build_runtime(
     response_builder = ResponseBuilder(
         llm_client=llm_client,
         call_model_config=call_model_config,
+        case_manager=case_manager,
     )
     turn_understanding_service = None
     if _env_flag("CAREENA4_MEDGEMMA_UNDERSTANDING_ENABLED"):
@@ -145,6 +149,7 @@ def build_runtime(
         entry_classifier=entry_classifier,
         question_resolver=question_resolver,
         medical_extractor=medical_extractor,
+        case_manager=case_manager,
         question_builder=question_builder,
         response_builder=response_builder,
         turn_understanding_service=turn_understanding_service,

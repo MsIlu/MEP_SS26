@@ -7,7 +7,6 @@ from careena4.bootstrap import build_default_services, build_simulation_runner
 from careena4.models.input import CancelDraftResponse, SymptomDraftResponse, SymptomDraftUpdateRequest
 from careena4.models.turn import TurnInput, TurnResult
 from careena4.server_log import configure_debug_logging, log_event, log_json
-from config import CORS_ALLOWED_ORIGIN_REGEX
 from careena4.simulation_runtime import (
     SimulationRequest,
     normalized_simulation_request,
@@ -21,8 +20,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[],
-    allow_origin_regex=CORS_ALLOWED_ORIGIN_REGEX,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -117,13 +117,14 @@ pip install -r requirements.txt
 
 ---
 
-# 7. Start the Backend Server
+# 7. Start Backend and Frontend
 
-The Flutter app uses HTTPS for local backend requests. Each local machine that
-runs the app/backend with HTTPS must trust its local backend certificate. Use
-`mkcert` for this setup.
+The normal local web setup uses HTTPS on the same computer. Use HTTP only as a
+fallback if HTTPS does not work locally.
 
 ## 7.1 Create a Trusted Local HTTPS Certificate
+
+This is required for the normal HTTPS setup.
 
 Install `mkcert` once on your operating system:
 
@@ -219,52 +220,54 @@ If the `certs` folder already exists, skip `mkdir certs`.
 Restart Chrome after installing the certificate authority. You can also open
 `chrome://restart`.
 
-## 7.2 Start the HTTPS Backend
+## 7.2 Start with HTTPS on the Same Computer
 
-Start the local-Terminal (not bash-terminal) inside the `server` folder and start the server:
+Start the backend inside the `server` folder:
 
 ```bash
 python -m uvicorn main:app --reload --ssl-keyfile certs/localhost-key.pem --ssl-certfile certs/localhost-cert.pem
 ```
 
-If HTTPS is disabled for Flutter, start the backend without certificate files:
-
-```bash
-python -m uvicorn main:app --reload
-```
-
-# 8. Start the Flutter Frontend
-
-For Flutter Web in Chrome, start the frontend with HTTPS and reuse the local
-certificate files created for the backend. The port can be changed if needed:
+Start Flutter inside the `app1` folder:
 
 ```bash
 cd app1
-flutter run -d chrome --web-hostname localhost --web-port 3000 --web-tls-cert-path "../server/certs/localhost-cert.pem" --web-tls-cert-key-path "../server/certs/localhost-key.pem"
+flutter run --web-hostname localhost --web-port 3000 --web-tls-cert-path "../server/certs/localhost-cert.pem" --web-tls-cert-key-path "../server/certs/localhost-key.pem"
 ```
 
-With the example port above, open the app at:
+Open:
 
 ```text
 https://localhost:3000
 ```
 
-The backend must still be running at:
+## 7.3 HTTP Fallback for Local Development
 
-```text
-https://localhost:8000
-```
+Use this only if HTTPS does not work locally.
 
-If an Android emulator or physical device does not trust the local certificate,
-start Flutter with HTTPS disabled:
+Start the backend inside the `server` folder:
 
 ```bash
-flutter run -d chrome --dart-define=BACKEND_USE_HTTPS=false
+python -m uvicorn main:app --reload
 ```
+
+Start Flutter inside the `app1` folder:
+
+```bash
+cd app1
+flutter run --dart-define=BACKEND_USE_HTTPS=false
+```
+
+## 7.4 Physical Phone Note
+
+If you test on a physical phone, `localhost` does not point to your computer.
+Use your computer's IPv4 address instead, start the backend with
+`--host 0.0.0.0`, and run Flutter with
+`--dart-define=API_BASE_URL=http://<YOUR_IPV4_ADDRESS>:8000`.
 
 ---
 
-# 9. Verify Database Connection
+# 8. Verify Database Connection
 
 Open the bash-terminal to start PostgreSQL in docker:
 
@@ -286,7 +289,7 @@ To exit PostgreSQL, use the following code:
 
 ---
 
-# 10. Stop Docker
+# 9. Stop Docker
 
 To stop the database:
 
@@ -296,7 +299,7 @@ docker compose down
 
 ---
 
-# 11. Common Issues
+# 10. Common Issues
 
 ## Docker command not found
 

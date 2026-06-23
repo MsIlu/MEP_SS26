@@ -22,7 +22,6 @@ from profiles.service import get_profile_access_role
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
-from config import CORS_ALLOWED_ORIGIN_REGEX
 from auth.router import router as auth_router
 from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
@@ -59,8 +58,7 @@ app.include_router(symptoms_router)
 # CORS is limited to configured development or deployment origins.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[],
-    allow_origin_regex=CORS_ALLOWED_ORIGIN_REGEX,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

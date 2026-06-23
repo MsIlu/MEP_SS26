@@ -25,13 +25,16 @@ fhir-server:
 
 Für reproduzierbare lokale Tests wird ein konkreter HAPI-FHIR-Docker-Tag verwendet statt latest.
 
-## Lokale Persistenz
+Das Volume `fhir_data` ist für eine spätere Persistenz-Konfiguration vorbereitet.
 
-Der lokale FHIR-Server verwendet ein benanntes Docker Volume (`fhir_data`), damit lokale Testdaten und Serverdaten nicht nur im Container selbst liegen.
+## Vorbereitung für Persistenz
 
-Dadurch bleiben Daten bei einem normalen Neustart des Containers erhalten. Wenn der Container komplett neu erstellt wird, sind die Daten nicht direkt verloren, solange das Docker Volume bestehen bleibt.
+In der `docker-compose.yml` ist ein benanntes Docker Volume (`fhir_data`) für den lokalen FHIR-Server vorbereitet.
 
-Für eine spätere produktionsnähere Umgebung wäre eine explizite Datenbank-Anbindung, z. B. über PostgreSQL, sinnvoll. Für diesen MVP reicht das benannte Docker Volume als lokale Testpersistenz aus.
+Mit der aktuellen Konfiguration ist jedoch noch keine explizite HAPI-FHIR-Datenbank- oder Datasource-Konfiguration eingerichtet. Daher wird nicht garantiert, dass FHIR-Ressourcen bereits dauerhaft persistent gespeichert werden.
+
+Das Volume dient in diesem Schritt als vorbereitende Grundlage für eine spätere Persistenz-Konfiguration. Eine konkrete Datenbank-Anbindung, z. B. über PostgreSQL, kann in einem separaten Schritt ergänzt werden.
+
 
 ## Starten des lokalen FHIR-Servers
 
@@ -88,6 +91,7 @@ Nicht Bestandteil dieses Schritts sind:
 * TI-/KIM-Anbindung
 * vollständige KBV-spezifische Profile
 * Verarbeitung echter Patientendaten
+* explizite persistente HAPI-FHIR-Datenbank-Anbindung
 
 ## Bezug zum FHIR-Mapper
 

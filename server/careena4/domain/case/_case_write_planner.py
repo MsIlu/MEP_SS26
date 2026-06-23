@@ -10,7 +10,7 @@ class _CaseWritePlanner:
         claims: ExtractionClaims,
         topic_id: str | None,
     ) -> CaseWritePlan:
-        plan = CaseWritePlan(topic_id_update=topic_id)
+        plan = CaseWritePlan()
         subject_update = self._subject_update(claims)
         if subject_update is not None:
             plan.subject_update = subject_update

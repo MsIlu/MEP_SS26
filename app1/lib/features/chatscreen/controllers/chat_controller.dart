@@ -87,6 +87,13 @@ class ChatController {
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+
+    if (trimmed.toLowerCase() == '/hp') {
+      return _addTestRecommendation();
+    }
+
     if (_isCompleted) {
       return null;
     }
@@ -100,13 +107,6 @@ class ChatController {
 
     if (!hasSession || sessionId == null) {
       throw Exception("Chat session not initialized.");
-    }
-
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return null;
-
-    if (trimmed.toLowerCase() == '/hp') {
-      return _addTestRecommendation();
     }
 
     _addMessage(message: Message(text: trimmed, isUser: true));

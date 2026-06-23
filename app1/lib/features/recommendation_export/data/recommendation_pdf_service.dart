@@ -1,8 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:app1/features/profiles/domain/models/profile.dart';
 
-/// Creates a styled PDF document for a generated care recommendation.
+/// Creates a PDF document for a care recommendation.
 class RecommendationPdfService {
   static const String _logoPath = 'assets/images/logo_medbitaid.png';
 
@@ -25,34 +26,62 @@ class RecommendationPdfService {
     required String patientSummary,
     required String recommendation,
     required String nextSteps,
+    List<String> symptoms = const [],
+    List<String> userMessages = const [],
+    Profile? profile,
   }) async {
     final pdf = pw.Document();
     final logo = await _loadOptionalLogo();
+    final regularFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Nunito-Regular.ttf'),
+    );
+    final boldFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Nunito-Bold.ttf'),
+    );
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
+        theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
         build: (context) {
           return [
-            _buildHeader(
-              title: title,
-              logo: logo,
-            ),
+            _buildHeader(title: title, logo: logo, createdAt: DateTime.now()),
             pw.Container(
               color: _pageBackground,
               padding: const pw.EdgeInsets.fromLTRB(32, 28, 32, 28),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
-                  _buildMetaInfo(),
-                  pw.SizedBox(height: 18),
+                  if (profile != null) ...[
+                    _buildSectionCard(
+                      title: 'Profilangaben',
+                      text: _formatProfile(profile),
+                    ),
+                    pw.SizedBox(height: 14),
+                  ],
 
                   _buildSectionCard(
-                    title: 'Patientenzusammenfassung',
-                    text: patientSummary,
+                    title: 'Im Chat angegebene bzw. erkannte Beschwerden',
+                    text: _formatSymptoms(symptoms),
                   ),
                   pw.SizedBox(height: 14),
+
+                  _buildSectionCard(
+                    title: 'Vom Nutzer im Chat angegebene Informationen',
+                    text: _formatUserMessages(userMessages),
+                  ),
+                  pw.SizedBox(height: 14),
+
+                  if (patientSummary.trim().isNotEmpty &&
+                      patientSummary.trim() !=
+                          'Zusammenfassung des Chatverlaufes') ...[
+                    _buildSectionCard(
+                      title: 'Zusammenfassung der Situation',
+                      text: patientSummary,
+                    ),
+                    pw.SizedBox(height: 14),
+                  ],
 
                   _buildSectionCard(
                     title: 'Versorgungsempfehlung',
@@ -62,7 +91,7 @@ class RecommendationPdfService {
                   pw.SizedBox(height: 14),
 
                   _buildSectionCard(
-                    title: 'Nächste Schritte',
+                    title: 'Nächster Schritt',
                     text: _formatNextSteps(nextSteps),
                   ),
                   pw.SizedBox(height: 18),
@@ -95,170 +124,96 @@ class RecommendationPdfService {
   pw.Widget _buildHeader({
     required String title,
     required pw.MemoryImage? logo,
+    required DateTime createdAt,
   }) {
     return pw.Container(
       width: double.infinity,
-      padding: const pw.EdgeInsets.fromLTRB(32, 28, 32, 30),
+      padding: const pw.EdgeInsets.fromLTRB(32, 24, 32, 18),
       decoration: pw.BoxDecoration(
-        color: _primaryColor,
+        color: _cardBackground,
+        border: pw.Border(
+          bottom: pw.BorderSide(color: _primaryColor, width: 2),
+        ),
       ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Row(
-                children: [
-                  if (logo != null)
-                    pw.Container(
-                      width: 44,
-                      height: 44,
-                      padding: const pw.EdgeInsets.all(6),
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        borderRadius: pw.BorderRadius.circular(12),
-                      ),
-                      child: pw.Image(logo),
-                    )
-                  else
-                    pw.Container(
-                      width: 44,
-                      height: 44,
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        borderRadius: pw.BorderRadius.circular(12),
-                      ),
-                      child: pw.Center(
-                        child: pw.Text(
-                          'C',
-                          style: pw.TextStyle(
-                            color: _primaryColor,
-                            fontSize: 24,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  pw.SizedBox(width: 12),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        'Careena',
-                        style: pw.TextStyle(
-                          color: PdfColors.white,
-                          fontSize: 20,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Text(
-                        'MEP26',
-                        style: const pw.TextStyle(
-                          color: PdfColors.white,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          if (logo != null)
+            pw.Container(width: 34, height: 34, child: pw.Image(logo))
+          else
+            pw.Container(
+              width: 34,
+              height: 34,
+              decoration: pw.BoxDecoration(
+                color: _primaryLight,
+                borderRadius: pw.BorderRadius.circular(8),
               ),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.white,
-                  borderRadius: pw.BorderRadius.circular(20),
-                ),
+              child: pw.Center(
                 child: pw.Text(
-                  'PDF Export',
+                  'Careena',
                   style: pw.TextStyle(
                     color: _primaryColor,
-                    fontSize: 10,
+                    fontSize: 18,
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
               ),
+            ),
+          pw.SizedBox(width: 12),
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  title,
+                  style: pw.TextStyle(
+                    color: _textColor,
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'KI-generierte Orientierung auf Basis der angegebenen Informationen',
+                  style: pw.TextStyle(color: _mutedTextColor, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                'Erstellt am',
+                style: pw.TextStyle(color: _mutedTextColor, fontSize: 8),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                _formatDate(createdAt),
+                style: pw.TextStyle(
+                  color: _textColor,
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 6),
+              pw.Text(
+                'Quelle',
+                style: pw.TextStyle(color: _mutedTextColor, fontSize: 8),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'Careena Chat',
+                style: pw.TextStyle(
+                  color: _textColor,
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ],
           ),
-          pw.SizedBox(height: 28),
-          pw.Text(
-            title,
-            style: pw.TextStyle(
-              color: PdfColors.white,
-              fontSize: 26,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'Generierte Handlungsempfehlung aus dem Careena-Chat',
-            style: const pw.TextStyle(
-              color: PdfColors.white,
-              fontSize: 12,
-            ),
-          ),
         ],
       ),
-    );
-  }
-
-  pw.Widget _buildMetaInfo() {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(14),
-      decoration: pw.BoxDecoration(
-        color: _cardBackground,
-        borderRadius: pw.BorderRadius.circular(12),
-        border: pw.Border.all(color: _borderColor),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          _buildMetaItem(
-            label: 'Dokument',
-            value: 'Handlungsempfehlung',
-          ),
-          _buildMetaItem(
-            label: 'Erstellt am',
-            value: _formatDate(DateTime.now()),
-          ),
-          _buildMetaItem(
-            label: 'Quelle',
-            value: 'Careena Chat',
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildMetaItem({
-    required String label,
-    required String value,
-  }) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          label,
-          style: pw.TextStyle(
-            color: _mutedTextColor,
-            fontSize: 9,
-          ),
-        ),
-        pw.SizedBox(height: 3),
-        pw.Text(
-          value,
-          style: pw.TextStyle(
-            color: _textColor,
-            fontSize: 11,
-            fontWeight: pw.FontWeight.bold,
-          ),
-        ),
-      ],
     );
   }
 
@@ -324,8 +279,8 @@ class RecommendationPdfService {
           pw.SizedBox(height: 8),
           pw.Text(
             'Bei akuter Gefahr, Selbstgefährdung oder einem medizinischen Notfall '
-                'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
-                'aufgesucht werden.',
+            'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
+            'aufgesucht werden.',
             style: pw.TextStyle(
               color: _textColor,
               fontSize: _noticeBodySize,
@@ -346,7 +301,6 @@ class RecommendationPdfService {
     );
   }
 
-
   pw.Widget _buildDisclaimer() {
     return pw.Container(
       padding: const pw.EdgeInsets.all(14),
@@ -355,10 +309,10 @@ class RecommendationPdfService {
         borderRadius: pw.BorderRadius.circular(12),
       ),
       child: pw.Text(
-        'Hinweis: Dieses Dokument wurde mithilfe künstlicher Intelligenz (KI) durch die MEP26-Anwendung '
-            'erstellt. Es ersetzt keine ärztliche, psychotherapeutische oder '
-            'medizinische Beratung, Diagnose oder Behandlung. Die Empfehlung dient '
-            'ausschließlich als unterstützende Orientierung.',
+        'Dieses Dokument wurde mithilfe künstlicher Intelligenz erstellt. Es stellt keine Diagnose dar '
+        'und ersetzt keine ärztliche Untersuchung, Beratung oder Behandlung. Die Angaben beruhen '
+        'auf den im Chat genannten Informationen und gegebenenfalls auf vom Nutzer gespeicherten '
+        'Profilangaben.',
         style: pw.TextStyle(
           color: _mutedTextColor,
           fontSize: 9,
@@ -377,17 +331,11 @@ class RecommendationPdfService {
         children: [
           pw.Text(
             'Careena · MEP26',
-            style: pw.TextStyle(
-              color: _mutedTextColor,
-              fontSize: 9,
-            ),
+            style: pw.TextStyle(color: _mutedTextColor, fontSize: 9),
           ),
           pw.Text(
             'Seite ${context.pageNumber} von ${context.pagesCount}',
-            style: pw.TextStyle(
-              color: _mutedTextColor,
-              fontSize: 9,
-            ),
+            style: pw.TextStyle(color: _mutedTextColor, fontSize: 9),
           ),
         ],
       ),
@@ -428,7 +376,7 @@ class RecommendationPdfService {
     final cleanedText = filteredLines.join('\n');
 
     if (cleanedText.isEmpty) {
-      return 'Bitte beachten Sie die nächsten Schritte und den wichtigen Hinweis.';
+      return 'Bitte beachten Sie den nächsten Schritt und den wichtigen Hinweis.';
     }
 
     return cleanedText;
@@ -451,6 +399,80 @@ class RecommendationPdfService {
       default:
         return trimmed;
     }
+  }
+
+  String _formatSymptoms(List<String> symptoms) {
+    final cleanedSymptoms = symptoms
+        .map((symptom) => symptom.trim())
+        .where((symptom) => symptom.isNotEmpty)
+        .toList();
+
+    if (cleanedSymptoms.isEmpty) {
+      return 'Keine Beschwerden angegeben oder erkannt.';
+    }
+
+    return cleanedSymptoms.map((symptom) => '- $symptom').join('\n');
+  }
+
+  String _formatUserMessages(List<String> userMessages) {
+    final cleanedMessages = userMessages
+        .map((message) => message.trim())
+        .where((message) => message.isNotEmpty)
+        .toList();
+
+    if (cleanedMessages.isEmpty) {
+      return 'Keine zusätzlichen Angaben verfügbar.';
+    }
+
+    return cleanedMessages.map((message) => '- $message').join('\n');
+  }
+
+  String _formatProfile(Profile profile) {
+    final rows = <String>[
+      'Name / Profil: ${profile.displayName}',
+      if (profile.dateOfBirth != null && profile.dateOfBirth!.isNotEmpty)
+        'Geburtsdatum: ${_formatProfileDate(profile.dateOfBirth)}',
+      if (profile.biologicalSex != null && profile.biologicalSex!.isNotEmpty)
+        'Biologisches Geschlecht: ${profile.biologicalSex}',
+      if (profile.heightCm != null) 'Größe: ${profile.heightCm} cm',
+      if (profile.weightKg != null) 'Gewicht: ${profile.weightKg} kg',
+    ];
+
+    if (profile.relevantPreconditionsSummary != null &&
+        profile.relevantPreconditionsSummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Vom Nutzer gespeicherte Vorerkrankungen:');
+      rows.add(profile.relevantPreconditionsSummary!.trim());
+    }
+
+    if (profile.relevantMedicationsSummary != null &&
+        profile.relevantMedicationsSummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Vom Nutzer gespeicherte Medikamente:');
+      rows.add(profile.relevantMedicationsSummary!.trim());
+    }
+
+    if (profile.symptomDiarySummary != null &&
+        profile.symptomDiarySummary!.trim().isNotEmpty) {
+      rows.add('');
+      rows.add('Vom Nutzer gespeicherte Gesundheitsnotizen:');
+      rows.add(profile.symptomDiarySummary!.trim());
+    }
+
+    return rows.join('\n');
+  }
+
+  String _formatProfileDate(String? rawDate) {
+    if (rawDate == null || rawDate.trim().isEmpty) {
+      return 'Keine Angabe';
+    }
+
+    final parsed = DateTime.tryParse(rawDate);
+    if (parsed == null) {
+      return rawDate;
+    }
+
+    return _formatDate(parsed);
   }
 
   String _formatDate(DateTime date) {

@@ -54,11 +54,16 @@ class _AppBootState extends State<_AppBoot> {
     super.initState();
 
     _authSession = AuthSession();
+    _themeController = ThemeController();
+    _symptomRepository = SymptomRepository();
 
     _ownedDependencies =
         widget.externalChatController == null &&
             widget.externalAuthApiService == null
-        ? AppDependencies(authSession: _authSession)
+        ? AppDependencies(
+            authSession: _authSession,
+            symptomRepository: _symptomRepository,
+          )
         : null;
 
     _chatController =
@@ -66,10 +71,6 @@ class _AppBootState extends State<_AppBoot> {
 
     _authApiService =
         widget.externalAuthApiService ?? _ownedDependencies!.authApiService;
-
-    _themeController = ThemeController();
-
-    _symptomRepository = SymptomRepository();
   }
 
   @override

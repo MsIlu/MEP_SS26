@@ -11,6 +11,7 @@ import '../features/chatscreen/services/symptom_draft_service.dart';
 import '../features/authscreen/data/auth_api_service.dart';
 import '../features/authscreen/state/auth_session.dart';
 import '../features/symptom_diary/data/symptom_api_service.dart';
+import '../features/symptom_diary/data/symptom_repository.dart';
 import '../features/symptom_diary/data/symptom_sync_service.dart';
 import '../features/profiles/data/profile_api_service.dart';
 
@@ -22,14 +23,19 @@ class AppDependencies {
   late final ChatController chatController;
   late final ChatWarningController chatWarningController;
   late final AuthApiService authApiService;
+  late final SymptomRepository symptomRepository;
   late final SymptomApiService symptomApiService;
   late final SymptomSyncService symptomSyncService;
   late final ProfileApiService profileApiService;
 
-  AppDependencies({http.Client? httpClient, required this.authSession})
-    : _httpClient = httpClient ?? http.Client() {
+  AppDependencies({
+    http.Client? httpClient,
+    required this.authSession,
+    SymptomRepository? symptomRepository,
+  }) : _httpClient = httpClient ?? http.Client() {
     apiClient = ApiClient(_httpClient);
     authApiService = AuthApiService(apiClient);
+    this.symptomRepository = symptomRepository ?? SymptomRepository();
     symptomApiService = SymptomApiService(apiClient);
     symptomSyncService = SymptomSyncService(symptomApiService);
     profileApiService = ProfileApiService(apiClient);

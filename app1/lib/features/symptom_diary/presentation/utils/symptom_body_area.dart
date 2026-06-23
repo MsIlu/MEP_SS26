@@ -8,9 +8,18 @@ const _painKeywords = [
   'krampf',
 ];
 
+const _specificPainSymptoms = [
+  'kopfschmerz',
+  'kopfschmerzen',
+];
+
 /// Returns whether a symptom should ask for a body area.
 bool symptomNeedsBodyArea(String symptom) {
   final normalizedSymptom = symptom.toLowerCase();
+  if (_specificPainSymptoms.any(normalizedSymptom.contains)) {
+    return false;
+  }
+
   return _painKeywords.any(normalizedSymptom.contains);
 }
 
@@ -25,40 +34,40 @@ bool symptomUsesTemperature(String symptom) {
 String suggestedBodyAreaForSymptom(String symptom) {
   final normalizedSymptom = symptom.toLowerCase();
   if (normalizedSymptom.contains('kopf')) {
-    return 'Vorne: Kopf';
+    return 'Kopf';
   }
   if (normalizedSymptom.contains('hals') ||
       normalizedSymptom.contains('nacken')) {
-    return 'Vorne: Hals';
+    return 'Hals';
   }
   if (normalizedSymptom.contains('brust')) {
-    return 'Vorne: Brust';
+    return 'Brust';
   }
   if (normalizedSymptom.contains('bauch') ||
       normalizedSymptom.contains('magen')) {
-    return 'Vorne: Bauch';
+    return 'Bauch';
   }
   if (normalizedSymptom.contains('rücken')) {
-    return 'Hinten: Rücken';
+    return 'Rücken';
   }
   if (normalizedSymptom.contains('hüfte') ||
       normalizedSymptom.contains('huefte')) {
-    return 'Vorne: Hüfte';
+    return 'Hüfte';
   }
   if (normalizedSymptom.contains('knie')) {
-    return 'Vorne: Knie';
+    return 'Knie';
   }
   if (normalizedSymptom.contains('fuß') ||
       normalizedSymptom.contains('fuss') ||
       normalizedSymptom.contains('füße') ||
       normalizedSymptom.contains('fuesse')) {
-    return 'Vorne: Füße';
+    return 'Füße';
   }
   if (normalizedSymptom.contains('arm')) {
-    return 'Vorne: Linker Arm';
+    return 'Linker Arm';
   }
   if (normalizedSymptom.contains('bein')) {
-    return 'Vorne: Linkes Bein';
+    return 'Linkes Bein';
   }
   return '';
 }

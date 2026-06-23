@@ -62,8 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _themeKey = GlobalKey();
   final _navigationKey = GlobalKey();
   int? _guideStep;
-  final DocumentRepository _documentRepository =
-    DocumentRepository.instance;
+  final DocumentRepository _documentRepository = DocumentRepository.instance;
 
   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
@@ -77,33 +76,27 @@ class _HomeScreenState extends State<HomeScreen> {
       : appGuideSteps;
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  _documentRepository.unreadCount.addListener(
-    _onDocumentBadgeChanged,
-  );
+    _documentRepository.unreadCounts.addListener(_onDocumentBadgeChanged);
 
-  if (widget.startGuide) {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _startGuide(),
-    );
+    if (widget.startGuide) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startGuide());
+    }
   }
-}
 
-void _onDocumentBadgeChanged() {
-  if (mounted) {
-    setState(() {});
+  void _onDocumentBadgeChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
-}
 
-@override
-void dispose() {
-  _documentRepository.unreadCount.removeListener(
-    _onDocumentBadgeChanged,
-  );
-  super.dispose();
-}
+  @override
+  void dispose() {
+    _documentRepository.unreadCounts.removeListener(_onDocumentBadgeChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -297,6 +290,11 @@ void dispose() {
 
   List<HomeFeature> _buildFeatures(BuildContext context) {
     const featureColor = AppColors.careenaInfoBorder;
+    final activeProfileId =
+        widget.authSession?.activeProfileId ??
+        _dependenciesFromContext(
+          context,
+        )?.dependencies.authSession.activeProfileId;
 
     return [
       HomeFeature(
@@ -315,7 +313,7 @@ void dispose() {
         icon: Icons.description_outlined,
         title: 'Dokumente',
         backgroundColor: featureColor,
-        badgeCount: _documentRepository.unreadCount.value,
+        badgeCount: _documentRepository.unreadCountForProfile(activeProfileId),
         onTap: () => _navigateToDocuments(context),
       ),
       HomeFeature(
@@ -375,9 +373,16 @@ void dispose() {
   }
 
   void _navigateToDocuments(BuildContext context) {
+    final dependencies = _dependenciesFromContext(context);
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const DocumentsScreen()),
+      MaterialPageRoute(
+        builder: (context) => DocumentsScreen(
+          authSession:
+              widget.authSession ?? dependencies?.dependencies.authSession,
+        ),
+      ),
     );
   }
 

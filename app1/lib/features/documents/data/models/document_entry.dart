@@ -15,6 +15,7 @@ enum DocumentSource { uploaded, careena }
 
 class DocumentEntry {
   final String id;
+  final int? profileId;
   final String name;
   final DocumentCategory category;
   final DateTime createdAt;
@@ -25,6 +26,7 @@ class DocumentEntry {
 
   const DocumentEntry({
     required this.id,
+    this.profileId,
     required this.name,
     required this.category,
     required this.createdAt,
@@ -35,6 +37,7 @@ class DocumentEntry {
   });
 
   DocumentEntry copyWith({
+    int? profileId,
     String? name,
     DocumentCategory? category,
     DateTime? createdAt,
@@ -45,6 +48,7 @@ class DocumentEntry {
   }) {
     return DocumentEntry(
       id: id,
+      profileId: profileId ?? this.profileId,
       name: name ?? this.name,
       category: category ?? this.category,
       createdAt: createdAt ?? this.createdAt,

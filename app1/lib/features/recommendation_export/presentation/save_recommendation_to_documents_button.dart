@@ -33,11 +33,16 @@ class _SaveRecommendationToDocumentsButtonState
     extends State<SaveRecommendationToDocumentsButton> {
   final DocumentRepository _repository = DocumentRepository.instance;
 
-  bool get _isSaved {
+  bool _isSavedForCurrentProfile(BuildContext context) {
+    final activeProfileId = AppDependenciesScope.maybeOf(
+      context,
+    )?.authSession.activeProfileId;
+
     final normalizedName = _documentName.toLowerCase();
 
     return _repository.documents.value.any(
       (document) =>
+          document.profileId == activeProfileId &&
           document.source == DocumentSource.careena &&
           document.name.toLowerCase() == normalizedName,
     );
@@ -73,19 +78,15 @@ class _SaveRecommendationToDocumentsButtonState
 
   @override
   Widget build(BuildContext context) {
-    final isSaved = _isSaved;
+    final isSaved = _isSavedForCurrentProfile(context);
 
     return OutlinedButton.icon(
       onPressed: isSaved ? null : _saveRecommendation,
       icon: Icon(
-        isSaved
-            ? Icons.check_circle_outline
-            : Icons.folder_copy_outlined,
+        isSaved ? Icons.check_circle_outline : Icons.folder_copy_outlined,
       ),
       label: Text(
-        isSaved
-            ? 'In Dokumenten gespeichert'
-            : 'In Dokumente speichern',
+        isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
       ),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.careenaTeal,
@@ -94,72 +95,68 @@ class _SaveRecommendationToDocumentsButtonState
               ? AppColors.careenaTeal.withValues(alpha: 0.45)
               : AppColors.careenaTeal,
         ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 14,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
 
   Future<void> _saveRecommendation() async {
-  final dependencies = AppDependenciesScope.maybeOf(context);
-  final authSession = dependencies?.authSession;
-  final profileApiService = dependencies?.profileApiService;
-  final activeProfileId = authSession?.activeProfileId;
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    final authSession = dependencies?.authSession;
+    final profileApiService = dependencies?.profileApiService;
+    final activeProfileId = authSession?.activeProfileId;
 
-  Profile? profile;
+    Profile? profile;
 
-  if (activeProfileId != null && profileApiService != null) {
-    try {
-      profile = await profileApiService.getProfile(activeProfileId);
-    } catch (_) {
-      profile = null;
+    if (activeProfileId != null && profileApiService != null) {
+      try {
+        profile = await profileApiService.getProfile(activeProfileId);
+      } catch (_) {
+        profile = null;
+      }
     }
-  }
 
-  final pdfBytes = await RecommendationPdfService().buildRecommendationPdf(
-    title: widget.title,
-    patientSummary: widget.patientSummary,
-    recommendation: widget.recommendation,
-    nextSteps: widget.nextSteps,
-    symptoms: widget.symptoms,
-    userMessages: widget.userMessages,
-    profile: profile,
-  );
+    final pdfBytes = await RecommendationPdfService().buildRecommendationPdf(
+      title: widget.title,
+      patientSummary: widget.patientSummary,
+      recommendation: widget.recommendation,
+      nextSteps: widget.nextSteps,
+      symptoms: widget.symptoms,
+      userMessages: widget.userMessages,
+      profile: profile,
+    );
 
-  final wasAdded = _repository.addRecommendationIfMissing(
-    DocumentEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: _documentName,
-      category: DocumentCategory.recommendations,
-      createdAt: DateTime.now(),
-      sizeInBytes: pdfBytes.lengthInBytes,
-      source: DocumentSource.careena,
-      fileBytes: pdfBytes,
-      mimeType: 'application/pdf',
-    ),
-  );
+    final wasAdded = _repository.addRecommendationIfMissing(
+      DocumentEntry(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        profileId: activeProfileId,
+        name: _documentName,
+        category: DocumentCategory.recommendations,
+        createdAt: DateTime.now(),
+        sizeInBytes: pdfBytes.lengthInBytes,
+        source: DocumentSource.careena,
+        fileBytes: pdfBytes,
+        mimeType: 'application/pdf',
+      ),
+    );
 
-  if (!mounted) return;
+    if (!mounted) return;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: AppColors.careenaTeal,
-      content: Text(
-        wasAdded
-            ? 'Handlungsempfehlung gespeichert'
-            : 'Handlungsempfehlung bereits vorhanden',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.careenaTeal,
+        content: Text(
+          wasAdded
+              ? 'Handlungsempfehlung gespeichert'
+              : 'Handlungsempfehlung bereits vorhanden',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

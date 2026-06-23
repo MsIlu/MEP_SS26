@@ -14,9 +14,13 @@ import '../widgets/upload_document_dialog.dart';
 import 'document_preview_screen.dart';
 import '../../data/document_repository.dart';
 import 'image_preview_screen.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../widgets/document_profile_filter.dart';
 
 class DocumentsScreen extends StatefulWidget {
-  const DocumentsScreen({super.key});
+  final AuthSession? authSession;
+
+  const DocumentsScreen({super.key, this.authSession});
 
   @override
   State<DocumentsScreen> createState() => _DocumentsScreenState();
@@ -29,10 +33,14 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = DocumentController();
+    _controller = DocumentController(
+      profileId: widget.authSession?.activeProfileId,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      DocumentRepository.instance.markAllAsSeen();
+      DocumentRepository.instance.markAllAsSeen(
+        widget.authSession?.activeProfileId,
+      );
     });
   }
 
@@ -81,6 +89,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             animation: _controller,
             builder: (context, _) {
               final documents = _controller.visibleDocuments;
+              final activeProfile = widget.authSession?.activeProfile;
+              final canViewAllProfiles =
+                  activeProfile?.profileType == 'self' ||
+                  activeProfile?.role == 'owner';
               final hasActiveFilter =
                   _controller.searchQuery.trim().isNotEmpty ||
                   _controller.selectedCategory != null;
@@ -131,6 +143,17 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  if (canViewAllProfiles) ...[
+                    DocumentProfileFilter(
+                      profiles: widget.authSession?.profiles ?? const [],
+                      selectedProfileId: _controller.selectedProfileId,
+                      showAllProfiles: _controller.isShowingAllProfiles,
+                      onShowAll: _controller.showAllProfiles,
+                      onProfileSelected: _controller.selectProfile,
+                    ),
+                    if ((widget.authSession?.profiles.length ?? 0) > 1)
+                      const SizedBox(height: 14),
+                  ],
                   TextField(
                     controller: _searchController,
                     style: TextStyle(color: searchTextColor),

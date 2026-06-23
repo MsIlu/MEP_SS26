@@ -261,9 +261,28 @@ flutter run --dart-define=BACKEND_USE_HTTPS=false
 ## 7.4 Physical Phone Note
 
 If you test on a physical phone, `localhost` does not point to your computer.
-Use your computer's IPv4 address instead, start the backend with
-`--host 0.0.0.0`, and run Flutter with
-`--dart-define=API_BASE_URL=http://<YOUR_IPV4_ADDRESS>:8000`.
+The phone must use your computer's IPv4 address instead.
+
+Find your computer's IPv4 address:
+
+```powershell
+ipconfig
+```
+
+Start the backend inside the `server` folder so the phone can reach it:
+
+```bash
+python -m uvicorn main:app --reload --host 0.0.0.0
+```
+
+Start Flutter with your computer's IPv4 address:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://<YOUR_IPV4_ADDRESS>:8000
+```
+
+The phone and computer must be in the same Wi-Fi network. If Windows asks,
+allow Python through the firewall.
 
 ---
 

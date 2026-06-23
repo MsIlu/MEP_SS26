@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 
@@ -39,15 +40,17 @@ class ChatService {
   }
 
   Message buildAssistantMessage(ChatResponse response) {
+    final recommendation = response.recommendationResult;
+    final canExport = isFinalRecommendation(response);
     final canCreateAppointment = hasAppointmentRecommendation(response);
 
     return Message(
       text: response.text,
       isUser: false,
-      canExportPdf: hasRecommendation(response),
+      canExportPdf: canExport,
       exportTitle: 'Handlungsempfehlung',
-      exportRecommendation: response.text,
-      exportNextSteps: response.action,
+      exportRecommendation: recommendation?.summary ?? response.text,
+      exportNextSteps: recommendation?.nextStep ?? response.action,
       canCreateAppointment: canCreateAppointment,
       appointmentTitle: canCreateAppointment
           ? appointmentTitleForRecommendation(response.text)
@@ -55,7 +58,16 @@ class ChatService {
     );
   }
 
+  bool isFinalRecommendation(ChatResponse response) {
+    return response.responseMode == 'recommend' &&
+        response.recommendationResult?.allowed == true;
+  }
+
   bool hasRecommendation(ChatResponse response) {
+    if (isFinalRecommendation(response)) {
+      return true;
+    }
+
     final responseText = response.text.toLowerCase();
 
     return (response.action != null && response.action!.trim().isNotEmpty) ||
@@ -67,6 +79,16 @@ class ChatService {
   }
 
   bool hasAppointmentRecommendation(ChatResponse response) {
+    final careLevel = response.recommendationResult?.careLevel;
+
+    if (response.responseMode == 'recommend' &&
+        response.recommendationResult?.allowed == true) {
+      return careLevel == 'general_practice' ||
+          careLevel == 'specialist' ||
+          careLevel == '116117' ||
+          careLevel == 'emergency_department';
+    }
+
     final responseText = response.text.toLowerCase();
     final actionText = response.action?.toLowerCase() ?? '';
     final combinedText = '$responseText $actionText';
@@ -79,15 +101,23 @@ class ChatService {
         combinedText.contains('aerztlich');
   }
 
-  String appointmentTitleForRecommendation(String text) {
-    final lowerText = text.toLowerCase();
+  String _appointmentTitleForRecommendation(ChatResponse response) {
+    final careLevel = response.recommendationResult?.careLevel;
 
-    if (lowerText.contains('hausarzt')) {
+    if (careLevel == 'general_practice') {
       return 'Hausarzttermin vereinbaren';
     }
 
-    if (lowerText.contains('facharzt')) {
+    if (careLevel == 'specialist') {
       return 'Facharzttermin vereinbaren';
+    }
+
+    if (careLevel == '116117') {
+      return 'Termin über 116117 prüfen';
+    }
+
+    if (careLevel == 'emergency_department') {
+      return 'Ärztliche Abklärung organisieren';
     }
 
     return 'Arzttermin vereinbaren';

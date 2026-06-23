@@ -11,6 +11,10 @@ const _painKeywords = [
 /// Returns whether a symptom should ask for a body area.
 bool symptomNeedsBodyArea(String symptom) {
   final normalizedSymptom = symptom.toLowerCase();
+  if (normalizedSymptom.contains('kopfschmerzen')) {
+    return false;
+  }
+
   return _painKeywords.any(normalizedSymptom.contains);
 }
 

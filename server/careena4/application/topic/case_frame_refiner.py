@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from careena4.domain.case import CaseManager
 from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Observation
 
 
@@ -17,24 +18,29 @@ class CaseFrameRefiner:
         ("arm", "Arm"),
     )
 
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def refine(self, *, case_topic: CaseTopic | None, medical_case: MedicalCase | None) -> CaseTopic | None:
         if case_topic is None:
             return None
-        case_topic.extensions = self._build_extensions(case_topic=case_topic, medical_case=medical_case)
-        case_topic.current_label = self._build_current_label(case_topic=case_topic)
-        return case_topic
+        return self.case_manager.update_topic_projection(
+            case_topic=case_topic,
+            extensions=self._build_extensions(case_topic=case_topic, medical_case=medical_case),
+            current_label=self._build_current_label(case_topic=case_topic),
+        )
 
     def _build_extensions(self, *, case_topic: CaseTopic, medical_case: MedicalCase | None) -> list[CaseExtension]:
         extensions: list[CaseExtension] = []
         seen: set[tuple[str, str]] = set()
         if medical_case is not None:
-            for observation in medical_case.active_observations():
+            for observation in self.case_manager.active_observations(medical_case=medical_case):
                 self._append_observation_extensions(
                     extensions=extensions,
                     seen=seen,
                     observation=observation,
                 )
-            relation = medical_case.subject.relation
+            relation = self.case_manager.person_relation(medical_case=medical_case)
             if relation != "unclear":
                 self._append_extension(
                     extensions=extensions,
@@ -106,8 +112,8 @@ class CaseFrameRefiner:
         )
 
     def _build_current_label(self, *, case_topic: CaseTopic) -> str:
-        extension_map = self._extension_map(case_topic.extensions)
-        if case_topic.topic_type == "injury_case":
+        extension_map = self._extension_map(self.case_manager.topic_extensions(case_topic=case_topic))
+        if self.case_manager.topic_type(case_topic=case_topic) == "injury_case":
             label = self._build_injury_label(case_topic=case_topic, extension_map=extension_map)
         else:
             label = self._build_symptom_label(case_topic=case_topic, extension_map=extension_map)
@@ -126,7 +132,7 @@ class CaseFrameRefiner:
         body_site = extension_map.get("body_site")
         duration = self._duration_fragment(extension_map.get("duration_or_onset"))
         limitation = self._clean_fragment(extension_map.get("functional_limitation"))
-        label = case_topic.initial_label
+        label = self.case_manager.topic_initial_label(case_topic=case_topic) or ""
         if mechanism:
             label = mechanism
             if body_site and body_site.casefold() not in label.casefold():
@@ -142,7 +148,7 @@ class CaseFrameRefiner:
     def _build_symptom_label(self, *, case_topic: CaseTopic, extension_map: dict[str, str]) -> str:
         body_site = extension_map.get("body_site")
         duration = self._duration_fragment(extension_map.get("duration_or_onset"))
-        label = case_topic.initial_label
+        label = self.case_manager.topic_initial_label(case_topic=case_topic) or ""
         if body_site and body_site.casefold() not in label.casefold():
             label = f"{label} {self._symptom_body_phrase(body_site)}"
         if duration and duration.casefold() not in label.casefold():
@@ -194,8 +200,5 @@ class CaseFrameRefiner:
             return cleaned[0].lower() + cleaned[1:]
         return cleaned
 
-    @staticmethod
-    def tokens_for_topic(case_topic: CaseTopic | None) -> set[str]:
-        if case_topic is None:
-            return set()
-        return case_topic.search_tokens()
+    def tokens_for_topic(self, case_topic: CaseTopic | None) -> set[str]:
+        return self.case_manager.topic_tokens(case_topic=case_topic)

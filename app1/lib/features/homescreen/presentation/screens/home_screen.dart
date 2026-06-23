@@ -298,13 +298,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: featureColor,
         onTap: () {},
       ),
-      if (widget.authSession?.activeProfileId != null)
-        HomeFeature(
-          icon: Icons.menu_book_outlined,
-          title: 'Symptomtagebuch',
-          backgroundColor: featureColor,
-          onTap: () => _navigateToSymptomDiary(context),
-        ),
+      HomeFeature(
+        icon: Icons.menu_book_outlined,
+        title: 'Symptomtagebuch',
+        backgroundColor: featureColor,
+        onTap: () => _navigateToSymptomDiary(context),
+      ),
     ];
   }
 

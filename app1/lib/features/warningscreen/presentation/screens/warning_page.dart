@@ -47,6 +47,8 @@ class WarningPage extends StatelessWidget {
                 nextSteps:
                     response.action ??
                     'Bitte folgen Sie den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktieren Sie den Notruf 112.',
+                symptoms: const [],
+                userMessages: const [],
               ),
 
               const SizedBox(height: 16),

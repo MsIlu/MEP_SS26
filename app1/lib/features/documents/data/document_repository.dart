@@ -2,14 +2,21 @@ import 'package:flutter/foundation.dart';
 
 import 'models/document_entry.dart';
 
+/// Shared in-memory document store used by chat, home, and document screens.
+///
+/// Backend persistence will replace this repository in a later implementation.
 class DocumentRepository {
   DocumentRepository._();
 
   static final DocumentRepository instance = DocumentRepository._();
 
   final ValueNotifier<List<DocumentEntry>> documents = ValueNotifier([]);
+
+  /// Number of unseen Careena documents grouped by profile id.
   final ValueNotifier<Map<int?, int>> unreadCounts = ValueNotifier({});
 
+  /// Adds a Careena recommendation unless the same profile already owns one
+  /// with the same normalized document name.
   bool addRecommendationIfMissing(DocumentEntry document) {
     final alreadyExists = documents.value.any(
       (entry) =>
@@ -25,10 +32,10 @@ class DocumentRepository {
     documents.value = [document, ...documents.value];
     final profileId = document.profileId;
 
-unreadCounts.value = {
-  ...unreadCounts.value,
-  profileId: (unreadCounts.value[profileId] ?? 0) + 1,
-};
+    unreadCounts.value = {
+      ...unreadCounts.value,
+      profileId: (unreadCounts.value[profileId] ?? 0) + 1,
+    };
     return true;
   }
 
@@ -51,13 +58,10 @@ unreadCounts.value = {
   }
 
   int unreadCountForProfile(int? profileId) {
-  return unreadCounts.value[profileId] ?? 0;
-}
+    return unreadCounts.value[profileId] ?? 0;
+  }
 
-void markAllAsSeen(int? profileId) {
-  unreadCounts.value = {
-    ...unreadCounts.value,
-    profileId: 0,
-  };
-}
+  void markAllAsSeen(int? profileId) {
+    unreadCounts.value = {...unreadCounts.value, profileId: 0};
+  }
 }

@@ -1,10 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/document_entry.dart';
-import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
-import 'package:image_picker/image_picker.dart';
 
 class UploadDocumentDraft {
   final String name;
@@ -199,54 +200,76 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      withData: true,
-    );
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        withData: true,
+      );
 
-    if (result == null) return;
+      if (result == null) return;
 
-    final file = result.files.single;
-    final bytes = file.bytes;
+      final file = result.files.single;
+      final bytes = file.bytes;
 
-    if (bytes == null) {
+      if (bytes == null) {
+        setState(() {
+          _clearSelectedDocument();
+          _fileError = 'Die Datei konnte nicht gelesen werden.';
+        });
+        return;
+      }
+
+      final extension = file.extension?.toLowerCase();
+
+      _selectDocument(
+        bytes: bytes,
+        name: file.name,
+        mimeType: switch (extension) {
+          'pdf' => 'application/pdf',
+          'jpg' || 'jpeg' => 'image/jpeg',
+          'png' => 'image/png',
+          _ => 'application/octet-stream',
+        },
+      );
+    } catch (_) {
+      if (!mounted) return;
+
       setState(() {
-        _fileError = 'Die Datei konnte nicht gelesen werden.';
+        _clearSelectedDocument();
+        _fileError =
+            'Die Datei konnte nicht ausgewählt werden. Bitte versuche es erneut.';
       });
-      return;
     }
-
-    final extension = file.extension?.toLowerCase();
-
-    _selectDocument(
-      bytes: bytes,
-      name: file.name,
-      mimeType: switch (extension) {
-        'pdf' => 'application/pdf',
-        'jpg' || 'jpeg' => 'image/jpeg',
-        'png' => 'image/png',
-        _ => 'application/octet-stream',
-      },
-    );
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final image = await _imagePicker.pickImage(
-      source: source,
-      imageQuality: 85,
-    );
+    try {
+      final image = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
 
-    if (image == null) return;
+      if (image == null) return;
 
-    final bytes = await image.readAsBytes();
-    final extension = image.name.split('.').last.toLowerCase();
+      final bytes = await image.readAsBytes();
+      final extension = image.name.split('.').last.toLowerCase();
 
-    _selectDocument(
-      bytes: bytes,
-      name: image.name,
-      mimeType: extension == 'png' ? 'image/png' : 'image/jpeg',
-    );
+      _selectDocument(
+        bytes: bytes,
+        name: image.name,
+        mimeType: extension == 'png' ? 'image/png' : 'image/jpeg',
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _clearSelectedDocument();
+        _fileError = source == ImageSource.camera
+            ? 'Die Kamera konnte nicht geöffnet werden. Prüfe die Kameraberechtigung.'
+            : 'Die Fotomediathek konnte nicht geöffnet werden. Prüfe die Fotoberechtigung.';
+      });
+    }
   }
 
   void _selectDocument({
@@ -258,6 +281,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
 
     if (bytes.lengthInBytes > maximumSize) {
       setState(() {
+        _clearSelectedDocument();
         _fileError = 'Die Datei darf maximal 10 MB groß sein.';
       });
       return;
@@ -270,6 +294,12 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
       _fileError = null;
       _nameController.text = name;
     });
+  }
+
+  void _clearSelectedDocument() {
+    _selectedBytes = null;
+    _selectedName = null;
+    _selectedMimeType = null;
   }
 }
 

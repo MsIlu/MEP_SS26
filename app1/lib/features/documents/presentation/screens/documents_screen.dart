@@ -286,7 +286,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       return;
     }
 
-    // Danach bleibt dein bisheriger Details-Dialog stehen.
+
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(

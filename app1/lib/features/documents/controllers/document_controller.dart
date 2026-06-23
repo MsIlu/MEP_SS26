@@ -3,8 +3,11 @@ import 'package:flutter/foundation.dart';
 import '../data/document_repository.dart';
 import '../data/models/document_entry.dart';
 
+/// Controls profile, category, and search filtering for the document list.
 class DocumentController extends ChangeNotifier {
   final DocumentRepository repository;
+
+  /// Profile that owns documents newly imported through this controller.
   final int? profileId;
 
   DocumentController({DocumentRepository? repository, this.profileId})
@@ -67,6 +70,7 @@ class DocumentController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Shows documents for every profile accessible through the current session.
   void showAllProfiles() {
     _showAllProfiles = true;
     notifyListeners();

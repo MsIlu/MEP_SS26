@@ -13,6 +13,7 @@ enum DocumentCategory {
 
 enum DocumentSource { uploaded, careena }
 
+/// Frontend representation of an imported or Careena-generated document.
 class DocumentEntry {
   final String id;
   final int? profileId;
@@ -21,6 +22,8 @@ class DocumentEntry {
   final DateTime createdAt;
   final int sizeInBytes;
   final DocumentSource source;
+
+  /// In-memory file data until backend persistence is available.
   final Uint8List? fileBytes;
   final String mimeType;
 

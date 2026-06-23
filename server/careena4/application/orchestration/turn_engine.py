@@ -10,7 +10,7 @@ from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
 from careena4.application.topic.case_frame_refiner import CaseFrameRefiner
 from careena4.application.topic.topic_manager import TopicManager
-from careena4.domain.case_manager import CaseManager
+from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.quality.observation_quality_evaluator import ObservationQualityEvaluator
@@ -51,22 +51,22 @@ class TurnEngine:
     ):
         self.raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
         self.safety_clarification_builder = safety_clarification_builder or SafetyClarificationBuilder()
-        self.entry_classifier = entry_classifier or EntryClassifier()
+        self.case_manager = case_manager or CaseManager()
+        self.entry_classifier = entry_classifier or EntryClassifier(case_manager=self.case_manager)
         self.question_resolver = question_resolver or QuestionResolver()
-        self.topic_manager = topic_manager or TopicManager()
-        self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner()
+        self.topic_manager = topic_manager or TopicManager(case_manager=self.case_manager)
+        self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner(case_manager=self.case_manager)
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.symptom_chip_builder = SymptomChipBuilder()
-        self.case_manager = case_manager or CaseManager()
-        self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator()
-        self.followup_need_builder = followup_need_builder or FollowupNeedBuilder()
+        self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator(case_manager=self.case_manager)
+        self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
         self.followup_selector = followup_selector or FollowupSelector()
         self.question_builder = question_builder or QuestionBuilder()
-        self.readiness_evaluator = readiness_evaluator or ReadinessEvaluator()
-        self.readiness_builder = readiness_builder or AssessmentReadinessBuilder()
-        self.recommendation_builder = recommendation_builder or RecommendationBuilder()
+        self.readiness_evaluator = readiness_evaluator or ReadinessEvaluator(case_manager=self.case_manager)
+        self.readiness_builder = readiness_builder or AssessmentReadinessBuilder(case_manager=self.case_manager)
+        self.recommendation_builder = recommendation_builder or RecommendationBuilder(case_manager=self.case_manager)
         self.response_policy = response_policy or ResponsePolicy()
-        self.response_builder = response_builder or ResponseBuilder()
+        self.response_builder = response_builder or ResponseBuilder(case_manager=self.case_manager)
         self.turn_understanding_service = turn_understanding_service
         self.understanding_symptom_draft_adapter = (
             understanding_symptom_draft_adapter or UnderstandingSymptomDraftAdapter()

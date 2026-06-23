@@ -1,3 +1,4 @@
+from careena4.domain.case import CaseManager
 from careena4.models.common import (
     ObservationAmbiguity,
     ObservationCompleteness,
@@ -19,9 +20,12 @@ class ObservationQuality(PipelineModel):
 
 
 class ObservationQualityEvaluator:
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def evaluate(self, *, case_topic: CaseTopic | None, medical_case: MedicalCase) -> list[ObservationQuality]:
         qualities: list[ObservationQuality] = []
-        for observation in medical_case.active_observations():
+        for observation in self.case_manager.active_observations(medical_case=medical_case):
             qualities.append(
                 ObservationQuality(
                     observation_id=observation.observation_id,
@@ -34,13 +38,12 @@ class ObservationQualityEvaluator:
             )
         return qualities
 
-    @staticmethod
-    def _topic_fit(*, case_topic: CaseTopic | None, observation: Observation) -> ObservationTopicFit:
+    def _topic_fit(self, *, case_topic: CaseTopic | None, observation: Observation) -> ObservationTopicFit:
         if observation.topic_relation in {"central", "related"}:
             return observation.topic_relation  # type: ignore[return-value]
         if case_topic is None:
             return "central"
-        topic_tokens = case_topic.search_tokens()
+        topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
         label_tokens = set(observation.label.casefold().split())
         if topic_tokens.intersection(label_tokens):
             return "central"

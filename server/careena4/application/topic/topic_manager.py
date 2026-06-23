@@ -1,10 +1,14 @@
 import re
 
+from careena4.domain.case import CaseManager
 from careena4.models.domain import CaseTopic, MedicalCase
 from careena4.models.turn import ExtractionClaims
 
 
 class TopicManager:
+    def __init__(self, *, case_manager: CaseManager | None = None) -> None:
+        self.case_manager = case_manager or CaseManager()
+
     def ensure_topic(
         self,
         *,
@@ -21,8 +25,8 @@ class TopicManager:
             label = claims.topic_signal
         elif claims is not None and claims.observations:
             label = claims.observations[0].label
-        elif medical_case is not None and medical_case.observations:
-            label = medical_case.observations[0].label
+        elif medical_case is not None:
+            label = self.case_manager.first_observation_label(medical_case=medical_case)
         else:
             label = self._message_topic_label(latest_message)
         if label is None:
@@ -40,7 +44,7 @@ class TopicManager:
     def evaluate_topic_fit(self, *, case_topic: CaseTopic | None, message: str, claims: ExtractionClaims | None) -> str:
         if case_topic is None:
             return "fits"
-        topic_tokens = case_topic.search_tokens()
+        topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
         if claims is not None:
             claim_tokens = self._claim_tokens(claims)
             if claim_tokens and topic_tokens.intersection(claim_tokens):

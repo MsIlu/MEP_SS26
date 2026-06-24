@@ -18,7 +18,6 @@ QuestionIntent = Literal[
     "free_description",
     "localization",
     "severity",
-    "mechanism",
 ]
 
 QuestionKind = Literal[
@@ -50,8 +49,6 @@ CaseExtensionKind = Literal[
     "body_site",
     "duration_or_onset",
     "description",
-    "mechanism",
-    "functional_limitation",
     "subject_scope",
 ]
 
@@ -68,10 +65,6 @@ TopicStatus = Literal["tentative", "active", "shifted", "closed"]
 
 ObservationType = Literal[
     "symptom",
-    "injury",
-    "measurement",
-    "medication",
-    "risk_factor",
 ]
 
 ObservationStatus = Literal[
@@ -102,11 +95,11 @@ RecommendationReadiness = Literal["not_ready", "tentative", "ready"]
 
 FollowupReason = Literal[
     "subject_unclear",
+    "person_ref_missing",
     "duration_missing",
     "description_missing",
     "location_unclear",
     "severity_missing",
-    "mechanism_missing",
 ]
 
 FollowupPriority = Literal["low", "medium", "high"]

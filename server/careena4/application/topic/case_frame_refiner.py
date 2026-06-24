@@ -9,7 +9,7 @@ from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Observ
 class CaseFrameRefiner:
     _BODY_SITE_BY_LABEL = (
         ("hueft", "Huefte"),
-        ("hüft", "Huefte"),
+        ("hÃ¼ft", "Huefte"),
         ("bauch", "Bauch"),
         ("brust", "Brust"),
         ("kopf", "Kopf"),
@@ -64,8 +64,6 @@ class CaseFrameRefiner:
             ("body_site", observation.body_site),
             ("duration_or_onset", observation.onset),
             ("description", observation.description),
-            ("mechanism", observation.mechanism),
-            ("functional_limitation", observation.functional_limitation),
         ):
             if value in (None, "", []):
                 continue
@@ -118,10 +116,7 @@ class CaseFrameRefiner:
 
     def _build_current_label(self, *, case_topic: CaseTopic) -> str:
         extension_map = self._extension_map(self.case_manager.topic_extensions(case_topic=case_topic))
-        if self.case_manager.topic_type(case_topic=case_topic) == "injury_case":
-            label = self._build_injury_label(case_topic=case_topic, extension_map=extension_map)
-        else:
-            label = self._build_symptom_label(case_topic=case_topic, extension_map=extension_map)
+        label = self._build_symptom_label(case_topic=case_topic, extension_map=extension_map)
         normalized = " ".join(label.split())
         return normalized[:80].rstrip(", ")
 
@@ -132,24 +127,6 @@ class CaseFrameRefiner:
             result.setdefault(extension.kind, extension.value)
         return result
 
-    def _build_injury_label(self, *, case_topic: CaseTopic, extension_map: dict[str, str]) -> str:
-        mechanism = extension_map.get("mechanism")
-        body_site = extension_map.get("body_site")
-        duration = self._duration_fragment(extension_map.get("duration_or_onset"))
-        limitation = self._clean_fragment(extension_map.get("functional_limitation"))
-        label = self.case_manager.topic_initial_label(case_topic=case_topic) or ""
-        if mechanism:
-            label = mechanism
-            if body_site and body_site.casefold() not in label.casefold():
-                label = f"{label} {self._injury_body_phrase(body_site)}"
-        elif body_site and body_site.casefold() not in label.casefold():
-            label = f"{label} {self._symptom_body_phrase(body_site)}"
-        if duration and duration.casefold() not in label.casefold():
-            label = f"{label} {duration}"
-        if limitation and limitation.casefold() not in label.casefold():
-            label = f"{label}, {limitation}"
-        return label
-
     def _build_symptom_label(self, *, case_topic: CaseTopic, extension_map: dict[str, str]) -> str:
         body_site = extension_map.get("body_site")
         duration = self._duration_fragment(extension_map.get("duration_or_onset"))
@@ -159,18 +136,6 @@ class CaseFrameRefiner:
         if duration and duration.casefold() not in label.casefold():
             label = f"{label} {duration}"
         return label
-
-    @staticmethod
-    def _injury_body_phrase(body_site: str) -> str:
-        return {
-            "Huefte": "auf die Huefte",
-            "Brust": "auf die Brust",
-            "Bauch": "auf den Bauch",
-            "Kopf": "auf den Kopf",
-            "Hals": "am Hals",
-            "Bein": "am Bein",
-            "Arm": "am Arm",
-        }.get(body_site, f"an der {body_site}")
 
     @staticmethod
     def _symptom_body_phrase(body_site: str) -> str:

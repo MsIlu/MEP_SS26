@@ -1,6 +1,5 @@
-from careena4.domain.case._case_input_models import _ObservationPatch
 from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Person, Topic
-from careena4.models.turn import CaseWritePlan
+from careena4.models.turn import CaseWritePlan, ObservationPatch
 
 
 class _CaseWriter:
@@ -67,15 +66,15 @@ class _CaseWriter:
         *,
         medical_case: MedicalCase,
         observation_id: str,
-        patch: _ObservationPatch,
+        patch: ObservationPatch,
     ) -> MedicalCase:
         target = self._find_target_observation(medical_case=medical_case, observation_id=observation_id)
-        if target is None or not patch.has_updates():
+        if target is None or not patch.has_values():
             return medical_case
-        if patch.status is not None:
-            target.status = patch.status
-        if patch.person_ref is not None and patch.person_ref != "unclear":
+        if patch.person_ref not in (None, "", "unclear"):
             target.person_ref = patch.person_ref
+            if patch.person_ref_source is not None:
+                target.person_ref_source = patch.person_ref_source.model_copy(deep=True)
         self._write_optional_field(
             target=target,
             field_name="onset",
@@ -96,27 +95,6 @@ class _CaseWriter:
             source_field_name="severity_source",
             value=patch.severity,
             source=patch.severity_source,
-        )
-        self._write_optional_field(
-            target=target,
-            field_name="mechanism",
-            source_field_name="mechanism_source",
-            value=patch.mechanism,
-            source=patch.mechanism_source,
-        )
-        self._write_optional_field(
-            target=target,
-            field_name="functional_limitation",
-            source_field_name="functional_limitation_source",
-            value=patch.functional_limitation,
-            source=patch.functional_limitation_source,
-        )
-        self._write_optional_field(
-            target=target,
-            field_name="measurement_kind",
-            source_field_name="measurement_kind_source",
-            value=patch.measurement_kind,
-            source=patch.measurement_kind_source,
         )
         if patch.description not in (None, ""):
             target.description = patch.description

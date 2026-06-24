@@ -7,7 +7,7 @@ from careena4.application.response.response_builder import ResponseBuilder
 from careena4.llm.call_control import CallModelConfig, ENTRY_CALL, EXTRACTION_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion
-from careena4.models.turn import EntryAssessment, ExtractionClaims, QuestionResolution, TurnDecision
+from careena4.models.turn import EntryAssessment, ExtractedCaseInput, QuestionResolution, TurnDecision
 
 
 class _FakeExtractionEngine:
@@ -67,8 +67,19 @@ class Careena4LlmPathTests(unittest.TestCase):
                     "answer_kind": "duration_provided",
                     "clear_active_question": True,
                     "resolved_followup_id": "followup-1",
-                    "extracted_answer_attributes": {"duration_or_onset": "seit gestern"},
+                    "person_update": None,
+                    "observation_patch": {
+                        "onset": "seit gestern",
+                        "onset_source": {"message_id": None, "source_span": "seit gestern"},
+                        "body_site": None,
+                        "body_site_source": None,
+                        "description": None,
+                        "description_source": None,
+                        "severity": None,
+                        "severity_source": None,
+                    },
                     "additional_medical_information": False,
+                    "extra_case_input": None,
                     "next_question_text": None,
                     "trace_notes": ["llm:resolved"],
                 }
@@ -88,18 +99,55 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertIsInstance(result, QuestionResolution)
         self.assertEqual(result.status, "resolved")
-        self.assertEqual(result.extracted_answer_attributes["duration_or_onset"], "seit gestern")
+        assert result.observation_patch is not None
+        self.assertEqual(result.observation_patch.onset, "seit gestern")
+        assert result.observation_patch.onset_source is not None
+        self.assertEqual(result.observation_patch.onset_source.source_span, "seit gestern")
 
-    def test_question_resolver_canonicalizes_duration_key_from_llm(self):
+    def test_question_resolver_accepts_additional_case_input_from_llm(self):
         resolver = QuestionResolver(
             extraction_engine=_FakeExtractionEngine(
                 {
                     "status": "resolved",
-                    "answer_kind": "duration_provided",
+                    "answer_kind": "duration_plus_more",
                     "clear_active_question": True,
                     "resolved_followup_id": "followup-1",
-                    "extracted_answer_attributes": {"duration": "seit gestern"},
-                    "additional_medical_information": False,
+                    "person_update": None,
+                    "observation_patch": {
+                        "onset": "seit gestern",
+                        "onset_source": {"message_id": None, "source_span": "seit gestern"},
+                        "body_site": None,
+                        "body_site_source": None,
+                        "description": None,
+                        "description_source": None,
+                        "severity": None,
+                        "severity_source": None,
+                    },
+                    "additional_medical_information": True,
+                    "extra_case_input": {
+                        "topic_signal": "Bauchschmerzen",
+                        "topic_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                        "person": None,
+                        "observations": [
+                            {
+                                "type": "symptom",
+                                "label": "Uebelkeit",
+                                "label_source": {"message_id": None, "source_span": "Uebelkeit"},
+                                "status": "active",
+                                "status_source": {"message_id": None, "source_span": "Uebelkeit"},
+                                "person_ref": "self",
+                                "person_ref_source": {"message_id": None, "source_span": "ich"},
+                                "onset": None,
+                                "onset_source": None,
+                                "body_site": None,
+                                "body_site_source": None,
+                                "description": None,
+                                "description_source": None,
+                                "severity": None,
+                                "severity_source": None,
+                            }
+                        ],
+                    },
                     "next_question_text": None,
                     "trace_notes": ["llm:resolved"],
                 }
@@ -117,8 +165,45 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         result = resolver.resolve(question=question, message="Seit gestern.")
 
-        self.assertEqual(result.extracted_answer_attributes["duration_or_onset"], "seit gestern")
-        self.assertNotIn("duration", result.extracted_answer_attributes)
+        self.assertTrue(result.additional_medical_information)
+        assert result.extra_case_input is not None
+        self.assertEqual(result.extra_case_input.observations[0].label, "Uebelkeit")
+
+    def test_question_resolver_accepts_severity_resolution_from_llm(self):
+        resolver = QuestionResolver(
+            extraction_engine=_FakeExtractionEngine(
+                {
+                    "status": "resolved",
+                    "answer_kind": "severity_provided",
+                    "clear_active_question": True,
+                    "resolved_followup_id": "followup-1",
+                    "person_update": None,
+                    "observation_patch": {
+                        "severity": "8/10",
+                        "severity_source": {"message_id": None, "source_span": "8/10"},
+                    },
+                    "additional_medical_information": False,
+                    "extra_case_input": None,
+                    "next_question_text": None,
+                    "trace_notes": ["llm:resolved"],
+                }
+            ),
+            call_model_config=CallModelConfig(default_model="default", overrides={}),
+        )
+        question = ActiveQuestion(
+            kind="followup",
+            question_intent="severity",
+            target_followup_id="followup-1",
+            target_observation_id="obs-1",
+            prompt_text="Wie stark ist das?",
+            blocking=True,
+        )
+
+        result = resolver.resolve(question=question, message="8/10.")
+
+        self.assertEqual(result.status, "resolved")
+        assert result.observation_patch is not None
+        self.assertEqual(result.observation_patch.severity, "8/10")
 
     def test_question_resolver_maps_closing_choice_no_to_more_information(self):
         resolver = QuestionResolver()
@@ -150,17 +235,29 @@ class Careena4LlmPathTests(unittest.TestCase):
         extractor = MedicalExtractor(
             extraction_engine=_FakeExtractionEngine(
                 {
-                    "topic_signal": "bauchschmerzen",
-                    "subject_claims": {"relation": "self"},
+                    "topic_signal": "Bauchschmerzen",
+                    "topic_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                    "person": {
+                        "relation": "self",
+                        "relation_source": {"message_id": None, "source_span": "ich"},
+                    },
                     "observations": [
                         {
                             "type": "symptom",
                             "label": "Bauchschmerzen",
-                            "normalized_concept": "bauchschmerzen",
-                            "subject_ref": "self",
-                            "negated": False,
-                            "attributes": {"duration_or_onset": "seit gestern"},
-                            "source_span": "Bauchschmerzen",
+                            "label_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                            "status": "active",
+                            "status_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                            "person_ref": "self",
+                            "person_ref_source": {"message_id": None, "source_span": "ich"},
+                            "onset": "seit gestern",
+                            "onset_source": {"message_id": None, "source_span": "seit gestern"},
+                            "body_site": "Bauch",
+                            "body_site_source": {"message_id": None, "source_span": "Bauch"},
+                            "description": None,
+                            "description_source": None,
+                            "severity": None,
+                            "severity_source": None,
                         }
                     ],
                 }
@@ -170,39 +267,26 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         result = extractor.extract(message="Ich habe seit gestern Bauchschmerzen.")
 
-        self.assertIsInstance(result, ExtractionClaims)
+        self.assertIsInstance(result, ExtractedCaseInput)
         self.assertEqual(result.observations[0].label, "Bauchschmerzen")
         self.assertEqual(extractor.extraction_engine.calls[0]["call_name"], EXTRACTION_CALL)
         self.assertEqual(extractor.extraction_engine.calls[0]["prompt_name"], EXTRACTION_CALL)
-        self.assertIn('"subject_claims": {', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('"person": {', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('observation.type: "symptom"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertNotIn("injury", load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"observations": [', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('"label_source": {', load_prompt(EXTRACTION_CALL).system_prompt)
 
-    def test_medical_extractor_canonicalizes_duration_key_from_llm(self):
+    def test_medical_extractor_returns_empty_case_input_when_llm_is_unavailable(self):
         extractor = MedicalExtractor(
-            extraction_engine=_FakeExtractionEngine(
-                {
-                    "topic_signal": "bauchschmerzen",
-                    "subject_claims": {"relation": "self"},
-                    "observations": [
-                        {
-                            "type": "symptom",
-                            "label": "Bauchschmerzen",
-                            "normalized_concept": "bauchschmerzen",
-                            "subject_ref": "self",
-                            "negated": False,
-                            "attributes": {"duration": "seit gestern"},
-                            "source_span": "Bauchschmerzen",
-                        }
-                    ],
-                }
-            ),
             call_model_config=CallModelConfig(default_model="default", overrides={}),
         )
 
         result = extractor.extract(message="Ich habe seit gestern Bauchschmerzen.")
 
-        self.assertEqual(result.observations[0].attributes["duration_or_onset"], "seit gestern")
-        self.assertNotIn("duration", result.observations[0].attributes)
+        self.assertIsInstance(result, ExtractedCaseInput)
+        self.assertEqual(result.observations, [])
+        self.assertIsNone(result.person)
 
     def test_response_builder_renders_explicit_closing_choice_options(self):
         builder = ResponseBuilder()

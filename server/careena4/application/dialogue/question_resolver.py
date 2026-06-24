@@ -44,6 +44,13 @@ class QuestionResolver:
                 clear_active_question=safety_resolution.clear_pending_clarification,
                 trace_notes=list(safety_resolution.trace_notes),
             )
+        if question.kind == "subject_clarification":
+            return self._resolve_without_llm(
+                question=question,
+                message=message,
+                normalized=normalized,
+                stripped=stripped,
+            )
 
         if question.kind == "closing_choice":
             additional_medical_information = self._contains_additional_medical_info(normalized)
@@ -166,41 +173,62 @@ class QuestionResolver:
         stripped: str,
     ) -> QuestionResolution:
         if question.kind == "subject_clarification":
+            def _observation_person_patch(relation: str, source: Source | None) -> ObservationPatch:
+                return ObservationPatch(person_ref=relation, person_ref_source=source)
+
             if "kind" in normalized or "sohn" in normalized or "tochter" in normalized:
+                source = self._first_source(normalized, ("kind", "sohn", "tochter"))
                 return QuestionResolution(
                     status="resolved",
                     answer_kind="subject_child",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    person_update=PersonUpdate(
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
                         relation="child",
-                        relation_source=self._first_source(normalized, ("kind", "sohn", "tochter")),
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("child", source)
+                        if question.target_observation_id is not None
+                        else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
             if "andere" in normalized or "mutter" in normalized or "vater" in normalized:
+                source = self._first_source(normalized, ("andere", "mutter", "vater"))
                 return QuestionResolution(
                     status="resolved",
                     answer_kind="subject_other",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    person_update=PersonUpdate(
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
                         relation="other",
-                        relation_source=self._first_source(normalized, ("andere", "mutter", "vater")),
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("other", source)
+                        if question.target_observation_id is not None
+                        else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
             if "ich" in normalized or "selbst" in normalized:
+                source = self._first_source(normalized, ("ich", "selbst"))
                 return QuestionResolution(
                     status="resolved",
                     answer_kind="subject_self",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    person_update=PersonUpdate(
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
                         relation="self",
-                        relation_source=self._first_source(normalized, ("ich", "selbst")),
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("self", source)
+                        if question.target_observation_id is not None
+                        else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
@@ -239,6 +267,7 @@ class QuestionResolver:
         answer_kind = {
             "duration": "duration_provided",
             "description": "description_provided",
+            "severity": "severity_provided",
         }.get(question.question_intent, "resolved")
         result = QuestionResolution(
             status="resolved",
@@ -301,10 +330,12 @@ class QuestionResolver:
         expected_field = {
             "duration": "onset",
             "description": "description",
+            "severity": "severity",
         }.get(question.question_intent)
         allowed_answer_kinds = {
             "duration": {"duration_provided", "duration_plus_more", "negated", "unclear", "invalid"},
             "description": {"description_provided", "description_plus_more", "negated", "unclear", "invalid"},
+            "severity": {"severity_provided", "severity_plus_more", "negated", "unclear", "invalid"},
         }.get(question.question_intent)
 
         if expected_field is None or allowed_answer_kinds is None:
@@ -479,8 +510,6 @@ class QuestionResolver:
             return ObservationPatch(body_site=value, body_site_source=source)
         if question_intent == "severity":
             return ObservationPatch(severity=value, severity_source=source)
-        if question_intent == "mechanism":
-            return ObservationPatch(mechanism=value, mechanism_source=source)
         return ObservationPatch(description=value, description_source=source)
 
     @staticmethod

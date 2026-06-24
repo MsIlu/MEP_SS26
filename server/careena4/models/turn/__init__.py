@@ -4,8 +4,6 @@ from careena4.models.turn.extraction_claims import (
     ExtractedCaseInput,
     ExtractedObservationInput,
     ExtractedPersonInput,
-    ExtractionClaims,
-    ObservationClaim,
 )
 from careena4.models.turn.input import TurnInput
 from careena4.models.turn.question_resolution import ObservationPatch, PersonUpdate, QuestionResolution
@@ -26,9 +24,7 @@ __all__ = [
     "ExtractedCaseInput",
     "ExtractedObservationInput",
     "ExtractedPersonInput",
-    "ExtractionClaims",
     "ObservationPatch",
-    "ObservationClaim",
     "PersonUpdate",
     "QuestionResolution",
     "SafetyAction",

@@ -25,12 +25,6 @@ class ExtractedObservationInput(PipelineModel):
     description_source: Source | None = None
     severity: int | str | None = None
     severity_source: Source | None = None
-    mechanism: str | None = None
-    mechanism_source: Source | None = None
-    functional_limitation: str | None = None
-    functional_limitation_source: Source | None = None
-    measurement_kind: str | None = None
-    measurement_kind_source: Source | None = None
 
     @property
     def source_span(self) -> str | None:
@@ -42,9 +36,6 @@ class ExtractedObservationInput(PipelineModel):
             self.body_site_source,
             self.description_source,
             self.severity_source,
-            self.mechanism_source,
-            self.functional_limitation_source,
-            self.measurement_kind_source,
         ):
             if source is not None and source.source_span not in (None, ""):
                 return source.source_span
@@ -56,8 +47,3 @@ class ExtractedCaseInput(PipelineModel):
     topic_source: Source | None = None
     person: ExtractedPersonInput | None = None
     observations: list[ExtractedObservationInput] = Field(default_factory=list)
-
-
-# Transitional aliases while direct callers are moved onto the new names.
-ObservationClaim = ExtractedObservationInput
-ExtractionClaims = ExtractedCaseInput

@@ -82,17 +82,28 @@ def _build_summary(
         summary["case_topic"] = case_topic.current_label
     if medical_case is not None:
         summary["observation_count"] = len(medical_case.observations)
-        summary["observations"] = [
-            {
-                "type": observation.type,
-                "label": observation.label,
-                "negated": observation.negated,
-                "attributes": dict(observation.attributes),
-            }
-            for observation in medical_case.observations[:5]
-        ]
+        summary["observations"] = [_observation_summary(observation=observation) for observation in medical_case.observations[:5]]
     if conversation_state is not None and conversation_state.active_question is not None:
         summary["active_question"] = conversation_state.active_question.kind
     if recommendation_state is not None:
         summary["recommendation_allowed"] = recommendation_state.recommendation_allowed
+    return summary
+
+
+def _observation_summary(*, observation) -> dict[str, object]:
+    summary: dict[str, object] = {
+        "type": observation.type,
+        "label": observation.label,
+        "status": observation.status,
+        "person_ref": observation.person_ref,
+    }
+    for field_name in (
+        "onset",
+        "body_site",
+        "description",
+        "severity",
+    ):
+        value = getattr(observation, field_name)
+        if value not in (None, "", []):
+            summary[field_name] = value
     return summary

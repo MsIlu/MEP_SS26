@@ -1,10 +1,14 @@
-from careena4.domain.case._case_input_models import _ObservationPatch
 from careena4.domain.case._case_reader import _CaseReader
 from careena4.domain.case._case_write_planner import _CaseWritePlanner
 from careena4.domain.case._case_writer import _CaseWriter
-from careena4.domain.case._legacy_case_input_adapter import _LegacyCaseInputAdapter
-from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Topic
-from careena4.models.turn import CaseWritePlan, ExtractedCaseInput, ObservationPatch, PersonUpdate
+from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Observation, Person, Source, Topic
+from careena4.models.turn import (
+    CaseWritePlan,
+    ExtractedCaseInput,
+    ExtractedObservationInput,
+    ObservationPatch,
+    PersonUpdate,
+)
 
 
 class CaseManager:
@@ -20,12 +24,10 @@ class CaseManager:
         self,
         *,
         case_reader: _CaseReader | None = None,
-        legacy_case_input_adapter: _LegacyCaseInputAdapter | None = None,
         case_write_planner: _CaseWritePlanner | None = None,
         case_writer: _CaseWriter | None = None,
     ) -> None:
         self.case_reader = case_reader or _CaseReader()
-        self.legacy_case_input_adapter = legacy_case_input_adapter or _LegacyCaseInputAdapter()
         self.case_write_planner = case_write_planner or _CaseWritePlanner()
         self.case_writer = case_writer or _CaseWriter()
 
@@ -37,11 +39,10 @@ class CaseManager:
         case_topic: CaseTopic | None,
     ) -> tuple[MedicalCase, list[str]]:
         existing_observations = self.case_reader.read_observations(medical_case=medical_case)
-        write_payload = self.legacy_case_input_adapter.adapt_case_input(case_input=claims)
         plan = self.case_write_planner.build_write_plan(
             existing_observations=existing_observations,
-            observations=write_payload.observations,
-            person_update=write_payload.person_update,
+            observations=[self._observation_from_input(observation_input=observation) for observation in claims.observations],
+            person_update=self._person_from_case_input(case_input=claims),
         )
         medical_case, trace_notes = self.apply_write_plan(medical_case=medical_case, plan=plan)
         if medical_case.topic is None and claims.topic_signal:
@@ -131,10 +132,9 @@ class CaseManager:
         person_update: PersonUpdate,
         case_topic: CaseTopic | None = None,
     ) -> tuple[MedicalCase, CaseTopic | None]:
-        person_update = self.legacy_case_input_adapter.adapt_person_update(person_update=person_update)
         return self.case_writer.write_person_relation(
             medical_case=medical_case,
-            person_update=person_update,
+            person_update=self._person_from_update(person_update=person_update),
             case_topic=case_topic,
         )
 
@@ -145,7 +145,6 @@ class CaseManager:
         observation_id: str,
         patch: ObservationPatch,
     ) -> MedicalCase:
-        patch: _ObservationPatch = self.legacy_case_input_adapter.adapt_followup_patch(patch=patch)
         return self.case_writer.write_followup_enrichment(
             medical_case=medical_case,
             observation_id=observation_id,
@@ -175,3 +174,53 @@ class CaseManager:
             medical_case=medical_case,
             case_topic=case_topic,
         )
+
+    @staticmethod
+    def _person_from_case_input(*, case_input: ExtractedCaseInput) -> Person | None:
+        if case_input.person is None:
+            return None
+        if case_input.person.relation not in {"self", "child", "other", "unclear"}:
+            return None
+        return Person(
+            relation=case_input.person.relation,
+            relation_source=CaseManager._copy_source(case_input.person.relation_source),
+        )
+
+    @staticmethod
+    def _person_from_update(*, person_update: PersonUpdate) -> Person | None:
+        if person_update.relation not in {"self", "child", "other", "unclear"}:
+            return None
+        return Person(
+            relation=person_update.relation,
+            relation_source=CaseManager._copy_source(person_update.relation_source),
+        )
+
+    @staticmethod
+    def _observation_from_input(*, observation_input: ExtractedObservationInput) -> Observation:
+        return Observation(
+            type=observation_input.type,
+            label=observation_input.label,
+            label_source=CaseManager._copy_source(observation_input.label_source),
+            status=observation_input.status,
+            status_source=CaseManager._copy_source(observation_input.status_source),
+            person_ref=observation_input.person_ref or "unclear",
+            person_ref_source=CaseManager._copy_source(observation_input.person_ref_source),
+            onset=observation_input.onset,
+            onset_source=CaseManager._copy_source(observation_input.onset_source),
+            body_site=observation_input.body_site,
+            body_site_source=CaseManager._copy_source(observation_input.body_site_source),
+            description=observation_input.description,
+            description_sources=(
+                [observation_input.description_source.model_copy(deep=True)]
+                if observation_input.description_source is not None
+                else []
+            ),
+            severity=observation_input.severity,
+            severity_source=CaseManager._copy_source(observation_input.severity_source),
+        )
+
+    @staticmethod
+    def _copy_source(source: Source | None) -> Source | None:
+        if source is None:
+            return None
+        return source.model_copy(deep=True)

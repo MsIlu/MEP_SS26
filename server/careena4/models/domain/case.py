@@ -29,11 +29,3 @@ class MedicalCase(PipelineModel):
             for observation in self.observations
             if observation.is_active()
         ]
-
-    @property
-    def subject(self) -> Person:
-        return self.person
-
-    @subject.setter
-    def subject(self, person: Person) -> None:
-        self.person = person

@@ -13,7 +13,6 @@ from careena4.application.topic.topic_manager import TopicManager
 from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
-from careena4.domain.quality.observation_quality_evaluator import ObservationQualityEvaluator
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
 from careena4.models.domain import ActiveQuestion, CaseTopic, ConversationState, MedicalCase, RecommendationState
 from careena4.application.input import UnderstandingSymptomDraftAdapter
@@ -36,7 +35,6 @@ class TurnEngine:
         case_frame_refiner: CaseFrameRefiner | None = None,
         medical_extractor: MedicalExtractor | None = None,
         case_manager: CaseManager | None = None,
-        quality_evaluator: ObservationQualityEvaluator | None = None,
         followup_need_builder: FollowupNeedBuilder | None = None,
         followup_selector: FollowupSelector | None = None,
         question_builder: QuestionBuilder | None = None,
@@ -58,7 +56,6 @@ class TurnEngine:
         self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner(case_manager=self.case_manager)
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.symptom_chip_builder = SymptomChipBuilder()
-        self.quality_evaluator = quality_evaluator or ObservationQualityEvaluator(case_manager=self.case_manager)
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
         self.followup_selector = followup_selector or FollowupSelector()
         self.question_builder = question_builder or QuestionBuilder()
@@ -614,11 +611,9 @@ class TurnEngine:
                 case_topic=case_topic,
             )
 
-        qualities = self.quality_evaluator.evaluate(case_topic=case_topic, medical_case=medical_case)
         conversation_state.followup_needs = self.followup_need_builder.build(
             case_topic=case_topic,
             medical_case=medical_case,
-            qualities=qualities,
         )
 
         followup_need = self.followup_selector.select(followup_needs=conversation_state.followup_needs)

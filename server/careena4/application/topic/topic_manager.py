@@ -2,7 +2,7 @@ import re
 
 from careena4.domain.case import CaseManager
 from careena4.models.domain import CaseTopic, MedicalCase
-from careena4.models.turn import ExtractionClaims
+from careena4.models.turn import ExtractedCaseInput
 
 
 class TopicManager:
@@ -14,7 +14,7 @@ class TopicManager:
         *,
         existing_topic: CaseTopic | None,
         medical_case: MedicalCase | None,
-        claims: ExtractionClaims | None,
+        claims: ExtractedCaseInput | None,
         latest_message: str,
         turn_id: str | None,
     ) -> CaseTopic | None:
@@ -41,7 +41,7 @@ class TopicManager:
             opened_at_turn=turn_id,
         )
 
-    def evaluate_topic_fit(self, *, case_topic: CaseTopic | None, message: str, claims: ExtractionClaims | None) -> str:
+    def evaluate_topic_fit(self, *, case_topic: CaseTopic | None, message: str, claims: ExtractedCaseInput | None) -> str:
         if case_topic is None:
             return "fits"
         topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
@@ -59,7 +59,7 @@ class TopicManager:
         return "unclear"
 
     @staticmethod
-    def _claim_tokens(claims: ExtractionClaims) -> set[str]:
+    def _claim_tokens(claims: ExtractedCaseInput) -> set[str]:
         tokens: set[str] = set()
         for claim in claims.observations:
             tokens.update(TopicManager._text_tokens(claim.label))
@@ -68,9 +68,6 @@ class TopicManager:
                 claim.body_site,
                 claim.description,
                 claim.severity,
-                claim.mechanism,
-                claim.functional_limitation,
-                claim.measurement_kind,
             ):
                 if value not in (None, "", []):
                     tokens.update(TopicManager._text_tokens(str(value)))
@@ -80,7 +77,7 @@ class TopicManager:
     def _text_tokens(text: str) -> set[str]:
         return {
             token
-            for token in re.findall(r"[a-zA-ZaeoeuessäöüÄÖÜ]+", text.casefold())
+            for token in re.findall(r"[a-zA-ZaeoeuessÃ¤Ã¶Ã¼Ã„Ã–Ãœ]+", text.casefold())
             if len(token) > 2
         }
 
@@ -94,16 +91,25 @@ class TopicManager:
     @staticmethod
     def _topic_type(label: str) -> str:
         normalized = label.casefold()
-        if any(token in normalized for token in ("sturz", "verletz", "huefte", "hüfte", "umgeknickt", "gefallen")):
-            return "injury_case"
-        if any(token in normalized for token in ("medikament", "tablette", "ibuprofen")):
-            return "medication_case"
-        if any(token in normalized for token in ("schmerz", "fieber", "husten", "atem", "bruch", "druck")):
+        medical_tokens = (
+            "schmerz",
+            "fieber",
+            "husten",
+            "atem",
+            "bruch",
+            "druck",
+            "sturz",
+            "verletz",
+            "gefallen",
+            "huefte",
+            "hÃ¼fte",
+        )
+        if any(token in normalized for token in medical_tokens):
             return "symptom_case"
         return "unclear_medical_case"
 
     @staticmethod
-    def _subject_scope(claims: ExtractionClaims | None) -> str:
+    def _subject_scope(claims: ExtractedCaseInput | None) -> str:
         if claims is None or claims.person is None:
             return "unclear"
         relation = claims.person.relation

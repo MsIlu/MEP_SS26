@@ -31,6 +31,7 @@ def test_chat_history_is_profile_bound_and_sorted(client):
             "profile_id": auth["profile_id"],
             "title": "Kopfschmerzen",
             "is_emergency": False,
+            "status": "completed",
             "recommendation": "Erste Empfehlung",
             "next_steps": "Abwarten",
             "messages": [
@@ -83,6 +84,8 @@ def test_chat_history_is_profile_bound_and_sorted(client):
     assert entries[0]["is_emergency"] is True
     assert entries[0]["created_at"].endswith(("Z", "+00:00"))
     assert entries[0]["messages"][0]["text"] == "Husten"
+    assert entries[0]["status"] == "completed"
+    assert entries[0]["updated_at"].endswith(("Z", "+00:00"))
 
 
 def test_chat_history_requires_profile_access(client):

@@ -41,6 +41,7 @@ def create_chat_history(
     entry = ChatHistory(
         profile_id=request.profile_id,
         title=request.title,
+        status=request.status,
         is_emergency=request.is_emergency,
         recommendation=request.recommendation,
         next_steps=request.next_steps,
@@ -59,8 +60,10 @@ def _to_response(entry: ChatHistory) -> ChatHistoryResponse:
         id=entry.id,
         profile_id=entry.profile_id,
         title=entry.title,
+        status=entry.status,
         is_emergency=entry.is_emergency,
         created_at=_as_utc(entry.created_at),
+        updated_at=_as_utc(entry.updated_at),
         recommendation=entry.recommendation,
         next_steps=entry.next_steps,
         messages=entry.messages,

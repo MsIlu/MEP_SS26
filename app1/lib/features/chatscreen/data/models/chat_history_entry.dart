@@ -6,8 +6,10 @@ class ChatHistoryEntry {
   final String id;
   final int? profileId;
   final String? symptomTitle;
+  final String status;
   final bool isEmergency;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final List<Message> messages;
   final String recommendation;
   final String? nextSteps;
@@ -16,8 +18,10 @@ class ChatHistoryEntry {
     required this.id,
     required this.profileId,
     this.symptomTitle,
+    this.status = 'completed',
     this.isEmergency = false,
     required this.createdAt,
+    this.updatedAt,
     required this.messages,
     required this.recommendation,
     this.nextSteps,
@@ -46,8 +50,10 @@ class ChatHistoryEntry {
       'id': id,
       'profile_id': profileId,
       'title': symptomTitle,
+      'status': status,
       'is_emergency': isEmergency,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'recommendation': recommendation,
       'next_steps': nextSteps,
       'messages': messages.map(_messageToJson).toList(),
@@ -69,8 +75,12 @@ class ChatHistoryEntry {
       id: json['id'].toString(),
       profileId: json['profile_id'] as int,
       symptomTitle: json['title'] as String?,
+      status: json['status'] as String? ?? 'completed',
       isEmergency: json['is_emergency'] == true,
       createdAt: _parseServerDateTime(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : _parseServerDateTime(json['updated_at'] as String),
       recommendation: json['recommendation'] as String? ?? '',
       nextSteps: json['next_steps'] as String?,
       messages: rawMessages

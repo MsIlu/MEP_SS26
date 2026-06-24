@@ -1,5 +1,19 @@
 from careena4.application.orchestration.turn_engine import TurnEngine
-from careena4.models.turn import TurnInput
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, TurnInput
+
+
+class _StubMedicalExtractor:
+    def extract(self, *, message: str, case_topic: str | None = None, history_messages=None) -> ExtractedCaseInput:
+        return ExtractedCaseInput(
+            observations=[
+                ExtractedObservationInput(
+                    type="symptom",
+                    label="Bauchschmerzen",
+                    status="active",
+                    onset="seit gestern" if "seit gestern" in message.casefold() else None,
+                )
+            ]
+        )
 
 
 def _next_input(message: str, result):
@@ -13,7 +27,7 @@ def _next_input(message: str, result):
 
 
 def test_sparse_symptom_creates_subject_followup_first():
-    engine = TurnEngine()
+    engine = TurnEngine(medical_extractor=_StubMedicalExtractor())
 
     result = engine.run_turn(TurnInput(message="Ich habe Bauchschmerzen."))
 
@@ -27,7 +41,7 @@ def test_sparse_symptom_creates_subject_followup_first():
 
 
 def test_missing_subject_can_trigger_subject_clarification():
-    engine = TurnEngine()
+    engine = TurnEngine(medical_extractor=_StubMedicalExtractor())
 
     result = engine.run_turn(TurnInput(message="Bauchschmerzen seit gestern."))
 

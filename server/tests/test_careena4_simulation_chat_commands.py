@@ -45,6 +45,14 @@ class Careena4SimulationChatCommandsTests(unittest.TestCase):
         self.assertEqual(request.participant_llm_mode, "env")
         self.assertEqual(request.scenario_prompt, DEFAULT_SCENARIO_PROMPT)
 
+    def test_simrun_numeric_selector_maps_to_named_scenario(self):
+        runner = _FakeSimulationRunner()
+
+        run_simulation_command(selector="1", simulation_runner=runner)
+
+        self.assertEqual(len(runner.requests), 1)
+        self.assertEqual(runner.requests[0].scenario_prompt, SCENARIO_PROMPTS["1"])
+
     def test_simrun_all_runs_each_named_scenario_with_short_runs(self):
         runner = _FakeSimulationRunner()
 

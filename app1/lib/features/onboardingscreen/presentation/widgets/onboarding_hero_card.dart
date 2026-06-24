@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app1/core/config/app_assets.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
@@ -119,7 +120,7 @@ class _RegularHeroBody extends StatelessWidget {
               Positioned(
                 bottom: 0,
                 left: constraints.maxWidth * 0.24,
-                child: Image.asset("assets/images/careena_hi.png", height: 140),
+                child: Image.asset(AppAssets.careenaHi, height: 140),
               ),
             ],
           );
@@ -148,7 +149,7 @@ class _CompactHeroBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Center(child: Image.asset("assets/images/careena_hi.png", height: 118)),
+        Center(child: Image.asset(AppAssets.careenaHi, height: 118)),
       ],
     );
   }

@@ -7,7 +7,7 @@ class AppColors {
   static const Color transparent = Colors.transparent;
 
   // Brand colors
-  static const Color primary = Color(0xFF4A90E2);
+  static const Color primary = Color(0xFF2F8FA5);
   static const Color accent = Color(0xFF2ECC71);
 
   // Light mode
@@ -35,7 +35,7 @@ class AppColors {
   static const Color textSecondary = lightTextSecondary;
 
   // Existing Careena colors
-  static const Color upperBarColor = Color(0xFF1565C0);
+  static const Color upperBarColor = Color(0xFF1F6F89);
   static const Color lowerBarColor = Color(0xFFE0E0E0);
 
   static const Color careenaBackground = Color(0xFFDDF1F1);

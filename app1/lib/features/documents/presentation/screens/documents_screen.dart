@@ -280,12 +280,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           builder: (context) => ImagePreviewScreen(
             documentName: document.name,
             fileBytes: fileBytes,
+            mimeType: document.mimeType,
           ),
         ),
       );
       return;
     }
-
 
     return showDialog<void>(
       context: context,

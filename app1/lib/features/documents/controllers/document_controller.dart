@@ -91,7 +91,7 @@ class DocumentController extends ChangeNotifier {
     repository.addDocument(
       DocumentEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
-        profileId: profileId,
+        profileId: _selectedProfileId,
         name: name.trim(),
         category: category,
         createdAt: DateTime.now(),

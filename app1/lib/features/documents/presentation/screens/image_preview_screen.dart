@@ -1,19 +1,31 @@
 import 'dart:typed_data';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart';
 
 class ImagePreviewScreen extends StatelessWidget {
   final String documentName;
   final Uint8List fileBytes;
+  final String mimeType;
 
   const ImagePreviewScreen({
     super.key,
     required this.documentName,
     required this.fileBytes,
+    required this.mimeType,
   });
+
+  Future<void> _shareImage() async {
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [
+          XFile.fromData(fileBytes, name: documentName, mimeType: mimeType),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +55,7 @@ class ImagePreviewScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: FilledButton.icon(
-            onPressed: () => Printing.sharePdf(
-              bytes: fileBytes,
-              filename: documentName,
-            ),
+            onPressed: _shareImage,
             icon: const Icon(Icons.ios_share_outlined),
             label: const Text('Teilen'),
             style: FilledButton.styleFrom(

@@ -1,10 +1,11 @@
-from datetime import timezone
+from fastapi import HTTPException
+from datetime import datetime, timezone
 
 from sqlmodel import Session, select
 
 from database.models import ChatHistory, User
 from profiles.service import get_profile_access_role
-from chat_history.schemas import ChatHistoryCreateRequest, ChatHistoryResponse
+from chat_history.schemas import ChatHistoryCreateRequest, ChatHistoryResponse, ChatHistoryUpdateRequest
 
 
 def list_chat_history(
@@ -47,6 +48,38 @@ def create_chat_history(
         next_steps=request.next_steps,
         messages=[message.model_dump(mode="json") for message in request.messages],
     )
+
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+
+    return _to_response(entry)
+
+
+def update_chat_history(
+        history_id: int,
+        request: ChatHistoryUpdateRequest,
+        current_user: User,
+        session: Session,
+) -> ChatHistoryResponse:
+    entry = session.get(ChatHistory, history_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Chat history entry not found.")
+
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=entry.profile_id,
+        session=session,
+    )
+
+    entry.title = request.title
+    entry.status = request.status
+    entry.is_emergency = request.is_emergency
+    entry.recommendation = request.recommendation
+    entry.next_steps = request.next_steps
+    entry.messages = [message.model_dump(mode="json") for message in request.messages]
+    entry.updated_at = datetime.utcnow()
 
     session.add(entry)
     session.commit()

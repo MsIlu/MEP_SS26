@@ -39,7 +39,7 @@ void main() {
       expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
       expect(find.text('Kalender'), findsNothing);
-      expect(find.text('Nachrichten'), findsNothing);
+      expect(find.text('Chathistorie'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
 
       final iconBackground = find.byKey(
@@ -72,7 +72,7 @@ void main() {
       expect(featureCard.shadowColor, AppColors.darkBackground);
     });
 
-    testWidgets('opens saved chat history from Nachrichten navigation', (
+    testWidgets('opens saved chat history from Chathistorie navigation', (
       WidgetTester tester,
     ) async {
       final firstProfileEntry = ChatHistoryEntry(
@@ -167,7 +167,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Nachrichten'));
+      await tester.tap(find.text('Chathistorie'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChatHistoryScreen), findsOneWidget);

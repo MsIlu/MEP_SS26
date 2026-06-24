@@ -12,6 +12,7 @@ import '../widgets/display_settings_section.dart';
 import '../widgets/profile_settings_section.dart';
 import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
+import 'medical_glossary_page.dart';
 import 'settings_text_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -177,6 +178,13 @@ class _SettingsPageState extends State<SettingsPage> {
         description: 'Deutsch ist aktuell ausgewählt',
         keywords: const ['sprache', 'language', 'deutsch', 'englisch'],
         onTap: () => _open(context, const _LanguageSettingsPage()),
+      ),
+      _SettingsItem(
+        icon: SettingsIcons.glossary,
+        title: 'Medizinisches Glossar',
+        description: 'Begriffe alphabetisch erklärt',
+        keywords: const ['glossar', 'medizin', 'begriff', 'lexikon'],
+        onTap: () => _open(context, const MedicalGlossaryPage()),
       ),
       _SettingsItem(
         icon: SettingsIcons.privacy,

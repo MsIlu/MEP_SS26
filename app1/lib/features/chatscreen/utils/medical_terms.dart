@@ -15,8 +15,20 @@ class MedicalTerms {
   // explanations without waiting for an extra backend lookup.
   static const _terms = [
     MedicalTerm(
-      term: 'Symptom',
-      explanation: 'Ein Zeichen oder eine Beschwerde, die du bemerkst.',
+      term: 'Anamnese',
+      explanation: 'Gezielte Fragen zu Beschwerden, Vorgeschichte und Risiken.',
+    ),
+    MedicalTerm(
+      term: 'Antibiotikum',
+      explanation: 'Medikament gegen bestimmte bakterielle Infektionen.',
+    ),
+    MedicalTerm(
+      term: 'Blutdruck',
+      explanation: 'Druck des Blutes in den Gefäßen.',
+    ),
+    MedicalTerm(
+      term: 'Dehydrierung',
+      explanation: 'Flüssigkeitsmangel im Körper.',
     ),
     MedicalTerm(
       term: 'Entzündung',
@@ -24,16 +36,36 @@ class MedicalTerms {
           'Reaktion des Körpers, oft mit Schmerz, Wärme, Rötung oder Schwellung.',
     ),
     MedicalTerm(
+      term: 'Fieber',
+      explanation:
+          'Körpertemperatur über 38,0 °C bei Erwachsenen.',
+    ),
+    MedicalTerm(
       term: 'Infektion',
       explanation:
           'Wenn Erreger wie Viren oder Bakterien in den Körper gelangen.',
+    ),
+    MedicalTerm(
+      term: 'Notfall',
+      explanation: 'Situation, in der sofort medizinische Hilfe nötig sein kann.',
+    ),
+    MedicalTerm(
+      term: 'Symptom',
+      explanation: 'Ein Zeichen oder eine Beschwerde, die du bemerkst.',
     ),
     MedicalTerm(
       term: 'Therapie',
       explanation:
           'Behandlung, die Beschwerden lindern oder Ursachen angehen soll.',
     ),
+    MedicalTerm(
+      term: 'Triage',
+      explanation:
+          'Einschätzung, wie dringend medizinische Hilfe gebraucht wird.',
+    ),
   ];
+
+  static List<MedicalTerm> get all => List.unmodifiable(_terms);
 
   /// Returns the first known glossary term contained in [text], if any.
   static MedicalTerm? firstMatch(String text) {
@@ -42,7 +74,7 @@ class MedicalTerms {
     for (final term in _terms) {
       // The current matching is deliberately simple. It favors predictable UI
       // behavior over fuzzy matches that could explain the wrong medical term.
-      if (normalized.contains(term.term)) {
+      if (normalized.contains(term.term.toLowerCase())) {
         return term;
       }
     }

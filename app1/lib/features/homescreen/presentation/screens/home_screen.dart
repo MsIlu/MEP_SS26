@@ -13,6 +13,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
+import 'package:app1/features/documents/presentation/screens/documents_screen.dart';
 import 'package:app1/features/homescreen/data/home_feature.dart';
 import 'package:app1/features/homescreen/presentation/widgets/careena_hero_card.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
@@ -24,6 +25,7 @@ import '../../../appointmentscreen/presentation/screens/appointment_screen.dart'
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:flutter/material.dart';
+import 'package:app1/features/documents/data/document_repository.dart';
 
 /// Dashboard-style home screen with the Careena entry point and feature list.
 class HomeScreen extends StatefulWidget {
@@ -60,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _themeKey = GlobalKey();
   final _navigationKey = GlobalKey();
   int? _guideStep;
+  final DocumentRepository _documentRepository = DocumentRepository.instance;
 
   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
@@ -75,9 +78,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
+    _documentRepository.unreadCounts.addListener(_onDocumentBadgeChanged);
+
     if (widget.startGuide) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startGuide());
     }
+  }
+
+  void _onDocumentBadgeChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _documentRepository.unreadCounts.removeListener(_onDocumentBadgeChanged);
+    super.dispose();
   }
 
   @override
@@ -117,24 +135,26 @@ class _HomeScreenState extends State<HomeScreen> {
               body: SafeArea(
                 child: ResponsivePageBody(
                   maxWidth: 720,
-                  child: Column(
-                    children: [
-                      CareenaHeroCard(
-                        guideTargetKey: _careenaKey,
-                        onTap: () => _navigateToChat(context),
-                        isSimpleView: widget.themeController.isSimpleView,
-                      ),
-                      if (!widget.themeController.isSimpleView)
-                        HomeSearchBar(
-                          guideTargetKey: _searchKey,
-                          isCompact: isCompact,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        CareenaHeroCard(
+                          guideTargetKey: _careenaKey,
+                          onTap: () => _navigateToChat(context),
+                          isSimpleView: widget.themeController.isSimpleView,
                         ),
-                      HomeFunctionList(
-                        guideTargetKey: _featuresKey,
-                        features: features,
-                        isSimpleView: widget.themeController.isSimpleView,
-                      ),
-                    ],
+                        if (!widget.themeController.isSimpleView)
+                          HomeSearchBar(
+                            guideTargetKey: _searchKey,
+                            isCompact: isCompact,
+                          ),
+                        HomeFunctionList(
+                          guideTargetKey: _featuresKey,
+                          features: features,
+                          isSimpleView: widget.themeController.isSimpleView,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -272,6 +292,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<HomeFeature> _buildFeatures(BuildContext context) {
     const featureColor = AppColors.careenaInfoBorder;
+    final activeProfileId =
+        widget.authSession?.activeProfileId ??
+        _dependenciesFromContext(
+          context,
+        )?.dependencies.authSession.activeProfileId;
 
     return [
       HomeFeature(
@@ -290,7 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.description_outlined,
         title: 'Dokumente',
         backgroundColor: featureColor,
-        onTap: () {},
+        badgeCount: _documentRepository.unreadCountForProfile(activeProfileId),
+        onTap: () => _navigateToDocuments(context),
       ),
       HomeFeature(
         icon: Icons.health_and_safety_outlined,
@@ -345,6 +371,20 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AppointmentScreen()),
+    );
+  }
+
+  void _navigateToDocuments(BuildContext context) {
+    final dependencies = _dependenciesFromContext(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DocumentsScreen(
+          authSession:
+              widget.authSession ?? dependencies?.dependencies.authSession,
+        ),
+      ),
     );
   }
 

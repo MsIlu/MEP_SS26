@@ -24,42 +24,36 @@ class HomeFunctionList extends StatelessWidget {
         ? 16.0
         : 20.0;
 
-    return Expanded(
-      child: ListView.separated(
-        key: guideTargetKey,
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          0,
-          horizontalPadding,
-          12,
-        ),
-        itemCount: features.length + 1,
-        separatorBuilder: (context, index) =>
-            SizedBox(height: isSimpleView ? 14 : 8),
-        itemBuilder: (context, index) {
-          // The heading is part of the same ListView so it scrolls naturally
-          // with the feature rows on short screens.
-          if (index == 0) {
-            return Text(
-              isSimpleView ? "Was möchtest du tun?" : "Deine Funktionen...",
-              style: TextStyle(
-                fontSize: isSimpleView ? 20 : 16,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          }
-
-          final feature = features[index - 1];
-
-          return FunctionMenuTile(
-            icon: feature.icon,
-            title: feature.title,
-            bgColor: feature.backgroundColor,
-            onTap: feature.onTap,
-            isSimpleView: isSimpleView,
+    return ListView.separated(
+      key: guideTargetKey,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 12),
+      itemCount: features.length + 1,
+      separatorBuilder: (context, index) =>
+          SizedBox(height: isSimpleView ? 14 : 8),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Text(
+            isSimpleView ? "Was möchtest du tun?" : "Deine Funktionen...",
+            style: TextStyle(
+              fontSize: isSimpleView ? 20 : 16,
+              fontWeight: FontWeight.bold,
+            ),
           );
-        },
-      ),
+        }
+
+        final feature = features[index - 1];
+
+        return FunctionMenuTile(
+          icon: feature.icon,
+          title: feature.title,
+          bgColor: feature.backgroundColor,
+          onTap: feature.onTap,
+          isSimpleView: isSimpleView,
+          badgeCount: feature.badgeCount,
+        );
+      },
     );
   }
 }

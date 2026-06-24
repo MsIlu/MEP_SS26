@@ -3,8 +3,8 @@ from sqlmodel import Session
 
 from auth.security import get_current_account, get_session
 from database.models import User
-from chat_history.schemas import ChatHistoryCreateRequest, ChatHistoryResponse
-from chat_history.service import create_chat_history, list_chat_history
+from chat_history.schemas import ChatHistoryCreateRequest, ChatHistoryResponse, ChatHistoryUpdateRequest
+from chat_history.service import create_chat_history, list_chat_history, update_chat_history
 
 
 router = APIRouter(prefix="/chat-history", tags=["chat-history"])
@@ -30,6 +30,21 @@ def post_chat_history(
         session: Session = Depends(get_session),
 ):
     return create_chat_history(
+        request=request,
+        current_user=current_user,
+        session=session,
+    )
+
+
+@router.patch("/{history_id}", response_model=ChatHistoryResponse)
+def patch_chat_history(
+        history_id: int,
+        request: ChatHistoryUpdateRequest,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
+    return update_chat_history(
+        history_id=history_id,
         request=request,
         current_user=current_user,
         session=session,

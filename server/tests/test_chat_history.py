@@ -88,6 +88,63 @@ def test_chat_history_is_profile_bound_and_sorted(client):
     assert entries[0]["updated_at"].endswith(("Z", "+00:00"))
 
 
+def test_chat_history_can_update_active_entry(client):
+    auth = register_user(client, email="active-history@example.com")
+
+    create_response = client.post(
+        "/chat-history",
+        headers=auth["headers"],
+        json={
+            "profile_id": auth["profile_id"],
+            "title": "Bauchschmerzen",
+            "status": "active",
+            "is_emergency": False,
+            "recommendation": "",
+            "messages": [
+                {
+                    "text": "Ich habe Bauchschmerzen",
+                    "is_user": True,
+                },
+            ],
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    history_id = create_response.json()["id"]
+
+    update_response = client.patch(
+        f"/chat-history/{history_id}",
+        headers=auth["headers"],
+        json={
+            "title": "Bauchschmerzen",
+            "status": "completed",
+            "is_emergency": False,
+            "recommendation": "Hausarztpraxis regulär",
+            "next_steps": "Termin vereinbaren",
+            "messages": [
+                {
+                    "text": "Ich habe Bauchschmerzen",
+                    "is_user": True,
+                },
+                {
+                    "text": "Bitte vereinbaren Sie einen Termin.",
+                    "is_user": False,
+                },
+            ],
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    body = update_response.json()
+    assert body["id"] == history_id
+    assert body["status"] == "completed"
+    assert body["recommendation"] == "Hausarztpraxis regulär"
+    assert body["next_steps"] == "Termin vereinbaren"
+    assert len(body["messages"]) == 2
+
+
 def test_chat_history_requires_profile_access(client):
     first_user = register_user(client, email="first-history@example.com")
     second_user = register_user(client, email="second-history@example.com")

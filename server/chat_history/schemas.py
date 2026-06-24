@@ -26,6 +26,15 @@ class ChatHistoryCreateRequest(BaseModel):
     messages: list[ChatHistoryMessage]
 
 
+class ChatHistoryUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    status: ChatHistoryStatus = "active"
+    is_emergency: bool = False
+    recommendation: str = ""
+    next_steps: Optional[str] = None
+    messages: list[ChatHistoryMessage]
+
+
 class ChatHistoryResponse(BaseModel):
     id: int
     profile_id: int

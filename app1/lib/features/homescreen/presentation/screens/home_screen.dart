@@ -368,11 +368,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToAppointments(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AppointmentScreen()),
-    );
-  }
+  final dependencies = _dependenciesFromContext(context);
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AppointmentScreen(
+        authSession:
+            widget.authSession ?? dependencies?.dependencies.authSession,
+      ),
+    ),
+  );
+}
 
   void _navigateToDocuments(BuildContext context) {
     final dependencies = _dependenciesFromContext(context);

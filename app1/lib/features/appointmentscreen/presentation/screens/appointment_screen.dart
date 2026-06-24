@@ -11,15 +11,19 @@ import '../widgets/appointment_empty_state.dart';
 import '../widgets/appointment_filter_bar.dart';
 import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_tile.dart';
+import '../widgets/appointment_profile_filter.dart';
+import '../../../authscreen/state/auth_session.dart';
 
 class AppointmentScreen extends StatefulWidget {
-  const AppointmentScreen({super.key});
+  final AuthSession? authSession;
+  const AppointmentScreen({super.key, this.authSession});
 
   @override
   State<AppointmentScreen> createState() => _AppointmentScreenState();
 }
 
 class _AppointmentScreenState extends State<AppointmentScreen> {
+  late int? selectedProfileId = widget.authSession?.activeProfileId;
   final AppointmentController controller = AppointmentController();
   final doctorController = TextEditingController();
   final noteController = TextEditingController();
@@ -29,6 +33,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
+  bool showAllProfiles = false;
   String selectedFilter = 'Alle';
 
   Future<void> _pickDate() async {
@@ -159,6 +164,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 : (compactHeight ? 12.0 : 24.0);
             final titleGap = tightHeight ? 4.0 : (compactHeight ? 6.0 : 12.0);
 
+            final activeProfile = widget.authSession?.activeProfile;
+            final canViewAllProfiles =
+                activeProfile?.profileType == 'self' ||
+                activeProfile?.role == 'owner';
+
             final headerChildren = <Widget>[
               const AppointmentInfoCard(),
               SizedBox(height: smallGap),
@@ -176,6 +186,26 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 ),
               ),
               SizedBox(height: titleGap),
+              if (canViewAllProfiles) ...[
+                AppointmentProfileFilter(
+                  profiles: widget.authSession?.profiles ?? const [],
+                  selectedProfileId: selectedProfileId,
+                  showAllProfiles: showAllProfiles,
+                  onShowAll: () {
+                    setState(() {
+                      showAllProfiles = true;
+                    });
+                  },
+                  onProfileSelected: (profileId) {
+                    setState(() {
+                      selectedProfileId = profileId;
+                      showAllProfiles = false;
+                    });
+                  },
+                ),
+                if ((widget.authSession?.profiles.length ?? 0) > 1)
+                  SizedBox(height: titleGap),
+              ],
               AppointmentFilterBar(
                 selectedFilter: selectedFilter,
                 onFilterChanged: (filter) {
@@ -234,6 +264,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       builder: (context, appointments, child) {
         List<Appointment> filteredAppointments = List.from(appointments);
 
+        if (!showAllProfiles) {
+          filteredAppointments = filteredAppointments.where((appointment) {
+            return appointment.profileId == selectedProfileId;
+          }).toList();
+        }
+
         if (selectedFilter == 'Kommend') {
           filteredAppointments = filteredAppointments.where((appointment) {
             final appointmentDate = appointment.appointmentDate;
@@ -256,7 +292,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           }).toList();
         }
 
-        if (appointments.isEmpty) {
+        if (filteredAppointments.isEmpty && selectedFilter == 'Alle') {
           if (shrinkWrap) {
             return const SizedBox(height: 180, child: AppointmentEmptyState());
           }
@@ -373,7 +409,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           onCancel: () {
             _clearAppointmentForm();
             Navigator.pop(context);
-            },
+          },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -382,6 +418,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             controller.addAppointment(
               Appointment(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
+                profileId: selectedProfileId,
                 doctorName: doctorController.text.trim(),
                 appointmentDate: _buildAppointmentDate(null),
                 note: noteController.text.trim(),
@@ -484,6 +521,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             controller.updateAppointment(
               Appointment(
                 id: appointment.id,
+                profileId: appointment.profileId,
                 doctorName: doctorController.text.trim(),
                 appointmentDate: updatedAppointmentDate,
                 note: noteController.text.trim(),
@@ -534,13 +572,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _clearAppointmentForm() {
-  doctorController.clear();
-  noteController.clear();
-  dateController.clear();
-  timeController.clear();
-  selectedDate = null;
-  selectedTime = null;
-}
+    doctorController.clear();
+    noteController.clear();
+    dateController.clear();
+    timeController.clear();
+    selectedDate = null;
+    selectedTime = null;
+  }
 }
 
 class _AppointmentSectionHeader extends StatelessWidget {

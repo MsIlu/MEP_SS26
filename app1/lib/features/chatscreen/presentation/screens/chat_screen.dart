@@ -170,15 +170,22 @@ class _ChatScreenState extends State<ChatScreen> {
       _showLongProcessingHint = false;
     });
 
-    if (response != null &&
-        widget.controller.chatService.isEmergencyRecommendation(response)) {
+    final showsRecommendation = response != null &&
+        (widget.controller.chatService.isFinalRecommendation(response) ||
+            widget.controller.chatService.isEmergencyRecommendation(response));
+
+    final recommendationResponse = showsRecommendation ? response : null;
+
+    if (recommendationResponse != null) {
       await widget.controller.resetChat();
 
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
+        MaterialPageRoute(
+          builder: (_) => WarningPage(response: recommendationResponse),
+        ),
       );
       return;
     }

@@ -142,6 +142,17 @@ class ChatController {
         return response;
       }
 
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation: response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+        return response;
+      }
+
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
@@ -160,16 +171,6 @@ class ChatController {
           message: botMessage.copyWith(isStreaming: false),
         ),
       );
-
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation: response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
-        );
-      }
 
       return response;
     } catch (e) {

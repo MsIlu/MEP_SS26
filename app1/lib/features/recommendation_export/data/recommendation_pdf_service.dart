@@ -5,7 +5,7 @@ import 'package:app1/features/profiles/domain/models/profile.dart';
 
 /// Creates a PDF document for a care recommendation.
 class RecommendationPdfService {
-  static const String _logoPath = 'assets/images/logo.png';
+  static const String _logoPath = 'assets/images/logo_medbitaid.png';
 
   static const double _noticeTitleSize = 13;
   static const double _noticeBodySize = 10;

@@ -48,6 +48,6 @@ const appGuideSteps = [
     spotlightRadius: 40,
     title: 'Immer schnell erreichbar',
     description:
-        'Mit dieser Leiste wechselst du jederzeit zur Startseite, zum Kalendar, zu deinem Nachrichtenverlauf oder zu deinen Einstellungen.',
+        'Mit dieser Leiste wechselst du jederzeit zur Startseite, zum Kalendar, zu deinem Chathistorie oder zu deinen Einstellungen.',
   ),
 ];

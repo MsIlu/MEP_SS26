@@ -40,8 +40,8 @@ void main() {
 
       expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
-      expect(find.text('Kalender'), findsOneWidget);
-      expect(find.text('Verlauf'), findsOneWidget);
+      expect(find.text('Kalender'), findsNothing);
+      expect(find.text('Chathistorie'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
 
       final iconBackground = find.byKey(
@@ -74,20 +74,7 @@ void main() {
       expect(featureCard.shadowColor, AppColors.darkBackground);
     });
 
-    testWidgets('opens calendar overview from bottom navigation', (
-      tester,
-    ) async {
-      SharedPreferences.setMockInitialValues({});
-
-      await pumpHomeScreen(tester);
-      await tester.tap(find.text('Kalender'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(CalendarOverviewPage), findsOneWidget);
-      expect(find.text('Keine Einträge'), findsOneWidget);
-    });
-
-    testWidgets('opens saved chat history from Nachrichten navigation', (
+    testWidgets('opens saved chat history from Chathistorie navigation', (
       WidgetTester tester,
     ) async {
       final firstProfileEntry = ChatHistoryEntry(
@@ -182,7 +169,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Verlauf'));
+      await tester.tap(find.text('Chathistorie'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChatHistoryScreen), findsOneWidget);

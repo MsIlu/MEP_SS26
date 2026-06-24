@@ -105,7 +105,7 @@ class CustomBottomNav extends StatelessWidget {
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.chat_bubble_outline),
-                          label: "Verlauf",
+                          label: "Chathistorie",
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings_outlined),

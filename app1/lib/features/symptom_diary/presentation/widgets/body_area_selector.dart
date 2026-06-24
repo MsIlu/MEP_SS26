@@ -1,34 +1,100 @@
+import 'package:app1/core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
-const _bodySilhouetteAsset = 'assets/images/body_silhouette_transparent.png';
+enum BodyView { front, back }
+
+enum BodySilhouetteSex {
+  female,
+  male;
+
+  static BodySilhouetteSex fromProfileSex(String? value) {
+    final normalized = value?.toLowerCase() ?? '';
+    if (normalized.contains('male') || normalized.contains('männ')) {
+      return BodySilhouetteSex.male;
+    }
+    return BodySilhouetteSex.female;
+  }
+}
+
+class _BodyArea {
+  final String label;
+  final BodyView view;
+  final Rect rect;
+  final _BodyAreaShape shape;
+
+  const _BodyArea(
+    this.label,
+    this.view,
+    this.rect, {
+    this.shape = _BodyAreaShape.softRect,
+  });
+}
+
+enum _BodyAreaShape { oval, capsule, softRect }
 
 const _bodyAreas = [
-  'Kopf',
-  'Brust',
-  'Bauch',
-  'Rücken',
-  'Linker Arm',
-  'Rechter Arm',
-  'Linkes Bein',
-  'Rechtes Bein',
+  _BodyArea('Kopf', BodyView.front, Rect.fromLTRB(0.425, 0.035, 0.575, 0.165),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Hals', BodyView.front, Rect.fromLTRB(0.455, 0.158, 0.545, 0.222),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Brust', BodyView.front, Rect.fromLTRB(0.37, 0.235, 0.63, 0.365),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Bauch', BodyView.front, Rect.fromLTRB(0.39, 0.365, 0.61, 0.525),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Hüfte', BodyView.front, Rect.fromLTRB(0.36, 0.515, 0.64, 0.625),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Linker Arm', BodyView.front, Rect.fromLTRB(0.17, 0.245, 0.33, 0.61),
+      shape: _BodyAreaShape.capsule),
+  _BodyArea('Rechter Arm', BodyView.front, Rect.fromLTRB(0.67, 0.245, 0.83, 0.61),
+      shape: _BodyAreaShape.capsule),
+  _BodyArea('Knie', BodyView.front, Rect.fromLTRB(0.37, 0.69, 0.63, 0.78),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Füße', BodyView.front, Rect.fromLTRB(0.35, 0.905, 0.65, 0.985),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Kopf', BodyView.back, Rect.fromLTRB(0.425, 0.035, 0.575, 0.165),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Hals', BodyView.back, Rect.fromLTRB(0.455, 0.158, 0.545, 0.222),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Rücken', BodyView.back, Rect.fromLTRB(0.36, 0.235, 0.64, 0.505),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Hüfte', BodyView.back, Rect.fromLTRB(0.36, 0.515, 0.64, 0.625),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Linker Arm', BodyView.back, Rect.fromLTRB(0.17, 0.245, 0.33, 0.61),
+      shape: _BodyAreaShape.capsule),
+  _BodyArea('Rechter Arm', BodyView.back, Rect.fromLTRB(0.67, 0.245, 0.83, 0.61),
+      shape: _BodyAreaShape.capsule),
+  _BodyArea('Knie', BodyView.back, Rect.fromLTRB(0.37, 0.69, 0.63, 0.78),
+      shape: _BodyAreaShape.oval),
+  _BodyArea('Füße', BodyView.back, Rect.fromLTRB(0.35, 0.905, 0.65, 0.985),
+      shape: _BodyAreaShape.oval),
 ];
 
 /// Lets users pick the body area connected to the symptom entry.
-class BodyAreaSelector extends StatelessWidget {
+class BodyAreaSelector extends StatefulWidget {
   final String selectedArea;
   final ValueChanged<String> onChanged;
+  final BodySilhouetteSex sex;
 
   const BodyAreaSelector({
     super.key,
     required this.selectedArea,
     required this.onChanged,
+    this.sex = BodySilhouetteSex.female,
   });
+
+  @override
+  State<BodyAreaSelector> createState() => _BodyAreaSelectorState();
+}
+
+class _BodyAreaSelectorState extends State<BodyAreaSelector> {
+  BodyView _view = BodyView.front;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final areas = _areasForView(_view);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -53,14 +119,49 @@ class BodyAreaSelector extends StatelessWidget {
                 ),
               ),
               Text(
-                selectedArea.isEmpty ? 'optional' : selectedArea,
+                widget.selectedArea.isEmpty ? 'optional' : widget.selectedArea,
                 style: const TextStyle(
-                  color: AppColors.careenaTeal,
+                  color: AppColors.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          SegmentedButton<BodyView>(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.primary;
+                }
+                return Colors.transparent;
+              }),
+              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return colorScheme.onSurface;
+              }),
+              iconColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return AppColors.primary;
+              }),
+            ),
+            segments: const [
+              ButtonSegment(value: BodyView.front, label: Text('Vorne')),
+              ButtonSegment(value: BodyView.back, label: Text('Hinten')),
+            ],
+            selected: {_view},
+            onSelectionChanged: (selection) {
+              setState(() => _view = selection.first);
+              if (!_areasForView(selection.first)
+                  .any((area) => area.label == widget.selectedArea)) {
+                widget.onChanged('');
+              }
+            },
           ),
           const SizedBox(height: 10),
           LayoutBuilder(
@@ -70,24 +171,18 @@ class BodyAreaSelector extends StatelessWidget {
 
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTapDown: (details) {
-                  final area = _bodyAreaForPosition(
-                    details.localPosition,
-                    size,
-                  );
-                  if (area != null) {
-                    onChanged(selectedArea == area ? '' : area);
-                  }
-                },
+                onTapDown: (details) => _selectAt(details.localPosition, size),
                 child: SizedBox(
                   height: size.height,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(_bodySilhouetteAsset, fit: BoxFit.contain),
+                      Image.asset(_assetFor(widget.sex, _view),
+                          fit: BoxFit.contain),
                       CustomPaint(
                         painter: _BodyAreaHighlightPainter(
-                          selectedArea: selectedArea,
+                          selectedArea: widget.selectedArea,
+                          view: _view,
                         ),
                       ),
                     ],
@@ -100,15 +195,16 @@ class BodyAreaSelector extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _bodyAreas.map((area) {
-              final isSelected = selectedArea == area;
+            children: areas.map((area) {
+              final isSelected = widget.selectedArea == area.label;
 
               return ChoiceChip(
-                label: Text(area),
+                label: Text(area.label),
                 selected: isSelected,
-                selectedColor: AppColors.careenaBubbleBackground,
-                checkmarkColor: AppColors.careenaTeal,
-                onSelected: (_) => onChanged(isSelected ? '' : area),
+                selectedColor: AppColors.primary.withValues(alpha: 0.16),
+                checkmarkColor: AppColors.primary,
+                onSelected: (_) =>
+                    widget.onChanged(isSelected ? '' : area.label),
               );
             }).toList(),
           ),
@@ -116,43 +212,37 @@ class BodyAreaSelector extends StatelessWidget {
       ),
     );
   }
+
+  void _selectAt(Offset position, Size size) {
+    final imageRect = _imageRectFor(size);
+    if (!imageRect.contains(position)) return;
+
+    final normalized = Offset(
+      (position.dx - imageRect.left) / imageRect.width,
+      (position.dy - imageRect.top) / imageRect.height,
+    );
+    final area = _areasForView(_view).cast<_BodyArea?>().firstWhere(
+          (area) => area!._contains(normalized),
+          orElse: () => null,
+        );
+
+    if (area != null) {
+      widget.onChanged(widget.selectedArea == area.label ? '' : area.label);
+    }
+  }
 }
 
-String? _bodyAreaForPosition(Offset position, Size size) {
-  final imageRect = _imageRectFor(size);
-  if (!imageRect.contains(position)) {
-    return null;
-  }
+List<_BodyArea> _areasForView(BodyView view) {
+  return _bodyAreas.where((area) => area.view == view).toList(growable: false);
+}
 
-  final normalizedX = (position.dx - imageRect.left) / imageRect.width;
-  final normalizedY = (position.dy - imageRect.top) / imageRect.height;
-
-  if (_containsOval(normalizedX, normalizedY, 0.5, 0.11, 0.09, 0.08)) {
-    return 'Kopf';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.36, 0.22, 0.64, 0.36)) {
-    return 'Brust';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.37, 0.36, 0.63, 0.53)) {
-    return 'Bauch';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.41, 0.24, 0.59, 0.53)) {
-    return 'Rücken';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.09, 0.25, 0.36, 0.58)) {
-    return 'Linker Arm';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.64, 0.25, 0.91, 0.58)) {
-    return 'Rechter Arm';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.34, 0.52, 0.49, 0.95)) {
-    return 'Linkes Bein';
-  }
-  if (_containsRect(normalizedX, normalizedY, 0.51, 0.52, 0.66, 0.95)) {
-    return 'Rechtes Bein';
-  }
-
-  return null;
+String _assetFor(BodySilhouetteSex sex, BodyView view) {
+  return switch ((sex, view)) {
+    (BodySilhouetteSex.male, BodyView.front) => AppAssets.bodyMaleFront,
+    (BodySilhouetteSex.male, BodyView.back) => AppAssets.bodyMaleBack,
+    (BodySilhouetteSex.female, BodyView.front) => AppAssets.bodyFemaleFront,
+    (BodySilhouetteSex.female, BodyView.back) => AppAssets.bodyFemaleBack,
+  };
 }
 
 Rect _imageRectFor(Size size) {
@@ -170,93 +260,72 @@ Rect _imageRectFor(Size size) {
   return Rect.fromLTWH(0, top, size.width, imageHeight);
 }
 
-bool _containsRect(
-  double x,
-  double y,
-  double left,
-  double top,
-  double right,
-  double bottom,
-) {
-  return x >= left && x <= right && y >= top && y <= bottom;
-}
-
-bool _containsOval(
-  double x,
-  double y,
-  double centerX,
-  double centerY,
-  double radiusX,
-  double radiusY,
-) {
-  final normalizedDx = (x - centerX) / radiusX;
-  final normalizedDy = (y - centerY) / radiusY;
-  return normalizedDx * normalizedDx + normalizedDy * normalizedDy <= 1;
+extension on _BodyArea {
+  bool _contains(Offset point) {
+    final normalized = Offset(
+      (point.dx - rect.center.dx) / (rect.width / 2),
+      (point.dy - rect.center.dy) / (rect.height / 2),
+    );
+    if (shape == _BodyAreaShape.oval) {
+      return normalized.dx * normalized.dx + normalized.dy * normalized.dy <= 1;
+    }
+    return rect.contains(point);
+  }
 }
 
 class _BodyAreaHighlightPainter extends CustomPainter {
   final String selectedArea;
+  final BodyView view;
 
-  const _BodyAreaHighlightPainter({required this.selectedArea});
+  const _BodyAreaHighlightPainter({
+    required this.selectedArea,
+    required this.view,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (selectedArea.isEmpty) {
-      return;
-    }
+    if (selectedArea.isEmpty) return;
+
+    final area = _areasForView(view)
+        .cast<_BodyArea?>()
+        .firstWhere((area) => area!.label == selectedArea, orElse: () => null);
+    if (area == null) return;
 
     final imageRect = _imageRectFor(size);
-    final highlightPaint = Paint()
-      ..color = AppColors.careenaTeal.withValues(alpha: 0.34)
+    final highlight = _scaleRect(area.rect, imageRect);
+    final fill = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.32)
       ..style = PaintingStyle.fill;
+    final stroke = Paint()
+      ..color = Colors.white.withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
-    final highlight = _highlightRectFor(selectedArea, imageRect);
-    if (highlight == null) {
+    if (area.shape == _BodyAreaShape.oval) {
+      canvas.drawOval(highlight, fill);
+      canvas.drawOval(highlight, stroke);
       return;
     }
 
-    if (selectedArea == 'Kopf') {
-      canvas.drawOval(highlight, highlightPaint);
-      return;
-    }
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(highlight, const Radius.circular(18)),
-      highlightPaint,
-    );
+    final radius = area.shape == _BodyAreaShape.capsule
+        ? Radius.circular(highlight.shortestSide / 2)
+        : const Radius.circular(24);
+    final rounded = RRect.fromRectAndRadius(highlight, radius);
+    canvas.drawRRect(rounded, fill);
+    canvas.drawRRect(rounded, stroke);
   }
 
-  Rect? _highlightRectFor(String area, Rect imageRect) {
-    return switch (area) {
-      'Kopf' => _rectFromNormalized(imageRect, 0.41, 0.04, 0.59, 0.18),
-      'Brust' => _rectFromNormalized(imageRect, 0.35, 0.22, 0.65, 0.36),
-      'Bauch' => _rectFromNormalized(imageRect, 0.37, 0.36, 0.63, 0.53),
-      'Rücken' => _rectFromNormalized(imageRect, 0.41, 0.24, 0.59, 0.53),
-      'Linker Arm' => _rectFromNormalized(imageRect, 0.11, 0.25, 0.34, 0.58),
-      'Rechter Arm' => _rectFromNormalized(imageRect, 0.66, 0.25, 0.89, 0.58),
-      'Linkes Bein' => _rectFromNormalized(imageRect, 0.34, 0.52, 0.49, 0.95),
-      'Rechtes Bein' => _rectFromNormalized(imageRect, 0.51, 0.52, 0.66, 0.95),
-      _ => null,
-    };
-  }
-
-  Rect _rectFromNormalized(
-    Rect imageRect,
-    double left,
-    double top,
-    double right,
-    double bottom,
-  ) {
+  Rect _scaleRect(Rect rect, Rect imageRect) {
     return Rect.fromLTRB(
-      imageRect.left + left * imageRect.width,
-      imageRect.top + top * imageRect.height,
-      imageRect.left + right * imageRect.width,
-      imageRect.top + bottom * imageRect.height,
+      imageRect.left + rect.left * imageRect.width,
+      imageRect.top + rect.top * imageRect.height,
+      imageRect.left + rect.right * imageRect.width,
+      imageRect.top + rect.bottom * imageRect.height,
     );
   }
 
   @override
   bool shouldRepaint(_BodyAreaHighlightPainter oldDelegate) {
-    return oldDelegate.selectedArea != selectedArea;
+    return oldDelegate.selectedArea != selectedArea || oldDelegate.view != view;
   }
 }

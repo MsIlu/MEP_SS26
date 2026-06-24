@@ -7,8 +7,8 @@ from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.core.engine import ExtractionEngine
 from careena4.llm.call_control import CallModelConfig, FOLLOWUP_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import ActiveQuestion
-from careena4.models.turn import ExtractionClaims, QuestionResolution
+from careena4.models.domain import ActiveQuestion, Source
+from careena4.models.turn import ExtractedCaseInput, ObservationPatch, PersonUpdate, QuestionResolution
 from careena4.server_log import log_event
 
 
@@ -47,7 +47,11 @@ class QuestionResolver:
 
         if question.kind == "closing_choice":
             additional_medical_information = self._contains_additional_medical_info(normalized)
-            extra_claims = self._extra_claims_if_needed(question=question, message=message) if additional_medical_information else None
+            extra_case_input = (
+                self._extra_case_input_if_needed(question=question, message=message)
+                if additional_medical_information
+                else None
+            )
             if self._is_add_more_information_choice(normalized):
                 return QuestionResolution(
                     status="resolved",
@@ -55,7 +59,7 @@ class QuestionResolver:
                     clear_active_question=True,
                     recommendation_choice="add_more_information",
                     additional_medical_information=additional_medical_information,
-                    extra_claims=extra_claims,
+                    extra_case_input=extra_case_input,
                     trace_notes=["closing_choice:add_more_information"],
                 )
             if additional_medical_information:
@@ -65,7 +69,7 @@ class QuestionResolver:
                     clear_active_question=True,
                     recommendation_choice="add_more_information",
                     additional_medical_information=True,
-                    extra_claims=extra_claims,
+                    extra_case_input=extra_case_input,
                     trace_notes=["closing_choice:add_more_information_from_medical_input"],
                 )
             if self._is_recommendation_now_choice(normalized):
@@ -149,7 +153,7 @@ class QuestionResolver:
             status=result.status,
             answer_kind=result.answer_kind,
             additional_medical_information=result.additional_medical_information,
-            attribute_keys=",".join(sorted(result.extracted_answer_attributes.keys())) or "none",
+            update_keys=",".join(self._resolution_field_keys(result)) or "none",
         )
         return result
 
@@ -168,9 +172,12 @@ class QuestionResolver:
                     answer_kind="subject_child",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    extracted_answer_attributes={"relation": "child"},
+                    person_update=PersonUpdate(
+                        relation="child",
+                        relation_source=self._first_source(normalized, ("kind", "sohn", "tochter")),
+                    ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_claims=self._extra_claims_if_needed(question=question, message=message),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
             if "andere" in normalized or "mutter" in normalized or "vater" in normalized:
                 return QuestionResolution(
@@ -178,9 +185,12 @@ class QuestionResolver:
                     answer_kind="subject_other",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    extracted_answer_attributes={"relation": "other"},
+                    person_update=PersonUpdate(
+                        relation="other",
+                        relation_source=self._first_source(normalized, ("andere", "mutter", "vater")),
+                    ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_claims=self._extra_claims_if_needed(question=question, message=message),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
             if "ich" in normalized or "selbst" in normalized:
                 return QuestionResolution(
@@ -188,9 +198,12 @@ class QuestionResolver:
                     answer_kind="subject_self",
                     clear_active_question=True,
                     resolved_followup_id=question.target_followup_id,
-                    extracted_answer_attributes={"relation": "self"},
+                    person_update=PersonUpdate(
+                        relation="self",
+                        relation_source=self._first_source(normalized, ("ich", "selbst")),
+                    ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_claims=self._extra_claims_if_needed(question=question, message=message),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
             return QuestionResolution(
                 status="unclear",
@@ -219,14 +232,10 @@ class QuestionResolver:
                 trace_notes=["followup:resolved:negated"],
             )
 
-        attribute_key = {
-            "duration": "duration_or_onset",
-            "description": "description",
-            "localization": "body_site",
-            "severity": "severity",
-            "mechanism": "mechanism",
-            "free_description": "description",
-        }.get(question.question_intent, "description")
+        observation_patch = self._patch_for_intent(
+            question_intent=question.question_intent,
+            value=stripped,
+        )
         answer_kind = {
             "duration": "duration_provided",
             "description": "description_provided",
@@ -236,10 +245,10 @@ class QuestionResolver:
             answer_kind=answer_kind,
             clear_active_question=True,
             resolved_followup_id=question.target_followup_id,
-            extracted_answer_attributes={attribute_key: stripped},
+            observation_patch=observation_patch,
             additional_medical_information=False,
-            extra_claims=None,
-            trace_notes=[f"followup:resolved:{attribute_key}"],
+            extra_case_input=None,
+            trace_notes=[f"followup:resolved:{question.question_intent or 'generic'}"],
         )
         result = self._canonicalize_resolution(question=question, resolution=result)
         return self._validate_resolution(question=question, resolution=result)
@@ -250,16 +259,12 @@ class QuestionResolver:
         question: ActiveQuestion,
         resolution: QuestionResolution,
     ) -> QuestionResolution:
-        resolution.extracted_answer_attributes = self._canonicalize_attributes(resolution.extracted_answer_attributes)
         if resolution.status == "resolved":
             resolution.clear_active_question = True
             if question.target_followup_id is not None and resolution.resolved_followup_id is None:
                 resolution.resolved_followup_id = question.target_followup_id
         if not resolution.additional_medical_information:
-            resolution.extra_claims = None
-        elif resolution.extra_claims is not None:
-            for observation in resolution.extra_claims.observations:
-                observation.attributes = self._canonicalize_attributes(observation.attributes)
+            resolution.extra_case_input = None
         return resolution
 
     def _validate_resolution(
@@ -282,18 +287,19 @@ class QuestionResolver:
         if resolution.answer_kind == "negated":
             resolution.status = "resolved"
             resolution.clear_active_question = True
-            resolution.extracted_answer_attributes = {}
+            resolution.observation_patch = None
             return resolution
 
         if resolution.answer_kind in {"unclear", "invalid"}:
             resolution.status = resolution.answer_kind
             resolution.clear_active_question = False
-            resolution.extracted_answer_attributes = {}
-            resolution.extra_claims = None
+            resolution.person_update = None
+            resolution.observation_patch = None
+            resolution.extra_case_input = None
             return resolution
 
-        expected_key = {
-            "duration": "duration_or_onset",
+        expected_field = {
+            "duration": "onset",
             "description": "description",
         }.get(question.question_intent)
         allowed_answer_kinds = {
@@ -301,7 +307,7 @@ class QuestionResolver:
             "description": {"description_provided", "description_plus_more", "negated", "unclear", "invalid"},
         }.get(question.question_intent)
 
-        if expected_key is None or allowed_answer_kinds is None:
+        if expected_field is None or allowed_answer_kinds is None:
             return resolution
         if resolution.answer_kind not in allowed_answer_kinds:
             return QuestionResolution(
@@ -311,28 +317,35 @@ class QuestionResolver:
                 trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
             )
         if resolution.answer_kind.endswith("_provided") or resolution.answer_kind.endswith("_plus_more"):
-            value = resolution.extracted_answer_attributes.get(expected_key)
+            if resolution.observation_patch is None:
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=[f"followup:missing_expected_attribute:{expected_field}"],
+                )
+            value = getattr(resolution.observation_patch, expected_field)
             if value in (None, "", []):
                 return QuestionResolution(
                     status="invalid",
                     answer_kind="invalid",
                     clear_active_question=False,
-                    trace_notes=[f"followup:missing_expected_attribute:{expected_key}"],
+                    trace_notes=[f"followup:missing_expected_attribute:{expected_field}"],
                 )
             if resolution.answer_kind.endswith("_plus_more") and (
-                not resolution.additional_medical_information or resolution.extra_claims is None
+                not resolution.additional_medical_information or resolution.extra_case_input is None
             ):
                 return QuestionResolution(
                     status="invalid",
                     answer_kind="invalid",
                     clear_active_question=False,
-                    trace_notes=["followup:missing_extra_claims_for_plus_more"],
+                    trace_notes=["followup:missing_extra_case_input_for_plus_more"],
                 )
             resolution.status = "resolved"
             resolution.clear_active_question = True
             if resolution.answer_kind.endswith("_provided"):
                 resolution.additional_medical_information = False
-                resolution.extra_claims = None
+                resolution.extra_case_input = None
             return resolution
         return resolution
 
@@ -361,13 +374,13 @@ class QuestionResolver:
             f"Letzte Nutzernachricht:\n{message}"
         )
 
-    def _extra_claims_if_needed(self, *, question: ActiveQuestion, message: str) -> ExtractionClaims | None:
+    def _extra_case_input_if_needed(self, *, question: ActiveQuestion, message: str) -> ExtractedCaseInput | None:
         if not question.allows_additional_medical_info:
             return None
-        claims = self.medical_extractor.extract(message=message)
-        if not claims.observations:
+        case_input = self.medical_extractor.extract(message=message)
+        if not case_input.observations:
             return None
-        return claims
+        return case_input
 
     @staticmethod
     def _contains_additional_medical_info(normalized: str) -> bool:
@@ -391,7 +404,7 @@ class QuestionResolver:
                 "mehr info",
                 "weiter",
                 "hinzufuegen",
-                "hinzufÃ¼gen",
+                "hinzufÃƒÂ¼gen",
                 "noch",
                 "angaben",
             )
@@ -412,11 +425,11 @@ class QuestionResolver:
                 "passt",
                 "reicht",
                 "wars",
-                "wÃ¤rs",
+                "wÃƒÂ¤rs",
                 "waers",
                 "genug",
                 "mehr faellt mir gerade nicht ein",
-                "mehr fÃ¤llt mir gerade nicht ein",
+                "mehr fÃƒÂ¤llt mir gerade nicht ein",
                 "sonst nichts",
                 "das wars",
                 "das war's",
@@ -456,17 +469,43 @@ class QuestionResolver:
         )
 
     @staticmethod
-    def _canonicalize_attributes(attributes: dict[str, object]) -> dict[str, object]:
-        canonical: dict[str, object] = {}
-        for key, value in attributes.items():
-            target_key = {
-                "duration": "duration_or_onset",
-                "free_description": "description",
-                "subject": "relation",
-                "subject_scope": "relation",
-            }.get(key, key)
-            canonical[target_key] = value
-        return canonical
+    def _patch_for_intent(*, question_intent: str | None, value: str) -> ObservationPatch:
+        source = Source(source_span=value)
+        if question_intent == "duration":
+            return ObservationPatch(onset=value, onset_source=source)
+        if question_intent in {"description", "free_description"}:
+            return ObservationPatch(description=value, description_source=source)
+        if question_intent == "localization":
+            return ObservationPatch(body_site=value, body_site_source=source)
+        if question_intent == "severity":
+            return ObservationPatch(severity=value, severity_source=source)
+        if question_intent == "mechanism":
+            return ObservationPatch(mechanism=value, mechanism_source=source)
+        return ObservationPatch(description=value, description_source=source)
+
+    @staticmethod
+    def _resolution_field_keys(resolution: QuestionResolution) -> list[str]:
+        keys: list[str] = []
+        if resolution.person_update is not None:
+            keys.append("person_update")
+        if resolution.observation_patch is not None:
+            keys.extend(resolution.observation_patch.field_keys())
+        if resolution.extra_case_input is not None and resolution.extra_case_input.observations:
+            keys.append("extra_case_input")
+        return keys
+
+    @staticmethod
+    def _source(span: str | None) -> Source | None:
+        if span in (None, ""):
+            return None
+        return Source(source_span=span)
+
+    @staticmethod
+    def _first_source(normalized: str, phrases: tuple[str, ...]) -> Source | None:
+        for phrase in phrases:
+            if phrase in normalized or normalized.startswith(phrase):
+                return Source(source_span=phrase)
+        return None
 
     @staticmethod
     def _normalize(text: str) -> str:

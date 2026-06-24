@@ -31,12 +31,17 @@ from logging_config import configure_logging
 
 from uuid import uuid4 #for turn_id
 
-from careena4.bootstrap import build_default_services #for Careena4 runtime: LLM, TurnEngine, SessionStore
+from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
     SymptomDraftUpdateRequest,
+)
+from careena4.simulation_runtime import (
+    SimulationRequest,
+    normalized_simulation_request,
+    run_simulation_command,
 )
 
 app = FastAPI()
@@ -48,6 +53,7 @@ careena4_services = build_default_services(llm_mode="env")
 careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
+careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
@@ -164,6 +170,18 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     }
 
 
+def build_careena4_simrun_response(*, message: str) -> dict:
+    selector = message.strip()[len("/simrun"):].strip()
+    response_text = run_simulation_command(
+        selector=selector,
+        simulation_runner=careena4_simulation_runner,
+    )
+    return {
+        "response": response_text,
+        "red_flag": "Stop-Grund: emergency" in response_text,
+    }
+
+
 #1. checks if Careena4-Session exist
 #2. validate empty input
 #3. save profile_id
@@ -221,6 +239,14 @@ def chat(
             session=session,
         )
 
+    if req.message.strip().startswith("/simrun"):
+        careena4_session.messages.append({"role": "user", "content": req.message})
+        response = build_careena4_simrun_response(message=req.message)
+        careena4_session.messages.append(
+            {"role": "assistant", "content": response["response"]}
+        )
+        return response
+
     turn_id = str(uuid4())
 
     turn_result = careena4_turn_engine.run_turn(
@@ -255,6 +281,12 @@ def chat(
     )
 
     return response
+
+
+@app.post("/simulation/run")
+def run_simulation(req: SimulationRequest):
+    result = careena4_simulation_runner.run(normalized_simulation_request(req))
+    return result.model_dump()
 
 @app.post("/warmup")
 def warmup():

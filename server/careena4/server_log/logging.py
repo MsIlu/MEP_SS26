@@ -1,16 +1,19 @@
 import json
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
 
 
+PACKAGE_LOGGER_NAME = "careena4"
+package_logger = logging.getLogger(PACKAGE_LOGGER_NAME)
 RAW_LOGGER_NAME = "careena4.raw"
 logger = logging.getLogger(RAW_LOGGER_NAME)
-SIMULATION_RAW_LOGGER_NAME = "careena4.simulation.raw"
+SIMULATION_LOGGER_PREFIX = "careena4.simulation"
+SIMULATION_RAW_LOGGER_NAME = f"{SIMULATION_LOGGER_PREFIX}.raw"
 simulation_logger = logging.getLogger(SIMULATION_RAW_LOGGER_NAME)
 EVENT_LOGGER_NAME = "careena4.events"
 event_logger = logging.getLogger(EVENT_LOGGER_NAME)
@@ -21,9 +24,9 @@ LOG_ARCHIVE_DIR = Path(__file__).resolve().parent / "logs" / "archive"
 _startup_logs_archived = False
 
 
-class _ExcludeSimulationFilter(logging.Filter):
+class _PipelineDebugFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        return not record.name.startswith("careena4.simulation")
+        return not record.name.startswith(SIMULATION_LOGGER_PREFIX) and not record.name.startswith(EVENT_LOGGER_NAME)
 
 
 def configure_debug_logging() -> None:
@@ -43,11 +46,11 @@ def configure_debug_logging() -> None:
         _startup_logs_archived = True
 
     _ensure_file_handler(
-        target_logger=logger,
+        target_logger=package_logger,
         path=DEBUG_LOG_PATH,
         level=logging.DEBUG,
         formatter=logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"),
-        log_filter=_ExcludeSimulationFilter(),
+        log_filter=_PipelineDebugFilter(),
     )
     _ensure_file_handler(
         target_logger=simulation_logger,
@@ -62,9 +65,11 @@ def configure_debug_logging() -> None:
         formatter=logging.Formatter("%(message)s"),
     )
 
+    package_logger.setLevel(logging.DEBUG)
     logger.setLevel(logging.DEBUG)
     simulation_logger.setLevel(logging.DEBUG)
     event_logger.setLevel(logging.INFO)
+    package_logger.propagate = True
     logger.propagate = True
     simulation_logger.propagate = True
     event_logger.propagate = False
@@ -134,7 +139,10 @@ def _ensure_file_handler(
 
 
 def _build_event_record(event: str, fields: dict[str, Any]) -> dict[str, Any]:
-    record = {"ts": datetime.utcnow().isoformat(timespec="milliseconds") + "Z", "event": event}
+    record = {
+        "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "event": event,
+    }
     for key, value in fields.items():
         if value is not None:
             record[key] = _json_ready(value)

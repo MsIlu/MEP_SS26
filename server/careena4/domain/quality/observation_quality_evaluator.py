@@ -39,8 +39,8 @@ class ObservationQualityEvaluator:
         return qualities
 
     def _topic_fit(self, *, case_topic: CaseTopic | None, observation: Observation) -> ObservationTopicFit:
-        if observation.topic_relation in {"central", "related"}:
-            return observation.topic_relation  # type: ignore[return-value]
+        if observation.is_central():
+            return "central"
         if case_topic is None:
             return "central"
         topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
@@ -51,7 +51,7 @@ class ObservationQualityEvaluator:
 
     @staticmethod
     def _specificity(observation: Observation) -> ObservationSpecificity:
-        if observation.attributes.get("body_site") or observation.attributes.get("mechanism"):
+        if observation.body_site or observation.mechanism:
             return "high"
         if len(observation.label) > 12:
             return "medium"
@@ -59,7 +59,21 @@ class ObservationQualityEvaluator:
 
     @staticmethod
     def _completeness(observation: Observation) -> ObservationCompleteness:
-        count = len([value for value in observation.attributes.values() if value not in (None, "", [])])
+        count = len(
+            [
+                value
+                for value in (
+                    observation.onset,
+                    observation.body_site,
+                    observation.description,
+                    observation.severity,
+                    observation.mechanism,
+                    observation.functional_limitation,
+                    observation.measurement_kind,
+                )
+                if value not in (None, "", [])
+            ]
+        )
         if count >= 3:
             return "rich"
         if count >= 1:
@@ -73,9 +87,9 @@ class ObservationQualityEvaluator:
 
     @staticmethod
     def _followup_value(observation: Observation) -> ObservationFollowupValue:
-        if observation.type in {"symptom", "injury"} and "duration_or_onset" not in observation.attributes:
+        if observation.type in {"symptom", "injury"} and observation.onset in (None, ""):
             return "necessary"
-        if observation.type in {"symptom", "injury"} and "description" not in observation.attributes:
+        if observation.type in {"symptom", "injury"} and observation.description in (None, ""):
             return "necessary"
         if observation.label.casefold() in {"schmerzen", "verletzung"}:
             return "useful"

@@ -3,7 +3,13 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 import main
-from main import app, careena4_session_profiles, careena4_session_store, careena4_turn_engine
+from main import (
+    app,
+    careena4_session_profiles,
+    careena4_session_store,
+    careena4_turn_engine,
+    careena4_simulation_runner,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -108,6 +114,38 @@ def test_guest_chat_uses_careena4_turn_engine(client, monkeypatch):
     assert response.json()["response"] == "Careena4 Antwort."
     assert response.json()["red_flag"] is False
     assert len(calls) == 1
+
+
+def test_chat_simrun_uses_simulation_runner_shortcut(client, monkeypatch):
+    session_response = client.post("/session", json={})
+    session_id = session_response.json()["session_id"]
+
+    def fake_run(_request):
+        raise AssertionError("simulation runner should be invoked through run_simulation_command")
+
+    def fake_run_simulation_command(*, selector, simulation_runner):
+        assert selector == ""
+        assert simulation_runner is careena4_simulation_runner
+        return "Simulation abgeschlossen.\nStop-Grund: recommend"
+
+    def fake_run_turn(_turn_input):
+        raise AssertionError("turn engine must not receive /simrun commands")
+
+    monkeypatch.setattr(careena4_simulation_runner, "run", fake_run)
+    monkeypatch.setattr(main, "run_simulation_command", fake_run_simulation_command)
+    monkeypatch.setattr(careena4_turn_engine, "run_turn", fake_run_turn)
+
+    response = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "/simrun",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["response"].startswith("Simulation abgeschlossen.")
+    assert response.json()["red_flag"] is False
 
 
 def test_profile_draft_requires_auth(client):

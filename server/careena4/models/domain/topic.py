@@ -10,6 +10,18 @@ from careena4.models.common import (
     TopicStatus,
 )
 from careena4.models.domain.case_extension import CaseExtension
+from careena4.models.domain.provenance import Source
+
+
+class TopicEntry(PipelineModel):
+    concern: str
+    source: Source
+
+
+class Topic(PipelineModel):
+    label: str
+    sources: list[Source] = Field(default_factory=list)
+    entries: list[TopicEntry] = Field(default_factory=list)
 
 
 class CaseTopic(PipelineModel):
@@ -36,7 +48,7 @@ class CaseTopic(PipelineModel):
         for value in values:
             tokens.update(
                 token
-                for token in re.findall(r"[a-zA-ZaeoeuessäöüÄÖÜ]+", value.casefold())
+                for token in re.findall(r"[a-zA-ZaeoeuessÃ¤Ã¶Ã¼Ã„Ã–Ãœ]+", value.casefold())
                 if len(token) > 2
             )
         return tokens

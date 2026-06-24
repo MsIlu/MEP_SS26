@@ -63,10 +63,17 @@ class TopicManager:
         tokens: set[str] = set()
         for claim in claims.observations:
             tokens.update(TopicManager._text_tokens(claim.label))
-            for value in claim.attributes.values():
-                if value in (None, "", []):
-                    continue
-                tokens.update(TopicManager._text_tokens(str(value)))
+            for value in (
+                claim.onset,
+                claim.body_site,
+                claim.description,
+                claim.severity,
+                claim.mechanism,
+                claim.functional_limitation,
+                claim.measurement_kind,
+            ):
+                if value not in (None, "", []):
+                    tokens.update(TopicManager._text_tokens(str(value)))
         return tokens
 
     @staticmethod
@@ -97,9 +104,9 @@ class TopicManager:
 
     @staticmethod
     def _subject_scope(claims: ExtractionClaims | None) -> str:
-        if claims is None:
+        if claims is None or claims.person is None:
             return "unclear"
-        relation = claims.subject_claims.get("relation")
+        relation = claims.person.relation
         if relation in {"self", "child", "other", "unclear"}:
             return relation
         return "unclear"

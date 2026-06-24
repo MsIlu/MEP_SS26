@@ -76,6 +76,10 @@ class TurnEngine:
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
         case_topic = turn_input.persisted_case_topic
         medical_case = turn_input.persisted_medical_case or MedicalCase()
+        medical_case = self.case_manager.sync_legacy_topic_projection(
+            medical_case=medical_case,
+            case_topic=case_topic,
+        )
         conversation_state = turn_input.persisted_conversation_state or ConversationState()
         recommendation_state = turn_input.persisted_recommendation_state or RecommendationState()
         symptom_input_draft = turn_input.persisted_symptom_input_draft
@@ -335,7 +339,7 @@ class TurnEngine:
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
-        extra_claims = None
+        extra_case_input = None
         if conversation_state.active_question is not None:
             current_question = conversation_state.active_question
             resolution = self.question_resolver.resolve(
@@ -456,22 +460,26 @@ class TurnEngine:
                         medical_case=medical_case,
                         observation_id=current_question.target_observation_id,
                     )
-                elif resolution.extracted_answer_attributes:
-                    if "relation" in resolution.extracted_answer_attributes:
-                        medical_case, case_topic = self.case_manager.update_person_relation(
+                elif resolution.person_update is not None or resolution.observation_patch is not None:
+                    if resolution.person_update is not None:
+                        medical_case, case_topic = self.case_manager.update_person(
                             medical_case=medical_case,
-                            relation=resolution.extracted_answer_attributes["relation"],
+                            person_update=resolution.person_update,
                             case_topic=case_topic,
                         )
-                    elif current_question.target_observation_id is not None:
+                    elif resolution.observation_patch is not None and current_question.target_observation_id is not None:
                         medical_case = self.case_manager.enrich_observation_from_followup(
                             medical_case=medical_case,
                             observation_id=current_question.target_observation_id,
-                            attributes=resolution.extracted_answer_attributes,
+                            patch=resolution.observation_patch,
                         )
                 case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
+                medical_case = self.case_manager.sync_legacy_topic_projection(
+                    medical_case=medical_case,
+                    case_topic=case_topic,
+                )
                 resolution_additional_information = resolution.additional_medical_information
-                extra_claims = resolution.extra_claims if resolution.additional_medical_information else None
+                extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
                 conversation_state.active_question = None
                 if current_question.kind == "closing_choice" and resolution.recommendation_choice == "add_more_information":
@@ -507,23 +515,23 @@ class TurnEngine:
                             trace_notes=trace_notes + decision.trace_notes,
                         )
 
-        claims = None
+        case_input = None
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
-            claims = self.medical_extractor.extract(
+            case_input = self.medical_extractor.extract(
                 message=turn_input.message,
                 case_topic=self.case_manager.topic_label(case_topic=case_topic),
                 history_messages=turn_input.extraction_history_messages,
             )
-        elif extra_claims is not None and extra_claims.observations:
-            claims = extra_claims
+        elif extra_case_input is not None and extra_case_input.observations:
+            case_input = extra_case_input
         elif resolution_additional_information and entry_assessment.contains_new_medical_information:
-            claims = self.medical_extractor.extract(
+            case_input = self.medical_extractor.extract(
                 message=turn_input.message,
                 case_topic=self.case_manager.topic_label(case_topic=case_topic),
                 history_messages=turn_input.extraction_history_messages,
             )
 
-        if claims is not None:
+        if case_input is not None:
             understanding_has_symptoms = (
                 current_turn_understanding is not None
                 and bool(current_turn_understanding.symptoms)
@@ -532,7 +540,7 @@ class TurnEngine:
             if symptom_input_draft is not None and not understanding_has_symptoms:
                 symptom_input_draft = self.symptom_chip_builder.update_from_claims(
                     draft=symptom_input_draft,
-                    claims=claims,
+                    claims=case_input,
                 )
                 trace_notes.append("symptom_input_draft:updated_from_claims")
             elif symptom_input_draft is not None and understanding_has_symptoms:
@@ -541,14 +549,18 @@ class TurnEngine:
             case_topic = self.topic_manager.ensure_topic(
                 existing_topic=case_topic,
                 medical_case=medical_case,
-                claims=claims,
+                claims=case_input,
                 latest_message=turn_input.message,
                 turn_id=turn_input.turn_id,
+            )
+            medical_case = self.case_manager.sync_legacy_topic_projection(
+                medical_case=medical_case,
+                case_topic=case_topic,
             )
             conversation_state.topic_fit_state = self.topic_manager.evaluate_topic_fit(
                 case_topic=case_topic,
                 message=turn_input.message,
-                claims=claims,
+                claims=case_input,
             )
             topic_mismatch = (
                 case_topic is not None
@@ -586,13 +598,21 @@ class TurnEngine:
                 )
             medical_case, write_trace = self.case_manager.apply_claims(
                 medical_case=medical_case,
-                claims=claims,
+                claims=case_input,
                 case_topic=case_topic,
             )
             trace_notes.extend(write_trace)
             case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
+            medical_case = self.case_manager.sync_legacy_topic_projection(
+                medical_case=medical_case,
+                case_topic=case_topic,
+            )
         elif case_topic is not None:
             case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
+            medical_case = self.case_manager.sync_legacy_topic_projection(
+                medical_case=medical_case,
+                case_topic=case_topic,
+            )
 
         qualities = self.quality_evaluator.evaluate(case_topic=case_topic, medical_case=medical_case)
         conversation_state.followup_needs = self.followup_need_builder.build(

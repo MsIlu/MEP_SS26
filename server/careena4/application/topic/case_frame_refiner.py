@@ -60,8 +60,13 @@ class CaseFrameRefiner:
         seen: set[tuple[str, str]],
         observation: Observation,
     ) -> None:
-        for key in ("body_site", "duration_or_onset", "description", "mechanism", "functional_limitation"):
-            value = observation.attributes.get(key)
+        for key, value in (
+            ("body_site", observation.body_site),
+            ("duration_or_onset", observation.onset),
+            ("description", observation.description),
+            ("mechanism", observation.mechanism),
+            ("functional_limitation", observation.functional_limitation),
+        ):
             if value in (None, "", []):
                 continue
             self._append_extension(
@@ -70,10 +75,10 @@ class CaseFrameRefiner:
                 kind=key,
                 value=str(value),
                 source="observation_attribute",
-                confidence=0.9 if observation.topic_relation == "central" else 0.7,
+                confidence=0.9 if observation.is_central() else 0.7,
                 related_observation_id=observation.observation_id,
             )
-        if "body_site" not in observation.attributes:
+        if observation.body_site in (None, ""):
             body_site = self._body_site_from_label(observation.label)
             if body_site is not None:
                 self._append_extension(

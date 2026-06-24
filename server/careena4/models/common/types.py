@@ -75,11 +75,13 @@ ObservationType = Literal[
 ]
 
 ObservationStatus = Literal[
+    "active",
+    "negated",
+    "historical",
+    "rejected",
     "reported",
     "enriched",
     "corrected",
-    "negated",
-    "rejected",
 ]
 
 TopicRelation = Literal["central", "related", "unclear"]

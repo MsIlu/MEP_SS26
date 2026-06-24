@@ -30,16 +30,7 @@ class _CaseReader:
         *,
         medical_case: MedicalCase,
     ) -> list[Observation]:
-        return [
-            observation
-            for observation in self.read_central_observations(medical_case=medical_case)
-            if not observation.negated
-        ]
-
-    def read_topic_id(self, *, case_topic: CaseTopic | None) -> str | None:
-        if case_topic is None:
-            return None
-        return case_topic.topic_id
+        return self.read_central_observations(medical_case=medical_case)
 
     def read_topic_label(self, *, case_topic: CaseTopic | None) -> str | None:
         if case_topic is None:
@@ -107,7 +98,7 @@ class _CaseReader:
 
     @staticmethod
     def read_person_relation(*, medical_case: MedicalCase):
-        return medical_case.subject.relation
+        return medical_case.person.relation
 
     @staticmethod
     def _find_observation(

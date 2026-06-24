@@ -87,7 +87,7 @@ class FollowupNeedBuilder:
                 continue
             if observation.type not in {"symptom", "injury"}:
                 continue
-            if observation.attributes.get(require_attribute) not in (None, "", []):
+            if self._has_required_value(observation=observation, field_name=require_attribute):
                 continue
             if quality.topic_fit not in {"central", "related"}:
                 continue
@@ -108,7 +108,7 @@ class FollowupNeedBuilder:
                 continue
             if observation.type not in {"symptom", "injury"}:
                 continue
-            if observation.attributes.get("description") not in (None, "", []):
+            if observation.description not in (None, ""):
                 continue
             if quality.topic_fit not in {"central", "related"}:
                 continue
@@ -129,11 +129,27 @@ class FollowupNeedBuilder:
         if quality.ambiguity == "high":
             return True
         informative_keys = {
-            key
-            for key, value in observation.attributes.items()
+            field_name
+            for field_name, value in (
+                ("duration_or_onset", observation.onset),
+                ("body_site", observation.body_site),
+                ("severity", observation.severity),
+                ("mechanism", observation.mechanism),
+                ("functional_limitation", observation.functional_limitation),
+            )
             if value not in (None, "", [])
-            and key in {"duration_or_onset", "body_site", "severity", "mechanism", "functional_limitation"}
         }
         if len(informative_keys) <= 1:
             return True
         return len(informative_keys) <= 2 and observation.label.casefold().endswith("schmerzen")
+
+    @staticmethod
+    def _has_required_value(*, observation: Observation, field_name: str) -> bool:
+        return {
+            "duration_or_onset": observation.onset,
+            "description": observation.description,
+            "body_site": observation.body_site,
+            "severity": observation.severity,
+            "mechanism": observation.mechanism,
+            "functional_limitation": observation.functional_limitation,
+        }.get(field_name) not in (None, "", [])

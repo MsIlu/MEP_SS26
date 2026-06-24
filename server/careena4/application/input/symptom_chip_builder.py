@@ -52,4 +52,4 @@ class SymptomChipBuilder:
         Decide whether an extracted observation should become a symptom chip.
         """
 
-        return claim.type == "symptom" and not claim.negated and bool(claim.label.strip())
+        return claim.type == "symptom" and claim.status != "negated" and bool(claim.label.strip())

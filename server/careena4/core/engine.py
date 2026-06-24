@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, InvalidJSONError, SchemaValidationError
-from careena4.server_log import log_event
+from careena4.server_log import log_event, log_json
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -93,6 +93,7 @@ class ExtractionEngine:
                 level=logging.WARNING,
             )
             raise SchemaValidationError(f"{output_schema.__name__} validation failed: {exc}") from exc
+        log_json(_validated_json_log_title(call_name=call_name, output_schema=output_schema), parsed)
         log_event(
             "llm.extract.completed",
             layer="core",
@@ -105,3 +106,9 @@ class ExtractionEngine:
         )
         logger.debug("Validated schema=%s", output_schema.__name__)
         return validated
+
+
+def _validated_json_log_title(*, call_name: str | None, output_schema: Type[T]) -> str:
+    if call_name:
+        return f"llm_validated_json:{call_name}:{output_schema.__name__}"
+    return f"llm_validated_json:{output_schema.__name__}"

@@ -1,8 +1,10 @@
+from careena4.domain.case._case_input_models import _ObservationPatch
 from careena4.domain.case._case_reader import _CaseReader
 from careena4.domain.case._case_write_planner import _CaseWritePlanner
 from careena4.domain.case._case_writer import _CaseWriter
-from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase
-from careena4.models.turn import CaseWritePlan, ExtractionClaims
+from careena4.domain.case._legacy_case_input_adapter import _LegacyCaseInputAdapter
+from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Topic
+from careena4.models.turn import CaseWritePlan, ExtractedCaseInput, ObservationPatch, PersonUpdate
 
 
 class CaseManager:
@@ -18,10 +20,12 @@ class CaseManager:
         self,
         *,
         case_reader: _CaseReader | None = None,
+        legacy_case_input_adapter: _LegacyCaseInputAdapter | None = None,
         case_write_planner: _CaseWritePlanner | None = None,
         case_writer: _CaseWriter | None = None,
     ) -> None:
         self.case_reader = case_reader or _CaseReader()
+        self.legacy_case_input_adapter = legacy_case_input_adapter or _LegacyCaseInputAdapter()
         self.case_write_planner = case_write_planner or _CaseWritePlanner()
         self.case_writer = case_writer or _CaseWriter()
 
@@ -29,17 +33,27 @@ class CaseManager:
         self,
         *,
         medical_case: MedicalCase,
-        claims: ExtractionClaims,
+        claims: ExtractedCaseInput,
         case_topic: CaseTopic | None,
     ) -> tuple[MedicalCase, list[str]]:
-        topic_id = self.case_reader.read_topic_id(case_topic=case_topic)
         existing_observations = self.case_reader.read_observations(medical_case=medical_case)
+        write_payload = self.legacy_case_input_adapter.adapt_case_input(case_input=claims)
         plan = self.case_write_planner.build_write_plan(
             existing_observations=existing_observations,
-            claims=claims,
-            topic_id=topic_id,
+            observations=write_payload.observations,
+            person_update=write_payload.person_update,
         )
-        return self.apply_write_plan(medical_case=medical_case, plan=plan)
+        medical_case, trace_notes = self.apply_write_plan(medical_case=medical_case, plan=plan)
+        if medical_case.topic is None and claims.topic_signal:
+            medical_case.topic = Topic(
+                label=claims.topic_signal,
+                sources=[claims.topic_source.model_copy(deep=True)] if claims.topic_source is not None else [],
+            )
+        medical_case = self.sync_legacy_topic_projection(
+            medical_case=medical_case,
+            case_topic=case_topic,
+        )
+        return medical_case, trace_notes
 
     def apply_write_plan(
         self,
@@ -110,16 +124,17 @@ class CaseManager:
             observation_id=observation_id,
         )
 
-    def update_person_relation(
+    def update_person(
         self,
         *,
         medical_case: MedicalCase,
-        relation: object,
+        person_update: PersonUpdate,
         case_topic: CaseTopic | None = None,
     ) -> tuple[MedicalCase, CaseTopic | None]:
+        person_update = self.legacy_case_input_adapter.adapt_person_update(person_update=person_update)
         return self.case_writer.write_person_relation(
             medical_case=medical_case,
-            relation=relation,
+            person_update=person_update,
             case_topic=case_topic,
         )
 
@@ -128,12 +143,13 @@ class CaseManager:
         *,
         medical_case: MedicalCase,
         observation_id: str,
-        attributes: dict[str, object],
+        patch: ObservationPatch,
     ) -> MedicalCase:
+        patch: _ObservationPatch = self.legacy_case_input_adapter.adapt_followup_patch(patch=patch)
         return self.case_writer.write_followup_enrichment(
             medical_case=medical_case,
             observation_id=observation_id,
-            attributes=attributes,
+            patch=patch,
         )
 
     def update_topic_projection(
@@ -147,4 +163,15 @@ class CaseManager:
             case_topic=case_topic,
             extensions=extensions,
             current_label=current_label,
+        )
+
+    def sync_legacy_topic_projection(
+        self,
+        *,
+        medical_case: MedicalCase,
+        case_topic: CaseTopic | None,
+    ) -> MedicalCase:
+        return self.case_writer.write_legacy_topic_projection(
+            medical_case=medical_case,
+            case_topic=case_topic,
         )

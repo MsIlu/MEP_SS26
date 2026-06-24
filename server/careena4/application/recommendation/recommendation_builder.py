@@ -19,7 +19,10 @@ class RecommendationBuilder:
             "Die Empfehlung basiert auf einer konservativen V1-Regellogik.",
             "Sie ersetzt keine aerztliche Untersuchung oder Diagnose.",
         ]
-        if any(obs.type == "injury" and obs.attributes.get("functional_limitation") == "kaum auftreten" for obs in central_observations):
+        if any(
+            obs.type == "injury" and obs.functional_limitation == "kaum auftreten"
+            for obs in central_observations
+        ):
             return RecommendationResult(
                 allowed=True,
                 summary=f"Die Angaben zu {focus_label} sprechen fuer eine zeitnahe aerztliche Abklaerung.",

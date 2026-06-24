@@ -140,19 +140,22 @@ class MedicationEntry(SQLModel, table=True):
 
 class ChatHistory(SQLModel, table=True):
     """
-   Persisted completed chat history for one medical profile.
+    Persisted chat history for one medical profile.
 
-   A history entry is created after the chat produces a care recommendation.
-   """
+    A history entry can be active while the chat is ongoing or completed after
+    the chat produces a care recommendation.
+    """
     __tablename__ = "chat_history"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     profile_id: int = Field(foreign_key="profiles.id", index=True)
 
     title: Optional[str] = Field(default=None, max_length=80)
+    status: str = Field(default="completed", max_length=20, index=True)
     is_emergency: bool = Field(default=False)
-    recommendation: str
+    recommendation: str = Field(default="")
     next_steps: Optional[str] = Field(default=None)
     messages: list[dict] = Field(default_factory=list, sa_column=Column(JSON))
 
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)

@@ -1,8 +1,10 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
+#Chathistory differs between active and completed chats
+ChatHistoryStatus = Literal["active", "completed"]
 
 class ChatHistoryMessage(BaseModel):
     text: str
@@ -17,8 +19,9 @@ class ChatHistoryMessage(BaseModel):
 class ChatHistoryCreateRequest(BaseModel):
     profile_id: int
     title: Optional[str] = None
+    status: ChatHistoryStatus = "completed"
     is_emergency: bool = False
-    recommendation: str
+    recommendation: str = ""
     next_steps: Optional[str] = None
     messages: list[ChatHistoryMessage]
 
@@ -27,8 +30,10 @@ class ChatHistoryResponse(BaseModel):
     id: int
     profile_id: int
     title: Optional[str] = None
+    status: ChatHistoryStatus = "completed"
     is_emergency: bool = False
     created_at: datetime
-    recommendation: str
+    updated_at: datetime
+    recommendation: str = ""
     next_steps: Optional[str] = None
     messages: list[ChatHistoryMessage]

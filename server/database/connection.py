@@ -180,6 +180,40 @@ def _migrate_chat_history_schema():
                 "WHERE is_emergency IS NULL"
             )
         )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'completed'"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE chat_history "
+                "SET status = 'completed' "
+                "WHERE status IS NULL OR status = ''"
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE"
+            )
+        )
+        connection.execute(
+            text(
+                """
+                UPDATE chat_history
+                SET updated_at = COALESCE(updated_at, created_at, NOW())
+                WHERE updated_at IS NULL
+                """
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ALTER COLUMN recommendation SET DEFAULT ''"
+            )
+        )
 
 
 def _ensure_postgres_schema():

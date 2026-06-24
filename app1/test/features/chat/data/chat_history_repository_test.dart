@@ -67,6 +67,7 @@ void main() {
       expect(capturedRequest.url.path, '/chat-history');
       expect(body['profile_id'], 42);
       expect(body['title'], 'Husten');
+      expect(body['status'], 'completed');
       expect(body['recommendation'], 'Hausarztpraxis regulaer');
       expect(body['next_steps'], 'Termin vereinbaren');
     });
@@ -81,8 +82,10 @@ Map<String, dynamic> _historyJson({
     'id': id,
     'profile_id': 42,
     'title': 'Husten',
+    'status': 'completed',
     'is_emergency': false,
     'created_at': createdAt,
+    'updated_at': createdAt,
     'recommendation': 'Hausarztpraxis regulaer',
     'messages': const [],
   };

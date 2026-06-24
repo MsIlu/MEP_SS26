@@ -97,125 +97,127 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   _controller.searchQuery.trim().isNotEmpty ||
                   _controller.selectedCategory != null;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const DocumentInfoCard(),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: _openUploadDialog,
-                    icon: const Icon(Icons.upload_file_outlined),
-                    label: const Text(
-                      'Dokument hinzufügen',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.careenaTeal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const DocumentInfoCard(),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _openUploadDialog,
+                      icon: const Icon(Icons.upload_file_outlined),
+                      label: const Text(
+                        'Dokument hinzufügen',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Text(
-                        'Deine Dokumente',
-                        style: TextStyle(
-                          color: colorScheme.onSurface,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.careenaTeal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        '${_controller.documents.length}',
-                        style: TextStyle(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (canViewAllProfiles) ...[
-                    DocumentProfileFilter(
-                      profiles: widget.authSession?.profiles ?? const [],
-                      selectedProfileId: _controller.selectedProfileId,
-                      showAllProfiles: _controller.isShowingAllProfiles,
-                      onShowAll: _controller.showAllProfiles,
-                      onProfileSelected: _controller.selectProfile,
                     ),
-                    if ((widget.authSession?.profiles.length ?? 0) > 1)
-                      const SizedBox(height: 14),
-                  ],
-                  TextField(
-                    controller: _searchController,
-                    style: TextStyle(color: searchTextColor),
-                    onChanged: _controller.updateSearch,
-                    decoration: InputDecoration(
-                      hintText: 'Dokumente durchsuchen',
-                      hintStyle: TextStyle(color: searchHintColor),
-                      prefixIcon: Icon(Icons.search, color: searchIconColor),
-                      filled: true,
-                      fillColor: searchFillColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: searchBorderColor),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: searchBorderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: AppColors.careenaTeal,
-                          width: 2,
-                        ),
-                      ),
-                      suffixIcon: _controller.searchQuery.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Suche löschen',
-                              onPressed: () {
-                                _searchController.clear();
-                                _controller.updateSearch('');
-                                FocusScope.of(context).unfocus();
-                              },
-                              icon: Icon(Icons.close, color: searchIconColor),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  DocumentFilterBar(
-                    selectedCategory: _controller.selectedCategory,
-                    onSelected: _controller.selectCategory,
-                  ),
-                  const SizedBox(height: 18),
-                  Expanded(
-                    child: documents.isEmpty
-                        ? DocumentEmptyState(hasActiveFilter: hasActiveFilter)
-                        : ListView.separated(
-                            itemCount: documents.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final document = documents[index];
-                              return DocumentListItem(
-                                document: document,
-                                onAction: (action) =>
-                                    _handleAction(document, action),
-                              );
-                            },
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Text(
+                          'Deine Dokumente',
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                  ),
-                ],
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${_controller.documents.length}',
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (canViewAllProfiles) ...[
+                      DocumentProfileFilter(
+                        profiles: widget.authSession?.profiles ?? const [],
+                        selectedProfileId: _controller.selectedProfileId,
+                        showAllProfiles: _controller.isShowingAllProfiles,
+                        onShowAll: _controller.showAllProfiles,
+                        onProfileSelected: _controller.selectProfile,
+                      ),
+                      if ((widget.authSession?.profiles.length ?? 0) > 1)
+                        const SizedBox(height: 14),
+                    ],
+                    TextField(
+                      controller: _searchController,
+                      style: TextStyle(color: searchTextColor),
+                      onChanged: _controller.updateSearch,
+                      decoration: InputDecoration(
+                        hintText: 'Dokumente durchsuchen',
+                        hintStyle: TextStyle(color: searchHintColor),
+                        prefixIcon: Icon(Icons.search, color: searchIconColor),
+                        filled: true,
+                        fillColor: searchFillColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(color: searchBorderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(color: searchBorderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: const BorderSide(
+                            color: AppColors.careenaTeal,
+                            width: 2,
+                          ),
+                        ),
+                        suffixIcon: _controller.searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Suche löschen',
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _controller.updateSearch('');
+                                  FocusScope.of(context).unfocus();
+                                },
+                                icon: Icon(Icons.close, color: searchIconColor),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    DocumentFilterBar(
+                      selectedCategory: _controller.selectedCategory,
+                      onSelected: _controller.selectCategory,
+                    ),
+                    const SizedBox(height: 18),
+                    if (documents.isEmpty)
+                      DocumentEmptyState(hasActiveFilter: hasActiveFilter)
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: documents.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final document = documents[index];
+                          return DocumentListItem(
+                            document: document,
+                            onAction: (action) =>
+                                _handleAction(document, action),
+                          );
+                        },
+                      ),
+                  ],
+                ),
               );
             },
           ),

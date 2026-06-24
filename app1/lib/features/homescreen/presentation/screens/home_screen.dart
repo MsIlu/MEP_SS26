@@ -135,24 +135,26 @@ class _HomeScreenState extends State<HomeScreen> {
               body: SafeArea(
                 child: ResponsivePageBody(
                   maxWidth: 720,
-                  child: Column(
-                    children: [
-                      CareenaHeroCard(
-                        guideTargetKey: _careenaKey,
-                        onTap: () => _navigateToChat(context),
-                        isSimpleView: widget.themeController.isSimpleView,
-                      ),
-                      if (!widget.themeController.isSimpleView)
-                        HomeSearchBar(
-                          guideTargetKey: _searchKey,
-                          isCompact: isCompact,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        CareenaHeroCard(
+                          guideTargetKey: _careenaKey,
+                          onTap: () => _navigateToChat(context),
+                          isSimpleView: widget.themeController.isSimpleView,
                         ),
-                      HomeFunctionList(
-                        guideTargetKey: _featuresKey,
-                        features: features,
-                        isSimpleView: widget.themeController.isSimpleView,
-                      ),
-                    ],
+                        if (!widget.themeController.isSimpleView)
+                          HomeSearchBar(
+                            guideTargetKey: _searchKey,
+                            isCompact: isCompact,
+                          ),
+                        HomeFunctionList(
+                          guideTargetKey: _featuresKey,
+                          features: features,
+                          isSimpleView: widget.themeController.isSimpleView,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

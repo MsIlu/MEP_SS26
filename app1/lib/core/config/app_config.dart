@@ -22,14 +22,23 @@ class AppConfig {
   );
 
   static String get baseUrl {
+    
     if (_configuredBaseUrl.isNotEmpty) {
       return _configuredBaseUrl;
     }
+    
+    const useHttps = bool.fromEnvironment(
+      'BACKEND_USE_HTTPS',
+      defaultValue: true,
+    );
+    final scheme = useHttps ? 'https' : 'http';
+
+
+    // For iOS Simulator, use: "https://localhost:8000"
+    // For a physical Android device, use your PC/FastAPI server IP address.
 
     return kIsWeb
-        ? "http://localhost:8000" // Web
-        : "http://10.0.2.2:8000"; // Android Emulator
-    // : "http://localhost:8000" // IOS-Simulator
-    //"PC/FastAPIServerIP"             // Android device (physical) (no //)
+        ? "$scheme://localhost:8000" // Web
+        : "$scheme://10.0.2.2:8000"; // Android Emulator
   }
 }

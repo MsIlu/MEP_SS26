@@ -25,10 +25,11 @@ env/
 # Runtime logs
 server/**/server_log/logs/
 
-# Secrets
+# Secrets and local certificates
 .env
 .env.*
 !.env.example
+server/certs/
 secrets.py
 
 # System

@@ -55,6 +55,7 @@ app.include_router(medications_router)
 app.include_router(chat_history_router)
 app.include_router(symptoms_router)
 
+# CORS is permissive for local Flutter development.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -464,6 +464,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ? 'Ihre Nachricht: $semanticText'
                             : 'Antwort von Careena: $semanticText',
                         child: ChatBubble(
+                          authSession: widget.controller.authSession,
                           message: message,
                           symptoms: widget.controller.symptoms.value,
                           userMessages: userMessages,

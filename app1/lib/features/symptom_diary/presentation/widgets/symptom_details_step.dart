@@ -6,21 +6,29 @@ import '../utils/symptom_intensity.dart';
 /// Final step of the symptom form: intensity and optional notes.
 class SymptomDetailsStep extends StatelessWidget {
   final int intensity;
+  final double temperatureC;
+  final bool useTemperature;
   final TextEditingController noteController;
   final ValueChanged<int> onIntensityChanged;
+  final ValueChanged<double> onTemperatureChanged;
 
   const SymptomDetailsStep({
     super.key,
     required this.intensity,
+    this.temperatureC = 37.0,
+    this.useTemperature = false,
     required this.noteController,
     required this.onIntensityChanged,
+    required this.onTemperatureChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final intensityColor = SymptomIntensity.color(intensity);
+    final intensityColor = useTemperature
+        ? _temperatureColor(temperatureC)
+        : SymptomIntensity.color(intensity);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -35,53 +43,48 @@ class SymptomDetailsStep extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Intensität',
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                      ),
+              _ScaleHeader(
+                title: useTemperature ? 'Temperatur' : 'Intensität',
+                value: useTemperature
+                    ? '${temperatureC.toStringAsFixed(1)} °C · ${_temperatureLabel(temperatureC)}'
+                    : '$intensity/10 · ${SymptomIntensity.label(intensity)}',
+                color: intensityColor,
+              ),
+              if (useTemperature)
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 3,
+                    activeTickMarkColor: Colors.transparent,
+                    inactiveTickMarkColor: Colors.transparent,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 15,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 24,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: intensityColor.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '$intensity/10 · ${SymptomIntensity.label(intensity)}',
-                      style: TextStyle(
-                        color: intensityColor,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                  child: Slider(
+                    value: temperatureC,
+                    min: 36,
+                    max: 42,
+                    activeColor: intensityColor,
+                    inactiveColor: intensityColor.withValues(alpha: 0.25),
+                    label: '${temperatureC.toStringAsFixed(1)} °C',
+                    onChanged: (value) =>
+                        onTemperatureChanged((value * 10).round() / 10),
                   ),
-                ],
-              ),
-              Slider(
-                value: intensity.toDouble(),
-                min: 1,
-                max: 10,
-                divisions: 9,
-                activeColor: intensityColor,
-                label: intensity.toString(),
-                onChanged: (value) => onIntensityChanged(value.round()),
-              ),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('leicht', style: TextStyle(fontSize: 12)),
-                  Text('mittel', style: TextStyle(fontSize: 12)),
-                  Text('stark', style: TextStyle(fontSize: 12)),
-                ],
-              ),
+                )
+              else
+                Slider(
+                  value: intensity.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  activeColor: intensityColor,
+                  label: intensity.toString(),
+                  onChanged: (value) => onIntensityChanged(value.round()),
+                ),
+              _ScaleLabels(useTemperature: useTemperature),
             ],
           ),
         ),
@@ -100,4 +103,85 @@ class SymptomDetailsStep extends StatelessWidget {
       ],
     );
   }
+}
+
+class _ScaleHeader extends StatelessWidget {
+  final String title;
+  final String value;
+  final Color color;
+
+  const _ScaleHeader({
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                value,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(color: color, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScaleLabels extends StatelessWidget {
+  final bool useTemperature;
+
+  const _ScaleLabels({required this.useTemperature});
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = useTemperature
+        ? const ['36,0 °C', '37,5 °C', '42,0 °C']
+        : const ['leicht', 'mittel', 'stark'];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        for (final label in labels)
+          Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+}
+
+String _temperatureLabel(double value) {
+  if (value >= 38.1) return 'Fieber';
+  if (value >= 37.5) return 'erhöht';
+  if (value >= 36.7) return 'normal';
+  return 'niedrig';
+}
+
+Color _temperatureColor(double value) {
+  if (value >= 38.1) return AppColors.symptomIntensityHigh;
+  if (value >= 37.5) return AppColors.symptomIntensityMedium;
+  return AppColors.symptomIntensityLow;
 }

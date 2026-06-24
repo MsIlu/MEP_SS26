@@ -39,17 +39,20 @@ class SymptomEntryForm extends StatefulWidget {
     required String symptom,
     required String bodyArea,
     required int intensity,
+    double? temperatureC,
     required String note,
   })
   onSave;
   final VoidCallback? onCancel;
   final VoidCallback? onSaved;
+  final String? biologicalSex;
 
   const SymptomEntryForm({
     super.key,
     required this.onSave,
     this.onCancel,
     this.onSaved,
+    this.biologicalSex,
   });
 
   @override
@@ -63,6 +66,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   String _bodyArea = '';
   int _currentStepIndex = 0;
   int _intensity = 5;
+  double _temperatureC = 37.0;
   bool _isSaving = false;
 
   @override
@@ -133,12 +137,16 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       ),
       _SymptomEntryStep.bodyArea => BodyAreaSelector(
         selectedArea: _bodyArea,
+        sex: BodySilhouetteSex.fromProfileSex(widget.biologicalSex),
         onChanged: (area) => setState(() => _bodyArea = area),
       ),
       _SymptomEntryStep.details => SymptomDetailsStep(
         intensity: _intensity,
+        temperatureC: _temperatureC,
+        useTemperature: _usesTemperature,
         noteController: _noteController,
         onIntensityChanged: (value) => setState(() => _intensity = value),
+        onTemperatureChanged: (value) => setState(() => _temperatureC = value),
       ),
     };
   }
@@ -174,6 +182,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       symptom: _symptom,
       bodyArea: _needsBodyArea ? _bodyArea : '',
       intensity: _intensity,
+      temperatureC: _usesTemperature ? _temperatureC : null,
       note: _noteController.text,
     );
 
@@ -216,6 +225,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       _bodyArea = '';
       _currentStepIndex = 0;
       _intensity = 5;
+      _temperatureC = 37.0;
       _isSaving = false;
     });
   }
@@ -234,6 +244,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
 
   String get _symptom => _symptomController.text.trim();
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
+  bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
   bool get _isLastStep => _currentStepIndex == _lastStepIndex;
   int get _lastStepIndex => _activeSteps.length - 1;

@@ -119,6 +119,8 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 onSave: _addEntry,
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
+                biologicalSex:
+                    widget.authSession?.activeProfile?.biologicalSex,
               ),
             ),
           ),
@@ -132,16 +134,21 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required String symptom,
     required String bodyArea,
     required int intensity,
+    double? temperatureC,
     required String note,
   }) async {
     final entryDate = _selectedDate;
+    final savedNote = temperatureC == null
+        ? note
+        : 'Temperatur: ${temperatureC.toStringAsFixed(1)} °C'
+              '${note.trim().isEmpty ? '' : '\n$note'}';
 
     final localEntry = await _controller.addEntry(
       date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
-      note: note,
+      note: savedNote,
     );
 
     final activeProfileId = widget.authSession?.activeProfileId;
@@ -154,7 +161,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           symptom: symptom,
           bodyArea: bodyArea,
           intensity: intensity,
-          note: note,
+          note: savedNote,
         );
         await _controller.markEntrySynced(localEntry, remoteEntry.id);
       } catch (_) {

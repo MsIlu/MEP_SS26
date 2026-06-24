@@ -72,12 +72,17 @@ class _StepConnector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive
+        ? AppColors.careenaPrimary
+        : AppColors.careenaPrimary.withValues(alpha: 0.32);
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       height: _connectorHeight,
-      color: isActive
-          ? AppColors.careenaPrimary
-          : Theme.of(context).colorScheme.surfaceContainerHighest,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(_connectorHeight),
+      ),
     );
   }
 }

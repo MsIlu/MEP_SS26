@@ -14,10 +14,14 @@ class HomeFeature {
   /// Callback executed when the user taps the feature.
   final VoidCallback onTap;
 
+  /// Number of unseen items shown as a badge on the feature tile.
+  final int badgeCount;
+
   const HomeFeature({
     required this.icon,
     required this.title,
     required this.backgroundColor,
     required this.onTap,
+    this.badgeCount = 0,
   });
 }

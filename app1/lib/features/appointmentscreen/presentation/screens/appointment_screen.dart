@@ -395,40 +395,74 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   void _showAddAppointmentDialog() {
     _clearAppointmentForm();
+    String? doctorErrorText;
+    String? dateErrorText;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AppointmentDialog(
-          title: 'Termin hinzufügen',
-          doctorController: doctorController,
-          dateController: dateController,
-          timeController: timeController,
-          noteController: noteController,
-          onPickDate: _pickDate,
-          onPickTime: _pickTime,
-          onCancel: () {
-            _clearAppointmentForm();
-            Navigator.pop(context);
-          },
-          onSave: () {
-            if (doctorController.text.trim().isEmpty) {
-              return;
-            }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AppointmentDialog(
+              title: 'Termin hinzufügen',
+              doctorController: doctorController,
+              dateController: dateController,
+              timeController: timeController,
+              noteController: noteController,
+              onPickDate: () async {
+                await _pickDate();
+                if (dateErrorText == null) return;
 
-            controller.addAppointment(
-              Appointment(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                profileId: selectedProfileId,
-                doctorName: doctorController.text.trim(),
-                appointmentDate: _buildAppointmentDate(null),
-                note: noteController.text.trim(),
-              ),
+                setDialogState(() {
+                  dateErrorText = null;
+                });
+              },
+              onPickTime: _pickTime,
+              onCancel: () {
+                _clearAppointmentForm();
+                Navigator.pop(context);
+              },
+              doctorErrorText: doctorErrorText,
+              dateErrorText: dateErrorText,
+              onDoctorChanged: (_) {
+                if (doctorErrorText == null) return;
+
+                setDialogState(() {
+                  doctorErrorText = null;
+                });
+              },
+              onSave: () {
+                if (doctorController.text.trim().isEmpty) {
+                  setDialogState(() {
+                    doctorErrorText =
+                        'Bitte gib einen Arzt oder eine Praxis ein.';
+                  });
+                  return;
+                }
+
+                if (_requiresDateForSelectedTime()) {
+                  setDialogState(() {
+                    dateErrorText = 'Bitte wähle ein Datum aus.';
+                  });
+                  return;
+                }
+
+                controller.addAppointment(
+                  Appointment(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    profileId: selectedProfileId,
+                    doctorName: doctorController.text.trim(),
+                    appointmentDate: _buildAppointmentDate(null),
+                    note: noteController.text.trim(),
+                  ),
+                );
+
+                _clearAppointmentForm();
+                Navigator.pop(context);
+                _showSuccessMessage('Termin gespeichert');
+                setState(() {});
+              },
             );
-
-            _clearAppointmentForm();
-            Navigator.pop(context);
-            _showSuccessMessage('Termin gespeichert');
-            setState(() {});
           },
         );
       },
@@ -494,46 +528,80 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         : '${appointmentDate.hour.toString().padLeft(2, '0')}:'
               '${appointmentDate.minute.toString().padLeft(2, '0')}';
 
+    String? doctorErrorText;
+    String? dateErrorText;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AppointmentDialog(
-          title: 'Termin bearbeiten',
-          doctorController: doctorController,
-          dateController: dateController,
-          timeController: timeController,
-          noteController: noteController,
-          onPickDate: _pickDate,
-          onPickTime: _pickTime,
-          onCancel: () {
-            _clearAppointmentForm();
-            Navigator.pop(context);
-          },
-          onSave: () {
-            if (doctorController.text.trim().isEmpty) {
-              return;
-            }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AppointmentDialog(
+              title: 'Termin bearbeiten',
+              doctorController: doctorController,
+              dateController: dateController,
+              timeController: timeController,
+              noteController: noteController,
+              onPickDate: () async {
+                await _pickDate();
+                if (dateErrorText == null) return;
 
-            final updatedAppointmentDate = _buildAppointmentDate(
-              appointmentDate,
-            );
+                setDialogState(() {
+                  dateErrorText = null;
+                });
+              },
+              onPickTime: _pickTime,
+              onCancel: () {
+                _clearAppointmentForm();
+                Navigator.pop(context);
+              },
+              doctorErrorText: doctorErrorText,
+              dateErrorText: dateErrorText,
+              onDoctorChanged: (_) {
+                if (doctorErrorText == null) return;
 
-            controller.updateAppointment(
-              Appointment(
-                id: appointment.id,
-                profileId: appointment.profileId,
-                doctorName: doctorController.text.trim(),
-                appointmentDate: updatedAppointmentDate,
-                note: noteController.text.trim(),
-                isRecommendation:
-                    appointment.isRecommendation &&
-                    updatedAppointmentDate == null,
-                isCompleted: appointment.isCompleted,
-              ),
+                setDialogState(() {
+                  doctorErrorText = null;
+                });
+              },
+              onSave: () {
+                if (doctorController.text.trim().isEmpty) {
+                  setDialogState(() {
+                    doctorErrorText =
+                        'Bitte gib einen Arzt oder eine Praxis ein.';
+                  });
+                  return;
+                }
+
+                if (_requiresDateForSelectedTime()) {
+                  setDialogState(() {
+                    dateErrorText = 'Bitte wähle ein Datum aus.';
+                  });
+                  return;
+                }
+
+                final updatedAppointmentDate = _buildAppointmentDate(
+                  appointmentDate,
+                );
+
+                controller.updateAppointment(
+                  Appointment(
+                    id: appointment.id,
+                    profileId: appointment.profileId,
+                    doctorName: doctorController.text.trim(),
+                    appointmentDate: updatedAppointmentDate,
+                    note: noteController.text.trim(),
+                    isRecommendation:
+                        appointment.isRecommendation &&
+                        updatedAppointmentDate == null,
+                    isCompleted: appointment.isCompleted,
+                  ),
+                );
+                _clearAppointmentForm();
+                _showSuccessMessage('Termin aktualisiert');
+                Navigator.pop(context);
+              },
             );
-            _clearAppointmentForm();
-            _showSuccessMessage('Termin aktualisiert');
-            Navigator.pop(context);
           },
         );
       },
@@ -553,6 +621,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             : TimeOfDay(hour: fallbackDate.hour, minute: fallbackDate.minute));
 
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
+  bool _requiresDateForSelectedTime() {
+    return selectedDate == null &&
+        dateController.text.trim().isEmpty &&
+        selectedTime != null;
   }
 
   void _showSuccessMessage(String message) {

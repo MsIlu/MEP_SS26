@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +47,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  static const Duration _longProcessingHintDelay = Duration(seconds: 8);
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final ChatWarningController _warningController;
@@ -142,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     _longProcessingTimer?.cancel();
-    _longProcessingTimer = Timer(const Duration(seconds: 4), () {
+    _longProcessingTimer = Timer(_longProcessingHintDelay, () {
       if (!mounted || !_isSending) return;
 
       setState(() => _showLongProcessingHint = true);
@@ -177,6 +180,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final recommendationResponse = showsRecommendation ? response : null;
 
     if (recommendationResponse != null) {
+      final recommendationSymptoms = List<String>.from(
+        widget.controller.symptoms.value,
+      );
+      final recommendationUserMessages = widget.controller.messages.value
+          .where((message) => message.isUser)
+          .map((message) => message.text.trim())
+          .where((text) => text.isNotEmpty)
+          .toList(growable: false);
+
       await widget.controller.resetChat();
 
       if (!mounted) return;
@@ -184,7 +196,11 @@ class _ChatScreenState extends State<ChatScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => WarningPage(response: recommendationResponse),
+          builder: (_) => WarningPage(
+            response: recommendationResponse,
+            symptoms: recommendationSymptoms,
+            userMessages: recommendationUserMessages,
+          ),
         ),
       );
       return;
@@ -351,7 +367,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final backgroundColor = widget.themeController.isDarkMode
         ? Theme.of(context).scaffoldBackgroundColor
-        : const Color(0xFFF7F9FA);
+        : AppColors.chatBackgroundLight;
 
     return PopScope(
       canPop: _allowPopAfterConfirmation,
@@ -454,6 +470,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     .toList();
                 return ListView.builder(
                   controller: _scrollController,
+                  primary: false,
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.symmetric(vertical: 10),

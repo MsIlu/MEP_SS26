@@ -103,25 +103,28 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: AppColors.careenaTeal,
-                    onPrimary: Colors.white,
-                    surface: Color(0xFF1B2B3D),
-                    onSurface: Colors.white,
-                  )
-                : const ColorScheme.light(
-                    primary: AppColors.careenaTeal,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.black,
-                  ),
-            timePickerTheme: const TimePickerThemeData(
-              helpTextStyle: TextStyle(fontSize: 20),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: isDark
+                  ? const ColorScheme.dark(
+                      primary: AppColors.careenaTeal,
+                      onPrimary: Colors.white,
+                      surface: Color(0xFF1B2B3D),
+                      onSurface: Colors.white,
+                    )
+                  : const ColorScheme.light(
+                      primary: AppColors.careenaTeal,
+                      onPrimary: Colors.white,
+                      onSurface: Colors.black,
+                    ),
+              timePickerTheme: const TimePickerThemeData(
+                helpTextStyle: TextStyle(fontSize: 20),
+              ),
             ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );

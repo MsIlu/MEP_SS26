@@ -144,11 +144,9 @@ def build_runtime(
         call_model_config=call_model_config,
         case_manager=case_manager,
     )
-    turn_understanding_service = None
-    if _env_flag("CAREENA4_MEDGEMMA_UNDERSTANDING_ENABLED"):
-        turn_understanding_service = MedGemmaTurnUnderstandingService(
-            extraction_engine=extraction_engine,
-        )
+    turn_understanding_service = MedGemmaTurnUnderstandingService(
+        extraction_engine=extraction_engine,
+    )
     raw_red_flag_detector = RawRedFlagDetector(catalog_cache=safety_catalog_cache)
     case_safety_evaluator = CaseSafetyEvaluator(
         catalog_cache=safety_catalog_cache,

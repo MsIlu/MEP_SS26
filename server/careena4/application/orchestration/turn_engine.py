@@ -444,7 +444,10 @@ class TurnEngine:
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
             ):
-                case_safety = self.case_safety_evaluator.evaluate(medical_case=medical_case)
+                case_safety = self.case_safety_evaluator.evaluate(
+                    medical_case=medical_case,
+                    current_turn_understanding=current_turn_understanding,
+                )
                 trace_notes.extend(case_safety.trace_notes)
                 if case_safety.requires_safety_clarification:
                     conversation_state.active_question = self.safety_clarification_builder.build_active_question(

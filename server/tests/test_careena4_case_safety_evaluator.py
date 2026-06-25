@@ -1,11 +1,10 @@
 from unittest.mock import MagicMock
 
-import pytest
-
 from careena4.application.safety import CaseSafetyEvaluator
 from careena4.models.domain import MedicalCase, Observation
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import SafetyAction, SafetyRedFlagStatus
+from careena4.models.understanding import CurrentTurnUnderstanding, ExtractedSymptomCandidate
 
 
 def _make_case(*labels: str) -> MedicalCase:
@@ -14,6 +13,19 @@ def _make_case(*labels: str) -> MedicalCase:
         obs = Observation(label=label, type="symptom", status="active")
         case.observations.append(obs)
     return case
+
+
+def _make_understanding(
+    *,
+    normalized: list[str] | None = None,
+    clinical: list[str] | None = None,
+) -> CurrentTurnUnderstanding:
+    symptoms = []
+    for lay in (normalized or []):
+        symptoms.append(ExtractedSymptomCandidate(source_label=lay, normalized_label_de=lay, is_medical=True))
+    for clin in (clinical or []):
+        symptoms.append(ExtractedSymptomCandidate(source_label=clin, clinical_term_de=clin, is_medical=True))
+    return CurrentTurnUnderstanding(raw_message="test", symptoms=symptoms)
 
 
 def _make_match(criterion_key: str, urgency: str = "requires_safety_clarification") -> SafetyCatalogMatch:
@@ -33,89 +45,115 @@ def _make_match(criterion_key: str, urgency: str = "requires_safety_clarificatio
 
 class TestCaseSafetyEvaluatorNoCache:
     def test_no_cache_returns_no_flag(self):
-        case = _make_case("Atemnot", "Brustschmerzen")
-        result = CaseSafetyEvaluator(catalog_cache=None).evaluate(case)
+        understanding = _make_understanding(normalized=["Atemnot"])
+        result = CaseSafetyEvaluator(catalog_cache=None).evaluate(
+            medical_case=_make_case(), current_turn_understanding=understanding
+        )
         assert not result.red_flag_detected
         assert result.red_flag_status == SafetyRedFlagStatus.NONE
 
-    def test_empty_case_returns_no_flag(self):
-        result = CaseSafetyEvaluator().evaluate(MedicalCase())
-        assert not result.red_flag_detected
-
-    def test_all_negated_returns_no_flag(self):
-        case = MedicalCase()
-        obs = Observation(label="Atemnot", type="symptom", status="negated")
-        case.observations.append(obs)
-        result = CaseSafetyEvaluator().evaluate(case)
+    def test_empty_case_and_no_understanding_returns_no_flag(self):
+        result = CaseSafetyEvaluator().evaluate(medical_case=MedicalCase())
         assert not result.red_flag_detected
 
 
-class TestCaseSafetyEvaluatorWithCache:
-    def _mock_cache(self, matches: list[SafetyCatalogMatch]):
+class TestCaseSafetyEvaluatorCheck2LayTerms:
+    def _mock_cache(self, lay_matches=None, clinical_matches=None):
         cache = MagicMock()
         cache.is_loaded = True
-        cache.scan_labels.return_value = matches
+        cache.scan_lay_terms.return_value = lay_matches or []
+        cache.scan_clinical_terms.return_value = clinical_matches or []
         return cache
 
-    def test_catalog_match_triggers_suspected(self):
-        cache = self._mock_cache([_make_match("dyspnea_01")])
-        case = _make_case("Atemnot")
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(case)
-
+    def test_lay_term_match_triggers_suspected(self):
+        cache = self._mock_cache(lay_matches=[_make_match("dyspnea_01")])
+        understanding = _make_understanding(normalized=["Atemnot"])
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
+            medical_case=_make_case(), current_turn_understanding=understanding
+        )
         assert result.red_flag_detected is True
         assert result.red_flag_status == SafetyRedFlagStatus.SUSPECTED
         assert result.action == SafetyAction.ASK_SAFETY_CLARIFICATION
-        assert result.requires_safety_clarification is True
+        assert "check2_lay_terms" in " ".join(result.trace_notes)
 
-    def test_no_catalog_match_returns_no_flag(self):
-        cache = self._mock_cache([])
-        case = _make_case("Kopfschmerzen")
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(case)
-
-        assert not result.red_flag_detected
-        assert result.red_flag_status == SafetyRedFlagStatus.NONE
-
-    def test_negated_observation_excluded(self):
-        cache = self._mock_cache([_make_match("dyspnea_01")])
-        case = MedicalCase()
-        obs = Observation(label="Atemnot", type="symptom", status="negated")
-        case.observations.append(obs)
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(case)
-
-        # negated → no active labels → evaluator returns early, cache never consulted
-        cache.scan_labels.assert_not_called()
-        assert not result.red_flag_detected
-
-    def test_evidence_terms_populated(self):
-        match = _make_match("dyspnea_01")
-        cache = self._mock_cache([match])
-        case = _make_case("Atemnot")
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(case)
-
-        assert len(result.evidence_terms) > 0
-
-    def test_high_urgency_match_triggers_suspected(self):
-        match = _make_match("dyspnea_01", urgency="confirms_emergency")
-        cache = self._mock_cache([match])
-        case = _make_case("Atemnot")
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(case)
-
+    def test_no_lay_match_falls_through_to_check3(self):
+        cache = self._mock_cache(lay_matches=[], clinical_matches=[_make_match("dyspnea_01")])
+        understanding = _make_understanding(normalized=["Atemnot"], clinical=["Dyspnoe"])
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
+            medical_case=_make_case(), current_turn_understanding=understanding
+        )
         assert result.red_flag_detected is True
-        assert result.red_flag_status == SafetyRedFlagStatus.SUSPECTED
+        assert "check3_clinical_terms" in " ".join(result.trace_notes)
+
+    def test_no_match_in_either_db_check_returns_no_flag_without_llm(self):
+        cache = self._mock_cache(lay_matches=[], clinical_matches=[])
+        understanding = _make_understanding(normalized=["Kopfschmerzen"])
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
+            medical_case=_make_case("Kopfschmerzen"), current_turn_understanding=understanding
+        )
+        assert not result.red_flag_detected
+
+    def test_non_safety_urgency_match_ignored(self):
+        cache = self._mock_cache(
+            lay_matches=[_make_match("some_crit", urgency="supporting_context_only")]
+        )
+        understanding = _make_understanding(normalized=["Atemnot"])
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
+            medical_case=_make_case(), current_turn_understanding=understanding
+        )
+        assert not result.red_flag_detected
+
+    def test_non_medical_symptom_excluded_from_check2(self):
+        cache = self._mock_cache(lay_matches=[_make_match("dyspnea_01")])
+        understanding = CurrentTurnUnderstanding(
+            raw_message="test",
+            symptoms=[
+                ExtractedSymptomCandidate(
+                    source_label="Atemnot", normalized_label_de="Atemnot", is_medical=False
+                )
+            ],
+        )
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
+            medical_case=_make_case(), current_turn_understanding=understanding
+        )
+        cache.scan_lay_terms.assert_not_called()
+        assert not result.red_flag_detected
 
 
-class TestCaseSafetyEvaluatorMedGemma:
+class TestCaseSafetyEvaluatorCheck4MedGemma:
     def _mock_cache_no_match(self):
         cache = MagicMock()
         cache.is_loaded = True
-        cache.scan_labels.return_value = []
+        cache.scan_lay_terms.return_value = []
+        cache.scan_clinical_terms.return_value = []
         return cache
 
-    def test_medgemma_not_called_without_catalog_signal(self):
+    def test_medgemma_called_when_db_has_no_match(self):
+        llm_client = MagicMock()
+        llm_client.complete.return_value = "JA"
+        cache = self._mock_cache_no_match()
+        result = CaseSafetyEvaluator(catalog_cache=cache, llm_client=llm_client).evaluate(
+            medical_case=_make_case("Atemnot"),
+            current_turn_understanding=_make_understanding(normalized=["Atemnot"]),
+        )
+        llm_client.complete.assert_called_once()
+        assert result.red_flag_detected is True
+        assert "check4_medgemma" in " ".join(result.trace_notes)
+
+    def test_medgemma_not_called_without_active_observations(self):
         llm_client = MagicMock()
         cache = self._mock_cache_no_match()
-        case = _make_case("Atemnot")
-
-        CaseSafetyEvaluator(catalog_cache=cache, llm_client=llm_client).evaluate(case)
-
+        result = CaseSafetyEvaluator(catalog_cache=cache, llm_client=llm_client).evaluate(
+            medical_case=MedicalCase(),
+        )
         llm_client.complete.assert_not_called()
+        assert not result.red_flag_detected
+
+    def test_medgemma_nein_returns_no_flag(self):
+        llm_client = MagicMock()
+        llm_client.complete.return_value = "NEIN"
+        cache = self._mock_cache_no_match()
+        result = CaseSafetyEvaluator(catalog_cache=cache, llm_client=llm_client).evaluate(
+            medical_case=_make_case("Kopfschmerzen"),
+        )
+        assert not result.red_flag_detected

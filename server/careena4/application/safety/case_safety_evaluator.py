@@ -3,100 +3,114 @@ from __future__ import annotations
 from careena4.models.domain import MedicalCase
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import SafetyAction, SafetyRedFlagStatus, SafetyState
+from careena4.models.understanding import CurrentTurnUnderstanding
 
 
 class CaseSafetyEvaluator:
     """
-    Post-extraction safety check that operates on all active observations in the
-    MedicalCase — not just the current turn's raw text.
+    Post-extraction safety checks on structured symptom data.
 
-    Checks extracted symptom labels against:
-      a) DB lay_terms (via SafetyCatalogCache)
-      b) DB clinical labels (criterion_label_de, also via cache)
-      c) Optionally MedGemma for combination risk assessment
+    Three checks in order:
+      Check 2 — normalized_label_de from current turn vs. DB lay_terms
+      Check 3 — clinical_term_de from current turn vs. DB clinical labels
+      Check 4 — MedGemma full assessment of accumulated MedicalCase observations
 
-    This catches safety-relevant symptom combinations that build up across
-    multiple turns and would be missed by the per-turn raw check.
+    Check 4 only runs when no DB signal was found (avoids LLM cost on every safe turn).
+    All three require a loaded SafetyCatalogCache; missing cache degrades gracefully.
     """
 
     def __init__(self, catalog_cache=None, llm_client=None) -> None:
         self._catalog_cache = catalog_cache
         self._llm_client = llm_client
 
-    def evaluate(self, medical_case: MedicalCase) -> SafetyState:
-        active_labels = self._active_labels(medical_case)
-        if not active_labels:
-            return SafetyState(
-                checked_sources=["case_observations"],
-                trace_notes=["case_safety:no_active_observations"],
-            )
+    def evaluate(
+        self,
+        medical_case: MedicalCase,
+        current_turn_understanding: CurrentTurnUnderstanding | None = None,
+    ) -> SafetyState:
+        cache_ready = self._catalog_cache is not None and self._catalog_cache.is_loaded
 
-        catalog_matches = self._catalog_matches(active_labels)
-        medgemma_signal = self._medgemma_check(active_labels, catalog_matches)
+        # Check 2 — lay_terms against current-turn normalized labels
+        if cache_ready and current_turn_understanding is not None:
+            lay_labels = [
+                s.normalized_label_de
+                for s in current_turn_understanding.symptoms
+                if s.is_medical and s.normalized_label_de
+            ]
+            lay_matches = self._catalog_cache.scan_lay_terms(lay_labels) if lay_labels else []
+            safety_lay = [m for m in lay_matches if _is_safety_relevant(m)]
+            if safety_lay:
+                return self._suspected_state(
+                    matches=safety_lay,
+                    sources=["current_turn_understanding", "catalog_lay_terms"],
+                    check_tag="check2_lay_terms",
+                )
 
-        if not catalog_matches and not medgemma_signal:
-            return SafetyState(
-                checked_sources=["case_observations", "catalog_labels"],
-                trace_notes=["case_safety:none"],
-            )
+        # Check 3 — clinical labels against current-turn clinical terms
+        if cache_ready and current_turn_understanding is not None:
+            clinical_labels = [
+                s.clinical_term_de
+                for s in current_turn_understanding.symptoms
+                if s.is_medical and s.clinical_term_de
+            ]
+            clinical_matches = self._catalog_cache.scan_clinical_terms(clinical_labels) if clinical_labels else []
+            safety_clinical = [m for m in clinical_matches if _is_safety_relevant(m)]
+            if safety_clinical:
+                return self._suspected_state(
+                    matches=safety_clinical,
+                    sources=["current_turn_understanding", "catalog_clinical_terms"],
+                    check_tag="check3_clinical_terms",
+                )
 
-        # Consensus: either DB or MedGemma found something → red flag wins
-        all_evidence = list({m.matched_lay_term or m.evidence_term for m in catalog_matches})
-        sources = ["case_observations", "catalog_labels"]
-        trace = []
+        # Check 4 — MedGemma full assessment on accumulated MedicalCase
+        active_labels = [
+            obs.label for obs in medical_case.observations if not obs.is_negated()
+        ]
+        if active_labels and self._llm_client is not None:
+            if _ask_medgemma_safety(self._llm_client, active_labels):
+                return self._suspected_state(
+                    matches=[],
+                    sources=["medical_case_observations", "medgemma_assessment"],
+                    check_tag="check4_medgemma",
+                )
 
-        if catalog_matches:
-            trace += [f"case_safety:catalog_match:{m.criterion_key}" for m in catalog_matches[:3]]
-        if medgemma_signal:
-            sources.append("medgemma_assessment")
-            trace.append("case_safety:medgemma_confirmed")
+        return SafetyState(
+            checked_sources=["current_turn_understanding", "medical_case_observations"],
+            trace_notes=["case_safety:none"],
+        )
 
+    @staticmethod
+    def _suspected_state(
+        *,
+        matches: list[SafetyCatalogMatch],
+        sources: list[str],
+        check_tag: str,
+    ) -> SafetyState:
+        evidence = list({m.matched_lay_term or m.evidence_term for m in matches}) if matches else []
+        trace = [f"case_safety:{check_tag}"]
+        if matches:
+            trace += [f"case_safety:catalog_match:{m.criterion_key}" for m in matches[:3]]
         return SafetyState(
             checked_sources=sources,
             red_flag_detected=True,
             red_flag_status=SafetyRedFlagStatus.SUSPECTED,
             action=SafetyAction.ASK_SAFETY_CLARIFICATION,
             severity="unclear",
-            evidence_terms=all_evidence,
+            evidence_terms=evidence,
             clarification_question_code="case_safety_clarification",
             trace_notes=["case_safety:suspected", *trace],
         )
 
-    def _active_labels(self, medical_case: MedicalCase) -> list[str]:
-        labels = []
-        for obs in medical_case.observations:
-            if not obs.is_negated():
-                labels.append(obs.label)
-        return labels
 
-    def _catalog_matches(self, labels: list[str]) -> list[SafetyCatalogMatch]:
-        if self._catalog_cache is None or not self._catalog_cache.is_loaded:
-            return []
-        return self._catalog_cache.scan_labels(labels)
-
-    def _medgemma_check(
-        self,
-        labels: list[str],
-        catalog_matches: list[SafetyCatalogMatch],
-    ) -> bool:
-        if self._llm_client is None or not labels:
-            return False
-        # Only call MedGemma when there's already a catalog signal —
-        # avoids LLM call overhead on every safe turn.
-        if not catalog_matches:
-            return False
-        try:
-            return _ask_medgemma_safety(self._llm_client, labels)
-        except Exception:
-            return False
-
+def _is_safety_relevant(match: SafetyCatalogMatch) -> bool:
+    return match.urgency_effect in {
+        "requires_safety_clarification",
+        "confirms_emergency",
+        "blocks_deescalation",
+    }
 
 
 def _ask_medgemma_safety(llm_client, labels: list[str]) -> bool:
-    """
-    Ask MedGemma whether the symptom combination is potentially dangerous.
-    Returns True if MedGemma considers it a medical concern.
-    """
     symptom_list = ", ".join(labels)
     prompt = (
         f"Ein Patient berichtet folgende Symptome: {symptom_list}.\n"

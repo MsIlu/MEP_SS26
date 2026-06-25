@@ -134,20 +134,15 @@ class SafetyCatalogCache:
 
         return matches
 
-    def scan_labels(self, labels: list[str]) -> list[SafetyCatalogMatch]:
-        """
-        Match extracted observation labels against lay_terms and clinical labels.
-        Used for the post-extraction case-level safety check.
-        """
-        normalized_labels = [_normalize(lbl) for lbl in labels if lbl.strip()]
+    def scan_lay_terms(self, labels: list[str]) -> list[SafetyCatalogMatch]:
+        """Match labels against DB lay_terms only. Use for normalized_label_de from extraction."""
+        normalized_labels = [_normalize(lbl) for lbl in labels if lbl and lbl.strip()]
         matches: list[SafetyCatalogMatch] = []
         seen_criteria: set[str] = set()
 
         for entry in self._entries:
             if entry.criterion_key in seen_criteria:
                 continue
-
-            # Check against lay_terms
             for norm_term, orig_term in zip(
                 entry.lay_terms_normalized, entry.lay_terms_original
             ):
@@ -163,25 +158,42 @@ class SafetyCatalogCache:
                 if entry.criterion_key in seen_criteria:
                     break
 
+        return matches
+
+    def scan_clinical_terms(self, labels: list[str]) -> list[SafetyCatalogMatch]:
+        """Match labels against DB criterion_label_de only. Use for clinical_term_de from extraction."""
+        normalized_labels = [_normalize(lbl) for lbl in labels if lbl and lbl.strip()]
+        matches: list[SafetyCatalogMatch] = []
+        seen_criteria: set[str] = set()
+
+        for entry in self._entries:
             if entry.criterion_key in seen_criteria:
                 continue
-
-            # Check against clinical label_de
-            if entry.criterion_label_de:
-                norm_crit_label = _normalize(entry.criterion_label_de)
-                for norm_label in normalized_labels:
-                    if norm_label in norm_crit_label or norm_crit_label in norm_label:
-                        matches.append(
-                            _entry_to_match(
-                                entry,
-                                evidence_term=norm_label,
-                                matched_lay_term=entry.criterion_label_de,
-                            )
+            if not entry.criterion_label_de:
+                continue
+            norm_crit_label = _normalize(entry.criterion_label_de)
+            for norm_label in normalized_labels:
+                if norm_label in norm_crit_label or norm_crit_label in norm_label:
+                    matches.append(
+                        _entry_to_match(
+                            entry,
+                            evidence_term=norm_label,
+                            matched_lay_term=entry.criterion_label_de,
                         )
-                        seen_criteria.add(entry.criterion_key)
-                        break
+                    )
+                    seen_criteria.add(entry.criterion_key)
+                    break
 
         return matches
+
+    def scan_labels(self, labels: list[str]) -> list[SafetyCatalogMatch]:
+        """Match labels against both lay_terms and clinical labels. Used for MedicalCase observations."""
+        lay_matches = self.scan_lay_terms(labels)
+        seen = {m.criterion_key for m in lay_matches}
+        clinical_matches = [
+            m for m in self.scan_clinical_terms(labels) if m.criterion_key not in seen
+        ]
+        return lay_matches + clinical_matches
 
 
 def _entry_to_match(

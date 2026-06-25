@@ -468,7 +468,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           symptoms: widget.controller.symptoms.value,
                           userMessages: userMessages,
                           showLongProcessingHint:
-                            message.isLoading && _showLongProcessingHint,
+                              message.isLoading && _showLongProcessingHint,
                         ),
                       ),
                     );

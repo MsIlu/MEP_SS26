@@ -14,7 +14,7 @@ class ChatWarningDialog extends StatelessWidget {
         'Diese Antworten dienen ausschließlich der medizinischen Ersteinschätzung '
         'und ersetzen keine ärztliche Diagnose.\n\n'
         'Die Antworten werden durch künstliche Intelligenz (KI) generiert und können '
-        'fehlerhafte Informationen enthalten.\n\n'
+        'fehlerhafte Informationen enthalten.\n\n',
       ),
       actions: [
         FilledButton(
@@ -23,7 +23,9 @@ class ChatWarningDialog extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
-            ChatWarningController warningController = AppDependenciesScope.of(context).chatWarningController;
+            ChatWarningController warningController = AppDependenciesScope.of(
+              context,
+            ).chatWarningController;
             warningController.warningAccepted = true;
             Navigator.of(context).pop(true);
           },

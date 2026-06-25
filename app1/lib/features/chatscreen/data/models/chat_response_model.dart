@@ -35,14 +35,16 @@ class RecommendationResult {
       urgencyLevel: json['urgency_level']?.toString() ?? 'unclear',
       careLevel: json['care_level']?.toString() ?? 'unknown',
       specialty: json['specialty']?.toString() ?? 'unknown',
-      reasons: (json['reasons'] as List<dynamic>?)
-          ?.map((item) => item.toString())
-          .toList() ??
+      reasons:
+          (json['reasons'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
           const [],
       nextStep: json['next_step']?.toString(),
-      limitations: (json['limitations'] as List<dynamic>?)
-          ?.map((item) => item.toString())
-          .toList() ??
+      limitations:
+          (json['limitations'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
           const [],
     );
   }
@@ -113,10 +115,11 @@ class ChatResponse {
           const [],
       responseMode: json['response_mode']?.toString(),
       recommendationReady: json['recommendation_ready'] == true,
-      recommendationResult: json['recommendation_result'] is Map<String, dynamic>
+      recommendationResult:
+          json['recommendation_result'] is Map<String, dynamic>
           ? RecommendationResult.fromJson(
-        json['recommendation_result'] as Map<String, dynamic>,
-      )
+              json['recommendation_result'] as Map<String, dynamic>,
+            )
           : null,
     );
   }

@@ -57,49 +57,49 @@ class AppointmentDialog extends StatelessWidget {
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
 
-content: ConstrainedBox(
-  constraints: const BoxConstraints(maxWidth: 420),
-  child: SizedBox(
-    width: double.maxFinite,
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: doctorController,
-                decoration: _inputDecoration('Arzt', Icons.medical_services),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: dateController,
-                readOnly: true,
-                onTap: onPickDate,
-                decoration: _inputDecoration('Datum', Icons.calendar_month),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: timeController,
-                readOnly: true,
-                onTap: onPickTime,
-                decoration: _inputDecoration('Uhrzeit', Icons.access_time),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: noteController,
-                minLines: 3,
-                maxLines: 6,
-                maxLength: 300,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
-                decoration: _inputDecoration(
-                  'Notiz (optional)',
-                  Icons.note_alt_outlined,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: doctorController,
+                  decoration: _inputDecoration('Arzt', Icons.medical_services),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: dateController,
+                  readOnly: true,
+                  onTap: onPickDate,
+                  decoration: _inputDecoration('Datum', Icons.calendar_month),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: timeController,
+                  readOnly: true,
+                  onTap: onPickTime,
+                  decoration: _inputDecoration('Uhrzeit', Icons.access_time),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: noteController,
+                  minLines: 3,
+                  maxLines: 6,
+                  maxLength: 300,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  decoration: _inputDecoration(
+                    'Notiz (optional)',
+                    Icons.note_alt_outlined,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

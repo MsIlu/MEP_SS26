@@ -13,7 +13,6 @@ import '../../data/auth_api_service.dart';
 import '../../../../app/app_dependencies_scope.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 
-
 /// Login flow for returning users.
 class LoginScreen extends StatefulWidget {
   final ChatController chatController;
@@ -28,8 +27,8 @@ class LoginScreen extends StatefulWidget {
     required this.themeController,
     required this.authSession,
     required this.authApiService,
-    required this.symptomRepository, 
-});
+    required this.symptomRepository,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();

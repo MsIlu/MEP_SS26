@@ -85,13 +85,7 @@ class AuthDivider extends StatelessWidget {
         Expanded(child: Divider(color: dividerColor, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: textColor,
-              ),
-          ),
+          child: Text(text, style: TextStyle(fontSize: 14, color: textColor)),
         ),
         Expanded(child: Divider(color: dividerColor, thickness: 1)),
       ],

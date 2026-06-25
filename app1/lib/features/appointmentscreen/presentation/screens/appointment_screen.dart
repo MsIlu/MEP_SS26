@@ -373,7 +373,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           onCancel: () {
             _clearAppointmentForm();
             Navigator.pop(context);
-            },
+          },
           onSave: () {
             if (doctorController.text.trim().isEmpty) {
               return;
@@ -534,13 +534,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _clearAppointmentForm() {
-  doctorController.clear();
-  noteController.clear();
-  dateController.clear();
-  timeController.clear();
-  selectedDate = null;
-  selectedTime = null;
-}
+    doctorController.clear();
+    noteController.clear();
+    dateController.clear();
+    timeController.clear();
+    selectedDate = null;
+    selectedTime = null;
+  }
 }
 
 class _AppointmentSectionHeader extends StatelessWidget {

@@ -20,9 +20,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.lightCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.lightCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.lightTextPrimary),
       bodySmall: TextStyle(color: AppColors.lightTextSecondary),
@@ -30,9 +28,7 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.lightCard,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
     ),
   );
 
@@ -52,9 +48,7 @@ class AppTheme {
       foregroundColor: AppColors.darkTextPrimary,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.darkCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.darkCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.darkTextPrimary),
       bodySmall: TextStyle(color: AppColors.darkTextSecondary),
@@ -62,9 +56,7 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.darkCard,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
     ),
   );
 }

@@ -365,7 +365,12 @@ class ChatHistoryDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final message in entry.messages)
-                ChatBubble(message: message, symptoms: const [], userMessages: const [], showLongProcessingHint: false),
+                ChatBubble(
+                  message: message,
+                  symptoms: const [],
+                  userMessages: const [],
+                  showLongProcessingHint: false,
+                ),
             ],
           ),
         ),

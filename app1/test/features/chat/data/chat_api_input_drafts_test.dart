@@ -61,25 +61,28 @@ void main() {
       expect(symptoms, ['Kopfschmerzen']);
     });
 
-    test('T03.2.3 cancels a draft through the session delete endpoint', () async {
-      late http.Request capturedRequest;
-      final api = ChatApi(
-        ApiClient(
-          MockClient((request) async {
-            capturedRequest = request;
-            return http.Response(
-              jsonEncode({'message': 'deleted'}),
-              200,
-              headers: {'content-type': 'application/json'},
-            );
-          }),
-        ),
-      );
+    test(
+      'T03.2.3 cancels a draft through the session delete endpoint',
+      () async {
+        late http.Request capturedRequest;
+        final api = ChatApi(
+          ApiClient(
+            MockClient((request) async {
+              capturedRequest = request;
+              return http.Response(
+                jsonEncode({'message': 'deleted'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }),
+          ),
+        );
 
-      await api.cancelInputDraft('session-1');
+        await api.cancelInputDraft('session-1');
 
-      expect(capturedRequest.method, 'DELETE');
-      expect(capturedRequest.url.path, '/input-drafts/session-1');
-    });
+        expect(capturedRequest.method, 'DELETE');
+        expect(capturedRequest.url.path, '/input-drafts/session-1');
+      },
+    );
   });
 }

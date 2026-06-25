@@ -81,8 +81,12 @@ class SymptomList extends StatelessWidget {
                   );
             final visibleSymptoms = symptoms.take(visibleCount).toList();
             final hiddenCount = symptoms.length - visibleSymptoms.length;
-            final actionLabel = symptoms.isEmpty ? 'Symptom hinzufügen' : 'Bearbeiten';
-            final actionIcon = symptoms.isEmpty ? Icons.add : Icons.edit_outlined;
+            final actionLabel = symptoms.isEmpty
+                ? 'Symptom hinzufügen'
+                : 'Bearbeiten';
+            final actionIcon = symptoms.isEmpty
+                ? Icons.add
+                : Icons.edit_outlined;
 
             return Align(
               alignment: Alignment.centerLeft,

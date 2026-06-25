@@ -17,30 +17,42 @@ void main() {
       expect(await repository.loadEntries(), isEmpty);
     });
 
-    test('T01.3.2 saves and reloads medication entries from local storage', () async {
-      final repository = MedicationRepository();
-      final entry = _entry(name: 'Ibuprofen');
+    test(
+      'T01.3.2 saves and reloads medication entries from local storage',
+      () async {
+        final repository = MedicationRepository();
+        final entry = _entry(name: 'Ibuprofen');
 
-      await repository.saveEntries([entry]);
+        await repository.saveEntries([entry]);
 
-      final entries = await repository.loadEntries();
-      expect(entries, hasLength(1));
-      expect(entries.single.name, 'Ibuprofen');
-      expect(entries.single.dose, '400 mg');
-    });
+        final entries = await repository.loadEntries();
+        expect(entries, hasLength(1));
+        expect(entries.single.name, 'Ibuprofen');
+        expect(entries.single.dose, '400 mg');
+      },
+    );
 
-    test('T01.3.3 returns stored entries sorted by first intake time', () async {
-      final repository = MedicationRepository();
+    test(
+      'T01.3.3 returns stored entries sorted by first intake time',
+      () async {
+        final repository = MedicationRepository();
 
-      await repository.saveEntries([
-        _entry(name: 'Abends', intakeTime: const TimeOfDay(hour: 21, minute: 0)),
-        _entry(name: 'Morgens', intakeTime: const TimeOfDay(hour: 7, minute: 30)),
-      ]);
+        await repository.saveEntries([
+          _entry(
+            name: 'Abends',
+            intakeTime: const TimeOfDay(hour: 21, minute: 0),
+          ),
+          _entry(
+            name: 'Morgens',
+            intakeTime: const TimeOfDay(hour: 7, minute: 30),
+          ),
+        ]);
 
-      final entries = await repository.loadEntries();
+        final entries = await repository.loadEntries();
 
-      expect(entries.map((entry) => entry.name), ['Morgens', 'Abends']);
-    });
+        expect(entries.map((entry) => entry.name), ['Morgens', 'Abends']);
+      },
+    );
   });
 }
 

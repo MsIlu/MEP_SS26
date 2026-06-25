@@ -7,7 +7,13 @@ abstract class ChatHistoryRepository {
 
   Future<List<ChatHistoryEntry>> loadEntries({required int profileId});
 
-  Future<void> saveCompletedChat(ChatHistoryEntry entry);
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry);
+
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry);
+
+  Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) {
+    return saveChat(entry);
+  }
 }
 
 class ApiChatHistoryRepository extends ChatHistoryRepository {
@@ -26,7 +32,19 @@ class ApiChatHistoryRepository extends ChatHistoryRepository {
   }
 
   @override
-  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {
-    await _apiClient.post('/chat-history', entry.toJson());
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry) async {
+    final response = await _apiClient.post('/chat-history', entry.toJson());
+
+    return ChatHistoryEntry.fromJson(response);
+  }
+
+  @override
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry) async {
+    final response = await _apiClient.patch(
+      '/chat-history/${entry.id}',
+      entry.toJson(),
+    );
+
+    return ChatHistoryEntry.fromJson(response);
   }
 }

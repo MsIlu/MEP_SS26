@@ -29,6 +29,8 @@ class ChatController {
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
+  String? _activeHistoryEntryId;
+  DateTime? _activeHistoryCreatedAt;
 
   ChatController({
     required this.chatApi,
@@ -185,11 +187,8 @@ class ChatController {
 
     return _sendSessionRequest(
       visibleUserText: visibleUserText?.trim() ?? trimmed,
-      request: (sessionId) => chatApi.sendMessage(
-        trimmed,
-        sessionId,
-        authSession.activeProfileId,
-      ),
+      request: (sessionId) =>
+          chatApi.sendMessage(trimmed, sessionId, authSession.activeProfileId),
     );
   }
 
@@ -216,11 +215,11 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
-    _addMessage(
-      message: Message(text: visibleUserText, isUser: true),
-    );
+    _addMessage(message: Message(text: visibleUserText, isUser: true));
+    await _persistActiveChat();
 
     lastReplyOptions.value = [];
+
     _addMessage(
       message: Message(
         text: '',
@@ -241,21 +240,11 @@ class ChatController {
       if (response.redFlag) {
         final botMessage = chatService.buildAssistantMessage(response);
         _addMessage(message: botMessage);
+        await _persistActiveChat();
         await _completeChat(
           recommendation: response.text,
           nextSteps: response.action,
           isEmergency: chatService.isEmergencyRecommendation(response),
-        );
-        return response;
-      }
-
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation: response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
         );
         return response;
       }
@@ -279,7 +268,18 @@ class ChatController {
         ),
       );
 
-      return response;
+      await _persistActiveChat();
+
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+      }
     } catch (e) {
       await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
@@ -332,6 +332,8 @@ class ChatController {
 
     messages.value = [];
     symptoms.value = [];
+    _activeHistoryEntryId = null;
+    _activeHistoryCreatedAt = null;
     _setCompleted(false);
     _initFuture = null;
 
@@ -378,25 +380,74 @@ class ChatController {
       return;
     }
 
-    final now = DateTime.now();
     final activeProfileId = authSession.activeProfileId;
 
     if (activeProfileId != null) {
-      await chatHistoryRepository.saveCompletedChat(
-        ChatHistoryEntry(
-          id: now.microsecondsSinceEpoch.toString(),
-          profileId: activeProfileId,
-          symptomTitle: _historyTitleFromSymptoms(),
-          isEmergency: isEmergency,
-          createdAt: now,
-          messages: messages.value,
-          recommendation: recommendation,
-          nextSteps: nextSteps,
-        ),
+      await _persistChatHistory(
+        status: 'completed',
+        recommendation: recommendation,
+        nextSteps: nextSteps,
+        isEmergency: isEmergency,
       );
     }
 
     _setCompleted(true);
+  }
+
+  Future<void> _persistActiveChat() async {
+    if (_isCompleted) {
+      return;
+    }
+
+    if (authSession.activeProfileId == null) {
+      return;
+    }
+
+    final hasUserMessage = messages.value.any(
+      (message) => message.isUser && message.text.trim().isNotEmpty,
+    );
+
+    if (!hasUserMessage) {
+      return;
+    }
+
+    await _persistChatHistory(status: 'active');
+  }
+
+  Future<void> _persistChatHistory({
+    required String status,
+    String recommendation = '',
+    String? nextSteps,
+    bool isEmergency = false,
+  }) async {
+    final activeProfileId = authSession.activeProfileId;
+
+    if (activeProfileId == null) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final createdAt = _activeHistoryCreatedAt ?? now;
+
+    final entry = ChatHistoryEntry(
+      id: _activeHistoryEntryId ?? now.microsecondsSinceEpoch.toString(),
+      profileId: activeProfileId,
+      symptomTitle: _historyTitleFromSymptoms(),
+      status: status,
+      isEmergency: isEmergency,
+      createdAt: createdAt,
+      updatedAt: now,
+      messages: messages.value,
+      recommendation: recommendation,
+      nextSteps: nextSteps,
+    );
+
+    final savedEntry = _activeHistoryEntryId == null
+        ? await chatHistoryRepository.saveChat(entry)
+        : await chatHistoryRepository.updateChat(entry);
+
+    _activeHistoryEntryId = savedEntry.id;
+    _activeHistoryCreatedAt = savedEntry.createdAt;
   }
 
   void _setCompleted(bool value) {

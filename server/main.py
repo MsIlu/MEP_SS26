@@ -403,9 +403,26 @@ def create_session(
 # Modified as part of the authentication and profile management implementation.
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
+def _seed_catalog() -> None:
+    """Run catalog seed imports on startup. Logs a warning on failure instead of crashing."""
+    try:
+        from database.seed_catalog import (
+            seed_assessment_criteria,
+            seed_consultation_reason_criteria_links,
+            seed_consultation_reasons,
+        )
+        r1 = seed_consultation_reasons()
+        r2 = seed_assessment_criteria()
+        r3 = seed_consultation_reason_criteria_links()
+        print(f"Catalog seeded: reasons={r1}, criteria={r2}, links={r3}")
+    except Exception as exc:
+        print(f"Warning: Catalog seeding skipped ({exc})")
+
+
 @app.on_event("startup")
 def on_startup():
     """
     Initialize database tables on application startup.
     """
     create_db_and_tables()
+    _seed_catalog()

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/themes/app_colors.dart';
@@ -245,7 +247,10 @@ class _ChatHistoryTile extends StatelessWidget {
     return InkWell(
       onTap: () async {
         if (entry.status == 'active' && chatController != null) {
-          await chatController!.resumeHistoryEntry(entry);
+          await chatController!.resumeHistoryEntry(
+            entry,
+            continuePendingResponse: false,
+          );
 
           if (!context.mounted) return;
 
@@ -261,6 +266,8 @@ class _ChatHistoryTile extends StatelessWidget {
               ),
             ),
           );
+
+          unawaited(chatController!.continuePendingAssistantResponseIfNeeded());
           return;
         }
 

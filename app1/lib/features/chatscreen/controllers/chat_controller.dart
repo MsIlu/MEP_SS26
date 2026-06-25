@@ -199,7 +199,10 @@ class ChatController {
     );
   }
 
-  Future<void> resumeHistoryEntry(ChatHistoryEntry entry) async {
+  Future<void> resumeHistoryEntry(
+    ChatHistoryEntry entry, {
+    bool continuePendingResponse = true,
+  }) async {
     _activeHistoryEntryId = entry.id;
     _activeHistoryCreatedAt = entry.createdAt;
     _setCompleted(entry.status == 'completed');
@@ -212,10 +215,18 @@ class ChatController {
       );
       _initFuture = Future.value();
 
-      if (_waitsForAssistantResponse(entry)) {
-        await _continuePendingAssistantResponse();
+      if (continuePendingResponse) {
+        await continuePendingAssistantResponseIfNeeded();
       }
     }
+  }
+
+  Future<void> continuePendingAssistantResponseIfNeeded() async {
+    if (!_currentMessagesWaitForAssistantResponse()) {
+      return;
+    }
+
+    await _continuePendingAssistantResponse();
   }
 
   Future<void> _continuePendingAssistantResponse() async {
@@ -279,12 +290,12 @@ class ChatController {
     }
   }
 
-  bool _waitsForAssistantResponse(ChatHistoryEntry entry) {
-    if (entry.messages.isEmpty) {
+  bool _currentMessagesWaitForAssistantResponse() {
+    if (messages.value.isEmpty) {
       return false;
     }
 
-    final lastMessage = entry.messages.last;
+    final lastMessage = messages.value.last;
     return lastMessage.isUser && lastMessage.text.trim().isNotEmpty;
   }
 

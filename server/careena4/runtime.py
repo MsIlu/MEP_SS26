@@ -20,11 +20,6 @@ from careena4.infrastructure import Careena4SessionStore, SafetyCatalogCache
 from careena4.llm.call_control import CallModelConfig, build_call_model_config
 from careena4.server_log import configure_debug_logging
 
-try:  # pragma: no cover - optional infrastructure dependency
-    from careena4.infrastructure.repositories import SqlSafetyCatalogRepository
-except ModuleNotFoundError:  # pragma: no cover - minimal test/runtime fallback
-    SqlSafetyCatalogRepository = None  # type: ignore[assignment]
-
 
 try:  # pragma: no cover - runtime convenience
     import config as server_config
@@ -67,7 +62,6 @@ class Careena4RuntimeServices:
     llm_client: LLMClient
     extraction_engine: ExtractionEngine
     call_model_config: CallModelConfig
-    safety_catalog_repository: object | None
     safety_catalog_cache: SafetyCatalogCache
     safety_clarification_builder: SafetyClarificationBuilder
     safety_clarification_resolver: SafetyClarificationResolver
@@ -111,13 +105,10 @@ def build_runtime(
         overrides=call_models,
     )
     extraction_engine = ExtractionEngine(llm_client)
-    safety_catalog_repository = (
-        SqlSafetyCatalogRepository() if SqlSafetyCatalogRepository is not None else None
-    )
     safety_catalog_cache = SafetyCatalogCache()
     # Cache is NOT loaded here — main.py on_startup() loads it after catalog seeding.
     safety_clarification_builder = SafetyClarificationBuilder(
-        safety_catalog_repository=safety_catalog_repository,
+        llm_client=llm_client,
     )
     safety_clarification_resolver = SafetyClarificationResolver()
     case_manager = CaseManager()
@@ -181,7 +172,6 @@ def build_runtime(
         llm_client=llm_client,
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
-        safety_catalog_repository=safety_catalog_repository,
         safety_catalog_cache=safety_catalog_cache,
         safety_clarification_builder=safety_clarification_builder,
         safety_clarification_resolver=safety_clarification_resolver,

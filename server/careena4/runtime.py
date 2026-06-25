@@ -6,15 +6,17 @@ from typing import Literal
 
 from careena4.application import TurnEngine
 from careena4.application.dialogue import QuestionBuilder, QuestionResolver, SafetyClarificationBuilder, SafetyClarificationResolver
+from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
+from careena4.application.safety import CaseSafetyEvaluator
 from careena4.application.topic import TopicLabelBuilder, TopicUpdater
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.response import ResponseBuilder
 from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
-from careena4.infrastructure import Careena4SessionStore
+from careena4.infrastructure import Careena4SessionStore, SafetyCatalogCache
 from careena4.llm.call_control import CallModelConfig, build_call_model_config
 from careena4.server_log import configure_debug_logging
 
@@ -66,6 +68,7 @@ class Careena4RuntimeServices:
     extraction_engine: ExtractionEngine
     call_model_config: CallModelConfig
     safety_catalog_repository: object | None
+    safety_catalog_cache: SafetyCatalogCache
     safety_clarification_builder: SafetyClarificationBuilder
     safety_clarification_resolver: SafetyClarificationResolver
     medical_extractor: MedicalExtractor
@@ -111,6 +114,8 @@ def build_runtime(
     safety_catalog_repository = (
         SqlSafetyCatalogRepository() if SqlSafetyCatalogRepository is not None else None
     )
+    safety_catalog_cache = SafetyCatalogCache()
+    # Cache is NOT loaded here — main.py on_startup() loads it after catalog seeding.
     safety_clarification_builder = SafetyClarificationBuilder(
         safety_catalog_repository=safety_catalog_repository,
     )
@@ -153,7 +158,14 @@ def build_runtime(
         turn_understanding_service = MedGemmaTurnUnderstandingService(
             extraction_engine=extraction_engine,
         )
+    raw_red_flag_detector = RawRedFlagDetector(catalog_cache=safety_catalog_cache)
+    case_safety_evaluator = CaseSafetyEvaluator(
+        catalog_cache=safety_catalog_cache,
+        llm_client=llm_client,
+    )
     turn_engine = TurnEngine(
+        raw_red_flag_detector=raw_red_flag_detector,
+        case_safety_evaluator=case_safety_evaluator,
         safety_clarification_builder=safety_clarification_builder,
         entry_classifier=entry_classifier,
         question_resolver=question_resolver,
@@ -170,6 +182,7 @@ def build_runtime(
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
         safety_catalog_repository=safety_catalog_repository,
+        safety_catalog_cache=safety_catalog_cache,
         safety_clarification_builder=safety_clarification_builder,
         safety_clarification_resolver=safety_clarification_resolver,
         medical_extractor=medical_extractor,

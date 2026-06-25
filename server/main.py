@@ -426,3 +426,5 @@ def on_startup():
     """
     create_db_and_tables()
     _seed_catalog()
+    n = careena4_services.safety_catalog_cache.load()
+    print(f"SafetyCatalogCache loaded: {n} entries")

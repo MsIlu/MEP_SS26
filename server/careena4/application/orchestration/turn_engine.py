@@ -1,23 +1,22 @@
-﻿from careena4.application.dialogue.question_builder import QuestionBuilder
+from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.input import SymptomChipBuilder
+from careena4.application.input import UnderstandingSymptomDraftAdapter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
-from careena4.application.topic.case_frame_refiner import CaseFrameRefiner
-from careena4.application.topic.topic_manager import TopicManager
+from careena4.application.safety import StructuredRedFlagEvaluator
+from careena4.application.topic import TopicUpdater
+from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
-from careena4.models.domain import ActiveQuestion, CaseTopic, ConversationState, MedicalCase, RecommendationState
-from careena4.application.input import UnderstandingSymptomDraftAdapter
-from careena4.application.safety import StructuredRedFlagEvaluator
-from careena4.application.understanding import MedGemmaTurnUnderstandingService
+from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
 from careena4.models.safety import CurrentTurnSafetyEvidence
 from careena4.models.turn import TurnDecision, TurnInput, TurnResult
 from careena4.server_log import log_event
@@ -31,8 +30,7 @@ class TurnEngine:
         safety_clarification_builder: SafetyClarificationBuilder | None = None,
         entry_classifier: EntryClassifier | None = None,
         question_resolver: QuestionResolver | None = None,
-        topic_manager: TopicManager | None = None,
-        case_frame_refiner: CaseFrameRefiner | None = None,
+        topic_updater: TopicUpdater | None = None,
         medical_extractor: MedicalExtractor | None = None,
         case_manager: CaseManager | None = None,
         followup_need_builder: FollowupNeedBuilder | None = None,
@@ -52,8 +50,7 @@ class TurnEngine:
         self.case_manager = case_manager or CaseManager()
         self.entry_classifier = entry_classifier or EntryClassifier(case_manager=self.case_manager)
         self.question_resolver = question_resolver or QuestionResolver()
-        self.topic_manager = topic_manager or TopicManager(case_manager=self.case_manager)
-        self.case_frame_refiner = case_frame_refiner or CaseFrameRefiner(case_manager=self.case_manager)
+        self.topic_updater = topic_updater or TopicUpdater(case_manager=self.case_manager)
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.symptom_chip_builder = SymptomChipBuilder()
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
@@ -71,12 +68,7 @@ class TurnEngine:
         self.structured_red_flag_evaluator = structured_red_flag_evaluator or StructuredRedFlagEvaluator()
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
-        case_topic = turn_input.persisted_case_topic
         medical_case = turn_input.persisted_medical_case or MedicalCase()
-        medical_case = self.case_manager.sync_legacy_topic_projection(
-            medical_case=medical_case,
-            case_topic=case_topic,
-        )
         conversation_state = turn_input.persisted_conversation_state or ConversationState()
         recommendation_state = turn_input.persisted_recommendation_state or RecommendationState()
         symptom_input_draft = turn_input.persisted_symptom_input_draft
@@ -90,7 +82,7 @@ class TurnEngine:
             layer="application",
             session_id=turn_input.session_id,
             turn_id=turn_input.turn_id,
-            has_case_topic=case_topic is not None,
+            has_topic=self.case_manager.has_topic(medical_case=medical_case),
             has_medical_case=turn_input.persisted_medical_case is not None,
             has_active_question=conversation_state.active_question is not None,
         )
@@ -108,7 +100,6 @@ class TurnEngine:
             response_text = self._build_response_text(
                 turn_input=turn_input,
                 decision=decision,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
             )
@@ -116,7 +107,6 @@ class TurnEngine:
                 turn_id=turn_input.turn_id,
                 response_mode=decision.response_mode,
                 response_text=response_text,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
@@ -124,7 +114,6 @@ class TurnEngine:
                 current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes + decision.trace_notes,
             )
-
 
         if self.turn_understanding_service is not None:
             current_turn_understanding = self.turn_understanding_service.extract(
@@ -167,7 +156,6 @@ class TurnEngine:
                 response_text = self._build_response_text(
                     turn_input=turn_input,
                     decision=decision,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                 )
@@ -175,7 +163,6 @@ class TurnEngine:
                     turn_id=turn_input.turn_id,
                     response_mode=decision.response_mode,
                     response_text=response_text,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
@@ -214,7 +201,6 @@ class TurnEngine:
                 response_text = self._build_response_text(
                     turn_input=turn_input,
                     decision=decision,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     active_question=active_question,
@@ -223,7 +209,6 @@ class TurnEngine:
                     turn_id=turn_input.turn_id,
                     response_mode=decision.response_mode,
                     response_text=response_text,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
@@ -279,7 +264,6 @@ class TurnEngine:
             response_text = self._build_response_text(
                 turn_input=turn_input,
                 decision=decision,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 active_question=active_question,
@@ -288,7 +272,6 @@ class TurnEngine:
                 turn_id=turn_input.turn_id,
                 response_mode=decision.response_mode,
                 response_text=response_text,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
@@ -300,7 +283,7 @@ class TurnEngine:
         entry_assessment = self.entry_classifier.classify(
             message=turn_input.message,
             active_question=conversation_state.active_question,
-            case_topic=case_topic,
+            medical_case=medical_case,
             history_messages=turn_input.entry_history_messages,
         )
         trace_notes.append(f"entry:{entry_assessment.message_kind}")
@@ -319,7 +302,6 @@ class TurnEngine:
             response_text = self._build_response_text(
                 turn_input=turn_input,
                 decision=decision,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
             )
@@ -327,7 +309,6 @@ class TurnEngine:
                 turn_id=turn_input.turn_id,
                 response_mode=decision.response_mode,
                 response_text=response_text,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
@@ -357,7 +338,6 @@ class TurnEngine:
                 response_text = self._build_response_text(
                     turn_input=turn_input,
                     decision=decision,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                 )
@@ -365,7 +345,6 @@ class TurnEngine:
                     turn_id=turn_input.turn_id,
                     response_mode=decision.response_mode,
                     response_text=response_text,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
@@ -386,7 +365,6 @@ class TurnEngine:
                 response_text = self._build_response_text(
                     turn_input=turn_input,
                     decision=decision,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     active_question=current_question,
@@ -395,7 +373,6 @@ class TurnEngine:
                     turn_id=turn_input.turn_id,
                     response_mode=decision.response_mode,
                     response_text=response_text,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
@@ -406,12 +383,10 @@ class TurnEngine:
 
             if resolution.recommendation_choice == "recommendation_now":
                 recommendation_state = self.readiness_evaluator.evaluate(
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                 )
                 recommendation_result = self.recommendation_builder.build(
-                    case_topic=case_topic,
                     medical_case=medical_case,
                 )
                 recommendation_state.recommendation_result = recommendation_result
@@ -428,7 +403,6 @@ class TurnEngine:
                 response_text = self._build_response_text(
                     turn_input=turn_input,
                     decision=decision,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_result=recommendation_result,
@@ -437,7 +411,6 @@ class TurnEngine:
                     turn_id=turn_input.turn_id,
                     response_mode=decision.response_mode,
                     response_text=response_text,
-                    case_topic=case_topic,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
@@ -459,10 +432,9 @@ class TurnEngine:
                     )
                 elif resolution.person_update is not None or resolution.observation_patch is not None:
                     if resolution.person_update is not None:
-                        medical_case, case_topic = self.case_manager.update_person(
+                        medical_case = self.case_manager.update_person(
                             medical_case=medical_case,
                             person_update=resolution.person_update,
-                            case_topic=case_topic,
                         )
                     elif resolution.observation_patch is not None and current_question.target_observation_id is not None:
                         medical_case = self.case_manager.enrich_observation_from_followup(
@@ -470,11 +442,6 @@ class TurnEngine:
                             observation_id=current_question.target_observation_id,
                             patch=resolution.observation_patch,
                         )
-                case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
-                medical_case = self.case_manager.sync_legacy_topic_projection(
-                    medical_case=medical_case,
-                    case_topic=case_topic,
-                )
                 resolution_additional_information = resolution.additional_medical_information
                 extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
@@ -494,7 +461,6 @@ class TurnEngine:
                         response_text = self._build_response_text(
                             turn_input=turn_input,
                             decision=decision,
-                            case_topic=case_topic,
                             medical_case=medical_case,
                             conversation_state=conversation_state,
                             active_question=conversation_state.active_question,
@@ -503,7 +469,6 @@ class TurnEngine:
                             turn_id=turn_input.turn_id,
                             response_mode=decision.response_mode,
                             response_text=response_text,
-                            case_topic=case_topic,
                             medical_case=medical_case,
                             conversation_state=conversation_state,
                             recommendation_state=recommendation_state,
@@ -516,15 +481,17 @@ class TurnEngine:
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
             case_input = self.medical_extractor.extract(
                 message=turn_input.message,
-                case_topic=self.case_manager.topic_label(case_topic=case_topic),
+                topic_context=self.case_manager.topic_label(medical_case=medical_case),
                 history_messages=turn_input.extraction_history_messages,
             )
-        elif extra_case_input is not None and extra_case_input.observations:
+        elif extra_case_input is not None and (
+            extra_case_input.observations or extra_case_input.topic_entries_to_add
+        ):
             case_input = extra_case_input
         elif resolution_additional_information and entry_assessment.contains_new_medical_information:
             case_input = self.medical_extractor.extract(
                 message=turn_input.message,
-                case_topic=self.case_manager.topic_label(case_topic=case_topic),
+                topic_context=self.case_manager.topic_label(medical_case=medical_case),
                 history_messages=turn_input.extraction_history_messages,
             )
 
@@ -543,76 +510,19 @@ class TurnEngine:
             elif symptom_input_draft is not None and understanding_has_symptoms:
                 trace_notes.append("symptom_input_draft:claims_update_skipped_after_understanding")
 
-            case_topic = self.topic_manager.ensure_topic(
-                existing_topic=case_topic,
-                medical_case=medical_case,
-                claims=case_input,
-                latest_message=turn_input.message,
-                turn_id=turn_input.turn_id,
-            )
-            medical_case = self.case_manager.sync_legacy_topic_projection(
-                medical_case=medical_case,
-                case_topic=case_topic,
-            )
-            conversation_state.topic_fit_state = self.topic_manager.evaluate_topic_fit(
-                case_topic=case_topic,
-                message=turn_input.message,
-                claims=case_input,
-            )
-            topic_mismatch = (
-                case_topic is not None
-                and conversation_state.topic_fit_state == "mismatch"
-                and entry_assessment.message_kind == "same_case_update"
-            )
-            if topic_mismatch:
-                conversation_state.off_topic_state = "active"
-                decision = TurnDecision(
-                    kind="out_of_scope",
-                    response_mode="out_of_scope",
-                    recommendation_requested=conversation_state.recommendation_requested,
-                    recommendation_ready=False,
-                    trace_notes=["turn:topic_mismatch"],
-                )
-                response_text = self._build_response_text(
-                    turn_input=turn_input,
-                    decision=decision,
-                    case_topic=case_topic,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                    topic_mismatch=True,
-                )
-                return TurnResult(
-                    turn_id=turn_input.turn_id,
-                    response_mode=decision.response_mode,
-                    response_text=response_text,
-                    case_topic=case_topic,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                    recommendation_state=recommendation_state,
-                    symptom_input_draft=symptom_input_draft,
-                    current_turn_understanding=current_turn_understanding,
-                    trace_notes=trace_notes + decision.trace_notes,
-                )
             medical_case, write_trace = self.case_manager.apply_claims(
                 medical_case=medical_case,
                 claims=case_input,
-                case_topic=case_topic,
             )
             trace_notes.extend(write_trace)
-            case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
-            medical_case = self.case_manager.sync_legacy_topic_projection(
-                medical_case=medical_case,
-                case_topic=case_topic,
-            )
-        elif case_topic is not None:
-            case_topic = self.case_frame_refiner.refine(case_topic=case_topic, medical_case=medical_case)
-            medical_case = self.case_manager.sync_legacy_topic_projection(
-                medical_case=medical_case,
-                case_topic=case_topic,
-            )
+            if case_input.topic_entries_to_add:
+                medical_case = self.topic_updater.apply(
+                    medical_case=medical_case,
+                    topic_entries_to_add=case_input.topic_entries_to_add,
+                )
+                trace_notes.append("topic:updated")
 
         conversation_state.followup_needs = self.followup_need_builder.build(
-            case_topic=case_topic,
             medical_case=medical_case,
         )
 
@@ -630,7 +540,6 @@ class TurnEngine:
             )
             conversation_state.phase = "followup"
             recommendation_state = self.readiness_evaluator.evaluate(
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
             )
@@ -645,7 +554,6 @@ class TurnEngine:
             response_text = self._build_response_text(
                 turn_input=turn_input,
                 decision=decision,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 active_question=conversation_state.active_question,
@@ -654,7 +562,6 @@ class TurnEngine:
                 turn_id=turn_input.turn_id,
                 response_mode=decision.response_mode,
                 response_text=response_text,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
@@ -664,12 +571,10 @@ class TurnEngine:
             )
 
         recommendation_state = self.readiness_evaluator.evaluate(
-            case_topic=case_topic,
             medical_case=medical_case,
             conversation_state=conversation_state,
         )
         assessment_readiness = self.readiness_builder.build(
-            case_topic=case_topic,
             medical_case=medical_case,
             conversation_state=conversation_state,
             recommendation_state=recommendation_state,
@@ -691,7 +596,6 @@ class TurnEngine:
             response_text = self._build_response_text(
                 turn_input=turn_input,
                 decision=decision,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 active_question=conversation_state.active_question,
@@ -700,7 +604,6 @@ class TurnEngine:
                 turn_id=turn_input.turn_id,
                 response_mode=decision.response_mode,
                 response_text=response_text,
-                case_topic=case_topic,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
@@ -709,8 +612,6 @@ class TurnEngine:
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
-        # If we have no explicit next question and are not ready, we fall back to an explicit
-        # case-description request instead of exposing an open-ended "continue" state.
         conversation_state.phase = (
             "exploration"
             if self.case_manager.has_active_observations(medical_case=medical_case)
@@ -726,15 +627,14 @@ class TurnEngine:
         response_text = self._build_response_text(
             turn_input=turn_input,
             decision=decision,
-            case_topic=case_topic,
             medical_case=medical_case,
             conversation_state=conversation_state,
+            resolved_question=resolved_question,
         )
         return TurnResult(
             turn_id=turn_input.turn_id,
             response_mode=decision.response_mode,
             response_text=response_text,
-            case_topic=case_topic,
             medical_case=medical_case,
             conversation_state=conversation_state,
             recommendation_state=recommendation_state,
@@ -748,24 +648,19 @@ class TurnEngine:
         *,
         turn_input: TurnInput,
         decision: TurnDecision,
-        case_topic: CaseTopic | None,
         medical_case: MedicalCase,
         conversation_state: ConversationState,
         active_question: ActiveQuestion | None = None,
         recommendation_result=None,
-        topic_mismatch: bool = False,
         resolved_question: ActiveQuestion | None = None,
     ) -> str:
         return self.response_builder.build(
             decision=decision,
             recommendation_result=recommendation_result,
             active_question=active_question,
-            topic_mismatch=topic_mismatch,
-            case_topic=case_topic,
             medical_case=medical_case,
             conversation_state=conversation_state,
             response_history_messages=turn_input.response_history_messages,
             latest_user_message=turn_input.message,
             resolved_question=resolved_question,
         )
-

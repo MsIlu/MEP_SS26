@@ -17,7 +17,7 @@ class RequirementPolicyTests(unittest.TestCase):
             ]
         )
 
-        needs = builder.build(case_topic=None, medical_case=medical_case)
+        needs = builder.build(medical_case=medical_case)
 
         self.assertEqual(
             [need.reason for need in needs],
@@ -42,7 +42,7 @@ class RequirementPolicyTests(unittest.TestCase):
         )
         medical_case.person.relation = "self"
 
-        needs = builder.build(case_topic=None, medical_case=medical_case)
+        needs = builder.build(medical_case=medical_case)
 
         self.assertEqual(needs[0].reason, "person_ref_missing")
 

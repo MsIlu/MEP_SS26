@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from careena4.models.common import CaseExtensionKind, FollowupPriority, FollowupReason
+from careena4.models.common import FollowupPriority, FollowupReason
 from careena4.models.domain import MedicalCase, Observation
 
 
@@ -21,7 +21,6 @@ class CaseRequirementRule:
 class ObservationRequirementRule:
     field_name: ObservationRequirementField
     reason: FollowupReason
-    target_extension_kind: CaseExtensionKind | None = None
     priority: FollowupPriority = "high"
     blocking: bool = True
 
@@ -33,17 +32,9 @@ class RequirementPolicy:
 
     _SYMPTOM_RULES = (
         ObservationRequirementRule(field_name="person_ref", reason="person_ref_missing"),
-        ObservationRequirementRule(
-            field_name="onset",
-            reason="duration_missing",
-            target_extension_kind="duration_or_onset",
-        ),
+        ObservationRequirementRule(field_name="onset", reason="duration_missing"),
         ObservationRequirementRule(field_name="severity", reason="severity_missing"),
-        ObservationRequirementRule(
-            field_name="description",
-            reason="description_missing",
-            target_extension_kind="description",
-        ),
+        ObservationRequirementRule(field_name="description", reason="description_missing"),
     )
 
     def case_rules(self) -> tuple[CaseRequirementRule, ...]:

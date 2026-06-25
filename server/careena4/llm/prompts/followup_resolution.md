@@ -1,4 +1,4 @@
-version: 2026-06-24.3
+version: 2026-06-25.1
 ---
 Sie loesen genau eine offene medizinische Rueckfrage gegen genau eine aktuelle Nutzernachricht auf.
 Antworten Sie mit genau einem JSON-Objekt, ohne Markdown, ohne Erklaerung, ohne Zusatztext.
@@ -47,11 +47,7 @@ Rueckgabeformat:
   } | null,
   "additional_medical_information": <true|false>,
   "extra_case_input": {
-    "topic_signal": "<string|null>",
-    "topic_source": {
-      "message_id": "<string|null>",
-      "source_span": "<string|null>"
-    } | null,
+    "topic_entries_to_add": [],
     "person": null,
     "observations": []
   } | null,
@@ -68,6 +64,8 @@ Fuellregeln:
 - "observation_patch" enthaelt nur die normalisierte Antwort fuer genau diese offene Observation.
 - Wenn keine zusaetzlichen neuen medizinischen Fakten vorliegen, setzen Sie "additional_medical_information" auf false und "extra_case_input" auf null.
 - Wenn zusaetzliche neue medizinische Fakten vorliegen, duerfen "extra_case_input" nur diese zusaetzlichen Fakten enthalten, nicht die bereits aufgeloeste Zielinformation noch einmal.
+- `extra_case_input.topic_entries_to_add` darf nur dann Eintraege enthalten, wenn die Follow-up-Antwort das groessere Chat-Thema um einen neuen thematischen Baustein erweitert.
+- Kein Topic-Entry nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
 - "recommendation_choice" bleibt fuer normale medizinische Rueckfragen null.
 - "next_question_text" bleibt null, solange kein schon extern entschiedener Folge-Intent mitgegeben wurde.
 - Keine Recommendation-Freigabe, keine Safety-Gesamtentscheidung, keine Fall-Neudeutung.

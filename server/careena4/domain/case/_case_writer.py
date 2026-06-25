@@ -1,5 +1,5 @@
-from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Person, Topic
-from careena4.models.turn import CaseWritePlan, ObservationPatch
+from careena4.models.domain import MedicalCase, Person, Topic, TopicEntry
+from careena4.models.turn import CaseWritePlan, ExtractedTopicEntryInput, ObservationPatch
 
 
 class _CaseWriter:
@@ -51,15 +51,12 @@ class _CaseWriter:
         *,
         medical_case: MedicalCase,
         person_update: Person | None,
-        case_topic: CaseTopic | None = None,
-    ) -> tuple[MedicalCase, CaseTopic | None]:
+    ) -> MedicalCase:
         if person_update is None:
-            return medical_case, case_topic
+            return medical_case
         medical_case.person.relation = person_update.relation
         medical_case.person.relation_source = person_update.relation_source
-        if case_topic is not None:
-            case_topic.subject_scope = medical_case.person.relation
-        return medical_case, case_topic
+        return medical_case
 
     def write_followup_enrichment(
         self,
@@ -103,27 +100,34 @@ class _CaseWriter:
         return medical_case
 
     @staticmethod
-    def write_topic_projection(
-        *,
-        case_topic: CaseTopic | None,
-        extensions: list[CaseExtension],
-        current_label: str,
-    ) -> CaseTopic | None:
-        if case_topic is None:
-            return None
-        case_topic.extensions = extensions
-        case_topic.current_label = current_label
-        return case_topic
-
-    @staticmethod
-    def write_legacy_topic_projection(
+    def write_topic_entries(
         *,
         medical_case: MedicalCase,
-        case_topic: CaseTopic | None,
+        entries: list[ExtractedTopicEntryInput],
     ) -> MedicalCase:
-        if case_topic is None:
+        if not entries:
             return medical_case
-        medical_case.topic = Topic(label=case_topic.current_label)
+        if medical_case.topic is None:
+            medical_case.topic = Topic(label="")
+        for entry in entries:
+            medical_case.topic.entries.append(
+                TopicEntry(
+                    topic_part=entry.topic_part,
+                    source=entry.source.model_copy(deep=True),
+                )
+            )
+        return medical_case
+
+    @staticmethod
+    def write_topic_label(
+        *,
+        medical_case: MedicalCase,
+        label: str,
+    ) -> MedicalCase:
+        if medical_case.topic is None:
+            medical_case.topic = Topic(label=label)
+            return medical_case
+        medical_case.topic.label = label
         return medical_case
 
     @staticmethod

@@ -37,31 +37,7 @@ EntryMessageKind = Literal[
 
 MedicalRelevance = Literal["medical", "non_medical", "unclear"]
 
-CaseTopicType = Literal[
-    "symptom_case",
-    "injury_case",
-    "medication_case",
-    "mixed_medical_case",
-    "unclear_medical_case",
-]
-
-CaseExtensionKind = Literal[
-    "body_site",
-    "duration_or_onset",
-    "description",
-    "subject_scope",
-]
-
-CaseExtensionSource = Literal[
-    "observation_attribute",
-    "observation_label",
-    "topic_signal",
-    "subject_state",
-]
-
 SubjectScope = Literal["self", "child", "other", "unclear"]
-
-TopicStatus = Literal["tentative", "active", "shifted", "closed"]
 
 ObservationType = Literal[
     "symptom",
@@ -77,8 +53,6 @@ ObservationStatus = Literal[
     "corrected",
 ]
 
-TopicRelation = Literal["central", "related", "unclear"]
-
 ConversationPhase = Literal[
     "intake",
     "exploration",
@@ -86,10 +60,6 @@ ConversationPhase = Literal[
     "closing_check",
     "recommendation",
 ]
-
-OffTopicState = Literal["none", "possible", "active"]
-
-TopicFitState = Literal["fits", "unclear", "mismatch"]
 
 RecommendationReadiness = Literal["not_ready", "tentative", "ready"]
 
@@ -103,8 +73,6 @@ FollowupReason = Literal[
 ]
 
 FollowupPriority = Literal["low", "medium", "high"]
-
-ObservationTopicFit = Literal["central", "related", "weak", "off_topic"]
 
 ObservationSpecificity = Literal["low", "medium", "high"]
 

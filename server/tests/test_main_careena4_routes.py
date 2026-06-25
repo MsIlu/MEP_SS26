@@ -39,7 +39,6 @@ def _fake_turn_result(response_text: str = "Okay."):
         recommendation_result=None,
         current_turn_understanding=None,
         symptom_input_draft=None,
-        case_topic=None,
         medical_case=None,
         conversation_state=SimpleNamespace(
             active_question=None,

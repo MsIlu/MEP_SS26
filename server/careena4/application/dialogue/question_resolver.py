@@ -409,7 +409,11 @@ class QuestionResolver:
         if not question.allows_additional_medical_info:
             return None
         case_input = self.medical_extractor.extract(message=message)
-        if not case_input.observations:
+        if (
+            case_input.person is None
+            and not case_input.observations
+            and not case_input.topic_entries_to_add
+        ):
             return None
         return case_input
 
@@ -417,7 +421,7 @@ class QuestionResolver:
     def _contains_additional_medical_info(normalized: str) -> bool:
         return bool(
             re.search(
-                r"\b(schmerz|weh|zieht|stech|dumpf|druck|fieber|husten|atem|sturz|verletzt|uebel|erbrechen|durchfall|hueft|kopf|bauch|brust|hals|bein|arm|leiste)\b",
+                r"\b(schmerz|weh|zieht|stech|dumpf|druck|fieber|husten|atem|sturz|fahrradsturz|verletzt|arzt|uebel|erbrechen|durchfall|hueft|kopf|bauch|brust|hals|bein|arm|leiste)\b",
                 normalized,
             )
         )
@@ -519,7 +523,11 @@ class QuestionResolver:
             keys.append("person_update")
         if resolution.observation_patch is not None:
             keys.extend(resolution.observation_patch.field_keys())
-        if resolution.extra_case_input is not None and resolution.extra_case_input.observations:
+        if resolution.extra_case_input is not None and (
+            resolution.extra_case_input.person is not None
+            or resolution.extra_case_input.observations
+            or resolution.extra_case_input.topic_entries_to_add
+        ):
             keys.append("extra_case_input")
         return keys
 

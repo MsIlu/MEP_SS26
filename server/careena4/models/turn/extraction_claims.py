@@ -42,8 +42,12 @@ class ExtractedObservationInput(PipelineModel):
         return None
 
 
+class ExtractedTopicEntryInput(PipelineModel):
+    topic_part: str
+    source: Source
+
+
 class ExtractedCaseInput(PipelineModel):
-    topic_signal: str | None = None
-    topic_source: Source | None = None
+    topic_entries_to_add: list[ExtractedTopicEntryInput] = Field(default_factory=list)
     person: ExtractedPersonInput | None = None
     observations: list[ExtractedObservationInput] = Field(default_factory=list)

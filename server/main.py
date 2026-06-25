@@ -255,7 +255,6 @@ def chat(
             session_id=req.session_id,
             turn_id=turn_id,
             conversation_messages=careena4_session.messages,
-            persisted_case_topic=careena4_session.case_topic,
             persisted_medical_case=careena4_session.medical_case,
             persisted_conversation_state=careena4_session.conversation_state,
             persisted_recommendation_state=careena4_session.recommendation_state,
@@ -263,7 +262,6 @@ def chat(
         )
     )
 
-    careena4_session.case_topic = turn_result.case_topic
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state

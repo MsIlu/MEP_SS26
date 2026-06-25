@@ -1,10 +1,17 @@
 from careena4.application.orchestration.turn_engine import TurnEngine
-from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, TurnInput
+from careena4.models.domain import TopicEntry
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, ExtractedTopicEntryInput, TurnInput
 
 
 class _StubMedicalExtractor:
-    def extract(self, *, message: str, case_topic: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
+            topic_entries_to_add=[
+                ExtractedTopicEntryInput(
+                    topic_part="Bauchschmerzen",
+                    source={"message_id": None, "source_span": "Bauchschmerzen"},
+                )
+            ],
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
@@ -19,7 +26,6 @@ class _StubMedicalExtractor:
 def _next_input(message: str, result):
     return TurnInput(
         message=message,
-        persisted_case_topic=result.case_topic,
         persisted_medical_case=result.medical_case,
         persisted_conversation_state=result.conversation_state,
         persisted_recommendation_state=result.recommendation_state,
@@ -32,9 +38,15 @@ def test_sparse_symptom_creates_subject_followup_first():
     result = engine.run_turn(TurnInput(message="Ich habe Bauchschmerzen."))
 
     assert result.response_mode == "ask_followup"
-    assert result.case_topic is not None
-    assert result.case_topic.current_label == "Bauchschmerzen"
     assert result.medical_case is not None
+    assert result.medical_case.topic is not None
+    assert result.medical_case.topic.label == "Bauchschmerzen"
+    assert result.medical_case.topic.entries == [
+        TopicEntry(
+            topic_part="Bauchschmerzen",
+            source={"message_id": None, "source_span": "Bauchschmerzen"},
+        )
+    ]
     assert len(result.medical_case.observations) == 1
     assert result.conversation_state.active_question is not None
     assert result.conversation_state.active_question.kind == "subject_clarification"

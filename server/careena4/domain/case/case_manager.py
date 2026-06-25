@@ -1,11 +1,12 @@
 from careena4.domain.case._case_reader import _CaseReader
 from careena4.domain.case._case_write_planner import _CaseWritePlanner
 from careena4.domain.case._case_writer import _CaseWriter
-from careena4.models.domain import CaseExtension, CaseTopic, MedicalCase, Observation, Person, Source, Topic
+from careena4.models.domain import MedicalCase, Observation, Person, Source, TopicEntry
 from careena4.models.turn import (
     CaseWritePlan,
     ExtractedCaseInput,
     ExtractedObservationInput,
+    ExtractedTopicEntryInput,
     ObservationPatch,
     PersonUpdate,
 )
@@ -15,9 +16,9 @@ class CaseManager:
     """
     Access boundary for all productive case reads and writes.
 
-    Any productive access to MedicalCase or CaseTopic must run through
-    CaseManager and its internal reader/writer layers. Callers outside
-    this boundary should not read or mutate case state directly.
+    Any productive access to MedicalCase must run through CaseManager
+    and its internal reader/writer layers. Callers outside this boundary
+    should not read or mutate case state directly.
     """
 
     def __init__(
@@ -36,7 +37,6 @@ class CaseManager:
         *,
         medical_case: MedicalCase,
         claims: ExtractedCaseInput,
-        case_topic: CaseTopic | None,
     ) -> tuple[MedicalCase, list[str]]:
         existing_observations = self.case_reader.read_observations(medical_case=medical_case)
         plan = self.case_write_planner.build_write_plan(
@@ -44,17 +44,7 @@ class CaseManager:
             observations=[self._observation_from_input(observation_input=observation) for observation in claims.observations],
             person_update=self._person_from_case_input(case_input=claims),
         )
-        medical_case, trace_notes = self.apply_write_plan(medical_case=medical_case, plan=plan)
-        if medical_case.topic is None and claims.topic_signal:
-            medical_case.topic = Topic(
-                label=claims.topic_signal,
-                sources=[claims.topic_source.model_copy(deep=True)] if claims.topic_source is not None else [],
-            )
-        medical_case = self.sync_legacy_topic_projection(
-            medical_case=medical_case,
-            case_topic=case_topic,
-        )
-        return medical_case, trace_notes
+        return self.apply_write_plan(medical_case=medical_case, plan=plan)
 
     def apply_write_plan(
         self,
@@ -64,23 +54,36 @@ class CaseManager:
     ) -> tuple[MedicalCase, list[str]]:
         return self.case_writer.write_plan(medical_case=medical_case, plan=plan)
 
-    def topic_label(self, *, case_topic: CaseTopic | None) -> str | None:
-        return self.case_reader.read_topic_label(case_topic=case_topic)
+    def topic_label(self, *, medical_case: MedicalCase | None) -> str | None:
+        return self.case_reader.read_topic_label(medical_case=medical_case)
 
-    def topic_tokens(self, *, case_topic: CaseTopic | None) -> set[str]:
-        return self.case_reader.read_topic_tokens(case_topic=case_topic)
+    def topic_entries(self, *, medical_case: MedicalCase | None) -> list[TopicEntry]:
+        return self.case_reader.read_topic_entries(medical_case=medical_case)
 
-    def topic_extension_kinds(self, *, case_topic: CaseTopic | None) -> set[str]:
-        return self.case_reader.read_topic_extension_kinds(case_topic=case_topic)
+    def has_topic(self, *, medical_case: MedicalCase | None) -> bool:
+        return self.case_reader.read_has_topic(medical_case=medical_case)
 
-    def topic_extensions(self, *, case_topic: CaseTopic | None):
-        return self.case_reader.read_topic_extensions(case_topic=case_topic)
+    def append_topic_entries(
+        self,
+        *,
+        medical_case: MedicalCase,
+        entries: list[ExtractedTopicEntryInput],
+    ) -> MedicalCase:
+        return self.case_writer.write_topic_entries(
+            medical_case=medical_case,
+            entries=entries,
+        )
 
-    def topic_initial_label(self, *, case_topic: CaseTopic | None) -> str | None:
-        return self.case_reader.read_topic_initial_label(case_topic=case_topic)
-
-    def topic_type(self, *, case_topic: CaseTopic | None):
-        return self.case_reader.read_topic_type(case_topic=case_topic)
+    def set_topic_label(
+        self,
+        *,
+        medical_case: MedicalCase,
+        label: str,
+    ) -> MedicalCase:
+        return self.case_writer.write_topic_label(
+            medical_case=medical_case,
+            label=label,
+        )
 
     def observation_label(
         self,
@@ -130,12 +133,10 @@ class CaseManager:
         *,
         medical_case: MedicalCase,
         person_update: PersonUpdate,
-        case_topic: CaseTopic | None = None,
-    ) -> tuple[MedicalCase, CaseTopic | None]:
+    ) -> MedicalCase:
         return self.case_writer.write_person_relation(
             medical_case=medical_case,
             person_update=self._person_from_update(person_update=person_update),
-            case_topic=case_topic,
         )
 
     def enrich_observation_from_followup(
@@ -149,30 +150,6 @@ class CaseManager:
             medical_case=medical_case,
             observation_id=observation_id,
             patch=patch,
-        )
-
-    def update_topic_projection(
-        self,
-        *,
-        case_topic: CaseTopic | None,
-        extensions: list[CaseExtension],
-        current_label: str,
-    ) -> CaseTopic | None:
-        return self.case_writer.write_topic_projection(
-            case_topic=case_topic,
-            extensions=extensions,
-            current_label=current_label,
-        )
-
-    def sync_legacy_topic_projection(
-        self,
-        *,
-        medical_case: MedicalCase,
-        case_topic: CaseTopic | None,
-    ) -> MedicalCase:
-        return self.case_writer.write_legacy_topic_projection(
-            medical_case=medical_case,
-            case_topic=case_topic,
         )
 
     @staticmethod

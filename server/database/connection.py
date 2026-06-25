@@ -203,6 +203,12 @@ def _migrate_chat_history_schema():
         )
         connection.execute(
             text(
+                "ALTER TABLE chat_history "
+                "ALTER COLUMN status TYPE VARCHAR(40)"
+            )
+        )
+        connection.execute(
+            text(
                 "UPDATE chat_history "
                 "SET status = 'completed' "
                 "WHERE status IS NULL OR status = ''"

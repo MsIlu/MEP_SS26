@@ -36,13 +36,21 @@ class ChatHistoryScreen extends StatefulWidget {
 }
 
 class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
-  late final Future<List<ChatHistoryEntry>> _entriesFuture;
+  late Future<List<ChatHistoryEntry>> _entriesFuture;
   _HistorySortOrder _sortOrder = _HistorySortOrder.descending;
 
   @override
   void initState() {
     super.initState();
     _entriesFuture = widget.repository.loadEntries(profileId: widget.profileId);
+  }
+
+  void _reloadEntries() {
+    setState(() {
+      _entriesFuture = widget.repository.loadEntries(
+        profileId: widget.profileId,
+      );
+    });
   }
 
   @override
@@ -98,6 +106,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                       group: group,
                       themeController: widget.themeController,
                       chatController: widget.chatController,
+                      onReturnedFromChat: _reloadEntries,
                     ),
                 ],
               );
@@ -206,15 +215,21 @@ class _HistorySortControl extends StatelessWidget {
   }
 }
 
+bool _canResumeEntry(ChatHistoryEntry entry) {
+  return entry.status == 'active' || entry.status == 'waiting_for_assistant';
+}
+
 class _ChatHistoryGroup extends StatelessWidget {
   final _HistoryMonthGroup group;
   final ThemeController themeController;
   final ChatController? chatController;
+  final VoidCallback onReturnedFromChat;
 
   const _ChatHistoryGroup({
     required this.group,
     required this.themeController,
     required this.chatController,
+    required this.onReturnedFromChat,
   });
 
   @override
@@ -259,6 +274,7 @@ class _ChatHistoryGroup extends StatelessWidget {
               entry: entry,
               themeController: themeController,
               chatController: chatController,
+              onReturnedFromChat: onReturnedFromChat,
             ),
         ],
       ),
@@ -270,11 +286,13 @@ class _ChatHistoryTile extends StatelessWidget {
   final ChatHistoryEntry entry;
   final ThemeController themeController;
   final ChatController? chatController;
+  final VoidCallback onReturnedFromChat;
 
   const _ChatHistoryTile({
     required this.entry,
     required this.themeController,
     required this.chatController,
+    required this.onReturnedFromChat,
   });
 
   @override
@@ -299,7 +317,7 @@ class _ChatHistoryTile extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
-        if (entry.status == 'active' && chatController != null) {
+        if (_canResumeEntry(entry) && chatController != null) {
           await chatController!.resumeHistoryEntry(
             entry,
             continuePendingResponse: false,
@@ -307,7 +325,9 @@ class _ChatHistoryTile extends StatelessWidget {
 
           if (!context.mounted) return;
 
-          Navigator.push(
+          unawaited(chatController!.continuePendingAssistantResponseIfNeeded());
+
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChatScreen(
@@ -320,7 +340,9 @@ class _ChatHistoryTile extends StatelessWidget {
             ),
           );
 
-          unawaited(chatController!.continuePendingAssistantResponseIfNeeded());
+          if (context.mounted) {
+            onReturnedFromChat();
+          }
           return;
         }
 

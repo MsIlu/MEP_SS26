@@ -7,6 +7,7 @@ import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
+import '../../../recommendation_export/presentation/save_recommendation_to_documents_button.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -134,6 +135,15 @@ class ChatBubble extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
+                            SaveRecommendationToDocumentsButton(
+  title: message.exportTitle ?? 'Handlungsempfehlung',
+  patientSummary: 'Zusammenfassung des Chatverlaufes',
+  recommendation:
+      message.exportRecommendation ?? message.text,
+  nextSteps: message.exportNextSteps ?? '',
+  symptoms: symptoms,
+  userMessages: userMessages,
+),
                             ExportRecommendationPdfButton(
                               title:
                                   message.exportTitle ?? 'Handlungsempfehlung',

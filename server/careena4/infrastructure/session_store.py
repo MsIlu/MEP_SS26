@@ -1,13 +1,12 @@
 from uuid import uuid4
 
-from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain import ConversationState, MedicalCase, RecommendationState
 from careena4.models.input import SymptomInputDraft
 
 
 class Careena4Session:
     def __init__(self, session_id: str):
         self.session_id = session_id
-        self.case_topic: CaseTopic | None = None
         self.medical_case: MedicalCase | None = None
         self.conversation_state: ConversationState = ConversationState()
         self.recommendation_state: RecommendationState = RecommendationState()

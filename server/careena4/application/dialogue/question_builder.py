@@ -39,6 +39,21 @@ class QuestionBuilder:
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
             return question
+        if need.reason == "person_ref_missing":
+            label = case_focus_label or focus_label or "die Beschwerden"
+            question = ActiveQuestion(
+                kind="subject_clarification",
+                question_intent="subject_clarification",
+                target_followup_id=need.followup_id,
+                target_observation_id=need.observation_id,
+                prompt_text=(
+                    f"Betreffen {self._accusative_label(label)} Sie selbst, Ihr Kind oder eine andere Person?"
+                ),
+                blocking=need.blocking,
+                allows_additional_medical_info=True,
+            )
+            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            return question
         if need.reason == "duration_missing":
             question = ActiveQuestion(
                 kind="followup",
@@ -173,11 +188,6 @@ class QuestionBuilder:
 
     def _duration_prompt(self, *, case_focus_label: str | None, fallback_label: str | None) -> str:
         label = case_focus_label or fallback_label or "die Beschwerden"
-        normalized = label.casefold()
-        if any(token in normalized for token in ("sturz", "gefallen", "umgeknickt")):
-            return "Seit wann bestehen die Beschwerden nach dem Sturz?"
-        if "verletz" in normalized:
-            return "Seit wann bestehen die Beschwerden nach der Verletzung?"
         if fallback_label and fallback_label != case_focus_label:
             return f"Seit wann bestehen {self._accusative_label(fallback_label)}?"
         return f"Seit wann bestehen {self._accusative_label(label)}?"

@@ -14,7 +14,10 @@ class FunctionMenuTile extends StatelessWidget {
 
   /// Action executed when the tile is selected.
   final VoidCallback onTap;
+
   final bool isSimpleView;
+
+  final int badgeCount;
 
   const FunctionMenuTile({
     super.key,
@@ -23,6 +26,7 @@ class FunctionMenuTile extends StatelessWidget {
     required this.bgColor,
     required this.onTap,
     this.isSimpleView = false,
+    this.badgeCount = 0,
   });
 
   @override
@@ -74,12 +78,46 @@ class FunctionMenuTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _FeatureIconBadge(
-                key: ValueKey('feature-icon-background-$title'),
-                icon: icon,
-                backgroundColor: iconBackgroundColor,
-                foregroundColor: iconColor,
-                isSimpleView: isSimpleView,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _FeatureIconBadge(
+                    key: ValueKey('feature-icon-background-$title'),
+                    icon: icon,
+                    backgroundColor: iconBackgroundColor,
+                    foregroundColor: iconColor,
+                    isSimpleView: isSimpleView,
+                  ),
+                  if (badgeCount > 0)
+                    Positioned(
+                      top: -5,
+                      right: -5,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 20,
+                          minHeight: 20,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.careenaTeal,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(
+                          badgeCount > 9 ? '9+' : '$badgeCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               SizedBox(width: isSimpleView ? 18 : 14),
               Expanded(

@@ -145,6 +145,56 @@ def test_chat_history_can_update_active_entry(client):
     assert len(body["messages"]) == 2
 
 
+def test_chat_history_can_resume_active_entry(client):
+    auth = register_user(client, email="resume-history@example.com")
+
+    create_response = client.post(
+        "/chat-history",
+        headers=auth["headers"],
+        json={
+            "profile_id": auth["profile_id"],
+            "title": "Durchfall",
+            "status": "active",
+            "session_id": "missing-session",
+            "is_emergency": False,
+            "recommendation": "",
+            "messages": [
+                {
+                    "text": "Ich habe Durchfall",
+                    "is_user": True,
+                },
+                {
+                    "text": "Seit wann besteht der Durchfall?",
+                    "is_user": False,
+                },
+            ],
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    history_id = create_response.json()["id"]
+
+    resume_response = client.post(
+        f"/chat-history/{history_id}/resume",
+        headers=auth["headers"],
+    )
+
+    assert resume_response.status_code == 200
+
+    body = resume_response.json()
+    assert body["session_id"] == "test-session-1"
+    assert body["restored"] is True
+
+    session_store = client.app.state.careena4_session_store
+    restored_session = session_store.get("test-session-1")
+
+    assert restored_session.messages == [
+        {"role": "user", "content": "Ich habe Durchfall"},
+        {"role": "assistant", "content": "Seit wann besteht der Durchfall?"},
+    ]
+
+
 def test_chat_history_requires_profile_access(client):
     first_user = register_user(client, email="first-history@example.com")
     second_user = register_user(client, email="second-history@example.com")

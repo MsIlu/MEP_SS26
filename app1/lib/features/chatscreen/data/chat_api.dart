@@ -91,4 +91,16 @@ class ChatApi {
 
     return sessionId;
   }
+
+  Future<String> resumeHistorySession(String historyId) async {
+    final data = await client.post('/chat-history/$historyId/resume', {});
+
+    final sessionId = data['session_id'];
+
+    if (sessionId == null) {
+      throw Exception('Failed to resume session: missing session_id');
+    }
+
+    return sessionId as String;
+  }
 }

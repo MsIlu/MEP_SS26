@@ -3,8 +3,9 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel
 
-#Chathistory differs between active and completed chats
+# Chat history differs between active and completed chats.
 ChatHistoryStatus = Literal["active", "completed"]
+
 
 class ChatHistoryMessage(BaseModel):
     text: str
@@ -18,6 +19,7 @@ class ChatHistoryMessage(BaseModel):
 
 class ChatHistoryCreateRequest(BaseModel):
     profile_id: int
+    session_id: Optional[str] = None
     title: Optional[str] = None
     status: ChatHistoryStatus = "completed"
     is_emergency: bool = False
@@ -27,6 +29,7 @@ class ChatHistoryCreateRequest(BaseModel):
 
 
 class ChatHistoryUpdateRequest(BaseModel):
+    session_id: Optional[str] = None
     title: Optional[str] = None
     status: ChatHistoryStatus = "active"
     is_emergency: bool = False
@@ -38,6 +41,7 @@ class ChatHistoryUpdateRequest(BaseModel):
 class ChatHistoryResponse(BaseModel):
     id: int
     profile_id: int
+    session_id: Optional[str] = None
     title: Optional[str] = None
     status: ChatHistoryStatus = "completed"
     is_emergency: bool = False
@@ -46,3 +50,8 @@ class ChatHistoryResponse(BaseModel):
     recommendation: str = ""
     next_steps: Optional[str] = None
     messages: list[ChatHistoryMessage]
+
+
+class ChatHistoryResumeResponse(BaseModel):
+    session_id: str
+    restored: bool

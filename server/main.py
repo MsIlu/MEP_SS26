@@ -63,6 +63,9 @@ careena4_llm_health_status: dict[str, object] = {
     "checked_at": None,
 }
 
+app.state.careena4_session_store = careena4_session_store
+app.state.careena4_session_profiles = careena4_session_profiles
+
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)

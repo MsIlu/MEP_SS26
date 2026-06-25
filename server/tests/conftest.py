@@ -16,6 +16,25 @@ from profiles.router import router as profiles_router
 from symptoms.router import router as symptoms_router
 
 
+class _FakeCareenaSession:
+    def __init__(self, session_id: str):
+        self.session_id = session_id
+        self.messages: list[dict[str, str]] = []
+
+
+class _FakeSessionStore:
+    def __init__(self):
+        self._sessions: dict[str, _FakeCareenaSession] = {}
+
+    def create_session(self) -> str:
+        session_id = f"test-session-{len(self._sessions) + 1}"
+        self._sessions[session_id] = _FakeCareenaSession(session_id)
+        return session_id
+
+    def get(self, session_id: str):
+        return self._sessions.get(session_id)
+
+
 @pytest.fixture()
 def db_session():
     """
@@ -52,6 +71,9 @@ def client(db_session):
     app.include_router(medications_router)
     app.include_router(chat_history_router)
     app.include_router(symptoms_router)
+
+    app.state.careena4_session_store = _FakeSessionStore()
+    app.state.careena4_session_profiles = {}
 
     def get_test_session():
         yield db_session

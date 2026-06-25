@@ -149,6 +149,7 @@ class ChatHistory(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     profile_id: int = Field(foreign_key="profiles.id", index=True)
+    session_id: Optional[str] = Field(default=None, max_length=100, index=True)
 
     title: Optional[str] = Field(default=None, max_length=80)
     status: str = Field(default="completed", max_length=20, index=True)

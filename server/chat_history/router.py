@@ -1,11 +1,20 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
 
 from auth.security import get_current_account, get_session
 from database.models import User
-from chat_history.schemas import ChatHistoryCreateRequest, ChatHistoryResponse, ChatHistoryUpdateRequest
-from chat_history.service import create_chat_history, list_chat_history, update_chat_history
-
+from chat_history.schemas import (
+    ChatHistoryCreateRequest,
+    ChatHistoryResponse,
+    ChatHistoryResumeResponse,
+    ChatHistoryUpdateRequest,
+)
+from chat_history.service import (
+    create_chat_history,
+    list_chat_history,
+    resume_chat_history,
+    update_chat_history,
+)
 
 router = APIRouter(prefix="/chat-history", tags=["chat-history"])
 
@@ -48,4 +57,20 @@ def patch_chat_history(
         request=request,
         current_user=current_user,
         session=session,
+    )
+
+
+@router.post("/{history_id}/resume", response_model=ChatHistoryResumeResponse)
+def post_resume_chat_history(
+        history_id: int,
+        request: Request,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
+    return resume_chat_history(
+        history_id=history_id,
+        current_user=current_user,
+        session=session,
+        session_store=request.app.state.careena4_session_store,
+        session_profiles=request.app.state.careena4_session_profiles,
     )

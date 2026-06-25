@@ -1,4 +1,6 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'dart:async';
+
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
@@ -9,10 +11,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../controllers/chat_controller.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
 import '../widgets/chat_bubble.dart';
-import '../../controllers/chat_controller.dart';
 import 'chat_screen.dart';
 
 class ChatHistoryScreen extends StatefulWidget {
@@ -298,7 +300,10 @@ class _ChatHistoryTile extends StatelessWidget {
     return InkWell(
       onTap: () async {
         if (entry.status == 'active' && chatController != null) {
-          await chatController!.resumeHistoryEntry(entry);
+          await chatController!.resumeHistoryEntry(
+            entry,
+            continuePendingResponse: false,
+          );
 
           if (!context.mounted) return;
 
@@ -314,6 +319,8 @@ class _ChatHistoryTile extends StatelessWidget {
               ),
             ),
           );
+
+          unawaited(chatController!.continuePendingAssistantResponseIfNeeded());
           return;
         }
 

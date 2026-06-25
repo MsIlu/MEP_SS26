@@ -1,11 +1,18 @@
+import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/features/authscreen/domain/models/account.dart';
+import 'package:app1/features/authscreen/domain/models/auth_response.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_entry.dart';
+import 'package:app1/features/symptom_diary/domain/symptom_response.dart';
 import 'package:app1/features/symptom_diary/presentation/screens/symptom_diary_page.dart';
 import 'package:app1/features/symptom_diary/presentation/widgets/body_area_selector.dart';
 import 'package:app1/features/symptom_diary/presentation/widgets/symptom_diary_content.dart';
 import 'package:app1/features/symptom_diary/presentation/widgets/symptom_entry_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -14,15 +21,38 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    testWidgets('renders the full page and saves a local entry', (
+    testWidgets('renders the full page and saves an authenticated entry', (
       tester,
     ) async {
       final themeController = ThemeController();
+      final authSession = AuthSession();
+      final apiService = _FakeSymptomApiService();
       addTearDown(themeController.dispose);
+      addTearDown(authSession.dispose);
+
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
-          home: SymptomDiaryPage(themeController: themeController),
+          home: SymptomDiaryPage(
+            themeController: themeController,
+            authSession: authSession,
+            symptomApiService: apiService,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -43,6 +73,19 @@ void main() {
 
       expect(find.text('Symptom gespeichert'), findsOneWidget);
       expect(find.text('Husten'), findsWidgets);
+      expect(apiService.createCallCount, 1);
+      expect(apiService.lastProfileId, 42);
+      expect(apiService.lastSymptom, 'Husten');
+      expect(apiService.lastBodyArea, '');
+      expect(apiService.lastIntensity, 5);
+      expect(apiService.lastNote, 'Seit gestern Abend');
+      expect(apiService.lastDate, isNotNull);
+
+      final savedDate = apiService.lastDate!;
+      final now = DateTime.now();
+      expect(savedDate.year, now.year);
+      expect(savedDate.month, now.month);
+      expect(savedDate.day, now.day);
 
       await tester.tap(find.byTooltip('Lightmode aktivieren'));
       await tester.pump();
@@ -233,7 +276,7 @@ void main() {
         ),
       );
 
-      expect(find.text('1 Einträge für diesen Tag'), findsOneWidget);
+      expect(find.text('1 Eintrag für diesen Tag'), findsOneWidget);
       expect(find.text('Husten'), findsWidgets);
       expect(find.text('Nach dem Sport'), findsOneWidget);
 
@@ -257,4 +300,46 @@ class _SavedSymptom {
     required this.intensity,
     required this.note,
   });
+}
+
+class _FakeSymptomApiService extends SymptomApiService {
+  int createCallCount = 0;
+  int? lastProfileId;
+  DateTime? lastDate;
+  String? lastSymptom;
+  String? lastBodyArea;
+  int? lastIntensity;
+  String? lastNote;
+
+  _FakeSymptomApiService() : super(ApiClient(http.Client()));
+
+  @override
+  Future<SymptomResponse> createSymptom({
+    required int profileId,
+    required DateTime date,
+    required String symptom,
+    String bodyArea = '',
+    required int intensity,
+    required String note,
+    DateTime? createdAt,
+  }) async {
+    createCallCount++;
+    lastProfileId = profileId;
+    lastDate = date;
+    lastSymptom = symptom;
+    lastBodyArea = bodyArea;
+    lastIntensity = intensity;
+    lastNote = note;
+
+    return SymptomResponse(
+      id: 99,
+      profileId: profileId,
+      date: date,
+      symptom: symptom,
+      bodyArea: bodyArea,
+      intensity: intensity,
+      note: note,
+      createdAt: createdAt ?? DateTime(2026, 6, 22, 9),
+    );
+  }
 }

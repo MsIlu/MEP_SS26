@@ -26,8 +26,6 @@ Return JSON only in this exact structure:
       "is_medical": true,
       "normalized_label_de": "German lay-normalized symptom label",
       "clinical_term_de": "German clinical term",
-      "snomed_code": "SNOMED CT code if known, otherwise null",
-      "snomed_display_de": "German SNOMED-like display if known, otherwise null",
       "mapping_confidence": 0.0,
       "validation_status": "candidate",
       "reasoning_note": "short mapping note without diagnosis"
@@ -44,7 +42,6 @@ Rules:
 - Preserve uncertainty with lower confidence.
 - If the input is not a medical symptom, return is_medical=false and low confidence.
 - Prefer common German clinical terms.
-- Use SNOMED CT codes only when you are confident.
 """.strip()
 
 
@@ -113,7 +110,7 @@ class MedGemmaSymptomMappingProvider:
             {
                 "symptom_label": label,
                 "raw_user_message": raw_text,
-                "task": "Map symptom label to German clinical term and SNOMED CT candidate.",
+                "task": "Map symptom label to German clinical term.",
             },
             ensure_ascii=False,
         )
@@ -158,7 +155,6 @@ class MedGemmaSymptomMappingProvider:
             "raw_text": raw_text,
             "lay_term_de": lay_term,
             "clinical_term_de": candidate.clinical_term_de,
-            "snomed_code": candidate.snomed_code,
             "confidence": confidence,
             "mapper_name": "medgemma_symptom_mapping",
             "validation_status": candidate.validation_status or "candidate",

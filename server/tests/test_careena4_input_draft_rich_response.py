@@ -68,8 +68,6 @@ def test_input_draft_response_exposes_legacy_symptoms_and_rich_chips(monkeypatch
     assert chip["status"] == "extracted"
     assert chip["source"] == "careena4_extraction"
 
-    # Mapping fields remain candidates. They are not validated case truth.
-    assert chip["snomed_code"] == "404640003"
     assert chip["mapping_confidence"] == 0.92
     assert chip["mapping"]["validation_status"] == "mapping_candidate"
 

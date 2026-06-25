@@ -81,7 +81,6 @@ Rules:
 - Do not decide urgency.
 - Do not decide emergency handling.
 - Do not output care recommendations.
-- Do not use or invent SNOMED codes.
 - Always extract symptoms when symptoms are present, even if no STS consultation reason fits.
 - STS matching must never suppress symptom extraction.
 - If symptoms are present but no STS reason fits, return symptoms and an empty sts_matches list.

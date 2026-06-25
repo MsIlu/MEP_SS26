@@ -17,8 +17,6 @@ class MedGemmaSymptomMappingCandidate(PipelineModel):
     is_medical: bool = True
     normalized_label_de: str | None = None
     clinical_term_de: str | None = None
-    snomed_code: str | None = None
-    snomed_display_de: str | None = None
     mapping_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     validation_status: str = "candidate"
     reasoning_note: str | None = None

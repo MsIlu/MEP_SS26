@@ -38,7 +38,6 @@ class SymptomMappingCandidate(PipelineModel):
     raw_text: str
     lay_term_de: str
     clinical_term_de: str | None = None
-    snomed_code: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     mapper_name: str = "unknown"
     validation_status: str = "llm_candidate"
@@ -58,7 +57,6 @@ class SymptomChip(PipelineModel):
     display_label_de: str
     normalized_label_de: str | None = None
     clinical_term_de: str | None = None
-    snomed_code: str | None = None
     extraction_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     mapping_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     status: SymptomChipStatus = "extracted"

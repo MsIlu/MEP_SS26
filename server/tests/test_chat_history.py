@@ -195,6 +195,61 @@ def test_chat_history_can_resume_active_entry(client):
     ]
 
 
+def test_chat_history_can_continue_pending_assistant_response(client):
+    auth = register_user(client, email="continue-history@example.com")
+
+    create_response = client.post(
+        "/chat-history",
+        headers=auth["headers"],
+        json={
+            "profile_id": auth["profile_id"],
+            "title": "Durchfall",
+            "status": "active",
+            "session_id": "missing-session",
+            "is_emergency": False,
+            "recommendation": "",
+            "messages": [
+                {
+                    "text": "Ich habe Durchfall",
+                    "is_user": True,
+                },
+            ],
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    history_id = create_response.json()["id"]
+
+    continue_response = client.post(
+        f"/chat-history/{history_id}/continue",
+        headers=auth["headers"],
+    )
+
+    assert continue_response.status_code == 200
+
+    body = continue_response.json()
+    assert body["session_id"] == "test-session-1"
+    assert body["response"] == (
+        "Bitte trinken Sie ausreichend und beobachten Sie den Verlauf."
+    )
+    assert body["red_flag"] is False
+
+    history_response = client.get(
+        f"/chat-history/{auth['profile_id']}",
+        headers=auth["headers"],
+    )
+
+    assert history_response.status_code == 200
+
+    entries = history_response.json()
+    assert entries[0]["status"] == "active"
+    assert entries[0]["messages"][-1]["is_user"] is False
+    assert entries[0]["messages"][-1]["text"] == (
+        "Bitte trinken Sie ausreichend und beobachten Sie den Verlauf."
+    )
+
+
 def test_chat_history_requires_profile_access(client):
     first_user = register_user(client, email="first-history@example.com")
     second_user = register_user(client, email="second-history@example.com")

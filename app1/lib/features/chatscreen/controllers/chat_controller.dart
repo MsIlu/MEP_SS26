@@ -211,7 +211,81 @@ class ChatController {
         profileId: entry.profileId,
       );
       _initFuture = Future.value();
+
+      if (_waitsForAssistantResponse(entry)) {
+        await _continuePendingAssistantResponse();
+      }
     }
+  }
+
+  Future<void> _continuePendingAssistantResponse() async {
+    final historyEntryId = _activeHistoryEntryId;
+
+    if (historyEntryId == null || _isCompleted) {
+      return;
+    }
+
+    _addMessage(
+      message: Message(
+        text: '',
+        isUser: false,
+        isLoading: true,
+        isStreaming: true,
+      ),
+    );
+
+    try {
+      final response = await chatSessionService.continueHistorySession(
+        historyId: historyEntryId,
+      );
+
+      _setMessages(chatService.removeLastBotMessage(messages.value));
+      await loadSymptoms();
+
+      final botMessage = chatService.buildAssistantMessage(response);
+      _addMessage(message: botMessage.copyWith(text: ''));
+
+      await for (final partialText in chatService.streamText(response.text)) {
+        _setMessages(
+          chatService.replaceLastMessage(
+            messages: messages.value,
+            message: botMessage.copyWith(text: partialText, isStreaming: true),
+          ),
+        );
+      }
+
+      _setMessages(
+        chatService.replaceLastMessage(
+          messages: messages.value,
+          message: botMessage.copyWith(isStreaming: false),
+        ),
+      );
+
+      await _persistActiveChat();
+
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+      }
+    } catch (e) {
+      _setMessages(chatService.removeLastBotMessage(messages.value));
+      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+    }
+  }
+
+  bool _waitsForAssistantResponse(ChatHistoryEntry entry) {
+    if (entry.messages.isEmpty) {
+      return false;
+    }
+
+    final lastMessage = entry.messages.last;
+    return lastMessage.isUser && lastMessage.text.trim().isNotEmpty;
   }
 
   Future<void> resetChat() async {

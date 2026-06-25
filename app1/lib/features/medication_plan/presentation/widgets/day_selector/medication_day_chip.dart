@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/medication_date_format.dart';
@@ -36,7 +36,7 @@ class MedicationDayChip extends StatelessWidget {
     final dayColor = isSelected || isToday
         ? AppColors.careenaTeal
         : unselectedDayColor;
-    final dateColor = isSelected ? Colors.white : colorScheme.onSurface;
+    final dateColor = isSelected ? AppColors.white : colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,
@@ -71,7 +71,7 @@ class MedicationDayChip extends StatelessWidget {
                 border: Border.all(
                   color: isToday && !isSelected
                       ? AppColors.careenaTeal
-                      : Colors.transparent,
+                      : AppColors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -88,7 +88,7 @@ class MedicationDayChip extends StatelessWidget {
               decoration: BoxDecoration(
                 color: hasPlannedMedication
                     ? AppColors.careenaTeal
-                    : Colors.transparent,
+                    : AppColors.transparent,
                 shape: BoxShape.circle,
               ),
             ),

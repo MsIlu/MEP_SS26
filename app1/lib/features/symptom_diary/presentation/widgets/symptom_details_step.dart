@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/symptom_intensity.dart';
@@ -54,8 +54,8 @@ class SymptomDetailsStep extends StatelessWidget {
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 3,
-                    activeTickMarkColor: Colors.transparent,
-                    inactiveTickMarkColor: Colors.transparent,
+                    activeTickMarkColor: AppColors.transparent,
+                    inactiveTickMarkColor: AppColors.transparent,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 15,
                     ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 Future<bool> showLeaveChatDialog(
@@ -16,14 +16,14 @@ Future<bool> showLeaveChatDialog(
       return AlertDialog(
         backgroundColor: isDarkMode
             ? colorScheme.surface
-            : Colors.white,
-        surfaceTintColor: Colors.transparent,
+            : AppColors.white,
+        surfaceTintColor: AppColors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
             color: isDarkMode
-                ? Colors.transparent
+                ? AppColors.transparent
                 : AppColors.careenaInfoBorder,
             width: 1,
           ),

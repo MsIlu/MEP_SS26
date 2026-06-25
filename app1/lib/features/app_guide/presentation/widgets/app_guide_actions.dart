@@ -1,6 +1,5 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/themes/app_colors.dart';
 
 class AppGuideActions extends StatelessWidget {
   final int currentStep;

@@ -1,4 +1,4 @@
-import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
+﻿import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -80,7 +80,7 @@ class OnboardingScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isDarkMode ? colorScheme.surface : Colors.white,
+                        color: isDarkMode ? colorScheme.surface : AppColors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: AppColors.careenaTeal,
@@ -95,7 +95,7 @@ class OnboardingScreen extends StatelessWidget {
                             Icons.info_outline,
                             size: 20,
                             color: isDarkMode
-                                ? Colors.white
+                                ? AppColors.white
                                 : AppColors.careenaTeal,
                           ),
 
@@ -111,7 +111,7 @@ class OnboardingScreen extends StatelessWidget {
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,
                                     color: isDarkMode
-                                        ? Colors.white
+                                        ? AppColors.white
                                         : AppColors.careenaTeal,
                                   ),
                                 ),

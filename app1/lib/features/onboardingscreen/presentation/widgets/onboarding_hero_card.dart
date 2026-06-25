@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/config/app_assets.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -23,7 +23,7 @@ class OnboardingHeroCard extends StatelessWidget {
 
         final cardColor = isDarkMode
             ? AppColors.darkElevatedSurface
-            : Colors.white;
+            : AppColors.white;
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
@@ -73,7 +73,7 @@ class OnboardingHeroCard extends StatelessWidget {
                       : AppColors.careenaPrimary,
                   foregroundColor: isDarkMode
                       ? AppColors.toolbarButtonForegroundDark
-                      : Colors.white,
+                      : AppColors.white,
                   borderRadius: 40,
                   height: 58,
                   side: BorderSide(
@@ -169,7 +169,7 @@ class _HeroDescription extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: isDarkMode ? colorScheme.onSurfaceVariant : Colors.black87,
+        color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.black87,
         height: 1.3,
       ),
     );

@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 
 import 'package:app1/core/widgets/responsive_frame.dart';
@@ -171,7 +172,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       builder: (context) {
         return Dialog(
           insetPadding: const EdgeInsets.all(18),
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: ResponsiveFrame(
             maxWidth: 720,
             child: Container(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/services/speech_service.dart';
@@ -140,7 +140,7 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     final outerBackground = isDarkMode
         ? AppColors.chatInputOuterDark
-        : Colors.white;
+        : AppColors.white;
 
     final inputBackground = isDarkMode
         ? AppColors.chatInputInnerDark
@@ -205,7 +205,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
+                              color: AppColors.black.withValues(alpha: 0.08),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -270,7 +270,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                       enabledBorder: InputBorder.none,
                                       focusedBorder: InputBorder.none,
                                       filled: false,
-                                      fillColor: Colors.transparent,
+                                      fillColor: AppColors.transparent,
                                       isDense: true,
                                       contentPadding: EdgeInsets.symmetric(
                                         vertical: fieldVerticalPadding,
@@ -350,7 +350,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                       ),
                       icon: Icon(
                         widget.isSending ? Icons.hourglass_top : Icons.send,
-                        color: isInputEnabled ? Colors.white : sendingIconColor,
+                        color: isInputEnabled ? AppColors.white : sendingIconColor,
                         size: 20,
                       ),
                     ),

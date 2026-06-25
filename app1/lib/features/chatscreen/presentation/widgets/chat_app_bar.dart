@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
@@ -19,8 +19,8 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkModeTheme = Theme.of(context).brightness == Brightness.dark;
     final avatarBackground = isDarkModeTheme
-        ? const Color(0xFF86B2B2)
-        : const Color(0xFFC3E7E7);
+        ? AppColors.chatAvatarBackgroundDark
+        : AppColors.chatAvatarBackgroundLight;
 
     return AppBar(
       leadingWidth: 72,
@@ -30,7 +30,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         tooltip: 'Zurück',
         style: IconButton.styleFrom(
           backgroundColor: AppColors.toolbarButtonBackgroundDark,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           fixedSize: const Size.square(44),
         ),
         onPressed: onBackPressed,
@@ -65,7 +65,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 7,
                     height: 7,
                     decoration: const BoxDecoration(
-                      color: Colors.green,
+                      color: AppColors.chatOnlineStatus,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -94,7 +94,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                 : 'Darkmode aktivieren',
             style: IconButton.styleFrom(
               backgroundColor: AppColors.toolbarButtonBackgroundDark,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               fixedSize: const Size.square(44),
             ),
             icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),

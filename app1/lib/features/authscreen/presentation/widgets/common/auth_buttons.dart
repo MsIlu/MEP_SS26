@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
@@ -22,7 +22,7 @@ class CareenaButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.backgroundColor = AppColors.careenaPrimary,
-    this.foregroundColor = Colors.white,
+    this.foregroundColor = AppColors.white,
     this.borderRadius = AuthTheme.buttonRadius,
     this.elevation = 0,
     this.side,
@@ -74,7 +74,7 @@ class AuthDivider extends StatelessWidget {
 
     final dividerColor = isDarkMode
         ? colorScheme.outlineVariant
-        : Colors.grey.shade500;
+        : AppColors.greyShade500;
 
     final textColor = isDarkMode
         ? colorScheme.onSurfaceVariant

@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/warning_copy.dart';
@@ -23,7 +24,7 @@ class EmergencyCallButton extends StatelessWidget {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: WarningColors.warningRed,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

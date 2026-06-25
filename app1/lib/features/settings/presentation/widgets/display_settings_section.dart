@@ -1,5 +1,5 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/themes/app_colors.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../settings_icons.dart';
 import 'settings_components.dart';

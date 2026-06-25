@@ -1,6 +1,6 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/app_dependencies_scope.dart';
-import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
 import '../../../authscreen/state/auth_session.dart';
 import 'profile_display_helpers.dart';
@@ -45,7 +45,7 @@ class ActiveProfileOverview extends StatelessWidget {
             label: const Text('Wechseln'),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.careenaDark,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               disabledBackgroundColor: AppColors.careenaBorder,
               disabledForegroundColor: AppColors.careenaMuted,
             ),

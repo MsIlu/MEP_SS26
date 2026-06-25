@@ -141,10 +141,10 @@ class _SharedDaySelectorState extends State<SharedDaySelector> {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        Colors.transparent,
-                        Colors.black,
-                        Colors.black,
-                        Colors.transparent,
+                        AppColors.transparent,
+                        AppColors.black,
+                        AppColors.black,
+                        AppColors.transparent,
                       ],
                       stops: [0, 0.08, 0.92, 1],
                     ).createShader(bounds);
@@ -308,7 +308,7 @@ class _SharedDayChip extends StatelessWidget {
     final dayColor = isSelected || isToday
         ? AppColors.careenaTeal
         : unselectedDayColor;
-    final dateColor = isSelected ? Colors.white : colorScheme.onSurface;
+    final dateColor = isSelected ? AppColors.white : colorScheme.onSurface;
     final disabledOpacity = isEnabled ? 1.0 : 0.34;
 
     return InkWell(
@@ -346,7 +346,7 @@ class _SharedDayChip extends StatelessWidget {
                   border: Border.all(
                     color: isToday && !isSelected
                         ? AppColors.careenaTeal
-                        : Colors.transparent,
+                        : AppColors.transparent,
                     width: 1.5,
                   ),
                 ),
@@ -364,7 +364,7 @@ class _SharedDayChip extends StatelessWidget {
                 width: hasMarker ? 6 : 0,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: hasMarker ? AppColors.careenaTeal : Colors.transparent,
+                  color: hasMarker ? AppColors.careenaTeal : AppColors.transparent,
                   shape: BoxShape.circle,
                 ),
               ),

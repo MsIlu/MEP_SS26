@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 class AppointmentInfoCard extends StatelessWidget {
@@ -15,7 +15,7 @@ class AppointmentInfoCard extends StatelessWidget {
   decoration: BoxDecoration(
     color: isDarkMode
         ? colorScheme.surface
-        : const Color(0xFFE8F6F6),
+        : AppColors.appointmentInfoBackground,
 
     borderRadius: BorderRadius.circular(16),
 
@@ -30,7 +30,7 @@ class AppointmentInfoCard extends StatelessWidget {
       Icon(
         Icons.tips_and_updates_outlined,
         color: isDarkMode
-            ? Colors.white
+            ? AppColors.white
             : AppColors.careenaTeal,
       ),
 

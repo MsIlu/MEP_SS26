@@ -1,4 +1,4 @@
-import 'package:app1/core/config/app_assets.dart';
+﻿import 'package:app1/core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -135,17 +135,17 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
                 if (states.contains(WidgetState.selected)) {
                   return AppColors.primary;
                 }
-                return Colors.transparent;
+                return AppColors.transparent;
               }),
               foregroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return Colors.white;
+                  return AppColors.white;
                 }
                 return colorScheme.onSurface;
               }),
               iconColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return Colors.white;
+                  return AppColors.white;
                 }
                 return AppColors.primary;
               }),
@@ -297,7 +297,7 @@ class _BodyAreaHighlightPainter extends CustomPainter {
       ..color = AppColors.primary.withValues(alpha: 0.32)
       ..style = PaintingStyle.fill;
     final stroke = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
+      ..color = AppColors.white.withValues(alpha: 0.9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 

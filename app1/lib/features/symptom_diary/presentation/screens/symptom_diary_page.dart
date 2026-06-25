@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       builder: (dialogContext) {
         return Dialog(
           insetPadding: const EdgeInsets.all(18),
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(

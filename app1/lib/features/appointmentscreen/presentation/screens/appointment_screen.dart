@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 
@@ -54,14 +54,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   colorScheme: isDark
                       ? const ColorScheme.dark(
                           primary: AppColors.careenaTeal,
-                          onPrimary: Colors.white,
-                          surface: Color(0xFF1B2B3D),
-                          onSurface: Colors.white,
+                          onPrimary: AppColors.white,
+                          surface: AppColors.appointmentCalendarSurfaceDark,
+                          onSurface: AppColors.white,
                         )
                       : const ColorScheme.light(
                           primary: AppColors.careenaTeal,
-                          onPrimary: Colors.white,
-                          onSurface: Colors.black,
+                          onPrimary: AppColors.white,
+                          onSurface: AppColors.black,
                         ),
                   datePickerTheme: DatePickerThemeData(
                     shape: RoundedRectangleBorder(
@@ -103,14 +103,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             colorScheme: isDark
                 ? const ColorScheme.dark(
                     primary: AppColors.careenaTeal,
-                    onPrimary: Colors.white,
-                    surface: Color(0xFF1B2B3D),
-                    onSurface: Colors.white,
+                    onPrimary: AppColors.white,
+                    surface: AppColors.appointmentCalendarSurfaceDark,
+                    onSurface: AppColors.white,
                   )
                 : const ColorScheme.light(
                     primary: AppColors.careenaTeal,
-                    onPrimary: Colors.white,
-                    onSurface: Colors.black,
+                    onPrimary: AppColors.white,
+                    onSurface: AppColors.black,
                   ),
             timePickerTheme: const TimePickerThemeData(
               helpTextStyle: TextStyle(fontSize: 20),
@@ -218,7 +218,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             padding: EdgeInsets.only(right: contentSideInset),
             child: FloatingActionButton(
               backgroundColor: AppColors.careenaTeal,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               onPressed: _showAddAppointmentDialog,
               child: const Icon(Icons.add),
             ),
@@ -418,7 +418,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               child: const Text('Abbrechen'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.red),
               onPressed: () {
                 controller.removeAppointment(appointment.id);
                 _showSuccessMessage('Termin gelöscht');
@@ -524,7 +524,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         content: Text(
           message,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),

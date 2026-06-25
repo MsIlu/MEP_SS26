@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Opens the saved medication management dialog from the bottom action bar.
@@ -19,7 +19,7 @@ class MedicationListButton extends StatelessWidget {
         backgroundColor: isDarkMode
             ? AppColors.darkMutedSurface
             : AppColors.careenaBrand,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         minimumSize: const Size(0, 54),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),

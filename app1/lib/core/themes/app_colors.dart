@@ -5,6 +5,15 @@ class AppColors {
   AppColors._();
 
   static const Color transparent = Colors.transparent;
+  static const Color white = Colors.white;
+  static const Color white70 = Color(0xB3FFFFFF);
+  static const Color black = Colors.black;
+  static const Color black87 = Colors.black87;
+  static const Color grey = Colors.grey;
+  static const Color greyShade200 = Color(0xFFEEEEEE);
+  static const Color greyShade400 = Color(0xFFBDBDBD);
+  static const Color greyShade500 = Color(0xFF9E9E9E);
+  static const Color red = Colors.red;
 
   // Brand colors
   static const Color primary = Color(0xFF2F8FA5);
@@ -58,6 +67,10 @@ class AppColors {
   static const Color notificationIcon = Color(0xFF8BB5BC);
 
   // Chat
+  static const Color chatBackgroundLight = Color(0xFFF7F9FA);
+  static const Color chatAvatarBackgroundDark = Color(0xFF86B2B2);
+  static const Color chatAvatarBackgroundLight = Color(0xFFC3E7E7);
+  static const Color chatOnlineStatus = Color(0xFF4CAF50);
   static const Color chatInputOuterDark = Color(0xFF1A2029);
   static const Color chatInputInnerDark = Color(0xFF242B36);
   static const Color chatInputAccentDark = Color(0xFF3F8F87);
@@ -66,6 +79,11 @@ class AppColors {
   static const Color smartReplyChipDark = Color(0xFF263D40);
   static const Color smartReplyBorderDark = Color(0xFF6FA6A0);
   static const Color smartReplyMutedTextDark = Color(0xFF9DBDBA);
+  static const Color symptomListSurfaceLight = Color(0xFFF4F7F6);
+  static const Color symptomEditorSurfaceLight = Color(0xFFF7FAF9);
+  static const Color symptomEditorText = Color(0xFF36594F);
+  static const Color symptomEditorBorder = Color(0xFFB7CCC6);
+  static const Color symptomEditorMuted = Color(0xFF6E7E79);
 
   // Onboarding
   static const Color onboardingBackgroundLight = Color(0xFFE3F4F6);
@@ -83,6 +101,14 @@ class AppColors {
   static const Color warningIconBackground = Color(0xFFFFDCE1);
   static const Color warningEmergencyBackgroundDark = Color(0xFF2F2529);
   static const Color warningReasonBackgroundDark = Color(0xFF3A2A2F);
+
+  // Appointments
+  static const Color appointmentInfoBackground = Color(0xFFE8F6F6);
+  static const Color appointmentCalendarSurfaceDark = Color(0xFF1B2B3D);
+  static const Color appointmentServiceBlue = Color(0xFF2BA4D4);
+  static const Color appointmentServicePink = Color(0xFFE91E63);
+  static const Color appointmentServiceCardDark = Color(0xFF203246);
+  static const Color appointmentServiceCardLight = Color(0xFFF8FAFB);
 
   // Symptom intensity
   static const Color symptomIntensityNone = Color(0xFF90A4AE);

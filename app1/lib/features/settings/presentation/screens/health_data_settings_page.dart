@@ -1,6 +1,6 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/data/registration_condition_options.dart';
 import '../../../authscreen/presentation/widgets/common/auth_fields.dart';
 import '../../../authscreen/state/auth_session.dart';

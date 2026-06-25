@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:app1/core/themes/app_colors.dart';
@@ -189,7 +189,7 @@ class _BirthSexSelector extends StatelessWidget {
 
     final containerColor = isDarkMode
         ? AppColors.darkElevatedSurface
-        : Colors.white;
+        : AppColors.white;
 
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant
@@ -208,7 +208,7 @@ class _BirthSexSelector extends StatelessWidget {
         : AppColors.careenaBody;
 
     final segmentedSelectedForeground = isDarkMode
-        ? Colors.white
+        ? AppColors.white
         : AppColors.careenaTitle;
 
     return DecoratedBox(
@@ -313,7 +313,7 @@ class _ConditionChips extends StatelessWidget {
         ? colorScheme.onSurface
         : AppColors.careenaDark;
 
-    final checkmarkColor = isDarkMode ? Colors.white : AppColors.careenaTitle;
+    final checkmarkColor = isDarkMode ? AppColors.white : AppColors.careenaTitle;
 
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant

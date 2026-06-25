@@ -1,230 +1,381 @@
-# Backend Server mit fastapi x uvicorn
-# 
-# HINWEISE: 
+# Backend server using FastAPI and Uvicorn.
 #
-# - Session basiert, unterschiedliche Nutzer sollten eigenen Chatkontext haben
-# - Chatverläufe werden bei Server Neustart gelöscht, noch keine DB vorhanden
+# Notes:
+# - Chat handling is currently session-based.
+# - Authentication and account data are persisted in PostgreSQL.
+# - Medical profiles are stored separately from login accounts.
+# - Chat history is still managed through the session manager unless explicitly persisted elsewhere.
 #
-# Benötigt:
-# <bash> $ pip install fastapi uvicorn openai python-dotenv
+# Requirements:
+# <bash> pip install -r requirements.txt
 #
-# Zum Ausführen:
-# <bash> $ uvicorn main:app --reload
-# oder
-# <bash> $ python -m uvicorn main:app --reload
+# Run:
+# <bash> uvicorn main:app --reload
+# or
+# <bash> python -m uvicorn main:app --reload
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlmodel import Session
+from auth.security import get_optional_current_account, get_session
+from database.models import User
+from profiles.service import get_profile_access_role
 from pydantic import BaseModel
-from openai import OpenAI
-import uuid
 from fastapi.middleware.cors import CORSMiddleware
-import config
-#from medical_rules import detect_medical_red_flags
-from red_flags.detector import detect_medical_red_flags
-from topic_filter import (
-    is_health_related,
-    is_smalltalk_or_boredom,
-    OUT_OF_SCOPE_RESPONSE,
-    SMALLTALK_GOODBYE_RESPONSE,
-)
 from database.connection import create_db_and_tables
+from auth.router import router as auth_router
+from chat_history.router import router as chat_history_router
+from profiles.router import router as profiles_router
+from medications.router import router as medications_router
+from symptoms.router import router as symptoms_router
+from logging_config import configure_logging
+
+from uuid import uuid4 #for turn_id
+
+from careena4.bootstrap import build_default_services #for Careena4 runtime: LLM, TurnEngine, SessionStore
+from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
+from careena4.models.input import (
+    CancelDraftResponse,
+    SymptomDraftResponse,
+    SymptomDraftUpdateRequest,
+)
 
 app = FastAPI()
 
-# CORS (für Flutter)
+# Careena4 is the chat runtime used by /session, /chatscreen and /input-drafts.
+# Sessions are kept in memory for the current backend process.
+# This is acceptable for the demo deployment, but sessions are reset on backend restart.
+careena4_services = build_default_services(llm_mode="env")
+careena4_turn_engine = careena4_services.turn_engine
+careena4_session_store = careena4_services.session_store
+careena4_session_profiles: dict[str, int | None] = {}
+
+app.include_router(auth_router)
+app.include_router(profiles_router)
+app.include_router(medications_router)
+app.include_router(chat_history_router)
+app.include_router(symptoms_router)
+
+# CORS is permissive for local Flutter development.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # für Entwicklung ok
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Session Speicher
-sessions = {}
-
-def build_llm_messages(messages: list[dict]) -> list[dict]:
-    """
-  Baut einen kleineren Kontext für das LLM:
-  - Systemprompt bleibt immer enthalten
-  - nur die letzten Chatnachrichten werden an das Modell geschickt
-  - der vollständige Verlauf bleibt trotzdem in sessions gespeichert
-  """
-    system_messages = [m for m in messages if m.get("role") == "system"]
-    chat_messages = [m for m in messages if m.get("role") != "system"]
-
-    recent_chat_messages = chat_messages[-config.MAX_HISTORY_MESSAGES:]
-
-    return system_messages + recent_chat_messages
-
-# Verbindung zum LiteLLM-Proxy der Hochschule.
-# Der Proxy stellt eine OpenAI-kompatible API bereit.
-# Das eigene Gerät muss sich im Hochschulnetzwerk befinden.
-client = OpenAI(
-    base_url=config.LITELLM_BASE_URL,
-    api_key=config.LITELLM_API_KEY,
-)
+configure_logging()
 
 class ChatRequest(BaseModel):
     message: str
     session_id: str
+    profile_id: int | None = None
 
-# Endpunkt für Chatnachrichten
-@app.post("/chat")
-def chat(req: ChatRequest):
-    try:
-        user_input = req.message.strip()
-        session_id = req.session_id
 
-        print(f"[{session_id}] User: {user_input}")
-        
-        if session_id not in sessions:
-            return {"response": "Fehler: Ungültige Session-ID"}
-        
-        if not user_input:
-            return {"response": "Fehler: Leere Eingabe."}
+class SessionRequest(BaseModel):
+    profile_id: int | None = None
 
-        messages = sessions[session_id]
-        # Smalltalk / Langeweile freundlich beenden
-        if is_smalltalk_or_boredom(user_input):
-            return {"response": SMALLTALK_GOODBYE_RESPONSE}
 
-        # Nur gesundheitsbezogene Anliegen zulassen
-        if not is_health_related(user_input, messages):
-            return {"response": OUT_OF_SCOPE_RESPONSE}
+def require_careena4_session(session_id: str):
+    careena4_session = careena4_session_store.get(session_id)
 
-        # User Message speichern
-        messages.append({
-            "role": "user",
-            "content": user_input
-        })
+    if careena4_session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat session not found.",
+        )
 
-        # Red-Flag-Prüfung vor der KI-Antwort
-        red_flag_result = detect_medical_red_flags(user_input)
+    return careena4_session
 
-        if red_flag_result.get("red_flag") and red_flag_result.get("block_ai_response", False):
-            print(f"[{session_id}] Red flag detected: {red_flag_result}")
 
-            warning_text = (
-                "Wichtiger Hinweis:\n"
-                "Ihre Angaben können auf eine akute Notfallsituation hinweisen.\n\n"
-                "Nächster Schritt:\n"
-                "Bitte wählen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe.\n\n"
-                "Hinweis:\n"
-                "Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."
+def require_careena4_session_access(
+        session_id: str,
+        current_user: User | None,
+        db_session: Session,
+):
+    careena4_session = require_careena4_session(session_id)
+    profile_id = careena4_session_profiles.get(session_id)
+
+    if profile_id is None:
+        return careena4_session
+
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is required for profile draft requests.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        session=db_session,
+    )
+
+    return careena4_session
+
+#Helper: convert Careena4 TurnResult into the Flutter chat response JSON.
+def build_careena4_chat_response(result: TurnResult) -> dict:
+    active_question = result.conversation_state.active_question
+    pending_followup = None
+
+    if active_question is not None and active_question.kind in {
+        "followup",
+        "subject_clarification",
+    }:
+        pending_followup = {
+            "question_id": active_question.question_id,
+            "kind": active_question.kind,
+            "question_intent": active_question.question_intent,
+            "target_observation_id": active_question.target_observation_id,
+            "target_followup_id": active_question.target_followup_id,
+            "prompt_text": active_question.prompt_text,
+            "blocking": active_question.blocking,
+        }
+
+    recommendation_ready = result.response_mode in {
+        "guide_next_step",
+        "recommend",
+    }
+
+    return {
+        "response": result.response_text,
+        "response_mode": result.response_mode,
+        "red_flag": result.response_mode == "emergency",
+        "trace_notes": list(result.trace_notes),
+        "pending_followup": pending_followup,
+        "recommendation_requested": result.conversation_state.recommendation_requested,
+        "recommendation_ready": recommendation_ready,
+        "recommendation_result": (
+            result.recommendation_result.model_dump()
+            if result.recommendation_result is not None
+            else None
+        ),
+        "action": (
+            result.recommendation_result.next_step
+            if result.recommendation_result is not None
+            else None
+        ),
+        "severity": (
+            result.recommendation_result.urgency_level
+            if result.recommendation_result is not None
+            else None
+        ),
+    }
+
+
+#1. checks if Careena4-Session exist
+#2. validate empty input
+#3. save profile_id
+#4. build TurnInput
+#5. Careena4 processes TurnInput
+#6. write new state in session
+#7. build API-Response for Flutter
+@app.post("/chatscreen")
+def chat(
+        req: ChatRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session(req.session_id)
+
+    if not req.message.strip():
+        return {"response": "Fehler: Leere Eingabe.", "red_flag": False}
+
+    session_profile_id = careena4_session_profiles.get(req.session_id)
+
+    if session_profile_id is None and req.profile_id is not None:
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication is required for profile chat requests.",
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
-            messages.append({
-                "role": "assistant",
-                "content": warning_text
-            })
-
-            return {
-                "response": warning_text,
-                "red_flag": True,
-                "severity": red_flag_result.get("severity"),
-                "action": red_flag_result.get("action"),
-                "rule_id": red_flag_result.get("rule_id"),
-                "rule_name": red_flag_result.get("rule_name"),
-                "category": red_flag_result.get("category"),
-                "message_key": red_flag_result.get("message_key"),
-                "matched_keywords": red_flag_result.get("matched_keywords", [])
-            }
-
-        # Nur wenn KEINE Red Flag erkannt wurde, geht es hier normal weiter:
-        # Nur reduzierten Verlauf an das LLM schicken
-        llm_messages = build_llm_messages(messages)
-
-        # Nur reduzierten Verlauf an das LLM schicken
-        llm_messages = build_llm_messages(messages)
-
-        # Chat-Anfrage an LiteLLM über OpenAI-kompatible API
-        response = client.chat.completions.create(
-            model=config.SELECTED_MODEL,
-            messages=llm_messages,
-            temperature=config.LLM_TEMPERATURE,
-            max_tokens=config.LLM_MAX_TOKENS,
+        get_profile_access_role(
+            account_id=current_user.id,
+            profile_id=req.profile_id,
+            session=session,
         )
 
-        # Debug Konsolenausgabe
-        print(f"[{session_id}] LiteLLM response received.")
+        careena4_session_profiles[req.session_id] = req.profile_id
+        session_profile_id = req.profile_id
 
-        reply = response.choices[0].message.content
+    elif session_profile_id is not None:
+        if req.profile_id is not None and req.profile_id != session_profile_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Chat session belongs to a different profile.",
+            )
 
-        if reply:
-            reply = reply.strip()
-        else:
-            reply = "⚠️ Keine Antwort vom Modell."
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication is required for profile chat requests.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-        # Assistant Message speichern
-        messages.append({
-            "role": "assistant",
-            "content": reply
-        })
+        get_profile_access_role(
+            account_id=current_user.id,
+            profile_id=session_profile_id,
+            session=session,
+        )
 
-        print(f"[{session_id}] Verlauf Länge: {len(messages)}")
+    turn_id = str(uuid4())
 
-        return {"response": reply}
+    turn_result = careena4_turn_engine.run_turn(
+        TurnInput.from_persisted_state(
+            message=req.message,
+            session_id=req.session_id,
+            turn_id=turn_id,
+            conversation_messages=careena4_session.messages,
+            persisted_case_topic=careena4_session.case_topic,
+            persisted_medical_case=careena4_session.medical_case,
+            persisted_conversation_state=careena4_session.conversation_state,
+            persisted_recommendation_state=careena4_session.recommendation_state,
+            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+        )
+    )
 
-    except Exception as e:
-        print("Error:", e)
-        return {"response": f"❌ Fehler: {str(e)}"}
+    careena4_session.case_topic = turn_result.case_topic
+    careena4_session.medical_case = turn_result.medical_case
+    careena4_session.conversation_state = turn_result.conversation_state
+    careena4_session.recommendation_state = turn_result.recommendation_state
+    careena4_session.last_turn_understanding = turn_result.current_turn_understanding
 
+    if turn_result.symptom_input_draft is not None:
+        careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
+    careena4_session.messages.append({"role": "user", "content": req.message})
 
-# Endpunkt zur Abfrage der verfügbaren Modelle
-@app.get("/models")
-def get_models():
-    try:
-        models = client.models.list()
+    response = build_careena4_chat_response(turn_result)
 
-        model_names = [m.id for m in models.data]
+    careena4_session.messages.append(
+        {"role": "assistant", "content": response["response"]}
+    )
 
-        print("Available models:", model_names)
+    return response
 
-        return {"models": model_names}
-
-    except Exception as e:
-        print("MODELS ERROR:", repr(e))
-        return {"error": str(e)}
-    
-    
-# Endpunkt startet Sprachmodell serverseitig für schnellere Antworten
 @app.post("/warmup")
 def warmup():
-    try:
-        client.chat.completions.create(
-            model=config.SELECTED_MODEL,
-            messages=[{"role": "user", "content": "antworte mit ok"}],
-            temperature=config.LLM_TEMPERATURE,
-            max_tokens=10,
-        )
-        return {"status": "warmed up"}
-    except Exception as e:
-        print("WARMUP ERROR:", repr(e))
-        return {"error": str(e)}
-    
-# Endpunkt zur Vergabe von Session IDs
+    """
+    Lightweight readiness endpoint for the chat backend.
+
+    Kept for frontend compatibility; Careena4 manages LLM calls internally.
+    """
+    return {"status": "ok"}
+
+
+@app.get("/input-drafts/{session_id}", response_model=SymptomDraftResponse)
+def get_input_draft(
+        session_id: str,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    """
+    Return the current editable symptom draft for a Careena4 session.
+    """
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=session,
+    )
+
+    return SymptomDraftResponse(
+        session_id=session_id,
+        symptoms=careena4_session.symptom_input_draft.symptom_labels(),
+        chips=careena4_session.symptom_input_draft.chips,
+    )
+
+
+@app.patch("/input-drafts/{session_id}", response_model=SymptomDraftResponse)
+def update_input_draft(
+        session_id: str,
+        request: SymptomDraftUpdateRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    """
+    Replace the editable symptom draft after user edits in the frontend.
+    """
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=session,
+    )
+
+    if request.chips is not None:
+        careena4_session.symptom_input_draft.replace_from_chips(request.chips)
+    else:
+        careena4_session.symptom_input_draft.replace_from_labels(request.symptoms)
+
+    return SymptomDraftResponse(
+        session_id=session_id,
+        symptoms=careena4_session.symptom_input_draft.symptom_labels(),
+        chips=careena4_session.symptom_input_draft.chips,
+    )
+
+@app.delete("/input-drafts/{session_id}", response_model=CancelDraftResponse)
+def cancel_input_draft(
+        session_id: str,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    """
+    Clear the editable symptom draft for a Careena4 session.
+    """
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=session,
+    )
+
+    careena4_session.symptom_input_draft.replace_from_labels([])
+
+    return CancelDraftResponse(
+        message="Draft cancelled successfully.",
+        session_id=session_id,
+    )
+
+
 @app.post("/session")
-def create_session():
-    session_id = str(uuid.uuid4())
+def create_session(
+    req: SessionRequest | None = None,
+    current_user: User | None = Depends(get_optional_current_account),
+    session: Session = Depends(get_session),
+):
+    """
+    Create and return a new chat session id.
+    """
+    profile_id = req.profile_id if req is not None else None
 
-    # Session initialisieren
-    sessions[session_id] = [
-        {
-            "role": "system",
-            "content": config.MASTER_PROMPT
-        }
-    ]
+    if profile_id is not None:
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication is required for profile chat sessions.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-    #Debug/Log
-    print("Created session: ", session_id)
+        get_profile_access_role(
+            account_id=current_user.id,
+            profile_id=profile_id,
+            session=session,
+        )
 
+    session_id = careena4_session_store.create_session()
+    careena4_session_profiles[session_id] = profile_id
+
+    print("Created Careena4 session:", session_id)
     return {"session_id": session_id}
 
 # Editor: Ilu
+# Modified as part of the authentication and profile management implementation.
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
 @app.on_event("startup")
 def on_startup():
+    """
+    Initialize database tables on application startup.
+    """
     create_db_and_tables()

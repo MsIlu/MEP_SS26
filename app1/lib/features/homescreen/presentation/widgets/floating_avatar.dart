@@ -1,15 +1,23 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
-/// Animated floating avatar widget.
-///
-/// This widget displays a circular image
-/// with a smooth vertical floating animation
-/// and a soft shadow effect.
+/// Circular Careena avatar with an optional floating animation.
 class FloatingAvatar extends StatefulWidget {
-  // Path to the avatar image asset
+  /// Path to the avatar image asset.
   final String imagePath;
 
-  const FloatingAvatar({super.key, required this.imagePath});
+  /// Diameter of the circular avatar.
+  final double size;
+
+  /// Whether the image is displayed inside the circular avatar surface.
+  final bool showFrame;
+
+  const FloatingAvatar({
+    super.key,
+    required this.imagePath,
+    this.size = 100,
+    this.showFrame = true,
+  });
 
   @override
   State<FloatingAvatar> createState() => _FloatingAvatarState();
@@ -17,19 +25,15 @@ class FloatingAvatar extends StatefulWidget {
 
 class _FloatingAvatarState extends State<FloatingAvatar>
     with SingleTickerProviderStateMixin {
-  // Controls the animation loop
   late AnimationController _controller;
-  // Stores the vertical movement animation
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize animation controller
     _controller = AnimationController(
       vsync: this,
-      // Duration of one animation cycle
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
@@ -40,6 +44,17 @@ class _FloatingAvatarState extends State<FloatingAvatar>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -47,6 +62,12 @@ class _FloatingAvatarState extends State<FloatingAvatar>
 
   @override
   Widget build(BuildContext context) {
+    final avatar = _buildAvatar();
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return avatar;
+    }
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -55,24 +76,33 @@ class _FloatingAvatarState extends State<FloatingAvatar>
           child: child,
         );
       },
-      child: Container(
-        height: 100,
-        width: 100,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE7F5F3),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.14),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: Image.asset(widget.imagePath, fit: BoxFit.cover),
-        ),
+      child: avatar,
+    );
+  }
+
+  Widget _buildAvatar() {
+    if (!widget.showFrame) {
+      return SizedBox.square(
+        dimension: widget.size,
+        child: Image.asset(widget.imagePath, fit: BoxFit.contain),
+      );
+    }
+
+    return Container(
+      height: widget.size,
+      width: widget.size,
+      decoration: BoxDecoration(
+        color: AppColors.careenaBubbleBackground,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkBackground.withValues(alpha: 0.14),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
+      child: ClipOval(child: Image.asset(widget.imagePath, fit: BoxFit.cover)),
     );
   }
 }

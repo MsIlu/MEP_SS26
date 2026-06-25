@@ -1,21 +1,14 @@
 import 'package:flutter/foundation.dart';
 
-/// Central configuration class.
-///
-/// This class holds global constants and environment-specific values,
-/// such as the app name, default messages, colors or backend URLs.
-///
-/// It is intentionally designed with only static members
-/// so no instance needs to be created
-
+/// Central configuration for app name, copy, and environment values.
 class AppConfig {
-  /// Name of the application displayed in the UI.
   static const String appName = "MedBitAid v0.4";
-
-  /// Default welcome message shown when the chat starts.
   static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?";
 
   /// Base URL for backend communication.
+  ///
+  /// Can be overridden for deployment with:
+  /// --dart-define=API_BASE_URL=https://your-backend.example.com
   ///
   /// Returns the correct URL depending on the platform:
   /// - Web: localhost
@@ -24,11 +17,19 @@ class AppConfig {
   /// DEV NOTE:
   /// Currently only distinguishes between Web and Android Emulator.
   /// For a physical Android device, replace the URL with your machine's local IP.
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+
   static String get baseUrl {
+    if (_configuredBaseUrl.isNotEmpty) {
+      return _configuredBaseUrl;
+    }
+
     return kIsWeb
         ? "http://localhost:8000" // Web
-        : "http://10.0.2.2:8000" // Android Emulator
+        : "http://10.0.2.2:8000"; // Android Emulator
+    // : "http://localhost:8000" // IOS-Simulator
     //"PC/FastAPIServerIP"             // Android device (physical) (no //)
-    ;
   }
 }

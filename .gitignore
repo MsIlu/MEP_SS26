@@ -8,6 +8,7 @@ build/
 .packages
 .pub-cache/
 .pub/
+app1/devtools_options.yaml
 
 # Android Studio / IntelliJ
 .idea/
@@ -20,6 +21,9 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# Runtime logs
+server/**/server_log/logs/
 
 # Secrets
 .env

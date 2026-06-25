@@ -9,3 +9,11 @@ sqlmodel
 python-dotenv
 openai
 psycopg[binary]
+email-validator
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
+python-multipart
+pytest
+httpx
+fhir.resources==8.2.0

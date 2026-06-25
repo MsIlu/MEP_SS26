@@ -1,29 +1,73 @@
 import 'package:flutter/material.dart';
-import '../../../chat/presentation/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 
+/// Search field shown below the home hero card.
 class HomeSearchBar extends StatelessWidget {
-  const HomeSearchBar({super.key});
+  /// Whether the field should use the narrow phone spacing.
+  final bool isCompact;
+  final Key? guideTargetKey;
+
+  const HomeSearchBar({
+    super.key,
+    required this.isCompact,
+    this.guideTargetKey,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      height: 50,
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final fillColor = isDarkMode
+        ? AppColors.darkElevatedSurface
+        : AppColors.lightCard;
+
+    final borderColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.careenaBorder;
+
+    final iconColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaDark;
+
+    final textColor = isDarkMode
+        ? colorScheme.onSurface
+        : AppColors.careenaDark;
+
+    final hintColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 16 : 20,
+        vertical: 15,
       ),
-      child: Row(
-        children: const [
-          Icon(Icons.search, color: AppColors.textSecondary),
-
-          SizedBox(width: 10),
-
-          Text(
-            "Suche Symptome oder stelle Fragen...",
-            style: TextStyle(color: AppColors.textSecondary),
+      child: TextField(
+        key: guideTargetKey,
+        style: TextStyle(color: textColor),
+        decoration: InputDecoration(
+          hintText: 'Suchen...',
+          hintStyle: TextStyle(color: hintColor),
+          prefixIcon: Icon(Icons.search, color: iconColor),
+          filled: true,
+          fillColor: fillColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: borderColor),
           ),
-        ],
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: const BorderSide(
+              color: AppColors.careenaTeal,
+              width: 2,
+            ),
+          ),
+        ),
       ),
     );
   }

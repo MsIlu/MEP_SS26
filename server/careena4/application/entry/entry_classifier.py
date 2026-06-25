@@ -1,0 +1,249 @@
+from __future__ import annotations
+
+import re
+from careena4.domain.case import CaseManager
+from careena4.core.engine import ExtractionEngine
+from careena4.llm.call_control import CallModelConfig, ENTRY_CALL
+from careena4.llm.prompt_registry import load_prompt
+from careena4.models.domain import ActiveQuestion, CaseTopic
+from careena4.models.turn import EntryAssessment
+from careena4.server_log import log_event
+
+
+class EntryClassifier:
+    _MEDICAL_HINTS = (
+        "schmerz",
+        "fieber",
+        "husten",
+        "atem",
+        "luft",
+        "sturz",
+        "gefallen",
+        "verletz",
+        "uebel",
+        "uebelkeit",
+        "erbrechen",
+        "durchfall",
+        "schwindel",
+        "kopf",
+        "bauch",
+        "brust",
+        "huefte",
+        "bein",
+        "arm",
+        "blut",
+    )
+    _OUT_OF_SCOPE_HINTS = ("wetter", "programm", "code", "urlaub", "finanzen", "schule")
+
+    def __init__(
+        self,
+        *,
+        extraction_engine: ExtractionEngine | None = None,
+        call_model_config: CallModelConfig | None = None,
+        case_manager: CaseManager | None = None,
+    ):
+        self.extraction_engine = extraction_engine
+        self.call_model_config = call_model_config
+        self.case_manager = case_manager or CaseManager()
+
+    def classify(
+        self,
+        *,
+        message: str,
+        active_question: ActiveQuestion | None = None,
+        case_topic: CaseTopic | None = None,
+        history_messages: list[dict[str, str]] | None = None,
+    ) -> EntryAssessment:
+        llm_result = self._classify_with_llm(
+            message=message,
+            active_question=active_question,
+            case_topic=case_topic,
+            history_messages=history_messages,
+        )
+        if llm_result is not None:
+            return llm_result
+        return self._heuristic_classify(
+            message=message,
+            active_question=active_question,
+            case_topic=case_topic,
+        )
+
+    def _classify_with_llm(
+        self,
+        *,
+        message: str,
+        active_question: ActiveQuestion | None,
+        case_topic: CaseTopic | None,
+        history_messages: list[dict[str, str]] | None,
+    ) -> EntryAssessment | None:
+        if self.extraction_engine is None:
+            return None
+        prompt = load_prompt(ENTRY_CALL)
+        try:
+            result = self.extraction_engine.extract(
+                text=self._build_user_prompt(
+                    message=message,
+                    active_question=active_question,
+                    case_topic=case_topic,
+                    history_messages=history_messages,
+                ),
+                system_prompt=prompt.system_prompt,
+                output_schema=EntryAssessment,
+                temperature=0.0,
+                max_tokens=220,
+                model=self.call_model_config.model_for(ENTRY_CALL) if self.call_model_config is not None else None,
+                call_name=ENTRY_CALL,
+                prompt_name=prompt.name,
+                prompt_version=prompt.version,
+            )
+        except Exception as exc:
+            log_event(
+                "entry.classification.fallback_used",
+                layer="application",
+                reason=type(exc).__name__,
+            )
+            return None
+
+        if result.answers_active_question and result.message_kind != "question_answer":
+            result.message_kind = "question_answer"
+        if not result.in_scope:
+            result.medical_relevance = "non_medical"
+            result.contains_new_medical_information = False
+            result.possible_topic_shift = False
+            result.message_kind = "out_of_scope"
+
+        log_event(
+            "entry.classification.completed",
+            layer="application",
+            message_kind=result.message_kind,
+            in_scope=result.in_scope,
+            answers_active_question=result.answers_active_question,
+            contains_new_medical_information=result.contains_new_medical_information,
+        )
+        return result
+
+    def _heuristic_classify(
+        self,
+        *,
+        message: str,
+        active_question: ActiveQuestion | None = None,
+        case_topic: CaseTopic | None = None,
+    ) -> EntryAssessment:
+        stripped = message.strip()
+        normalized = self._normalize(stripped)
+        in_scope = not any(hint in normalized for hint in self._OUT_OF_SCOPE_HINTS)
+        answers_active_question = active_question is not None
+        recommendation_requested = self._is_recommendation_request(normalized)
+        medical_relevance = "medical" if self._looks_medical(normalized) or answers_active_question else "non_medical"
+        contains_new_medical_information = self._looks_medical(normalized)
+        possible_topic_shift = False
+        if case_topic is not None and contains_new_medical_information:
+            possible_topic_shift = not self._topic_matches(normalized, case_topic)
+        if not in_scope:
+            return EntryAssessment(
+                in_scope=False,
+                medical_relevance="non_medical",
+                answers_active_question=answers_active_question,
+                contains_new_medical_information=False,
+                possible_topic_shift=False,
+                message_kind="out_of_scope",
+                recommendation_requested=recommendation_requested,
+            )
+        if answers_active_question:
+            return EntryAssessment(
+                in_scope=True,
+                medical_relevance=medical_relevance,
+                answers_active_question=True,
+                contains_new_medical_information=contains_new_medical_information,
+                possible_topic_shift=possible_topic_shift,
+                message_kind="question_answer",
+                recommendation_requested=recommendation_requested,
+            )
+        if contains_new_medical_information and case_topic is None:
+            message_kind = "new_case_report"
+        elif contains_new_medical_information:
+            message_kind = "same_case_update"
+        else:
+            message_kind = "dialogue_only"
+        return EntryAssessment(
+            in_scope=True,
+            medical_relevance=medical_relevance,
+            answers_active_question=False,
+            contains_new_medical_information=contains_new_medical_information,
+            possible_topic_shift=possible_topic_shift,
+            message_kind=message_kind,
+            recommendation_requested=recommendation_requested,
+        )
+
+    def _build_user_prompt(
+        self,
+        *,
+        message: str,
+        active_question: ActiveQuestion | None,
+        case_topic: CaseTopic | None,
+        history_messages: list[dict[str, str]] | None,
+    ) -> str:
+        history_lines = []
+        for item in history_messages or []:
+            role = (item.get("role") or "unknown").strip()
+            content = (item.get("content") or "").strip()
+            if content:
+                history_lines.append(f"- {role}: {content}")
+        history_text = "\n".join(history_lines[-4:]) if history_lines else "- none"
+        active_question_text = (
+            f"kind={active_question.kind}; intent={active_question.question_intent}; prompt={active_question.prompt_text}"
+            if active_question is not None
+            else "none"
+        )
+        case_topic_text = self.case_manager.topic_label(case_topic=case_topic) or "none"
+        return (
+            f"Aktives Thema: {case_topic_text}\n"
+            f"Offene Frage: {active_question_text}\n"
+            f"Letzte Konversation:\n{history_text}\n"
+            f"Letzte Nutzernachricht:\n{message}"
+        )
+
+    def _looks_medical(self, normalized: str) -> bool:
+        if any(hint in normalized for hint in self._MEDICAL_HINTS):
+            return True
+        return bool(re.search(r"\b(krank|beschwer|symptom|weh)\b", normalized))
+
+    @staticmethod
+    def _is_recommendation_request(normalized: str) -> bool:
+        return any(
+            phrase in normalized
+            for phrase in (
+                "versorgungsempfehlung",
+                "empfehlung",
+                "was soll ich tun",
+                "wohin soll ich",
+                "naechster schritt",
+                "nächster schritt",
+            )
+        )
+
+    def _topic_matches(self, normalized: str, case_topic: CaseTopic) -> bool:
+        topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
+        if not topic_tokens:
+            return True
+        message_tokens = {
+            token
+            for token in re.findall(r"[a-zA-ZaeoeuessäöüÄÖÜ]+", normalized)
+            if len(token) > 2
+        }
+        return bool(topic_tokens.intersection(message_tokens))
+
+    @staticmethod
+    def _normalize(text: str) -> str:
+        normalized = (
+            text.casefold()
+            .replace("\u00e4", "ae")
+            .replace("\u00f6", "oe")
+            .replace("\u00fc", "ue")
+            .replace("\u00df", "ss")
+            .replace("\u00c3\u00a4", "ae")
+            .replace("\u00c3\u00b6", "oe")
+            .replace("\u00c3\u00bc", "ue")
+            .replace("\u00c3\u009f", "ss")
+        )
+        return " ".join(normalized.split())

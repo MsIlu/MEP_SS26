@@ -167,6 +167,21 @@ def _migrate_chat_history_schema():
         connection.execute(
             text("ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS title VARCHAR(80)")
         )
+
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS session_id VARCHAR(100)"
+            )
+        )
+
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_chat_history_session_id "
+                "ON chat_history (session_id)"
+            )
+        )
+
         connection.execute(
             text(
                 "ALTER TABLE chat_history "

@@ -7,15 +7,19 @@ import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
 import '../widgets/chat_bubble.dart';
+import '../../controllers/chat_controller.dart';
+import 'chat_screen.dart';
 
 class ChatHistoryScreen extends StatefulWidget {
   final ThemeController themeController;
+  final ChatController? chatController;
   final ChatHistoryRepository repository;
   final int profileId;
 
   const ChatHistoryScreen({
     super.key,
     required this.themeController,
+    this.chatController,
     required this.profileId,
     required this.repository,
   });
@@ -77,7 +81,12 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  for (final group in groups) _ChatHistoryGroup(group: group),
+                  for (final group in groups)
+                    _ChatHistoryGroup(
+                      group: group,
+                      themeController: widget.themeController,
+                      chatController: widget.chatController,
+                    ),
                 ],
               );
             },
@@ -144,8 +153,14 @@ class _HistorySortControl extends StatelessWidget {
 
 class _ChatHistoryGroup extends StatelessWidget {
   final _HistoryMonthGroup group;
+  final ThemeController themeController;
+  final ChatController? chatController;
 
-  const _ChatHistoryGroup({required this.group});
+  const _ChatHistoryGroup({
+    required this.group,
+    required this.themeController,
+    required this.chatController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +199,12 @@ class _ChatHistoryGroup extends StatelessWidget {
         ),
         subtitle: Text(_formatEntryCount(group.entries.length)),
         children: [
-          for (final entry in group.entries) _ChatHistoryTile(entry: entry),
+          for (final entry in group.entries)
+            _ChatHistoryTile(
+              entry: entry,
+              themeController: themeController,
+              chatController: chatController,
+            ),
         ],
       ),
     );
@@ -193,8 +213,14 @@ class _ChatHistoryGroup extends StatelessWidget {
 
 class _ChatHistoryTile extends StatelessWidget {
   final ChatHistoryEntry entry;
+  final ThemeController themeController;
+  final ChatController? chatController;
 
-  const _ChatHistoryTile({required this.entry});
+  const _ChatHistoryTile({
+    required this.entry,
+    required this.themeController,
+    required this.chatController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +243,27 @@ class _ChatHistoryTile extends StatelessWidget {
               : AppColors.careenaDark);
 
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        if (entry.status == 'active' && chatController != null) {
+          await chatController!.resumeHistoryEntry(entry);
+
+          if (!context.mounted) return;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                controller: chatController!,
+                themeController: themeController,
+                leaveDialogMessage:
+                    'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+                    'Der aktuelle Chat wurde gespeichert.',
+              ),
+            ),
+          );
+          return;
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(

@@ -49,6 +49,9 @@ careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
 
+app.state.careena4_session_store = careena4_session_store
+app.state.careena4_session_profiles = careena4_session_profiles
+
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)

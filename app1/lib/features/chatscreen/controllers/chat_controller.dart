@@ -199,6 +199,21 @@ class ChatController {
     );
   }
 
+  Future<void> resumeHistoryEntry(ChatHistoryEntry entry) async {
+    _activeHistoryEntryId = entry.id;
+    _activeHistoryCreatedAt = entry.createdAt;
+    _setCompleted(entry.status == 'completed');
+    messages.value = entry.messages;
+
+    if (entry.status == 'active') {
+      await chatSessionService.resumeHistorySession(
+        historyId: entry.id,
+        profileId: entry.profileId,
+      );
+      _initFuture = Future.value();
+    }
+  }
+
   Future<void> resetChat() async {
     await _clearCurrentSession();
   }
@@ -308,6 +323,7 @@ class ChatController {
     final entry = ChatHistoryEntry(
       id: _activeHistoryEntryId ?? now.microsecondsSinceEpoch.toString(),
       profileId: activeProfileId,
+      sessionId: chatSessionService.sessionId,
       symptomTitle: _historyTitleFromSymptoms(),
       status: status,
       isEmergency: isEmergency,

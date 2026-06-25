@@ -26,6 +26,16 @@ class ChatSessionService {
     return _sessionId;
   }
 
+  Future<String> resumeHistorySession({
+    required String historyId,
+    required int? profileId,
+  }) async {
+    _sessionId = await chatApi.resumeHistorySession(historyId);
+    _profileId = profileId;
+    await chatApi.warmup();
+    return _sessionId!;
+  }
+
   String? clearSession() {
     final previousSessionId = _sessionId;
     _sessionId = null;

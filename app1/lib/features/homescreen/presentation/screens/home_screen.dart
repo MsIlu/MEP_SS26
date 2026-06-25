@@ -199,6 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) => ChatHistoryScreen(
           themeController: widget.themeController,
+          chatController: widget.controller,
           profileId: activeProfileId,
           repository: widget.controller.chatHistoryRepository,
         ),

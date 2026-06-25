@@ -5,6 +5,7 @@ import 'message_model.dart';
 class ChatHistoryEntry {
   final String id;
   final int? profileId;
+  final String? sessionId;
   final String? symptomTitle;
   final String status;
   final bool isEmergency;
@@ -17,6 +18,7 @@ class ChatHistoryEntry {
   const ChatHistoryEntry({
     required this.id,
     required this.profileId,
+    this.sessionId,
     this.symptomTitle,
     this.status = 'completed',
     this.isEmergency = false,
@@ -49,6 +51,7 @@ class ChatHistoryEntry {
     return {
       'id': id,
       'profile_id': profileId,
+      'session_id': sessionId,
       'title': symptomTitle,
       'status': status,
       'is_emergency': isEmergency,
@@ -74,6 +77,7 @@ class ChatHistoryEntry {
     return ChatHistoryEntry(
       id: json['id'].toString(),
       profileId: json['profile_id'] as int,
+      sessionId: json['session_id'] as String?,
       symptomTitle: json['title'] as String?,
       status: json['status'] as String? ?? 'completed',
       isEmergency: json['is_emergency'] == true,

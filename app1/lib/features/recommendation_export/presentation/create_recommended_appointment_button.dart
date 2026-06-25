@@ -6,11 +6,14 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter/material.dart';
 
 class CreateRecommendedAppointmentButton extends StatelessWidget {
-   final AuthSession? authSession;
-   final String title;
+  final AuthSession? authSession;
+  final String title;
 
-  const CreateRecommendedAppointmentButton({super.key, required this.title, this.authSession});
-  
+  const CreateRecommendedAppointmentButton({
+    super.key,
+    required this.title,
+    this.authSession,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +84,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AppointmentScreen(authSession: authSession),
+                    builder: (context) =>
+                        AppointmentScreen(authSession: authSession),
                   ),
                 );
               },

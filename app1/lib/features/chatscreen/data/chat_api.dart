@@ -103,4 +103,10 @@ class ChatApi {
 
     return sessionId as String;
   }
+
+  Future<ChatResponse> continueHistorySession(String historyId) async {
+    final data = await client.post('/chat-history/$historyId/continue', {});
+
+    return ChatResponse.fromJson(data);
+  }
 }

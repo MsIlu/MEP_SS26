@@ -55,3 +55,19 @@ class ChatHistoryResponse(BaseModel):
 class ChatHistoryResumeResponse(BaseModel):
     session_id: str
     restored: bool
+
+
+class ChatHistoryContinueResponse(BaseModel):
+    session_id: str
+    response: str
+    red_flag: bool = False
+    severity: Optional[str] = None
+    action: Optional[str] = None
+    rule_id: Optional[str] = None
+    rule_name: Optional[str] = None
+    category: Optional[str] = None
+    message_key: Optional[str] = None
+    matched_keywords: list[str] = []
+    response_mode: Optional[str] = None
+    recommendation_ready: bool = False
+    recommendation_result: Optional[dict] = None

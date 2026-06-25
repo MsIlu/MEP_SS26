@@ -4,12 +4,15 @@ from sqlmodel import Session
 from auth.security import get_current_account, get_session
 from database.models import User
 from chat_history.schemas import (
+    ChatHistoryContinueResponse,
     ChatHistoryCreateRequest,
     ChatHistoryResponse,
     ChatHistoryResumeResponse,
     ChatHistoryUpdateRequest,
 )
+
 from chat_history.service import (
+    continue_chat_history,
     create_chat_history,
     list_chat_history,
     resume_chat_history,
@@ -73,4 +76,22 @@ def post_resume_chat_history(
         session=session,
         session_store=request.app.state.careena4_session_store,
         session_profiles=request.app.state.careena4_session_profiles,
+    )
+
+
+@router.post("/{history_id}/continue", response_model=ChatHistoryContinueResponse)
+def post_continue_chat_history(
+        history_id: int,
+        request: Request,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
+    return continue_chat_history(
+        history_id=history_id,
+        current_user=current_user,
+        session=session,
+        session_store=request.app.state.careena4_session_store,
+        session_profiles=request.app.state.careena4_session_profiles,
+        turn_engine=request.app.state.careena4_turn_engine,
+        response_builder=request.app.state.careena4_response_builder,
     )

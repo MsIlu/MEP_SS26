@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
@@ -13,8 +13,15 @@ import '../../../recommendation_export/presentation/export_recommendation_pdf_bu
 class WarningPage extends StatelessWidget {
   /// Backend response that contains the red-flag metadata.
   final ChatResponse response;
+  final List<String> symptoms;
+  final List<String> userMessages;
 
-  const WarningPage({super.key, required this.response});
+  const WarningPage({
+    super.key,
+    required this.response,
+    this.symptoms = const [],
+    this.userMessages = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +47,11 @@ class WarningPage extends StatelessWidget {
               if (showEmergencyActions)
                 EmergencyCard(response: response)
               else
-                _RecommendationCard(response: response),
+                _RecommendationCard(
+                  response: response,
+                  symptoms: symptoms,
+                  userMessages: userMessages,
+                ),
               const SizedBox(height: 16),
 
               ExportRecommendationPdfButton(
@@ -52,8 +63,8 @@ class WarningPage extends StatelessWidget {
                     response.recommendationResult?.nextStep ??
                     response.action ??
                     'Bitte folgen Sie den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktieren Sie den Notruf 112.',
-                symptoms: const [],
-                userMessages: const [],
+                symptoms: symptoms,
+                userMessages: userMessages,
               ),
 
               const SizedBox(height: 16),
@@ -87,17 +98,28 @@ String _recommendationTextFor(ChatResponse response) {
 
 class _RecommendationCard extends StatelessWidget {
   final ChatResponse response;
+  final List<String> symptoms;
+  final List<String> userMessages;
 
-  const _RecommendationCard({required this.response});
+  const _RecommendationCard({
+    required this.response,
+    required this.symptoms,
+    required this.userMessages,
+  });
 
   @override
   Widget build(BuildContext context) {
     final recommendation = response.recommendationResult;
     final colorScheme = Theme.of(context).colorScheme;
-    final reasons = recommendation?.reasons ?? const <String>[];
-    final limitations = recommendation?.limitations ?? const <String>[];
-    final nextStep = recommendation?.nextStep ?? response.action;
-    final recommendationText = _recommendationTextFor(response);
+    final reasons = _recommendationReasonsFor(
+      response,
+      symptoms: symptoms,
+      userMessages: userMessages,
+    );
+    final nextStep =
+        recommendation?.nextStep ??
+        response.action ??
+        _legacySectionFromChatText(response.text, 'Nächster Schritt');
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final accent = AppColors.primary;
 
@@ -114,7 +136,7 @@ class _RecommendationCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.18 : 0.05),
+            color: AppColors.black.withValues(alpha: isDarkMode ? 0.18 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -130,7 +152,7 @@ class _RecommendationCard extends StatelessWidget {
                 radius: 42,
                 backgroundColor: accent.withValues(alpha: 0.14),
                 child: Icon(
-                  Icons.medical_information_outlined,
+                  Icons.warning_amber_rounded,
                   color: accent,
                   size: 40,
                 ),
@@ -141,7 +163,7 @@ class _RecommendationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Ihre Handlungsempfehlung',
+                      'Kein Notfall erkannt',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: accent,
                             fontWeight: FontWeight.w900,
@@ -149,7 +171,7 @@ class _RecommendationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      recommendationText,
+                      'Auf Grundlage Ihrer Angaben besteht derzeit kein Hinweis auf einen akuten Notfall.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             height: 1.35,
@@ -188,21 +210,136 @@ class _RecommendationCard extends StatelessWidget {
               title: 'Gründe',
             ),
           ],
-          if (limitations.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _RecommendationDivider(color: accent),
-            const SizedBox(height: 16),
-            _RecommendationActionRow(
-              icon: Icons.info_outline,
-              text: limitations.join('\n'),
-              color: accent,
-              title: 'Hinweise',
-            ),
-          ],
         ],
       ),
     );
   }
+}
+
+List<String> _recommendationReasonsFor(
+  ChatResponse response, {
+  required List<String> symptoms,
+  required List<String> userMessages,
+}) {
+  final chatReason = _chatReasonFromRecommendationText(response.text);
+  final concreteReasons = <String>[
+    ?chatReason,
+    ...userMessages.map(_userMessageReason),
+    ...(response.recommendationResult?.reasons ?? const <String>[])
+        .where((reason) => !_isGenericReason(reason))
+        .map(_normalizeGermanText),
+    ...symptoms.map(_normalizeGermanText),
+  ];
+
+  return _summarizeReasons(concreteReasons);
+}
+
+List<String> _summarizeReasons(Iterable<String> reasons) {
+  final seen = <String>{};
+  final uniqueReasons = reasons
+      .map((reason) => reason.trim())
+      .where((reason) => reason.isNotEmpty && !_isShortConfirmation(reason))
+      .where((reason) => seen.add(_reasonKey(reason)))
+      .toList(growable: false);
+
+  return uniqueReasons
+      .where((reason) => !_isContainedInBetterReason(reason, uniqueReasons))
+      .toList(growable: false);
+}
+
+bool _isShortConfirmation(String reason) {
+  final normalized = reason.toLowerCase();
+  return normalized == 'ja' || normalized == 'nein' || normalized == 'ok';
+}
+
+bool _isContainedInBetterReason(String reason, List<String> allReasons) {
+  final key = _reasonKey(reason);
+  if (key.length < 4) return true;
+  final tokens = _reasonTokens(reason);
+
+  return allReasons.any((candidate) {
+    final candidateKey = _reasonKey(candidate);
+    return candidateKey != key &&
+        candidateKey.length > key.length &&
+        (candidateKey.contains(key) ||
+            tokens.difference(_reasonTokens(candidate)).isEmpty);
+  });
+}
+
+String _reasonKey(String reason) {
+  return reason
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-zäöüß0-9]+'), ' ')
+      .trim();
+}
+
+Set<String> _reasonTokens(String reason) {
+  return _reasonKey(reason)
+      .split(' ')
+      .where((token) => token.length > 1)
+      .toSet();
+}
+
+String _userMessageReason(String message) {
+  final cleaned = _normalizeGermanText(message)
+      .replaceFirst(
+        RegExp(
+          r'^\s*(ich\s+(habe|hab|hatte|spüre|fühle)\s+|mir\s+ist\s+)',
+          caseSensitive: false,
+        ),
+        '',
+      )
+      .trim();
+  if (cleaned.isEmpty) return '';
+  return cleaned[0].toUpperCase() + cleaned.substring(1);
+}
+
+String? _chatReasonFromRecommendationText(String text) {
+  // Prefer the old chat text because it contains the user's concrete details.
+  final source = _legacySectionFromChatText(text, 'Orientierung') ?? text;
+  final match = RegExp(
+    r'\bBei\s+(.+?)(?:\s+(?:gibt|liegt|liegen|besteht|bestehen)\b|[,.])',
+    caseSensitive: false,
+    dotAll: true,
+  ).firstMatch(source);
+  final reason = match?.group(1)?.trim();
+  if (reason == null || reason.isEmpty) return null;
+  return _normalizeGermanText(reason.replaceAll('**', ''));
+}
+
+bool _isGenericReason(String reason) {
+  final normalized = reason.toLowerCase();
+  return normalized.contains('ausreichend angaben') ||
+      normalized.contains('ausreichend informationen');
+}
+
+String? _legacySectionFromChatText(String text, String label) {
+  final marker = '**$label:**';
+  final start = text.indexOf(marker);
+  if (start < 0) return null;
+
+  final body = text.substring(start + marker.length).trim();
+  final end = body.indexOf('\n\n');
+  final section = end < 0 ? body : body.substring(0, end);
+  return _normalizeGermanText(section.replaceAll('**', '').trim());
+}
+
+String _normalizeGermanText(String text) {
+  return text
+      .replaceAll('Uebel', 'Übel')
+      .replaceAll('uebel', 'übel')
+      .replaceAll('aerzt', 'ärzt')
+      .replaceAll('Aerzt', 'Ärzt')
+      .replaceAll('fuer', 'für')
+      .replaceAll('Fuer', 'Für')
+      .replaceAll('koerper', 'körper')
+      .replaceAll('Koerper', 'Körper')
+      .replaceAll('Ruecken', 'Rücken')
+      .replaceAll('ruecken', 'rücken')
+      .replaceAll('Huefte', 'Hüfte')
+      .replaceAll('huefte', 'hüfte')
+      .replaceAll('Fuesse', 'Füße')
+      .replaceAll('fuesse', 'füße');
 }
 
 class _RecommendationActionRow extends StatelessWidget {
@@ -252,7 +389,9 @@ class _RecommendationActionRow extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
-                      title == null ? line : '• $line',
+                      title == null
+                          ? _normalizeGermanText(line)
+                          : '• ${_normalizeGermanText(line)}',
                       style: const TextStyle(height: 1.35),
                     ),
                   ),

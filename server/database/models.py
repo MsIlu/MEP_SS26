@@ -152,7 +152,7 @@ class ChatHistory(SQLModel, table=True):
     session_id: Optional[str] = Field(default=None, max_length=100, index=True)
 
     title: Optional[str] = Field(default=None, max_length=80)
-    status: str = Field(default="completed", max_length=20, index=True)
+    status: str = Field(default="completed", max_length=40, index=True)
     is_emergency: bool = Field(default=False)
     recommendation: str = Field(default="")
     next_steps: Optional[str] = Field(default=None)

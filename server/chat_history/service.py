@@ -116,7 +116,7 @@ def resume_chat_history(
         session=session,
     )
 
-    if entry.status != "active":
+    if entry.status not in {"active", "waiting_for_assistant"}:
         raise HTTPException(
             status_code=409,
             detail="Only active chat history entries can be resumed.",
@@ -169,10 +169,10 @@ def continue_chat_history(
         session=session,
     )
 
-    if entry.status != "active":
+    if entry.status != "waiting_for_assistant":
         raise HTTPException(
             status_code=409,
-            detail="Only active chat history entries can be continued.",
+            detail="Only waiting chat history entries can be continued.",
         )
 
     last_user_message = _last_message(entry.messages)
@@ -208,19 +208,29 @@ def continue_chat_history(
     )
     session_profiles[session_id] = entry.profile_id
 
-    turn_result = turn_engine.run_turn(
-        TurnInput.from_persisted_state(
-            message=user_text,
-            session_id=session_id,
-            turn_id=str(uuid4()),
-            conversation_messages=careena4_session.messages,
-            persisted_case_topic=careena4_session.case_topic,
-            persisted_medical_case=careena4_session.medical_case,
-            persisted_conversation_state=careena4_session.conversation_state,
-            persisted_recommendation_state=careena4_session.recommendation_state,
-            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+    try:
+        turn_result = turn_engine.run_turn(
+            TurnInput.from_persisted_state(
+                message=user_text,
+                session_id=session_id,
+                turn_id=str(uuid4()),
+                conversation_messages=careena4_session.messages,
+                persisted_case_topic=careena4_session.case_topic,
+                persisted_medical_case=careena4_session.medical_case,
+                persisted_conversation_state=careena4_session.conversation_state,
+                persisted_recommendation_state=careena4_session.recommendation_state,
+                persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+            )
         )
-    )
+    except Exception as exc:
+        entry.status = "failed"
+        entry.updated_at = datetime.utcnow()
+        session.add(entry)
+        session.commit()
+        raise HTTPException(
+            status_code=500,
+            detail="Assistant response could not be continued.",
+        ) from exc
 
     careena4_session.case_topic = turn_result.case_topic
     careena4_session.medical_case = turn_result.medical_case
@@ -274,6 +284,8 @@ def continue_chat_history(
             else assistant_text
         )
         entry.next_steps = response.get("action")
+    else:
+        entry.status = "active"
 
     entry.updated_at = datetime.utcnow()
 

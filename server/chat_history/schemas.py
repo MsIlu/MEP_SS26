@@ -3,8 +3,13 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel
 
-# Chat history differs between active and completed chats.
-ChatHistoryStatus = Literal["active", "completed"]
+# Chat history differs between active, waiting, completed and failed chats.
+ChatHistoryStatus = Literal[
+    "active",
+    "waiting_for_assistant",
+    "completed",
+    "failed",
+]
 
 
 class ChatHistoryMessage(BaseModel):

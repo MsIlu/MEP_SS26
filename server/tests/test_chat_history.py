@@ -204,7 +204,7 @@ def test_chat_history_can_continue_pending_assistant_response(client):
         json={
             "profile_id": auth["profile_id"],
             "title": "Durchfall",
-            "status": "active",
+            "status": "waiting_for_assistant",
             "session_id": "missing-session",
             "is_emergency": False,
             "recommendation": "",

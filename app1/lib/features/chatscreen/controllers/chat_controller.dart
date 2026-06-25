@@ -6,6 +6,7 @@ import '../data/chat_api.dart';
 import '../data/chat_history_repository.dart';
 import '../data/models/chat_history_entry.dart';
 import '../data/models/chat_response_model.dart';
+import '../data/models/chat_run_state.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 import '../services/chat_session_service.dart';
@@ -21,6 +22,7 @@ class ChatController {
   final AuthSession authSession;
   int? _activeProfileId;
   bool _isCompleted = false;
+  final Map<String, ChatRunState> _chatRunStates = {};
   String? _activeHistoryEntryId;
   DateTime? _activeHistoryCreatedAt;
 
@@ -113,7 +115,7 @@ class ChatController {
     }
 
     _addMessage(message: Message(text: trimmed, isUser: true));
-    await _persistActiveChat();
+    await _persistActiveChat(status: 'waiting_for_assistant');
 
     _addMessage(
       message: Message(
@@ -165,7 +167,7 @@ class ChatController {
         ),
       );
 
-      await _persistActiveChat();
+      await _persistActiveChat(status: 'active');
 
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
@@ -182,6 +184,7 @@ class ChatController {
     } catch (e) {
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      await _markActiveChatFailed();
       return null;
     }
   }
@@ -207,10 +210,24 @@ class ChatController {
     _activeHistoryCreatedAt = entry.createdAt;
     _setCompleted(entry.status == 'completed');
     messages.value = entry.messages;
+    _setChatRunState(
+      ChatRunState(
+        historyId: entry.id,
+        sessionId: entry.sessionId,
+        profileId: entry.profileId,
+        messages: entry.messages,
+        status: entry.status,
+      ),
+    );
 
-    if (entry.status == 'active') {
+    if (_canResumeStatus(entry.status)) {
       await chatSessionService.resumeHistorySession(
         historyId: entry.id,
+        profileId: entry.profileId,
+      );
+      _updateChatRunState(
+        entry.id,
+        sessionId: chatSessionService.sessionId,
         profileId: entry.profileId,
       );
       _initFuture = Future.value();
@@ -222,17 +239,35 @@ class ChatController {
   }
 
   Future<void> continuePendingAssistantResponseIfNeeded() async {
+    final historyEntryId = _activeHistoryEntryId;
+
+    if (historyEntryId == null) {
+      return;
+    }
+
+    final runState = _chatRunStates[historyEntryId];
+
+    if (runState?.isContinuing == true) {
+      return;
+    }
+
     if (!_currentMessagesWaitForAssistantResponse()) {
       return;
     }
 
-    await _continuePendingAssistantResponse();
+    _updateChatRunState(historyEntryId, isContinuing: true);
+
+    try {
+      await _continuePendingAssistantResponse(historyEntryId);
+    } finally {
+      _updateChatRunState(historyEntryId, isContinuing: false);
+    }
   }
 
-  Future<void> _continuePendingAssistantResponse() async {
-    final historyEntryId = _activeHistoryEntryId;
+  Future<void> _continuePendingAssistantResponse(String historyEntryId) async {
+    final expectedHistoryEntryId = historyEntryId;
 
-    if (historyEntryId == null || _isCompleted) {
+    if (_isCompleted) {
       return;
     }
 
@@ -249,6 +284,15 @@ class ChatController {
       final response = await chatSessionService.continueHistorySession(
         historyId: historyEntryId,
       );
+
+      if (_activeHistoryEntryId != expectedHistoryEntryId) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
       await loadSymptoms();
@@ -272,7 +316,7 @@ class ChatController {
         ),
       );
 
-      await _persistActiveChat();
+      await _persistActiveChat(status: 'active');
 
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
@@ -287,6 +331,7 @@ class ChatController {
     } catch (e) {
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      await _markActiveChatFailed();
     }
   }
 
@@ -370,7 +415,7 @@ class ChatController {
     _setCompleted(true);
   }
 
-  Future<void> _persistActiveChat() async {
+  Future<void> _persistActiveChat({String status = 'active'}) async {
     if (_isCompleted) {
       return;
     }
@@ -387,7 +432,7 @@ class ChatController {
       return;
     }
 
-    await _persistChatHistory(status: 'active');
+    await _persistChatHistory(status: status);
   }
 
   Future<void> _persistChatHistory({
@@ -425,6 +470,68 @@ class ChatController {
 
     _activeHistoryEntryId = savedEntry.id;
     _activeHistoryCreatedAt = savedEntry.createdAt;
+    _setChatRunState(
+      ChatRunState(
+        historyId: savedEntry.id,
+        sessionId: savedEntry.sessionId,
+        profileId: savedEntry.profileId,
+        messages: savedEntry.messages,
+        status: savedEntry.status,
+        isContinuing: _chatRunStates[savedEntry.id]?.isContinuing ?? false,
+        hasUnreadUpdate: false,
+      ),
+    );
+  }
+
+  Future<void> _markActiveChatFailed() async {
+    if (_activeHistoryEntryId == null || authSession.activeProfileId == null) {
+      return;
+    }
+
+    await _persistChatHistory(status: 'failed');
+  }
+
+  void _setChatRunState(ChatRunState state) {
+    _chatRunStates[state.historyId] = state;
+  }
+
+  void _updateChatRunState(
+    String historyId, {
+    String? sessionId,
+    int? profileId,
+    List<Message>? messages,
+    String? status,
+    bool? isContinuing,
+    bool? hasUnreadUpdate,
+  }) {
+    final current = _chatRunStates[historyId];
+
+    if (current == null) {
+      return;
+    }
+
+    _chatRunStates[historyId] = current.copyWith(
+      sessionId: sessionId,
+      profileId: profileId,
+      messages: messages,
+      status: status,
+      isContinuing: isContinuing,
+      hasUnreadUpdate: hasUnreadUpdate,
+    );
+  }
+
+  bool _canResumeStatus(String status) {
+    return status == 'active' || status == 'waiting_for_assistant';
+  }
+
+  String _statusForResponse(ChatResponse response) {
+    final isEmergency = chatService.isEmergencyRecommendation(response);
+
+    if (chatService.isFinalRecommendation(response) || isEmergency) {
+      return 'completed';
+    }
+
+    return 'active';
   }
 
   void _setCompleted(bool value) {

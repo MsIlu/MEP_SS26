@@ -5,7 +5,7 @@ from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena4.llm.call_control import CallModelConfig, RECOMMENDATION_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import ActiveQuestion, CaseTopic, ConversationState, MedicalCase
+from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase
 from careena4.models.turn import TurnDecision
 from careena4.models.workflow import RecommendationResult
 from careena4.server_log import log_event
@@ -29,8 +29,6 @@ class ResponseBuilder:
         decision: TurnDecision,
         recommendation_result: RecommendationResult | None = None,
         active_question: ActiveQuestion | None = None,
-        topic_mismatch: bool = False,
-        case_topic: CaseTopic | None = None,
         medical_case: MedicalCase | None = None,
         conversation_state: ConversationState | None = None,
         response_history_messages: list[dict[str, str]] | None = None,
@@ -44,11 +42,6 @@ class ResponseBuilder:
                 "Bitte waehlen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe."
             )
         if decision.response_mode == "out_of_scope":
-            if topic_mismatch:
-                return (
-                    "Das klingt nach einem neuen gesundheitlichen Anliegen und passt nicht mehr sauber zum aktuellen Fall. "
-                    "Bitte starten Sie dafuer am besten eine neue Session oder beschreiben Sie wieder das aktuelle Anliegen."
-                )
             return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreiben Sie eine gesundheitliche Beschwerde oder Frage."
         if decision.response_mode in {"ask_safety_question", "ask_followup", "guide_next_step"} and active_question is not None:
             if active_question.guided_input is not None and active_question.guided_input.options:

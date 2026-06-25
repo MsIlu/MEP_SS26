@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from careena4.application.input.symptom_mapping_service import SymptomMappingService
 from careena4.models.input import SymptomInputDraft
-from careena4.models.turn import ExtractionClaims, ObservationClaim
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput
 
 
 class SymptomChipBuilder:
@@ -25,7 +25,7 @@ class SymptomChipBuilder:
         self,
         *,
         draft: SymptomInputDraft,
-        claims: ExtractionClaims,
+        claims: ExtractedCaseInput,
     ) -> SymptomInputDraft:
         """
         Merge non-negated symptom claims into the editable input draft.
@@ -35,7 +35,7 @@ class SymptomChipBuilder:
         updated_draft.merge_extracted_labels(self.symptom_labels_from_claims(claims))
         return self.mapping_service.enrich_draft(updated_draft)
 
-    def symptom_labels_from_claims(self, claims: ExtractionClaims) -> list[str]:
+    def symptom_labels_from_claims(self, claims: ExtractedCaseInput) -> list[str]:
         """
         Return frontend-visible labels for non-negated symptom claims.
         """
@@ -47,9 +47,9 @@ class SymptomChipBuilder:
         ]
 
     @staticmethod
-    def _is_visible_symptom_claim(claim: ObservationClaim) -> bool:
+    def _is_visible_symptom_claim(claim: ExtractedObservationInput) -> bool:
         """
         Decide whether an extracted observation should become a symptom chip.
         """
 
-        return claim.type == "symptom" and not claim.negated and bool(claim.label.strip())
+        return claim.type == "symptom" and claim.status != "negated" and bool(claim.label.strip())

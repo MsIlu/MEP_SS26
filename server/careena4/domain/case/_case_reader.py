@@ -1,4 +1,4 @@
-from careena4.models.domain import CaseTopic, MedicalCase, Observation
+from careena4.models.domain import MedicalCase, Observation, TopicEntry
 
 
 class _CaseReader:
@@ -30,50 +30,19 @@ class _CaseReader:
         *,
         medical_case: MedicalCase,
     ) -> list[Observation]:
-        return [
-            observation
-            for observation in self.read_central_observations(medical_case=medical_case)
-            if not observation.negated
-        ]
-
-    def read_topic_id(self, *, case_topic: CaseTopic | None) -> str | None:
-        if case_topic is None:
-            return None
-        return case_topic.topic_id
-
-    def read_topic_label(self, *, case_topic: CaseTopic | None) -> str | None:
-        if case_topic is None:
-            return None
-        return case_topic.current_label
-
-    def read_topic_tokens(self, *, case_topic: CaseTopic | None) -> set[str]:
-        if case_topic is None:
-            return set()
-        return case_topic.search_tokens()
+        return self.read_central_observations(medical_case=medical_case)
 
     @staticmethod
-    def read_topic_extension_kinds(*, case_topic: CaseTopic | None) -> set[str]:
-        if case_topic is None:
-            return set()
-        return {extension.kind for extension in case_topic.extensions}
+    def read_topic_label(*, medical_case: MedicalCase | None) -> str | None:
+        if medical_case is None or medical_case.topic is None:
+            return None
+        return medical_case.topic.label
 
     @staticmethod
-    def read_topic_extensions(*, case_topic: CaseTopic | None):
-        if case_topic is None:
+    def read_topic_entries(*, medical_case: MedicalCase | None) -> list[TopicEntry]:
+        if medical_case is None or medical_case.topic is None:
             return []
-        return list(case_topic.extensions)
-
-    @staticmethod
-    def read_topic_initial_label(*, case_topic: CaseTopic | None) -> str | None:
-        if case_topic is None:
-            return None
-        return case_topic.initial_label
-
-    @staticmethod
-    def read_topic_type(*, case_topic: CaseTopic | None):
-        if case_topic is None:
-            return None
-        return case_topic.topic_type
+        return list(medical_case.topic.entries)
 
     def read_observation_label(
         self,
@@ -97,6 +66,17 @@ class _CaseReader:
     def read_has_observations(*, medical_case: MedicalCase) -> bool:
         return bool(medical_case.observations)
 
+    @staticmethod
+    def read_has_topic(*, medical_case: MedicalCase | None) -> bool:
+        return bool(
+            medical_case is not None
+            and medical_case.topic is not None
+            and (
+                medical_case.topic.label.strip()
+                or medical_case.topic.entries
+            )
+        )
+
     def read_first_observation_label(self, *, medical_case: MedicalCase | None) -> str | None:
         if medical_case is None:
             return None
@@ -107,7 +87,7 @@ class _CaseReader:
 
     @staticmethod
     def read_person_relation(*, medical_case: MedicalCase):
-        return medical_case.subject.relation
+        return medical_case.person.relation
 
     @staticmethod
     def _find_observation(

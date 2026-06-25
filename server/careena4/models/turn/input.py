@@ -1,7 +1,7 @@
 from pydantic import Field
 
 from careena4.models.common import PipelineModel
-from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain import ConversationState, MedicalCase, RecommendationState
 from careena4.models.input import SymptomInputDraft
 
 
@@ -17,7 +17,6 @@ class TurnInput(PipelineModel):
     entry_history_messages: list[dict[str, str]] = Field(default_factory=list)
     extraction_history_messages: list[dict[str, str]] = Field(default_factory=list)
     response_history_messages: list[dict[str, str]] = Field(default_factory=list)
-    persisted_case_topic: CaseTopic | None = None
     persisted_medical_case: MedicalCase | None = None
     persisted_conversation_state: ConversationState | None = None
     persisted_recommendation_state: RecommendationState | None = None
@@ -31,7 +30,6 @@ class TurnInput(PipelineModel):
         session_id: str | None = None,
         turn_id: str | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
-        persisted_case_topic: CaseTopic | None = None,
         persisted_medical_case: MedicalCase | None = None,
         persisted_conversation_state: ConversationState | None = None,
         persisted_recommendation_state: RecommendationState | None = None,
@@ -45,7 +43,6 @@ class TurnInput(PipelineModel):
             entry_history_messages=_recent_history(history, ENTRY_HISTORY_LIMIT),
             extraction_history_messages=_recent_history(history, EXTRACTION_HISTORY_LIMIT),
             response_history_messages=_recent_history(history, RESPONSE_HISTORY_LIMIT),
-            persisted_case_topic=persisted_case_topic,
             persisted_medical_case=persisted_medical_case,
             persisted_conversation_state=persisted_conversation_state,
             persisted_recommendation_state=persisted_recommendation_state,

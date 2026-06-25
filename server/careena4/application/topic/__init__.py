@@ -1,4 +1,4 @@
-from careena4.application.topic.case_frame_refiner import CaseFrameRefiner
-from careena4.application.topic.topic_manager import TopicManager
+from careena4.application.topic.topic_label_builder import TopicLabelBuilder
+from careena4.application.topic.topic_updater import TopicUpdater
 
-__all__ = ["CaseFrameRefiner", "TopicManager"]
+__all__ = ["TopicLabelBuilder", "TopicUpdater"]

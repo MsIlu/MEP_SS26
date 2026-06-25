@@ -60,7 +60,6 @@ def test_case_endpoint_returns_new_debug_state_shape():
 
     assert payload.keys() >= {
         "case",
-        "case_topic",
         "conversation_state",
         "recommendation_state",
     }

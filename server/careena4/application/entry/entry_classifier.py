@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import re
+
 from careena4.domain.case import CaseManager
 from careena4.core.engine import ExtractionEngine
 from careena4.llm.call_control import CallModelConfig, ENTRY_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import ActiveQuestion, CaseTopic
+from careena4.models.domain import ActiveQuestion, MedicalCase
 from careena4.models.turn import EntryAssessment
 from careena4.server_log import log_event
 
@@ -51,13 +52,13 @@ class EntryClassifier:
         *,
         message: str,
         active_question: ActiveQuestion | None = None,
-        case_topic: CaseTopic | None = None,
+        medical_case: MedicalCase | None = None,
         history_messages: list[dict[str, str]] | None = None,
     ) -> EntryAssessment:
         llm_result = self._classify_with_llm(
             message=message,
             active_question=active_question,
-            case_topic=case_topic,
+            medical_case=medical_case,
             history_messages=history_messages,
         )
         if llm_result is not None:
@@ -65,7 +66,7 @@ class EntryClassifier:
         return self._heuristic_classify(
             message=message,
             active_question=active_question,
-            case_topic=case_topic,
+            medical_case=medical_case,
         )
 
     def _classify_with_llm(
@@ -73,7 +74,7 @@ class EntryClassifier:
         *,
         message: str,
         active_question: ActiveQuestion | None,
-        case_topic: CaseTopic | None,
+        medical_case: MedicalCase | None,
         history_messages: list[dict[str, str]] | None,
     ) -> EntryAssessment | None:
         if self.extraction_engine is None:
@@ -84,7 +85,7 @@ class EntryClassifier:
                 text=self._build_user_prompt(
                     message=message,
                     active_question=active_question,
-                    case_topic=case_topic,
+                    medical_case=medical_case,
                     history_messages=history_messages,
                 ),
                 system_prompt=prompt.system_prompt,
@@ -109,7 +110,6 @@ class EntryClassifier:
         if not result.in_scope:
             result.medical_relevance = "non_medical"
             result.contains_new_medical_information = False
-            result.possible_topic_shift = False
             result.message_kind = "out_of_scope"
 
         log_event(
@@ -127,7 +127,7 @@ class EntryClassifier:
         *,
         message: str,
         active_question: ActiveQuestion | None = None,
-        case_topic: CaseTopic | None = None,
+        medical_case: MedicalCase | None = None,
     ) -> EntryAssessment:
         stripped = message.strip()
         normalized = self._normalize(stripped)
@@ -136,16 +136,12 @@ class EntryClassifier:
         recommendation_requested = self._is_recommendation_request(normalized)
         medical_relevance = "medical" if self._looks_medical(normalized) or answers_active_question else "non_medical"
         contains_new_medical_information = self._looks_medical(normalized)
-        possible_topic_shift = False
-        if case_topic is not None and contains_new_medical_information:
-            possible_topic_shift = not self._topic_matches(normalized, case_topic)
         if not in_scope:
             return EntryAssessment(
                 in_scope=False,
                 medical_relevance="non_medical",
                 answers_active_question=answers_active_question,
                 contains_new_medical_information=False,
-                possible_topic_shift=False,
                 message_kind="out_of_scope",
                 recommendation_requested=recommendation_requested,
             )
@@ -155,11 +151,11 @@ class EntryClassifier:
                 medical_relevance=medical_relevance,
                 answers_active_question=True,
                 contains_new_medical_information=contains_new_medical_information,
-                possible_topic_shift=possible_topic_shift,
                 message_kind="question_answer",
                 recommendation_requested=recommendation_requested,
             )
-        if contains_new_medical_information and case_topic is None:
+        has_case_context = medical_case is not None and self.case_manager.has_observations(medical_case=medical_case)
+        if contains_new_medical_information and not has_case_context:
             message_kind = "new_case_report"
         elif contains_new_medical_information:
             message_kind = "same_case_update"
@@ -170,7 +166,6 @@ class EntryClassifier:
             medical_relevance=medical_relevance,
             answers_active_question=False,
             contains_new_medical_information=contains_new_medical_information,
-            possible_topic_shift=possible_topic_shift,
             message_kind=message_kind,
             recommendation_requested=recommendation_requested,
         )
@@ -180,7 +175,7 @@ class EntryClassifier:
         *,
         message: str,
         active_question: ActiveQuestion | None,
-        case_topic: CaseTopic | None,
+        medical_case: MedicalCase | None,
         history_messages: list[dict[str, str]] | None,
     ) -> str:
         history_lines = []
@@ -195,9 +190,9 @@ class EntryClassifier:
             if active_question is not None
             else "none"
         )
-        case_topic_text = self.case_manager.topic_label(case_topic=case_topic) or "none"
+        topic_text = self.case_manager.topic_label(medical_case=medical_case) or "none"
         return (
-            f"Aktives Thema: {case_topic_text}\n"
+            f"Aktuelles Thema: {topic_text}\n"
             f"Offene Frage: {active_question_text}\n"
             f"Letzte Konversation:\n{history_text}\n"
             f"Letzte Nutzernachricht:\n{message}"
@@ -218,20 +213,9 @@ class EntryClassifier:
                 "was soll ich tun",
                 "wohin soll ich",
                 "naechster schritt",
-                "nächster schritt",
+                "nÃ¤chster schritt",
             )
         )
-
-    def _topic_matches(self, normalized: str, case_topic: CaseTopic) -> bool:
-        topic_tokens = self.case_manager.topic_tokens(case_topic=case_topic)
-        if not topic_tokens:
-            return True
-        message_tokens = {
-            token
-            for token in re.findall(r"[a-zA-ZaeoeuessäöüÄÖÜ]+", normalized)
-            if len(token) > 2
-        }
-        return bool(topic_tokens.intersection(message_tokens))
 
     @staticmethod
     def _normalize(text: str) -> str:

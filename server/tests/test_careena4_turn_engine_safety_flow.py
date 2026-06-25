@@ -49,7 +49,6 @@ def test_yes_to_open_safety_question_confirms_emergency():
             turn_id="turn-2",
             persisted_conversation_state=first.conversation_state,
             persisted_medical_case=first.medical_case,
-            persisted_case_topic=first.case_topic,
             persisted_recommendation_state=first.recommendation_state,
         )
     )
@@ -76,7 +75,6 @@ def test_no_to_open_safety_question_clears_question_without_emergency():
             turn_id="turn-2",
             persisted_conversation_state=first.conversation_state,
             persisted_medical_case=first.medical_case,
-            persisted_case_topic=first.case_topic,
             persisted_recommendation_state=first.recommendation_state,
         )
     )
@@ -103,7 +101,6 @@ def test_unsure_to_open_safety_question_keeps_question_open():
             turn_id="turn-2",
             persisted_conversation_state=first.conversation_state,
             persisted_medical_case=first.medical_case,
-            persisted_case_topic=first.case_topic,
             persisted_recommendation_state=first.recommendation_state,
         )
     )

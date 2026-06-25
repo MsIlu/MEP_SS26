@@ -1,18 +1,17 @@
 from careena4.application.input import SymptomChipBuilder
 from careena4.models.input import SymptomInputDraft
-from careena4.models.turn import ExtractionClaims, ObservationClaim
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput
 
 
 def test_symptom_chip_builder_enriches_extracted_chip_with_mapping_candidate():
     builder = SymptomChipBuilder()
     draft = SymptomInputDraft(session_id="session-1")
-    claims = ExtractionClaims(
+    claims = ExtractedCaseInput(
         observations=[
-            ObservationClaim(
+            ExtractedObservationInput(
                 type="symptom",
                 label="Schwindel",
-                normalized_concept="schwindel",
-                negated=False,
+                status="active",
             )
         ]
     )

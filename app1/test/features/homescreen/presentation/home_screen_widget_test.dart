@@ -241,5 +241,17 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
   }
 
   @override
-  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {}
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) async {
+    return saveChat(entry);
+  }
 }

@@ -176,14 +176,16 @@ void main() {
         expect(controller.isCompleted.value, isTrue);
         expect(chatApi.sentTexts, ['Ich habe Schmerzen']);
         expect(historyRepository.savedEntries, hasLength(1));
-        expect(historyRepository.savedEntries.single.profileId, 42);
+        expect(historyRepository.savedEntries.single.status, 'active');
+        expect(historyRepository.updatedEntries.last.status, 'completed');
+        expect(historyRepository.updatedEntries.last.profileId, 42);
         expect(
-          historyRepository.savedEntries.single.symptomTitle,
+          historyRepository.updatedEntries.last.symptomTitle,
           'Kopfschmerzen',
         );
-        expect(historyRepository.savedEntries.single.isEmergency, isFalse);
+        expect(historyRepository.updatedEntries.last.isEmergency, isFalse);
         expect(
-          historyRepository.savedEntries.single.recommendation,
+          historyRepository.updatedEntries.last.recommendation,
           'Bitte heute aerztlich abklaeren.',
         );
       },
@@ -270,10 +272,12 @@ void main() {
       expect(secondResponse, isNull);
       expect(controller.isCompleted.value, isTrue);
       expect(historyRepository.savedEntries, hasLength(1));
-      expect(historyRepository.savedEntries.single.symptomTitle, 'Blutung');
-      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(historyRepository.updatedEntries.last.status, 'completed');
+      expect(historyRepository.updatedEntries.last.symptomTitle, 'Blutung');
+      expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
       expect(
-        historyRepository.savedEntries.single.recommendation,
+        historyRepository.updatedEntries.last.recommendation,
         'Bitte sofort den Notruf 112 kontaktieren.',
       );
     });
@@ -320,8 +324,10 @@ void main() {
       expect(response?.redFlag, isFalse);
       expect(controller.isCompleted.value, isTrue);
       expect(historyRepository.savedEntries, hasLength(1));
-      expect(historyRepository.savedEntries.single.symptomTitle, 'Atemnot');
-      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(historyRepository.updatedEntries.last.status, 'completed');
+      expect(historyRepository.updatedEntries.last.symptomTitle, 'Atemnot');
+      expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
     });
 
     test('treats urgent red flag metadata as emergency history', () async {
@@ -365,7 +371,9 @@ void main() {
       await controller.sendMessage('Ich bekomme schlecht Luft');
 
       expect(controller.isCompleted.value, isTrue);
-      expect(historyRepository.savedEntries.single.isEmergency, isTrue);
+      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(historyRepository.updatedEntries.last.status, 'completed');
+      expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
     });
   });
 }
@@ -434,6 +442,7 @@ class _FakeChatApi extends ChatApi {
 
 class _FakeChatHistoryRepository extends ChatHistoryRepository {
   final List<ChatHistoryEntry> savedEntries = [];
+  final List<ChatHistoryEntry> updatedEntries = [];
 
   @override
   Future<List<ChatHistoryEntry>> loadEntries({required int profileId}) async {
@@ -441,7 +450,32 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
   }
 
   @override
-  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {
-    savedEntries.add(entry);
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry) async {
+    final savedEntry = ChatHistoryEntry(
+      id: 'history-${savedEntries.length + 1}',
+      profileId: entry.profileId,
+      symptomTitle: entry.symptomTitle,
+      status: entry.status,
+      isEmergency: entry.isEmergency,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      messages: entry.messages,
+      recommendation: entry.recommendation,
+      nextSteps: entry.nextSteps,
+    );
+
+    savedEntries.add(savedEntry);
+    return savedEntry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry) async {
+    updatedEntries.add(entry);
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) async {
+    return saveChat(entry);
   }
 }

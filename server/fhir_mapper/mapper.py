@@ -139,7 +139,7 @@ def _map_questionnaire_response(
         "item": [
             {
                 "linkId": "raw-user-input",
-                "text": "Ursprüngliche Nutzereingabe",
+                "text": "Urspruengliche Nutzereingabe",
                 "answer": [
                     {
                         "valueString": raw_text,
@@ -164,6 +164,21 @@ def _map_observation(
         f"Negiert: {context.get('negated', False)}",
         f"Sicherheit: {context.get('certainty', 'unknown')}",
     ]
+    status = context.get("status")
+    if status:
+        note_parts.append(f"Careena-Status: {status}")
+
+    topic_relation = context.get("topic_relation")
+    if topic_relation:
+        note_parts.append(f"Themenbezug: {topic_relation}")
+
+    subject_ref = context.get("subject_ref")
+    if subject_ref:
+        note_parts.append(f"Betroffene Person: {subject_ref}")
+
+    attributes = context.get("attributes")
+    if attributes:
+        note_parts.append(f"Attribute: {attributes}")
 
     temporality = context.get("temporality")
     if temporality:
@@ -208,9 +223,9 @@ def _map_service_request(
         },
         "code": {
             "concept": {
-                "text": "Empfohlener nächster Schritt",
-            }
-        },
+        "text": "Empfohlener naechster Schritt",
+    }
+},
         "extension": [
             {
                 "url": URGENCY_EXTENSION_URL,

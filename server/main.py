@@ -28,6 +28,7 @@ from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
 from logging_config import configure_logging
+from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 
 from uuid import uuid4 #for turn_id
 
@@ -163,6 +164,26 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         ),
     }
 
+@app.get("/fhir/export/{session_id}")
+def export_fhir_bundle(
+        session_id: str,
+        current_user: User | None = Depends(get_optional_current_account),
+        db_session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=db_session,
+    )
+
+    if careena4_session.medical_case is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No extracted medical case data available for this session.",
+        )
+
+    return build_fhir_bundle_from_careena4_session(careena4_session)
+
 
 #1. checks if Careena4-Session exist
 #2. validate empty input
@@ -171,6 +192,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
 #5. Careena4 processes TurnInput
 #6. write new state in session
 #7. build API-Response for Flutter
+
 @app.post("/chatscreen")
 def chat(
         req: ChatRequest,

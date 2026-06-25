@@ -223,7 +223,7 @@ def _map_service_request(
         },
         "code": {
             "concept": {
-        "text": "Empfohlener naechster Schritt",
+                "text": "Empfohlener naechster Schritt",
     }
 },
         "extension": [

@@ -549,7 +549,12 @@ class TurnEngine:
         )
         trace_notes.extend(assessment_readiness.reason_tags)
 
-        if recommendation_state.recommendation_allowed:
+        safety_clarification_pending = (
+            conversation_state.active_question is not None
+            and conversation_state.active_question.kind == "safety_clarification"
+        )
+
+        if recommendation_state.recommendation_allowed and not safety_clarification_pending:
             conversation_state.active_question = self.question_builder.build_closing_choice()
             conversation_state.phase = "closing_check"
             recommendation_state.closing_prompt_active = True

@@ -1,5 +1,5 @@
-from careena4.models.domain import Observation, Provenance, Subject
-from careena4.models.turn import CaseWritePlan, CaseWriteStep, ExtractionClaims, ObservationClaim
+from careena4.models.domain import Observation, Person
+from careena4.models.turn import CaseWritePlan, CaseWriteStep
 
 
 class _CaseWritePlanner:
@@ -7,20 +7,19 @@ class _CaseWritePlanner:
         self,
         *,
         existing_observations: list[Observation],
-        claims: ExtractionClaims,
-        topic_id: str | None,
+        observations: list[Observation],
+        person_update: Person | None = None,
     ) -> CaseWritePlan:
-        plan = CaseWritePlan(topic_id_update=topic_id)
-        subject_update = self._subject_update(claims)
-        if subject_update is not None:
-            plan.subject_update = subject_update
-        for index, claim in enumerate(claims.observations):
-            mapped_observation = self._to_observation(claim)
-            target = self._find_match(existing_observations=existing_observations, claim=claim)
+        plan = CaseWritePlan(person_update=person_update)
+        for index, mapped_observation in enumerate(observations):
+            target = self._find_match(
+                existing_observations=existing_observations,
+                candidate=mapped_observation,
+            )
             if target is None:
                 plan.steps.append(CaseWriteStep(action="create", claim_index=index, observation=mapped_observation))
                 continue
-            if claim.negated:
+            if mapped_observation.status == "negated":
                 plan.steps.append(
                     CaseWriteStep(
                         action="negate",
@@ -30,7 +29,7 @@ class _CaseWritePlanner:
                     )
                 )
                 continue
-            if self._has_new_information(target=target, claim=claim):
+            if self._has_new_information(target=target, candidate=mapped_observation):
                 plan.steps.append(
                     CaseWriteStep(
                         action="enrich",
@@ -51,45 +50,16 @@ class _CaseWritePlanner:
         return plan
 
     @staticmethod
-    def _subject_update(claims: ExtractionClaims) -> Subject | None:
-        relation = claims.subject_claims.get("relation")
-        if relation not in {"self", "child", "other", "unclear"}:
-            return None
-        return Subject(relation=relation)
-
-    @staticmethod
-    def _to_observation(claim: ObservationClaim) -> Observation:
-        topic_relation = "central" if claim.type in {"symptom", "injury", "measurement"} else "related"
-        return Observation(
-            type=claim.type,
-            label=claim.label,
-            normalized_concept=claim.normalized_concept,
-            subject_ref=claim.subject_ref or "unclear",
-            negated=claim.negated,
-            topic_relation=topic_relation,
-            attributes=dict(claim.attributes),
-            provenance=[Provenance(source="user_message", source_span=claim.source_span)],
-        )
-
-    @staticmethod
-    def _find_match(*, existing_observations: list[Observation], claim: ObservationClaim) -> Observation | None:
-        identity = (
-            claim.type,
-            claim.normalized_concept or claim.label.casefold(),
-            claim.subject_ref or "unclear",
-        )
+    def _find_match(*, existing_observations: list[Observation], candidate: Observation) -> Observation | None:
         for observation in existing_observations:
-            if observation.identity_key() == identity:
+            if observation.matches_identity(other=candidate):
                 return observation
         return None
 
     @staticmethod
-    def _has_new_information(*, target: Observation, claim: ObservationClaim) -> bool:
-        if claim.negated and not target.negated:
+    def _has_new_information(*, target: Observation, candidate: Observation) -> bool:
+        if candidate.status == "negated" and not target.is_negated():
             return True
-        for key, value in claim.attributes.items():
-            if value is None:
-                continue
-            if target.attributes.get(key) != value:
-                return True
-        return False
+        if candidate.person_ref != "unclear" and candidate.person_ref != target.person_ref:
+            return True
+        return not target.has_same_medical_content(other=candidate)

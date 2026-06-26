@@ -6,6 +6,5 @@ class EntryAssessment(PipelineModel):
     medical_relevance: MedicalRelevance
     answers_active_question: bool = False
     contains_new_medical_information: bool = False
-    possible_topic_shift: bool = False
     message_kind: EntryMessageKind
     recommendation_requested: bool = False

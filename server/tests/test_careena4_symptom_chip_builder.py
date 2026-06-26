@@ -1,24 +1,22 @@
 from careena4.application.input import SymptomChipBuilder
 from careena4.models.input import SymptomInputDraft
-from careena4.models.turn import ExtractionClaims, ObservationClaim
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput
 
 
 def test_symptom_chip_builder_adds_non_negated_symptom_claims():
     builder = SymptomChipBuilder()
     draft = SymptomInputDraft(session_id="session-1")
-    claims = ExtractionClaims(
+    claims = ExtractedCaseInput(
         observations=[
-            ObservationClaim(
+            ExtractedObservationInput(
                 type="symptom",
                 label="Kopfschmerzen",
-                normalized_concept="kopfschmerzen",
-                negated=False,
+                status="active",
             ),
-            ObservationClaim(
+            ExtractedObservationInput(
                 type="symptom",
                 label="Husten",
-                normalized_concept="husten",
-                negated=True,
+                status="negated",
             ),
         ]
     )
@@ -34,13 +32,12 @@ def test_symptom_chip_builder_merges_with_existing_user_edited_labels():
     draft = SymptomInputDraft(session_id="session-1")
     draft.replace_from_labels(["Kopfschmerzen"])
 
-    claims = ExtractionClaims(
+    claims = ExtractedCaseInput(
         observations=[
-            ObservationClaim(
+            ExtractedObservationInput(
                 type="symptom",
                 label="Schwindel",
-                normalized_concept="schwindel",
-                negated=False,
+                status="active",
             )
         ]
     )
@@ -57,13 +54,12 @@ def test_symptom_chip_builder_deduplicates_existing_labels():
     draft = SymptomInputDraft(session_id="session-1")
     draft.replace_from_labels(["Kopfschmerzen"])
 
-    claims = ExtractionClaims(
+    claims = ExtractedCaseInput(
         observations=[
-            ObservationClaim(
+            ExtractedObservationInput(
                 type="symptom",
                 label="kopfschmerzen",
-                normalized_concept="kopfschmerzen",
-                negated=False,
+                status="active",
             )
         ]
     )

@@ -12,14 +12,19 @@ import '../widgets/appointment_dialog.dart';
 import '../widgets/appointment_filter_bar.dart';
 import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_list.dart';
+import '../widgets/appointment_tile.dart';
+import '../widgets/appointment_profile_filter.dart';
+import '../../../authscreen/state/auth_session.dart';
 
 class AppointmentScreen extends StatefulWidget {
   final ThemeController? themeController;
   final String? initialAppointmentId;
+  final AuthSession? authSession;
 
   const AppointmentScreen({
     super.key,
     this.themeController,
+    this.authSession,
     this.initialAppointmentId,
   });
 
@@ -28,6 +33,7 @@ class AppointmentScreen extends StatefulWidget {
 }
 
 class _AppointmentScreenState extends State<AppointmentScreen> {
+  late int? selectedProfileId = widget.authSession?.activeProfileId;
   final AppointmentController controller = AppointmentController();
   final doctorController = TextEditingController();
   final noteController = TextEditingController();
@@ -37,6 +43,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
+  bool showAllProfiles = false;
   String selectedFilter = 'Alle';
 
   @override
@@ -126,25 +133,28 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: AppColors.careenaTeal,
-                    onPrimary: AppColors.white,
-                    surface: AppColors.appointmentCalendarSurfaceDark,
-                    onSurface: AppColors.white,
-                  )
-                : const ColorScheme.light(
-                    primary: AppColors.careenaTeal,
-                    onPrimary: AppColors.white,
-                    onSurface: AppColors.black,
-                  ),
-            timePickerTheme: const TimePickerThemeData(
-              helpTextStyle: TextStyle(fontSize: 20),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: isDark
+                  ? const ColorScheme.dark(
+                      primary: AppColors.careenaTeal,
+                      onPrimary: AppColors.white,
+                      surface: AppColors.appointmentCalendarSurfaceDark,
+                      onSurface: AppColors.white,
+                    )
+                  : const ColorScheme.light(
+                      primary: AppColors.careenaTeal,
+                      onPrimary: AppColors.white,
+                      onSurface: AppColors.black,
+                    ),
+              timePickerTheme: const TimePickerThemeData(
+                helpTextStyle: TextStyle(fontSize: 20),
+              ),
             ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
@@ -187,6 +197,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 : (compactHeight ? 12.0 : 24.0);
             final titleGap = tightHeight ? 4.0 : (compactHeight ? 6.0 : 12.0);
 
+            final activeProfile = widget.authSession?.activeProfile;
+            final canViewAllProfiles =
+                activeProfile?.profileType == 'self' ||
+                activeProfile?.role == 'owner';
+
             final headerChildren = <Widget>[
               const AppointmentInfoCard(),
               SizedBox(height: smallGap),
@@ -204,6 +219,26 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 ),
               ),
               SizedBox(height: titleGap),
+              if (canViewAllProfiles) ...[
+                AppointmentProfileFilter(
+                  profiles: widget.authSession?.profiles ?? const [],
+                  selectedProfileId: selectedProfileId,
+                  showAllProfiles: showAllProfiles,
+                  onShowAll: () {
+                    setState(() {
+                      showAllProfiles = true;
+                    });
+                  },
+                  onProfileSelected: (profileId) {
+                    setState(() {
+                      selectedProfileId = profileId;
+                      showAllProfiles = false;
+                    });
+                  },
+                ),
+                if ((widget.authSession?.profiles.length ?? 0) > 1)
+                  SizedBox(height: titleGap),
+              ],
               AppointmentFilterBar(
                 selectedFilter: selectedFilter,
                 onFilterChanged: (filter) {
@@ -260,6 +295,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     return AppointmentList(
       appointmentsListenable: controller.appointments,
       selectedFilter: selectedFilter,
+      selectedProfileId: selectedProfileId,
+      showAllProfiles: showAllProfiles,
       shrinkWrap: shrinkWrap,
       onToggleCompleted: (appointment) {
         controller.toggleAppointment(appointment.id);
@@ -271,39 +308,74 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   void _showAddAppointmentDialog() {
     _clearAppointmentForm();
+    String? doctorErrorText;
+    String? dateErrorText;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AppointmentDialog(
-          title: 'Termin hinzufügen',
-          doctorController: doctorController,
-          dateController: dateController,
-          timeController: timeController,
-          noteController: noteController,
-          onPickDate: _pickDate,
-          onPickTime: _pickTime,
-          onCancel: () {
-            _clearAppointmentForm();
-            Navigator.pop(context);
-          },
-          onSave: () {
-            if (doctorController.text.trim().isEmpty) {
-              return;
-            }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AppointmentDialog(
+              title: 'Termin hinzufügen',
+              doctorController: doctorController,
+              dateController: dateController,
+              timeController: timeController,
+              noteController: noteController,
+              onPickDate: () async {
+                await _pickDate();
+                if (dateErrorText == null) return;
 
-            controller.addAppointment(
-              Appointment(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                doctorName: doctorController.text.trim(),
-                appointmentDate: _buildAppointmentDate(null),
-                note: noteController.text.trim(),
-              ),
+                setDialogState(() {
+                  dateErrorText = null;
+                });
+              },
+              onPickTime: _pickTime,
+              onCancel: () {
+                _clearAppointmentForm();
+                Navigator.pop(context);
+              },
+              doctorErrorText: doctorErrorText,
+              dateErrorText: dateErrorText,
+              onDoctorChanged: (_) {
+                if (doctorErrorText == null) return;
+
+                setDialogState(() {
+                  doctorErrorText = null;
+                });
+              },
+              onSave: () {
+                if (doctorController.text.trim().isEmpty) {
+                  setDialogState(() {
+                    doctorErrorText =
+                    'Bitte gib einen Arzt oder eine Praxis ein.';
+                  });
+                  return;
+                }
+
+                if (_requiresDateForSelectedTime()) {
+                  setDialogState(() {
+                    dateErrorText = 'Bitte wähle ein Datum aus.';
+                  });
+                  return;
+                }
+
+                controller.addAppointment(
+                  Appointment(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    profileId: selectedProfileId,
+                    doctorName: doctorController.text.trim(),
+                    appointmentDate: _buildAppointmentDate(null),
+                    note: noteController.text.trim(),
+                  ),
+                );
+
+                _clearAppointmentForm();
+                Navigator.pop(context);
+                _showSuccessMessage('Termin gespeichert');
+                setState(() {});
+              },
             );
-
-            _clearAppointmentForm();
-            Navigator.pop(context);
-            _showSuccessMessage('Termin gespeichert');
-            setState(() {});
           },
         );
       },
@@ -369,45 +441,80 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         : '${appointmentDate.hour.toString().padLeft(2, '0')}:'
               '${appointmentDate.minute.toString().padLeft(2, '0')}';
 
+    String? doctorErrorText;
+    String? dateErrorText;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AppointmentDialog(
-          title: 'Termin bearbeiten',
-          doctorController: doctorController,
-          dateController: dateController,
-          timeController: timeController,
-          noteController: noteController,
-          onPickDate: _pickDate,
-          onPickTime: _pickTime,
-          onCancel: () {
-            _clearAppointmentForm();
-            Navigator.pop(context);
-          },
-          onSave: () {
-            if (doctorController.text.trim().isEmpty) {
-              return;
-            }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AppointmentDialog(
+              title: 'Termin bearbeiten',
+              doctorController: doctorController,
+              dateController: dateController,
+              timeController: timeController,
+              noteController: noteController,
+              onPickDate: () async {
+                await _pickDate();
+                if (dateErrorText == null) return;
 
-            final updatedAppointmentDate = _buildAppointmentDate(
-              appointmentDate,
-            );
+                setDialogState(() {
+                  dateErrorText = null;
+                });
+              },
+              onPickTime: _pickTime,
+              onCancel: () {
+                _clearAppointmentForm();
+                Navigator.pop(context);
+              },
+              doctorErrorText: doctorErrorText,
+              dateErrorText: dateErrorText,
+              onDoctorChanged: (_) {
+                if (doctorErrorText == null) return;
 
-            controller.updateAppointment(
-              Appointment(
-                id: appointment.id,
-                doctorName: doctorController.text.trim(),
-                appointmentDate: updatedAppointmentDate,
-                note: noteController.text.trim(),
-                isRecommendation:
-                    appointment.isRecommendation &&
-                    updatedAppointmentDate == null,
-                isCompleted: appointment.isCompleted,
-              ),
+                setDialogState(() {
+                  doctorErrorText = null;
+                });
+              },
+              onSave: () {
+                if (doctorController.text.trim().isEmpty) {
+                  setDialogState(() {
+                    doctorErrorText =
+                        'Bitte gib einen Arzt oder eine Praxis ein.';
+                  });
+                  return;
+                }
+
+                if (_requiresDateForSelectedTime()) {
+                  setDialogState(() {
+                    dateErrorText = 'Bitte wähle ein Datum aus.';
+                  });
+                  return;
+                }
+
+                final updatedAppointmentDate = _buildAppointmentDate(
+                  appointmentDate,
+                );
+
+                controller.updateAppointment(
+                  Appointment(
+                    id: appointment.id,
+                    profileId: appointment.profileId,
+                    doctorName: doctorController.text.trim(),
+                    appointmentDate: updatedAppointmentDate,
+                    note: noteController.text.trim(),
+                    isRecommendation:
+                        appointment.isRecommendation &&
+                        updatedAppointmentDate == null,
+                    isCompleted: appointment.isCompleted,
+                  ),
+                );
+                _clearAppointmentForm();
+                _showSuccessMessage('Termin aktualisiert');
+                Navigator.pop(context);
+              },
             );
-            _clearAppointmentForm();
-            _showSuccessMessage('Termin aktualisiert');
-            Navigator.pop(context);
           },
         );
       },
@@ -427,6 +534,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             : TimeOfDay(hour: fallbackDate.hour, minute: fallbackDate.minute));
 
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
+  bool _requiresDateForSelectedTime() {
+    return selectedDate == null &&
+        dateController.text.trim().isEmpty &&
+        selectedTime != null;
   }
 
   void _showSuccessMessage(String message) {

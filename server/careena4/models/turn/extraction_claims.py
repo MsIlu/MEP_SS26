@@ -1,19 +1,53 @@
 from pydantic import Field
 
-from careena4.models.common import ObservationType, PipelineModel, SubjectScope
+from careena4.models.common import ObservationStatus, ObservationType, PipelineModel, SubjectScope
+from careena4.models.domain import Source
 
 
-class ObservationClaim(PipelineModel):
+class ExtractedPersonInput(PipelineModel):
+    relation: SubjectScope
+    relation_source: Source | None = None
+
+
+class ExtractedObservationInput(PipelineModel):
     type: ObservationType
     label: str
-    normalized_concept: str | None = None
-    subject_ref: SubjectScope | None = None
-    negated: bool = False
-    attributes: dict[str, object] = Field(default_factory=dict)
-    source_span: str | None = None
+    label_source: Source | None = None
+    status: ObservationStatus = "active"
+    status_source: Source | None = None
+    person_ref: SubjectScope | None = None
+    person_ref_source: Source | None = None
+    onset: str | None = None
+    onset_source: Source | None = None
+    body_site: str | None = None
+    body_site_source: Source | None = None
+    description: str | None = None
+    description_source: Source | None = None
+    severity: int | str | None = None
+    severity_source: Source | None = None
+
+    @property
+    def source_span(self) -> str | None:
+        for source in (
+            self.label_source,
+            self.status_source,
+            self.person_ref_source,
+            self.onset_source,
+            self.body_site_source,
+            self.description_source,
+            self.severity_source,
+        ):
+            if source is not None and source.source_span not in (None, ""):
+                return source.source_span
+        return None
 
 
-class ExtractionClaims(PipelineModel):
-    topic_signal: str | None = None
-    subject_claims: dict[str, object] = Field(default_factory=dict)
-    observations: list[ObservationClaim] = Field(default_factory=list)
+class ExtractedTopicEntryInput(PipelineModel):
+    topic_part: str
+    source: Source
+
+
+class ExtractedCaseInput(PipelineModel):
+    topic_entries_to_add: list[ExtractedTopicEntryInput] = Field(default_factory=list)
+    person: ExtractedPersonInput | None = None
+    observations: list[ExtractedObservationInput] = Field(default_factory=list)

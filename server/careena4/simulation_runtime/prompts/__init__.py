@@ -25,10 +25,16 @@ def build_participant_prompt(participant_prompt: str | None = None) -> str:
 
 
 def normalize_scenario_prompt(scenario_prompt: str | None) -> str:
-    normalized = (scenario_prompt or "").strip()
+    raw_prompt = scenario_prompt or ""
+    normalized = raw_prompt.strip()
     if not normalized:
         return DEFAULT_SCENARIO_PROMPT
-    return SCENARIO_PROMPTS.get(normalized, normalized)
+    mapped_prompt = SCENARIO_PROMPTS.get(normalized)
+    if mapped_prompt is not None:
+        return mapped_prompt
+    if raw_prompt in SCENARIO_PROMPTS.values():
+        return raw_prompt
+    return normalized
 
 
 __all__ = [

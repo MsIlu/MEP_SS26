@@ -47,6 +47,7 @@ class AppointmentController {
 
     final alreadyExists = appointments.value.any((existingAppointment) {
       return existingAppointment.isRecommendation &&
+          existingAppointment.profileId == appointment.profileId &&
           existingAppointment.appointmentDate == null &&
           existingAppointment.doctorName.trim().toLowerCase() ==
               normalizedDoctorName;

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from pydantic import Field
@@ -38,15 +40,12 @@ class SafetyState(PipelineModel):
 
     @property
     def requires_emergency_response(self) -> bool:
-        return (
-            self.red_flag_status == SafetyRedFlagStatus.CONFIRMED
-            or self.action == SafetyAction.EMERGENCY
-        )
+        return self.action == SafetyAction.EMERGENCY
 
     @property
     def requires_safety_clarification(self) -> bool:
         return (
-            self.red_flag_status == SafetyRedFlagStatus.SUSPECTED
+            self.red_flag_status in {SafetyRedFlagStatus.SUSPECTED, SafetyRedFlagStatus.CONFIRMED}
             and self.action == SafetyAction.ASK_SAFETY_CLARIFICATION
         )
 

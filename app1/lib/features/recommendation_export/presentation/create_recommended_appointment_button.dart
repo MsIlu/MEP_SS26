@@ -2,12 +2,18 @@
 import 'package:app1/features/appointmentscreen/controllers/appointment_controller.dart';
 import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
 import 'package:app1/features/appointmentscreen/presentation/screens/appointment_screen.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter/material.dart';
 
 class CreateRecommendedAppointmentButton extends StatelessWidget {
+  final AuthSession? authSession;
   final String title;
 
-  const CreateRecommendedAppointmentButton({super.key, required this.title});
+  const CreateRecommendedAppointmentButton({
+    super.key,
+    required this.title,
+    this.authSession,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +43,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         .addRecommendedAppointmentIfMissing(
           Appointment(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
+            profileId: authSession?.activeProfileId,
             doctorName: title,
             note: 'Von Careena empfohlen',
             isRecommendation: true,
@@ -77,7 +84,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const AppointmentScreen(),
+                    builder: (context) =>
+                        AppointmentScreen(authSession: authSession),
                   ),
                 );
               },

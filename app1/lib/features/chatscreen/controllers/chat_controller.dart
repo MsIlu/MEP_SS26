@@ -45,6 +45,12 @@ class ChatController {
   );
 
   final ValueNotifier<List<String>> symptoms = ValueNotifier<List<String>>([]);
+
+  /// Structured reply options from the last backend response.
+  /// Non-empty only when the backend expects a structured answer (ask_safety_question).
+  /// Cleared when the user sends the next message.
+  final ValueNotifier<List<String>> lastReplyOptions =
+      ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
 
   Future<void>? _initFuture;
@@ -132,6 +138,8 @@ class ChatController {
     _addMessage(
       message: Message(text: visibleUserText?.trim() ?? trimmed, isUser: true),
     );
+
+    lastReplyOptions.value = [];
     _addMessage(
       message: Message(
         text: '',
@@ -150,6 +158,8 @@ class ChatController {
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
       await loadSymptoms();
+
+      lastReplyOptions.value = response.replyOptions;
 
       if (response.redFlag) {
         final botMessage = chatService.buildAssistantMessage(response);
@@ -337,5 +347,6 @@ class ChatController {
     messages.dispose();
     symptoms.dispose();
     isCompleted.dispose();
+    lastReplyOptions.dispose();
   }
 }

@@ -1,5 +1,5 @@
 from careena4.domain.case import CaseManager
-from careena4.models.domain import CaseTopic, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain import ConversationState, MedicalCase, RecommendationState
 from careena4.models.workflow import AssessmentReadiness
 
 
@@ -10,7 +10,6 @@ class ReadinessEvaluator:
     def evaluate(
         self,
         *,
-        case_topic: CaseTopic | None,
         medical_case: MedicalCase | None,
         conversation_state: ConversationState,
     ) -> RecommendationState:
@@ -28,8 +27,9 @@ class ReadinessEvaluator:
             if need.blocking and not need.resolved
         ]
         central_observations = self.case_manager.central_observations(medical_case=medical_case)
+        has_topic = self.case_manager.has_topic(medical_case=medical_case)
         ready = bool(
-            case_topic is not None
+            has_topic
             and central_observations
             and not blocking_followup_ids
             and (
@@ -56,7 +56,6 @@ class AssessmentReadinessBuilder:
     def build(
         self,
         *,
-        case_topic: CaseTopic | None,
         medical_case: MedicalCase | None,
         conversation_state: ConversationState,
         recommendation_state: RecommendationState,
@@ -77,8 +76,9 @@ class AssessmentReadinessBuilder:
                 blocking_requirements=list(recommendation_state.blocking_followup_ids),
                 reason_tags=["blocking_followup_present"],
             )
+        has_topic = self.case_manager.has_topic(medical_case=medical_case)
         return AssessmentReadiness(
-            ready=recommendation_state.recommendation_allowed and case_topic is not None,
+            ready=recommendation_state.recommendation_allowed and has_topic,
             has_medical_problem=True,
-            reason_tags=["minimum_information_present"] if case_topic is not None else ["missing_topic"],
+            reason_tags=["minimum_information_present"] if has_topic else ["missing_topic"],
         )

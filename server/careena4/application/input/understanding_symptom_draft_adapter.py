@@ -27,7 +27,7 @@ class UnderstandingSymptomDraftAdapter:
         active_draft = draft or SymptomInputDraft(session_id=session_id)
 
         for symptom in understanding.symptoms:
-            if not symptom.is_medical:
+            if not symptom.is_medical or symptom.is_negated:
                 continue
 
             display_label = (symptom.normalized_label_de or symptom.source_label or "").strip()
@@ -39,7 +39,6 @@ class UnderstandingSymptomDraftAdapter:
                 display_label_de=display_label,
                 normalized_label_de=self._identity(display_label),
                 clinical_term_de=symptom.clinical_term_de,
-                snomed_code=None,
                 extraction_confidence=symptom.confidence,
                 mapping_confidence=None,
                 status="extracted",
@@ -83,9 +82,6 @@ class UnderstandingSymptomDraftAdapter:
 
             if existing_chip.mapping_confidence is None:
                 existing_chip.mapping_confidence = new_chip.mapping_confidence
-
-            if existing_chip.snomed_code is None:
-                existing_chip.snomed_code = new_chip.snomed_code
 
             if existing_chip.mapping is None:
                 existing_chip.mapping = new_chip.mapping

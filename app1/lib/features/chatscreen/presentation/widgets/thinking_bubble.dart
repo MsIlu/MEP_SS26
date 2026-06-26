@@ -135,7 +135,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
                     if (widget.showLongProcessingHint) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
+                        'Die Antwort dauert etwas länger. Bitte bleib kurz im Chat.',
                         softWrap: true,
                         style: TextStyle(fontSize: 12, color: hintTextColor),
                       ),

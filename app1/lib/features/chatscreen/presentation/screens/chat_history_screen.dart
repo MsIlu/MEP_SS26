@@ -42,7 +42,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CareenaPageHeader(
-        title: 'Nachrichten',
+        title: 'Nachrichtenverlauf',
         trailing: CareenaThemeHeaderAction(
           onPressed: widget.themeController.toggleTheme,
           isDarkMode: widget.themeController.isDarkMode,

@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 /// Central configuration for app name, copy, and environment values.
 class AppConfig {
   static const String appName = "MedBitAid v0.4";
-  static const String welcomeMessage = "Hallo! 👋 \nWie kann ich dir helfen?";
+  static const String welcomeMessage = "Hallo! Ich bin Careena, deine virtuelle Gesundheitsassistentin.\nIch unterstütze dich dabei, Beschwerden einzuordnen, Symptome zu dokumentieren und eine passende Handlungsempfehlung zu erhalten."
+      "\nBitte beschreibe deine Beschwerden möglichst genau: Was spürst du, wo tritt es auf, seit wann besteht es und wie stark ist es?";
 
   /// Base URL for backend communication.
   ///

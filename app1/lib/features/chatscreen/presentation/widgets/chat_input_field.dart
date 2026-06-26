@@ -189,7 +189,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                     child: Semantics(
                       textField: true,
                       label: 'Eingabefeld für Symptome',
-                      hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
+                      hint: 'Beschreibe kurz deine Beschwerden.',
                       child: Container(
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
@@ -257,12 +257,12 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     },
                                     decoration: InputDecoration(
                                       hintText: _isListening
-                                          ? '🎤 Ich höre zu...'
+                                          ? 'Ich höre zu...'
                                           : (!widget.isEnabled
                                                 ? 'Chat abgeschlossen'
                                                 : (isCompact
                                                       ? 'Beschwerden beschreiben'
-                                                      : 'Beschreiben Sie kurz Ihre Beschwerden')),
+                                                      : 'Beschreibe kurz deine Beschwerden')),
                                       hintStyle: TextStyle(
                                         color: colorScheme.onSurfaceVariant,
                                       ),

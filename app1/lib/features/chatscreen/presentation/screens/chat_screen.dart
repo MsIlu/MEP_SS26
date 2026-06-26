@@ -37,9 +37,9 @@ class ChatScreen extends StatefulWidget {
     required this.controller,
     required this.themeController,
     this.leaveDialogMessage =
-        'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+        'Wenn du fortfährst, gelangst du zurück zur Startseite. '
         'Der aktuelle Chat wird nicht gespeichert.',
-    this.leaveDialogConfirmLabel = 'Zum Homescreen',
+    this.leaveDialogConfirmLabel = 'Zur Startseite',
   });
 
   @override

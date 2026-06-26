@@ -3,9 +3,9 @@ import 'package:app1/core/themes/app_colors.dart';
 
 Future<bool> showLeaveChatDialog(
   BuildContext context, {
-  String message = 'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+  String message = 'Wenn du fortfährst, gelangst du zurück zur Startseite. '
       'Der aktuelle Chat wird nicht gespeichert.',
-  String confirmLabel = 'Zum Homescreen',
+  String confirmLabel = 'Zur Startseite',
 }) async {
   final colorScheme = Theme.of(context).colorScheme;
   final isDarkMode = Theme.of(context).brightness == Brightness.dark;

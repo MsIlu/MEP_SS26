@@ -98,6 +98,7 @@ class ChatController {
   }
 
   Future<void> refreshAvailability() async {
+    availability.value = CareenaAvailability.checking;
     availability.value = await chatApi.getCareenaAvailability();
   }
 

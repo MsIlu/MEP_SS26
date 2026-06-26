@@ -2,6 +2,7 @@
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
+import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 
@@ -127,8 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _onBottomNavigationTap(int index) {
     if (index == 3) return;
     if (index == 0) {
-      // The start tab is the first route in the main app flow.
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      _openHome();
       return;
     }
 
@@ -168,6 +168,29 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showNavigationUnavailable() {
     showCareenaSnackBar(context, 'Dieser Bereich ist aktuell nicht verfügbar.');
+  }
+
+  void _openHome() {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    if (dependencies == null) {
+      // Isolated widget tests can still fall back to the existing route stack.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(
+          controller: dependencies.chatController,
+          themeController: widget.themeController,
+          apiClient: dependencies.apiClient,
+          authSession: dependencies.authSession,
+          authApiService: dependencies.authApiService,
+          symptomApiService: dependencies.symptomApiService,
+        ),
+      ),
+      (route) => false,
+    );
   }
 
   List<_SettingsItem> _items(BuildContext context) {

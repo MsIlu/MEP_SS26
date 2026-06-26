@@ -1,4 +1,5 @@
 ﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,10 @@ import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_tile.dart';
 
 class AppointmentScreen extends StatefulWidget {
-  const AppointmentScreen({super.key});
+  final ThemeController? themeController;
+  final String? initialAppointmentId;
+
+  const AppointmentScreen({super.key, this.themeController, this.initialAppointmentId});
 
   @override
   State<AppointmentScreen> createState() => _AppointmentScreenState();
@@ -30,6 +34,24 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   TimeOfDay? selectedTime;
 
   String selectedFilter = 'Alle';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openInitialAppointment());
+  }
+
+  void _openInitialAppointment() {
+    final appointmentId = widget.initialAppointmentId;
+    if (appointmentId == null || !mounted) return;
+
+    for (final appointment in controller.appointments.value) {
+      if (appointment.id == appointmentId) {
+        _showEditDialog(appointment);
+        return;
+      }
+    }
+  }
 
   Future<void> _pickDate() async {
     final pickedDate = await showDatePicker(
@@ -229,7 +251,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   Widget _buildAppointmentContent({bool shrinkWrap = false}) {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<List<Appointment>>(
       valueListenable: controller.appointments,
       builder: (context, appointments, child) {
         List<Appointment> filteredAppointments = List.from(appointments);
@@ -534,13 +556,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _clearAppointmentForm() {
-  doctorController.clear();
-  noteController.clear();
-  dateController.clear();
-  timeController.clear();
-  selectedDate = null;
-  selectedTime = null;
-}
+    doctorController.clear();
+    noteController.clear();
+    dateController.clear();
+    timeController.clear();
+    selectedDate = null;
+    selectedTime = null;
+  }
 }
 
 class _AppointmentSectionHeader extends StatelessWidget {

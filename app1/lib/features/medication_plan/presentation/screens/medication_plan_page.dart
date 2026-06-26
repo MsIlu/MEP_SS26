@@ -21,12 +21,16 @@ class MedicationPlanPage extends StatefulWidget {
   final ThemeController themeController;
   final ApiClient? apiClient;
   final AuthSession? authSession;
+  final int? initialMedicationId;
+  final DateTime? initialDate;
 
   const MedicationPlanPage({
     super.key,
     required this.themeController,
     this.apiClient,
     this.authSession,
+    this.initialMedicationId,
+    this.initialDate,
   });
 
   @override
@@ -44,7 +48,10 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     super.initState();
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
-    _selectedDate = _today;
+    final initialDate = widget.initialDate;
+    _selectedDate = initialDate == null
+        ? _today
+        : DateTime(initialDate.year, initialDate.month, initialDate.day);
     _controller = MedicationPlanController(
       repository: MedicationRepository(
         apiService: widget.apiClient == null
@@ -53,7 +60,19 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
         profileId: widget.authSession?.activeProfileId,
       ),
     );
-    _controller.loadEntries();
+    _controller.loadEntries().then((_) => _openInitialMedication());
+  }
+
+  void _openInitialMedication() {
+    final medicationId = widget.initialMedicationId;
+    if (medicationId == null || !mounted) return;
+
+    for (final entry in _controller.entries) {
+      if (entry.id == medicationId) {
+        _openMedicationForm(entry: entry);
+        return;
+      }
+    }
   }
 
   @override

@@ -33,8 +33,6 @@ class SymptomDiaryContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SymptomDiaryIntro(entriesCount: entries.length),
-        const SizedBox(height: 12),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 16),
@@ -70,29 +68,5 @@ class SymptomDiaryContent extends StatelessWidget {
 
   bool _hasEntryForDate(DateTime date) {
     return allEntries.any((entry) => isSameCalendarDay(entry.date, date));
-  }
-}
-
-class _SymptomDiaryIntro extends StatelessWidget {
-  final int entriesCount;
-
-  const _SymptomDiaryIntro({required this.entriesCount});
-
-  @override
-  Widget build(BuildContext context) {
-    if (entriesCount == 0) {
-      return const SizedBox.shrink();
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Text(
-      '$entriesCount Einträge an diesem Tag gespeichert.',
-      style: TextStyle(
-        color: colorScheme.onSurfaceVariant,
-        fontSize: 14,
-        height: 1.35,
-      ),
-    );
   }
 }

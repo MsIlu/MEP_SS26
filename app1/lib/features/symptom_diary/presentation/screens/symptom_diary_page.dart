@@ -15,12 +15,14 @@ class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final SymptomApiService? symptomApiService;
+  final DateTime? initialDate;
 
   const SymptomDiaryPage({
     super.key,
     required this.themeController,
     this.authSession,
     this.symptomApiService,
+    this.initialDate,
   });
 
   @override
@@ -38,7 +40,10 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     super.initState();
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
-    _selectedDate = _today;
+    final initialDate = widget.initialDate;
+    _selectedDate = initialDate == null
+        ? _today
+        : DateTime(initialDate.year, initialDate.month, initialDate.day);
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
       profileId: widget.authSession?.activeProfileId,

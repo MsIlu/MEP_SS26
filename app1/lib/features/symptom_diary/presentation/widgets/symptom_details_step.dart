@@ -93,6 +93,7 @@ class SymptomDetailsStep extends StatelessWidget {
           controller: noteController,
           minLines: 2,
           maxLines: 4,
+          textAlignVertical: TextAlignVertical.center,
           textInputAction: TextInputAction.done,
           decoration: const InputDecoration(
             labelText: 'Notiz (optional)',

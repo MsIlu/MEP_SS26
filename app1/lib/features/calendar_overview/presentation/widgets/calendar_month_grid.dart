@@ -78,9 +78,13 @@ class _CalendarDayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
     final backgroundColor = isSelected
         ? AppColors.careenaTeal
-        : Theme.of(context).brightness == Brightness.dark
+        : isDarkMode
         ? AppColors.darkElevatedSurface
         : AppColors.careenaNoteBackground;
     final textColor = isSelected ? AppColors.white : colorScheme.onSurface;
@@ -94,7 +98,7 @@ class _CalendarDayTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected || isToday
-                ? AppColors.careenaTeal
+                ? accentColor
                 : AppColors.careenaBorder,
             width: isToday && !isSelected ? 2 : 1,
           ),
@@ -112,7 +116,7 @@ class _CalendarDayTile extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: hasMarker
-                      ? (isSelected ? AppColors.white : AppColors.careenaTeal)
+                      ? (isSelected ? AppColors.white : accentColor)
                       : AppColors.transparent,
                   shape: BoxShape.circle,
                 ),

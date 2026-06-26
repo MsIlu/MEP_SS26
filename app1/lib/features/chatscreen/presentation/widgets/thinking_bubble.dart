@@ -66,11 +66,13 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final bubbleColor = isDarkMode ? colorScheme.surface : AppColors.white;
-    final textColor = isDarkMode ? colorScheme.onSurface : AppColors.grey;
+    final textColor = isDarkMode ? colorScheme.onSurface : AppColors.careenaMuted;
     final hintTextColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
-    final dotColor = isDarkMode ? colorScheme.onSurfaceVariant : AppColors.grey;
+    final dotColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
     final avatarBackground = isDarkMode
         ? AppColors.chatAvatarBackgroundDark
         : AppColors.chatAvatarBackgroundLight;

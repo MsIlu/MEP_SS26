@@ -106,10 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          TextButton(
+          AuthTextLink(
+            text: 'Passwort vergessen?',
             // TODO(backend): Connect password reset flow once email delivery is available.
             onPressed: () {},
-            child: const Text('Passwort vergessen?'),
           ),
           const SizedBox(height: 12),
           SwitchAuthMode(

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_dependencies_scope.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../profiles/data/profile_api_service.dart';
 import 'profile_display_helpers.dart';
@@ -98,9 +99,7 @@ class CreateManagedProfileButton extends StatelessWidget {
   }
 
   void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showCareenaSnackBar(context, message);
   }
 }
 

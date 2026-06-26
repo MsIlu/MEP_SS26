@@ -15,6 +15,7 @@ import '../widgets/form/medication_form_dialog.dart';
 import '../widgets/list/medication_list_dialog.dart';
 import '../widgets/layout/medication_plan_content.dart';
 import '../../../../core/widgets/careena_page_header.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 
 /// Page for managing personal medications and daily intake reminders.
 class MedicationPlanPage extends StatefulWidget {
@@ -172,14 +173,9 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     );
 
     if (mounted && wasSaved == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            entry == null
-                ? 'Medikament gespeichert'
-                : 'Medikament aktualisiert',
-          ),
-        ),
+      showCareenaSnackBar(
+        context,
+        entry == null ? 'Medikament gespeichert' : 'Medikament aktualisiert',
       );
     }
   }
@@ -286,9 +282,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       await action;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        showCareenaSnackBar(context, errorMessage);
       }
     }
   }

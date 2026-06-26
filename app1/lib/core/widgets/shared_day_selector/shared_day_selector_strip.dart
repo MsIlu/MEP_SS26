@@ -248,11 +248,14 @@ class _SharedDayChip extends StatelessWidget {
         : isDarkMode
         ? AppColors.darkElevatedSurface
         : AppColors.lightBackground;
+    final accentColor = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
     final unselectedDayColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaDark;
     final dayColor = isSelected || isToday
-        ? AppColors.careenaTeal
+        ? accentColor
         : unselectedDayColor;
     final dateColor = isSelected ? AppColors.white : colorScheme.onSurface;
 
@@ -269,9 +272,9 @@ class _SharedDayChip extends StatelessWidget {
               AnimatedOpacity(
                 duration: const Duration(milliseconds: 160),
                 opacity: isSelected ? 1 : 0,
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_drop_down,
-                  color: AppColors.careenaTeal,
+                  color: accentColor,
                   size: 18,
                 ),
               ),
@@ -290,7 +293,7 @@ class _SharedDayChip extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isToday && !isSelected
-                        ? AppColors.careenaTeal
+                        ? accentColor
                         : AppColors.transparent,
                     width: 1.5,
                   ),
@@ -309,7 +312,7 @@ class _SharedDayChip extends StatelessWidget {
                 width: hasMarker ? 6 : 0,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: hasMarker ? AppColors.careenaTeal : AppColors.transparent,
+                  color: hasMarker ? accentColor : AppColors.transparent,
                   shape: BoxShape.circle,
                 ),
               ),

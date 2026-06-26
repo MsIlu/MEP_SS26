@@ -125,8 +125,36 @@ class SwitchAuthMode extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(label, style: TextStyle(color: labelColor)),
-        TextButton(onPressed: onPressed, child: Text(actionText)),
+        AuthTextLink(text: actionText, onPressed: onPressed),
       ],
+    );
+  }
+}
+
+class AuthTextLink extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+
+  const AuthTextLink({
+    super.key,
+    required this.text,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final linkColor = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
+
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: linkColor,
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      child: Text(text),
     );
   }
 }

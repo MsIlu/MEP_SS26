@@ -1,5 +1,6 @@
 ﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
@@ -175,9 +176,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           return;
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Symptom lokal gespeichert')),
-        );
+        showCareenaSnackBar(context, 'Symptom lokal gespeichert');
         return;
       }
     }
@@ -186,8 +185,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Symptom gespeichert')));
+    showCareenaSnackBar(context, 'Symptom gespeichert');
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/careena_page_header.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 import '../../../authscreen/state/auth_session.dart';
@@ -166,9 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showNavigationUnavailable() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Dieser Bereich ist aktuell nicht verfügbar.')),
-    );
+    showCareenaSnackBar(context, 'Dieser Bereich ist aktuell nicht verfügbar.');
   }
 
   List<_SettingsItem> _items(BuildContext context) {

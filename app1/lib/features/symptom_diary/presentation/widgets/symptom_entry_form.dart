@@ -1,4 +1,5 @@
 import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/features/authscreen/presentation/widgets/registration/registration_step_indicator.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -231,9 +232,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   }
 
   void _showMissingSymptomMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Bitte ein Symptom eintragen')),
-    );
+    showCareenaSnackBar(context, 'Bitte ein Symptom eintragen');
   }
 
   void _clampCurrentStepToActiveFlow() {

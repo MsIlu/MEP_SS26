@@ -3,6 +3,7 @@ import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/app_guide/data/app_guide_store.dart';
 import 'package:app1/features/app_guide/data/app_guide_steps.dart';
@@ -189,10 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final activeProfileId = widget.controller.authSession.activeProfileId;
 
     if (activeProfileId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Melde dich an, um gespeicherte Verläufe zu sehen.'),
-        ),
+      showCareenaSnackBar(
+        context,
+        'Melde dich an, um gespeicherte Verläufe zu sehen.',
       );
       return;
     }

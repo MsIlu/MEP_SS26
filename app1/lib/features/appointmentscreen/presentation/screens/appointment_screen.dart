@@ -4,6 +4,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/careena_page_header.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../controllers/appointment_controller.dart';
 import '../../data/models/appointment.dart';
 import '../widgets/appointment_116117_card.dart';
@@ -429,19 +430,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.careenaTeal,
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
+    showCareenaSnackBar(context, message);
   }
 
   void _clearAppointmentForm() {

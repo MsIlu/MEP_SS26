@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/chat_warning_controller.dart';
@@ -227,14 +228,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showRecommendationCheckHint() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Careena prüft jetzt, ob genug Angaben für eine Versorgungsempfehlung vorliegen.',
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 3),
-      ),
+    showCareenaSnackBar(
+      context,
+      'Careena prüft jetzt, ob genug Angaben für eine Versorgungsempfehlung vorliegen.',
     );
   }
 
@@ -565,13 +561,15 @@ class _RecommendationRequestButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
+      child: FilledButton.icon(
         onPressed: isEnabled ? onPressed : null,
         icon: const Icon(Icons.medical_information_outlined),
         label: const Text('Versorgungsempfehlung anfordern'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.careenaTeal,
-          side: BorderSide(color: AppColors.careenaTeal.withValues(alpha: 0.8)),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.careenaTeal,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.35),
+          disabledForegroundColor: AppColors.white70,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

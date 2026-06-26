@@ -30,7 +30,7 @@ class CustomBottomNav extends StatelessWidget {
         : AppColors.careenaInfoBorder;
 
     final selectedColor = isDarkMode
-        ? AppColors.toolbarButtonBackgroundDark
+        ? AppColors.careenaAccentOnDark
         : AppColors.careenaTeal;
 
     final unselectedColor = isDarkMode

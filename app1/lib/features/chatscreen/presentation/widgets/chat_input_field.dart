@@ -2,6 +2,7 @@
 import 'smart_reply_list.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/services/speech_service.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 
 /// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatefulWidget {
@@ -90,13 +91,9 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     if (!available) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Mikrofon nicht verfügbar oder keine Berechtigung erteilt.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showCareenaSnackBar(
+          context,
+          'Mikrofon nicht verfügbar oder keine Berechtigung erteilt.',
         );
       }
       return;
@@ -157,6 +154,9 @@ class _ChatInputFieldState extends State<ChatInputField>
     final sendingIconColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
+    final accentForeground = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -311,7 +311,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                             key: ValueKey(_isListening),
 
                                             color: _isListening
-                                                ? AppColors.careenaTeal
+                                                ? accentForeground
                                                 : colorScheme.onSurfaceVariant,
 
                                             size: 22,

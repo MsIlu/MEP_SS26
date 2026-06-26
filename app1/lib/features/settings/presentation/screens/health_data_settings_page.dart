@@ -1,4 +1,5 @@
 ﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:flutter/material.dart';
 
 import '../../../authscreen/data/registration_condition_options.dart';
@@ -313,8 +314,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showCareenaSnackBar(context, message);
   }
 }

@@ -1,9 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
-import '../../utils/medical_terms.dart';
 import 'package:app1/core/themes/app_colors.dart';
-import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
@@ -31,7 +29,6 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-    final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -124,8 +121,6 @@ class ChatBubble extends StatelessWidget {
                         message.text,
                         style: TextStyle(color: textColor, fontSize: 15),
                       ),
-                      if (medicalTerm != null)
-                        MedicalTermInfoBox(term: medicalTerm),
                       if (!isUser &&
                           message.canExportPdf &&
                           !message.isStreaming) ...[

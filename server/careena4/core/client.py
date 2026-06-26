@@ -1,4 +1,5 @@
 import os
+import time
 
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena4.server_log import log_event, log_json
@@ -74,6 +75,7 @@ class LLMClient:
             if json_mode:
                 raise LLMRequestError("OpenAI client dependency is not available")
             return "Ich weiss nicht genau."
+        t0 = time.perf_counter()
         try:
             response = self.client.chat.completions.create(
                 model=selected_model,
@@ -83,6 +85,7 @@ class LLMClient:
                 response_format={"type": "json_object"} if json_mode else None,
             )
         except Exception as exc:
+            elapsed_ms = round((time.perf_counter() - t0) * 1000)
             log_event(
                 "llm.complete.failed",
                 layer="core",
@@ -91,8 +94,10 @@ class LLMClient:
                 prompt_version=prompt_version,
                 model=selected_model,
                 reason=type(exc).__name__,
+                elapsed_ms=elapsed_ms,
             )
             raise
+        elapsed_ms = round((time.perf_counter() - t0) * 1000)
         content = response.choices[0].message.content
         if not content:
             raise EmptyLLMResponseError("LLM returned empty response")
@@ -104,6 +109,7 @@ class LLMClient:
             prompt_version=prompt_version,
             model=selected_model,
             output_chars=len(content),
+            elapsed_ms=elapsed_ms,
         )
         return content
 

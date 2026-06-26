@@ -18,35 +18,38 @@ class StsConsultationReasonCatalog:
         self._reasons_cache: list[dict[str, Any]] | None = None
         self._index_cache: dict[str, dict[str, Any]] | None = None
 
-    def reasons_for_prompt(self) -> list[dict[str, Any]]:
-        """Return a compact STS reason list for the LLM prompt."""
+    def reasons_for_prompt(self) -> str:
+        """Return a compact 'id: label' string of all STS reasons for the LLM prompt.
+
+        Format: one entry per line, 'sts_id: source_label_de'.
+        Omits category and STS levels — those are filled in by hydrate_match() after the LLM call.
+        """
 
         if self._reasons_cache is not None:
-            return self._reasons_cache
+            return self._reasons_cache  # type: ignore[return-value]
 
         seed = json.loads(self.seed_path.read_text(encoding="utf-8-sig"))
-        reasons: list[dict[str, Any]] = []
+        full_reasons: list[dict[str, Any]] = []
+        lines: list[str] = []
 
         for item in seed.get("consultation_reasons", []):
             sts_id = item.get("sts_id")
             if sts_id is None:
                 continue
+            full_reasons.append(item)
+            lines.append(f"{sts_id}: {item.get('source_label_de', '')}")
 
-            reasons.append(
-                {
-                    "sts_id": str(sts_id),
-                    "source_category_de": item.get("source_category_de"),
-                    "source_label_de": item.get("source_label_de"),
-                    "source_sts_levels_present": item.get("source_sts_levels_present", []),
-                }
-            )
-
-        self._reasons_cache = reasons
+        self._reasons_cache = "\n".join(lines)  # type: ignore[assignment]
         self._index_cache = {
-            str(reason["sts_id"]): reason
-            for reason in reasons
+            str(item["sts_id"]): {
+                "sts_id": str(item["sts_id"]),
+                "source_category_de": item.get("source_category_de"),
+                "source_label_de": item.get("source_label_de"),
+                "source_sts_levels_present": item.get("source_sts_levels_present", []),
+            }
+            for item in full_reasons
         }
-        return reasons
+        return self._reasons_cache  # type: ignore[return-value]
 
     def hydrate_match(self, match: dict[str, Any]) -> dict[str, Any]:
         """

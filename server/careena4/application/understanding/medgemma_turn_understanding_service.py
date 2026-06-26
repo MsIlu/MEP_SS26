@@ -88,8 +88,8 @@ Rules:
 - If symptoms are present but no STS reason fits, return symptoms and an empty sts_matches list.
 - If the sentence contains no medical symptom, return an empty symptoms list and an empty sts_matches list.
 - If multiple symptoms are present, return multiple symptoms.
-- Select up to 3 possible STS consultation reasons from the provided STS reason catalog only.
-- Use only STS IDs that are present in the provided catalog.
+- Select up to 3 possible STS consultation reasons from the provided STS reason list only.
+- The STS reason list uses the format "sts_id: label". Use only sts_id values present in that list.
 - The STS levels are source metadata only. They are not a final triage result.
 - Prefer direct matches over speculative matches.
 - Avoid weak differential guesses unless the user text explicitly supports them.
@@ -155,7 +155,7 @@ class MedGemmaTurnUnderstandingService:
         return self._to_current_turn_understanding(raw_message=message, output=output)
 
     def _payload(self, raw_message: str) -> str:
-        """Build a compact JSON payload with the allowed STS catalog."""
+        """Build the LLM input payload. STS reasons are sent as a compact id:label string."""
 
         return json.dumps(
             {
@@ -164,7 +164,7 @@ class MedGemmaTurnUnderstandingService:
                     "Extract symptoms first. Then map to possible STS consultation reasons. "
                     "If no STS reason fits, keep the extracted symptoms and return no STS match."
                 ),
-                "allowed_sts_consultation_reasons": self.sts_catalog.reasons_for_prompt(),
+                "sts_reasons": self.sts_catalog.reasons_for_prompt(),
             },
             ensure_ascii=False,
         )

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import concurrent.futures
+
 from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
@@ -18,6 +22,7 @@ from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
 from careena4.models.turn import TurnDecision, TurnInput, TurnResult
+from careena4.models.turn.entry_assessment import EntryAssessment
 from careena4.server_log import log_event
 
 
@@ -114,125 +119,163 @@ class TurnEngine:
                 trace_notes=trace_notes + decision.trace_notes,
             )
 
-        if self.turn_understanding_service is not None:
-            current_turn_understanding = self.turn_understanding_service.extract(
-                message=turn_input.message,
+        # Fast path: guided-input answers (e.g. "Ja"/"Nein" on a safety question) skip all
+        # extraction LLM calls. The answer is deterministic — no understanding needed.
+        speculative_extraction = None
+        is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
+
+        if is_fast_path:
+            entry_assessment = EntryAssessment(
+                in_scope=True,
+                medical_relevance="medical",
+                answers_active_question=True,
+                contains_new_medical_information=False,
+                message_kind="question_answer",
+                recommendation_requested=False,
             )
-            trace_notes.extend(current_turn_understanding.trace_notes)
-            symptom_input_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
-                draft=symptom_input_draft,
-                understanding=current_turn_understanding,
-                session_id=turn_input.session_id,
-            )
-            if current_turn_understanding.symptoms:
-                trace_notes.append("symptom_input_draft:updated_from_understanding")
-            for symptom in current_turn_understanding.symptoms:
-                trace_notes.append(
-                    "understanding:symptom:"
-                    f"{symptom.normalized_label_de or symptom.source_label}"
+            trace_notes.append("entry:question_answer")
+            trace_notes.append("turn:guided_input_fast_path")
+            recommendation_state.request_present = conversation_state.recommendation_requested
+        else:
+            # Tier-1 parallel: understanding + entry_assessment + medical_extraction run simultaneously.
+            # medical_extraction is speculative — used when entry_assessment confirms new medical info,
+            # discarded otherwise. The load balancer handles concurrent requests on separate GPU slots.
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                understanding_future = (
+                    executor.submit(self.turn_understanding_service.extract, message=turn_input.message)
+                    if self.turn_understanding_service is not None else None
                 )
-            for match in current_turn_understanding.sts_matches:
-                trace_notes.append(f"understanding:sts:{match.sts_id}")
+                entry_future = executor.submit(
+                    self.entry_classifier.classify,
+                    message=turn_input.message,
+                    active_question=conversation_state.active_question,
+                    medical_case=medical_case,
+                    history_messages=turn_input.entry_history_messages,
+                )
+                extraction_future = executor.submit(
+                    self.medical_extractor.extract,
+                    message=turn_input.message,
+                    topic_context=self.case_manager.topic_label(medical_case=medical_case),
+                    history_messages=turn_input.extraction_history_messages,
+                )
 
-        if raw_safety.requires_safety_clarification and (
-            conversation_state.active_question is None
-            or conversation_state.active_question.kind != "safety_clarification"
-        ):
-            conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                safety_state=raw_safety
-            )
-            conversation_state.phase = "followup"
+            # Process understanding result (preserves original order: understanding before safety check)
+            if understanding_future is not None:
+                current_turn_understanding = understanding_future.result()
+                trace_notes.extend(current_turn_understanding.trace_notes)
+                symptom_input_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
+                    draft=symptom_input_draft,
+                    understanding=current_turn_understanding,
+                    session_id=turn_input.session_id,
+                )
+                if current_turn_understanding.symptoms:
+                    trace_notes.append("symptom_input_draft:updated_from_understanding")
+                for symptom in current_turn_understanding.symptoms:
+                    trace_notes.append(
+                        "understanding:symptom:"
+                        f"{symptom.normalized_label_de or symptom.source_label}"
+                    )
+                for match in current_turn_understanding.sts_matches:
+                    trace_notes.append(f"understanding:sts:{match.sts_id}")
 
-            active_question = conversation_state.active_question
-            safety_context = active_question.safety_context if active_question is not None else None
-            trace_notes.extend(
-                [
-                    "safety_clarification:"
-                    f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
-                    *(
-                        [
-                            "safety_catalog_reason:"
-                            f"{safety_context.consultation_reason_source_id}"
-                        ]
-                        if safety_context is not None
-                        and safety_context.consultation_reason_source_id
-                        else []
-                    ),
-                    *(
-                        [
-                            "safety_catalog_criterion:"
-                            f"{safety_context.criterion_key}"
-                        ]
-                        if safety_context is not None
-                        and safety_context.criterion_key
-                        else []
-                    ),
-                ]
-            )
+            if raw_safety.requires_safety_clarification and (
+                conversation_state.active_question is None
+                or conversation_state.active_question.kind != "safety_clarification"
+            ):
+                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                    safety_state=raw_safety
+                )
+                conversation_state.phase = "followup"
 
-            decision = TurnDecision(
-                kind="ask_safety_question",
-                response_mode="ask_safety_question",
-                active_question=active_question,
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
-                trace_notes=["turn:safety_clarification_opened"],
-            )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
-                decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                active_question=active_question,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                recommendation_state=recommendation_state,
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
-            )
+                active_question = conversation_state.active_question
+                safety_context = active_question.safety_context if active_question is not None else None
+                trace_notes.extend(
+                    [
+                        "safety_clarification:"
+                        f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
+                        *(
+                            [
+                                "safety_catalog_reason:"
+                                f"{safety_context.consultation_reason_source_id}"
+                            ]
+                            if safety_context is not None
+                            and safety_context.consultation_reason_source_id
+                            else []
+                        ),
+                        *(
+                            [
+                                "safety_catalog_criterion:"
+                                f"{safety_context.criterion_key}"
+                            ]
+                            if safety_context is not None
+                            and safety_context.criterion_key
+                            else []
+                        ),
+                    ]
+                )
 
-        entry_assessment = self.entry_classifier.classify(
-            message=turn_input.message,
-            active_question=conversation_state.active_question,
-            medical_case=medical_case,
-            history_messages=turn_input.entry_history_messages,
-        )
-        trace_notes.append(f"entry:{entry_assessment.message_kind}")
-        if entry_assessment.recommendation_requested:
-            conversation_state.recommendation_requested = True
-        recommendation_state.request_present = conversation_state.recommendation_requested
+                decision = TurnDecision(
+                    kind="ask_safety_question",
+                    response_mode="ask_safety_question",
+                    active_question=active_question,
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:safety_clarification_opened"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    active_question=active_question,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
 
-        if not entry_assessment.in_scope:
-            decision = TurnDecision(
-                kind="out_of_scope",
-                response_mode="out_of_scope",
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
-                trace_notes=["turn:out_of_scope"],
-            )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
-                decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                recommendation_state=recommendation_state,
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
-            )
+            # Process entry assessment result — check in_scope before waiting for extraction.
+            entry_assessment = entry_future.result()
+            trace_notes.append(f"entry:{entry_assessment.message_kind}")
+            if entry_assessment.recommendation_requested:
+                conversation_state.recommendation_requested = True
+            recommendation_state.request_present = conversation_state.recommendation_requested
+
+            if not entry_assessment.in_scope:
+                decision = TurnDecision(
+                    kind="out_of_scope",
+                    response_mode="out_of_scope",
+                    recommendation_requested=conversation_state.recommendation_requested,
+                    recommendation_ready=False,
+                    trace_notes=["turn:out_of_scope"],
+                )
+                response_text = self._build_response_text(
+                    turn_input=turn_input,
+                    decision=decision,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                )
+                return TurnResult(
+                    turn_id=turn_input.turn_id,
+                    response_mode=decision.response_mode,
+                    response_text=response_text,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes + decision.trace_notes,
+                )
+
+            # Wait for speculative extraction only on in-scope paths.
+            speculative_extraction = extraction_future.result()
 
         extra_case_input = None
         if conversation_state.active_question is not None:
@@ -396,21 +439,15 @@ class TurnEngine:
 
         case_input = None
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
-            case_input = self.medical_extractor.extract(
-                message=turn_input.message,
-                topic_context=self.case_manager.topic_label(medical_case=medical_case),
-                history_messages=turn_input.extraction_history_messages,
-            )
+            case_input = speculative_extraction
         elif extra_case_input is not None and (
             extra_case_input.observations or extra_case_input.topic_entries_to_add
         ):
             case_input = extra_case_input
         elif resolution_additional_information and entry_assessment.contains_new_medical_information:
-            case_input = self.medical_extractor.extract(
-                message=turn_input.message,
-                topic_context=self.case_manager.topic_label(medical_case=medical_case),
-                history_messages=turn_input.extraction_history_messages,
-            )
+            # speculative_extraction is None on fast path, but fast path always sets
+            # contains_new_medical_information=False so this branch cannot trigger there.
+            case_input = speculative_extraction
 
         if case_input is not None:
             understanding_has_symptoms = (
@@ -614,6 +651,20 @@ class TurnEngine:
             symptom_input_draft=symptom_input_draft,
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes + decision.trace_notes,
+        )
+
+    @staticmethod
+    def _is_guided_input_answer(message: str, active_question: ActiveQuestion | None) -> bool:
+        """Return True when the message exactly matches a guided-input option label.
+
+        An exact match means the intent is fully known — no LLM extraction needed.
+        """
+        if active_question is None or active_question.guided_input is None:
+            return False
+        normalized = message.strip().lower()
+        return any(
+            opt.label.strip().lower() == normalized
+            for opt in active_question.guided_input.options
         )
 
     def _build_response_text(

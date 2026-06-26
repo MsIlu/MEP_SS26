@@ -144,6 +144,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "recommend",
     }
 
+    reply_options: list[str] = []
+    if (
+        active_question is not None
+        and active_question.guided_input is not None
+        and active_question.guided_input.options
+    ):
+        reply_options = [opt.label for opt in active_question.guided_input.options]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -152,6 +160,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "pending_followup": pending_followup,
         "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
+        "reply_options": reply_options,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None
@@ -403,9 +412,28 @@ def create_session(
 # Modified as part of the authentication and profile management implementation.
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
+def _seed_catalog() -> None:
+    """Run catalog seed imports on startup. Logs a warning on failure instead of crashing."""
+    try:
+        from database.seed_catalog import (
+            seed_assessment_criteria,
+            seed_consultation_reason_criteria_links,
+            seed_consultation_reasons,
+        )
+        r1 = seed_consultation_reasons()
+        r2 = seed_assessment_criteria()
+        r3 = seed_consultation_reason_criteria_links()
+        print(f"Catalog seeded: reasons={r1}, criteria={r2}, links={r3}")
+    except Exception as exc:
+        print(f"Warning: Catalog seeding skipped ({exc})")
+
+
 @app.on_event("startup")
 def on_startup():
     """
     Initialize database tables on application startup.
     """
     create_db_and_tables()
+    _seed_catalog()
+    n = careena4_services.safety_catalog_cache.load()
+    print(f"SafetyCatalogCache loaded: {n} entries")

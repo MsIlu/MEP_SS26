@@ -24,7 +24,6 @@ def test_input_draft_patch_accepts_rich_chips_and_preserves_candidate_mapping():
                     "display_label_de": "Schwindel",
                     "normalized_label_de": "schwindel",
                     "clinical_term_de": "Vertigo / Schwindel",
-                    "snomed_code": "404640003",
                     "mapping_confidence": 0.92,
                     "status": "user_confirmed",
                     "source": "careena4_extraction",
@@ -32,7 +31,6 @@ def test_input_draft_patch_accepts_rich_chips_and_preserves_candidate_mapping():
                         "raw_text": "Schwindel",
                         "lay_term_de": "Schwindel",
                         "clinical_term_de": "Vertigo / Schwindel",
-                        "snomed_code": "404640003",
                         "confidence": 0.92,
                         "mapper_name": "local_symptom_mapping",
                         "validation_status": "mapping_candidate",
@@ -51,7 +49,6 @@ def test_input_draft_patch_accepts_rich_chips_and_preserves_candidate_mapping():
     chip = body["chips"][0]
     assert chip["display_label_de"] == "Schwindel"
     assert chip["status"] == "user_confirmed"
-    assert chip["snomed_code"] == "404640003"
     assert chip["mapping_confidence"] == 0.92
     assert chip["mapping"]["validation_status"] == "mapping_candidate"
 
@@ -66,7 +63,6 @@ def test_input_draft_patch_clears_stale_mapping_for_user_edited_chip():
                 {
                     "display_label_de": "Neu beschriebenes Symptom",
                     "clinical_term_de": "Old stale term",
-                    "snomed_code": "123456",
                     "mapping_confidence": 0.99,
                     "status": "user_edited",
                     "source": "careena4_extraction",
@@ -74,7 +70,6 @@ def test_input_draft_patch_clears_stale_mapping_for_user_edited_chip():
                         "raw_text": "old",
                         "lay_term_de": "old",
                         "clinical_term_de": "Old stale term",
-                        "snomed_code": "123456",
                         "confidence": 0.99,
                         "mapper_name": "old_mapper",
                         "validation_status": "mapping_candidate",
@@ -93,7 +88,6 @@ def test_input_draft_patch_clears_stale_mapping_for_user_edited_chip():
     assert chip["status"] == "user_edited"
     assert chip["source"] == "user"
     assert chip["clinical_term_de"] is None
-    assert chip["snomed_code"] is None
     assert chip["mapping_confidence"] is None
     assert chip["mapping"] is None
 

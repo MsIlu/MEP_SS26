@@ -1,12 +1,10 @@
-﻿import logging
+import logging
 
-from careena4.application.repositories.safety_catalog_repository import SafetyCatalogRepository
 from careena4.models.domain import (
     ActiveQuestion,
     GuidedInputContract,
     GuidedInputMode,
     GuidedInputOption,
-    SafetyCatalogMatch,
     SafetyQuestionContext,
 )
 from careena4.models.turn import SafetyState
@@ -14,147 +12,72 @@ from careena4.models.turn import SafetyState
 
 logger = logging.getLogger(__name__)
 
+_FALLBACK_QUESTION = (
+    "Sie haben etwas erwähnt, das ich kurz einordnen möchte. "
+    "Sind diese Beschwerden gerade sehr stark oder plötzlich aufgetreten?"
+)
+
+_QUESTION_SYSTEM_PROMPT = (
+    "Du bist ein medizinisches Assistenzsystem. "
+    "Formuliere ausschließlich eine kurze, empathische Rückfrage auf Deutsch. "
+    "Die Frage soll klären ob ein Notfall vorliegt: "
+    "Frage nach Schwerezeichen wie plötzlichem Beginn, starker Intensität oder begleitenden Warnsymptomen. "
+    "Formuliere die Frage so, dass 'Ja' einem ernsthaften Notfall entspricht und 'Nein' einem milden Verlauf. "
+    "Keine Diagnose nennen. Maximal 2 Sätze. Mit 'Sie' ansprechen."
+)
+
 
 class SafetyClarificationBuilder:
-    def __init__(
-        self,
-        safety_catalog_repository: SafetyCatalogRepository | None = None,
-    ):
-        self.safety_catalog_repository = safety_catalog_repository
+    def __init__(self, llm_client=None) -> None:
+        self._llm_client = llm_client
 
     def build_active_question(self, *, safety_state: SafetyState) -> ActiveQuestion:
-        question_code = (
-            safety_state.clarification_question_code
-            or "raw_red_flag_clarification"
-        )
+        question_code = safety_state.clarification_question_code or "safety_clarification"
         evidence_terms = list(safety_state.evidence_terms)
 
-        if self.safety_catalog_repository is None or not evidence_terms:
-            return self._fallback_question(
-                prompt_text="Ich moechte kurz eine sicherheitsrelevante Angabe klaeren.",
-                question_code=question_code,
-                evidence_terms=evidence_terms,
-                catalog_mapping_status="fallback_no_catalog_repository",
-            )
-
-        try:
-            match = self._find_best_catalog_match(evidence_terms)
-        except Exception:
-            logger.exception("Safety catalog lookup failed; using generic fallback.")
-            return self._fallback_question(
-                prompt_text="Ich moechte kurz eine sicherheitsrelevante Angabe klaeren.",
-                question_code=question_code,
-                evidence_terms=evidence_terms,
-                catalog_mapping_status="fallback_catalog_unavailable",
-            )
-
-        if match is not None and match.suggested_question_text:
-            return self._question_from_match(
-                match=match,
-                question_code=question_code,
-                evidence_terms=evidence_terms,
-            )
-
-        return self._fallback_question(
-            prompt_text="Ich moechte kurz eine sicherheitsrelevante Angabe klaeren.",
-            question_code=question_code,
-            evidence_terms=evidence_terms,
-            catalog_mapping_status="fallback_no_catalog_match",
+        prompt_text = self._generate_question(evidence_terms)
+        mapping_status = "medgemma_generated" if self._llm_client and evidence_terms else "fallback"
+        source_stage = (
+            "raw_message"
+            if "raw_message" in (safety_state.checked_sources or [])
+            else "case_slice"
         )
 
-    def _find_best_catalog_match(
-        self,
-        evidence_terms: list[str],
-    ) -> SafetyCatalogMatch | None:
-        if self.safety_catalog_repository is None or not evidence_terms:
-            return None
-
-        matches = self.safety_catalog_repository.find_matches_for_evidence_terms(
-            evidence_terms
-        )
-        clarification_matches = [
-            match
-            for match in matches
-            if match.urgency_effect == "requires_safety_clarification"
-            and match.suggested_question_text
-            and match.is_safety_relevant
-            and match.is_red_flag_candidate
-        ]
-
-        if not clarification_matches:
-            return None
-
-        return max(clarification_matches, key=self._match_priority)
-
-    @staticmethod
-    def _match_priority(match: SafetyCatalogMatch) -> int:
-        # Score by generic safety metadata, never by symptom identity.
-        score = 0
-        if match.is_safety_relevant:
-            score += 20
-        if match.is_red_flag_candidate:
-            score += 20
-        if "safety" in match.careena_decision_role:
-            score += 10
-        if match.urgency_effect == "requires_safety_clarification":
-            score += 10
-        if match.criterion_role in {"entry_criterion", "level_discriminator"}:
-            score += 5
-        if match.suggested_question_text:
-            score += 5
-        return score
-
-    @classmethod
-    def _question_from_match(
-        cls,
-        *,
-        match: SafetyCatalogMatch,
-        question_code: str,
-        evidence_terms: list[str],
-    ) -> ActiveQuestion:
         safety_context = SafetyQuestionContext(
             question_code=question_code,
-            source_stage="raw_message",
-            evidence_terms=evidence_terms,
-            source_system=match.source_system,
-            source_version=match.source_version,
-            consultation_reason_source_id=match.consultation_reason_source_id,
-            consultation_reason_key=match.consultation_reason_key,
-            consultation_reason_label_de=match.consultation_reason_label_de,
-            criterion_key=match.criterion_key,
-            criterion_label_de=match.criterion_label_de,
-            criterion_role=match.criterion_role,
-            urgency_effect=match.urgency_effect,
-            careena_decision_role=match.careena_decision_role,
-            catalog_mapping_status=match.mapping_status or "catalog_matched",
-            matched_lay_term=match.matched_lay_term,
-        )
-        return cls._base_question(
-            prompt_text=match.suggested_question_text
-            or "Ich moechte kurz eine sicherheitsrelevante Angabe klaeren.",
-            safety_context=safety_context,
-        )
-
-    @classmethod
-    def _fallback_question(
-        cls,
-        *,
-        prompt_text: str,
-        question_code: str,
-        evidence_terms: list[str],
-        catalog_mapping_status: str,
-    ) -> ActiveQuestion:
-        safety_context = SafetyQuestionContext(
-            question_code=question_code,
-            source_stage="raw_message",
+            source_stage=source_stage,
             evidence_terms=evidence_terms,
             source_system="STS",
-            catalog_mapping_status=catalog_mapping_status,
+            catalog_mapping_status=mapping_status,
         )
-        return cls._base_question(
-            prompt_text=prompt_text,
-            safety_context=safety_context,
+        return self._base_question(prompt_text=prompt_text, safety_context=safety_context)
+
+    def _generate_question(self, evidence_terms: list[str]) -> str:
+        if not self._llm_client or not evidence_terms:
+            return _FALLBACK_QUESTION
+
+        terms_str = ", ".join(evidence_terms)
+        user_prompt = (
+            f"Der Patient hat folgende Beschwerden erwähnt: {terms_str}.\n"
+            "Formuliere eine kurze Rückfrage, die klärt ob ein medizinischer Notfall vorliegt. "
+            "Frage nach spezifischen Schwerezeichen für diese Beschwerde "
+            "(z.B. plötzlicher Beginn, sehr starke Intensität, begleitende Warnsymptome)."
         )
+        try:
+            response = self._llm_client.complete(
+                messages=[
+                    {"role": "system", "content": _QUESTION_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=120,
+                temperature=0.3,
+                call_name="safety_clarification_question",
+            )
+            text = (response or "").strip()
+            return text if text else _FALLBACK_QUESTION
+        except Exception:
+            logger.exception("Safety question generation failed; using fallback.")
+            return _FALLBACK_QUESTION
 
     @staticmethod
     def _base_question(

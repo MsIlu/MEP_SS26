@@ -39,7 +39,6 @@ class LocalSymptomMappingProvider:
                 raw_text="Kopfschmerzen",
                 lay_term_de="Kopfschmerzen",
                 clinical_term_de="Kopfschmerzen",
-                snomed_code="25064002",
                 confidence=0.95,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -48,7 +47,6 @@ class LocalSymptomMappingProvider:
                 raw_text="Schwindel",
                 lay_term_de="Schwindel",
                 clinical_term_de="Vertigo / Schwindel",
-                snomed_code="404640003",
                 confidence=0.92,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -57,7 +55,6 @@ class LocalSymptomMappingProvider:
                 raw_text="Uebelkeit",
                 lay_term_de="?belkeit",
                 clinical_term_de="Nausea / ?belkeit",
-                snomed_code="422587007",
                 confidence=0.93,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -66,7 +63,6 @@ class LocalSymptomMappingProvider:
                 raw_text="?belkeit",
                 lay_term_de="?belkeit",
                 clinical_term_de="Nausea / ?belkeit",
-                snomed_code="422587007",
                 confidence=0.93,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -75,7 +71,6 @@ class LocalSymptomMappingProvider:
                 raw_text="Atemnot",
                 lay_term_de="Atemnot",
                 clinical_term_de="Dyspnoe",
-                snomed_code="267036007",
                 confidence=0.94,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -84,7 +79,6 @@ class LocalSymptomMappingProvider:
                 raw_text="Brustschmerzen",
                 lay_term_de="Brustschmerzen",
                 clinical_term_de="Thoraxschmerz",
-                snomed_code="29857009",
                 confidence=0.93,
                 mapper_name="local_symptom_mapping",
                 validation_status="mapping_candidate",
@@ -109,7 +103,6 @@ class LocalSymptomMappingProvider:
             raw_text=raw_text or label,
             lay_term_de=label.strip(),
             clinical_term_de=None,
-            snomed_code=None,
             confidence=0.35,
             mapper_name="local_symptom_mapping",
             validation_status="fallback_low_confidence",
@@ -120,8 +113,7 @@ class SymptomMappingService:
     """
     Enriches editable symptom chips with terminology mapping candidates.
 
-    This service does not validate SNOMED codes against our database and does
-    not make safety, case-writing or recommendation decisions.
+    This service does not make safety, case-writing or recommendation decisions.
     """
 
     def __init__(
@@ -167,7 +159,6 @@ class SymptomMappingService:
                 "raw_text": chip.raw_text or candidate.raw_text,
                 "normalized_label_de": _normalized_identity(candidate.lay_term_de),
                 "clinical_term_de": candidate.clinical_term_de,
-                "snomed_code": candidate.snomed_code,
                 "mapping_confidence": candidate.confidence,
                 "mapping": candidate,
                 "status": new_status,

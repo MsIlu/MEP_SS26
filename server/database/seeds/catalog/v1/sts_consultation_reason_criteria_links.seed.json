@@ -10580,7 +10580,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated trauma, GI/gyn and urology/nephrology STS mapping based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated STS cluster draft; not runtime-released.",
       "is_active": true
@@ -10871,7 +10870,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated trauma, GI/gyn and urology/nephrology STS mapping based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated STS cluster draft; not runtime-released.",
       "is_active": true
@@ -11274,7 +11272,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated trauma, GI/gyn and urology/nephrology STS mapping based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated STS cluster draft; not runtime-released.",
       "is_active": true
@@ -14092,7 +14089,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -14576,7 +14572,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -14662,7 +14657,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -15199,7 +15193,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -15415,7 +15408,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -15539,7 +15531,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -16413,7 +16404,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "none",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true
@@ -16605,7 +16595,6 @@
       ],
       "urgency_effect": "requires_safety_clarification",
       "interim_care_guidance_key": "medical_evaluation_after_older_person_fall",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Product decision: older person fall should always be medically clarified; do not treat as pure self-observation.",
       "is_active": true
@@ -17077,9 +17066,9 @@
       "target_sts_levels": [
         4
       ],
-      "urgency_effect": "requires_safety_clarification",
+      "urgency_effect": "supporting_context_only",
       "interim_care_guidance_key": "ask_reason_for_planned_consultation",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "source_note": "STS-based recalibration: urgency_effect downgraded from requires_safety_clarification. STS default urgency level for this criterion is Stufe 3-4; Stufe 1-2 pathway requires additional qualifiers covered by separate higher-acuity criteria. criterion has no emergency pathway.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Not direct out-of-scope; ask what the planned consultation is about for routing/terminservice.",
       "is_active": true
@@ -17095,9 +17084,9 @@
       "target_sts_levels": [
         4
       ],
-      "urgency_effect": "requires_safety_clarification",
+      "urgency_effect": "supporting_context_only",
       "interim_care_guidance_key": "ask_reason_for_planned_consultation",
-      "source_note": "Calibrated remaining STS categories 1501-1920 based on STS source review and project medical modeling review. Not runtime-released.",
+      "source_note": "STS-based recalibration: urgency_effect downgraded from requires_safety_clarification. STS default urgency level for this criterion is Stufe 3-4; Stufe 1-2 pathway requires additional qualifiers covered by separate higher-acuity criteria. criterion has no emergency pathway.",
       "mapping_status": "draft_cluster_calibrated",
       "mapping_notes": "Calibrated remaining STS cluster draft; not runtime-released.",
       "is_active": true

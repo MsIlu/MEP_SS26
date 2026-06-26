@@ -1,6 +1,29 @@
+from unittest.mock import MagicMock
+
+from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.orchestration.turn_engine import TurnEngine
 from careena4.models.domain import TopicEntry
+from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, ExtractedTopicEntryInput, TurnInput
+
+
+def _make_cache_with_signal() -> MagicMock:
+    match = SafetyCatalogMatch(
+        evidence_term="brustschmerzen",
+        matched_lay_term="Brustschmerzen",
+        consultation_reason_source_id="1002",
+        criterion_key="chest_pain_test",
+        criterion_role="primary_criterion",
+        urgency_effect="requires_safety_clarification",
+        careena_decision_role="safety_relevant",
+        is_safety_relevant=True,
+        is_red_flag_candidate=True,
+    )
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [match]
+    cache.scan_labels.return_value = []
+    return cache
 
 
 class _StubMedicalExtractor:
@@ -63,7 +86,8 @@ def test_missing_subject_can_trigger_subject_clarification():
 
 
 def test_safety_signal_opens_safety_question():
-    engine = TurnEngine()
+    cache = _make_cache_with_signal()
+    engine = TurnEngine(raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache))
 
     result = engine.run_turn(TurnInput(message="Ich habe Brustschmerzen und bekomme schlecht Luft."))
 

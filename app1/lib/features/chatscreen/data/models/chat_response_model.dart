@@ -80,6 +80,10 @@ class ChatResponse {
   final bool recommendationReady;
   final RecommendationResult? recommendationResult;
 
+  /// Structured reply options provided by the backend (non-empty only for
+  /// ask_safety_question responses). Used to populate smart reply chips.
+  final List<String> replyOptions;
+
   const ChatResponse({
     required this.text,
     required this.redFlag,
@@ -93,6 +97,7 @@ class ChatResponse {
     this.responseMode,
     this.recommendationReady = false,
     this.recommendationResult,
+    this.replyOptions = const [],
   });
 
   /// Maps raw JSON from the backend into a typed chat response.
@@ -118,6 +123,11 @@ class ChatResponse {
         json['recommendation_result'] as Map<String, dynamic>,
       )
           : null,
+      replyOptions:
+          (json['reply_options'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
     );
   }
 }

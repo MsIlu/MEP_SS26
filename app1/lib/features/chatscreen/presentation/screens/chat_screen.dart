@@ -197,9 +197,13 @@ class _ChatScreenState extends State<ChatScreen> {
     if (lastMessage.isStreaming) return;
     if (lastMessage.text.isEmpty) return;
 
-    // Generate smart replies from the latest assistant message
+    // Use structured reply options from the backend when available (e.g. safety
+    // clarification question), otherwise fall back to text-based generation.
+    final backendOptions = widget.controller.lastReplyOptions.value;
     setState(() {
-      _smartReplies = SmartReplies.generate(lastMessage.text);
+      _smartReplies = backendOptions.isNotEmpty
+          ? backendOptions
+          : SmartReplies.generate(lastMessage.text);
     });
   }
 

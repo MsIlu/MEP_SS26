@@ -14,14 +14,16 @@ logger = logging.getLogger(__name__)
 
 _FALLBACK_QUESTION = (
     "Sie haben etwas erwähnt, das ich kurz einordnen möchte. "
-    "Haben Sie diese Beschwerden gerade akut?"
+    "Sind diese Beschwerden gerade sehr stark oder plötzlich aufgetreten?"
 )
 
 _QUESTION_SYSTEM_PROMPT = (
     "Du bist ein medizinisches Assistenzsystem. "
     "Formuliere ausschließlich eine kurze, empathische Rückfrage auf Deutsch. "
-    "Keine Diagnose. Keine Dringlichkeitsbewertung. Nur die Frage, maximal 2 Sätze. "
-    "Mit 'Sie' ansprechen."
+    "Die Frage soll klären ob ein Notfall vorliegt: "
+    "Frage nach Schwerezeichen wie plötzlichem Beginn, starker Intensität oder begleitenden Warnsymptomen. "
+    "Formuliere die Frage so, dass 'Ja' einem ernsthaften Notfall entspricht und 'Nein' einem milden Verlauf. "
+    "Keine Diagnose nennen. Maximal 2 Sätze. Mit 'Sie' ansprechen."
 )
 
 
@@ -57,7 +59,9 @@ class SafetyClarificationBuilder:
         terms_str = ", ".join(evidence_terms)
         user_prompt = (
             f"Der Patient hat folgende Beschwerden erwähnt: {terms_str}.\n"
-            "Formuliere eine kurze Rückfrage, um zu klären ob diese Beschwerden gerade akut auftreten."
+            "Formuliere eine kurze Rückfrage, die klärt ob ein medizinischer Notfall vorliegt. "
+            "Frage nach spezifischen Schwerezeichen für diese Beschwerde "
+            "(z.B. plötzlicher Beginn, sehr starke Intensität, begleitende Warnsymptome)."
         )
         try:
             response = self._llm_client.complete(

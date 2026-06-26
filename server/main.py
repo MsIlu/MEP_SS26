@@ -144,6 +144,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "recommend",
     }
 
+    reply_options: list[str] = []
+    if (
+        active_question is not None
+        and active_question.guided_input is not None
+        and active_question.guided_input.options
+    ):
+        reply_options = [opt.label for opt in active_question.guided_input.options]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -152,6 +160,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "pending_followup": pending_followup,
         "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
+        "reply_options": reply_options,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None

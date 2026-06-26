@@ -1,5 +1,6 @@
 class Appointment {
   final String id;
+  final int? profileId;
   final String doctorName;
   final DateTime? appointmentDate;
   final String note;
@@ -9,6 +10,7 @@ class Appointment {
 
   Appointment({
     required this.id,
+    this.profileId,
     required this.doctorName,
     this.appointmentDate,
     required this.note,

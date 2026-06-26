@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from careena4.application import TurnEngine
 from careena4.models.turn import TurnInput
 from careena4.simulation_runtime.models import SimulationSystemTurn, SimulationTranscriptEntry
@@ -14,20 +16,21 @@ class Careena4Adapter:
         transcript: list[SimulationTranscriptEntry],
         state: dict | None,
     ) -> SimulationSystemTurn:
-        medical_case = None
-        conversation_state = None
-        recommendation_state = None
-        if state is not None:
-            medical_case = state.get("medical_case")
-            conversation_state = state.get("conversation_state")
-            recommendation_state = state.get("recommendation_state")
+        state = state or {}
+        session_id: str = state.get("session_id") or str(uuid4())
+        medical_case = state.get("medical_case")
+        conversation_state = state.get("conversation_state")
+        recommendation_state = state.get("recommendation_state")
+        symptom_input_draft = state.get("symptom_input_draft")
         result = self.turn_engine.run_turn(
             TurnInput.from_persisted_state(
                 message=user_message,
+                session_id=session_id,
                 conversation_messages=_transcript_to_messages(transcript),
                 persisted_medical_case=medical_case,
                 persisted_conversation_state=conversation_state,
                 persisted_recommendation_state=recommendation_state,
+                persisted_symptom_input_draft=symptom_input_draft,
             )
         )
         next_medical_case = result.medical_case if result.medical_case is not None else medical_case
@@ -45,9 +48,11 @@ class Careena4Adapter:
                 recommendation_state=next_recommendation_state,
             ),
             state={
+                "session_id": session_id,
                 "medical_case": next_medical_case,
                 "conversation_state": next_conversation_state,
                 "recommendation_state": next_recommendation_state,
+                "symptom_input_draft": result.symptom_input_draft,
             },
             raw_result=result,
         )

@@ -12,7 +12,6 @@ import '../widgets/appointment_dialog.dart';
 import '../widgets/appointment_filter_bar.dart';
 import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_list.dart';
-import '../widgets/appointment_tile.dart';
 import '../widgets/appointment_profile_filter.dart';
 import '../../../authscreen/state/auth_session.dart';
 

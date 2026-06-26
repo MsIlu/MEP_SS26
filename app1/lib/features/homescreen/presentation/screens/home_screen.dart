@@ -371,14 +371,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToAppointments(BuildContext context) {
+    final dependencies = _dependenciesFromContext(context);
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AppointmentScreen(
           themeController: widget.themeController,
           authSession:
-          widget.authSession ?? dependencies?.dependencies.authSession,
-
+              widget.authSession ?? dependencies?.dependencies.authSession,
         ),
       ),
     );

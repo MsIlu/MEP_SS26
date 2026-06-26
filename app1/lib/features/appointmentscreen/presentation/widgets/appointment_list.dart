@@ -11,6 +11,8 @@ import 'appointment_tile.dart';
 class AppointmentList extends StatelessWidget {
   final ValueListenable<List<Appointment>> appointmentsListenable;
   final String selectedFilter;
+  final int? selectedProfileId;
+  final bool showAllProfiles;
   final bool shrinkWrap;
   final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
@@ -20,6 +22,8 @@ class AppointmentList extends StatelessWidget {
     super.key,
     required this.appointmentsListenable,
     required this.selectedFilter,
+    this.selectedProfileId,
+    this.showAllProfiles = true,
     required this.shrinkWrap,
     required this.onToggleCompleted,
     required this.onDelete,
@@ -31,13 +35,22 @@ class AppointmentList extends StatelessWidget {
     return ValueListenableBuilder<List<Appointment>>(
       valueListenable: appointmentsListenable,
       builder: (context, appointments, child) {
-        if (appointments.isEmpty) {
+        final visibleAppointments = showAllProfiles
+            ? appointments
+            : appointments
+                .where((appointment) => appointment.profileId == selectedProfileId)
+                .toList();
+
+        if (visibleAppointments.isEmpty) {
           return shrinkWrap
               ? const SizedBox(height: 180, child: AppointmentEmptyState())
               : const AppointmentEmptyState();
         }
 
-        final sections = buildAppointmentSections(appointments, selectedFilter);
+        final sections = buildAppointmentSections(
+          visibleAppointments,
+          selectedFilter,
+        );
         if (sections.isEmpty) {
           return _EmptyFilterState(shrinkWrap: shrinkWrap);
         }

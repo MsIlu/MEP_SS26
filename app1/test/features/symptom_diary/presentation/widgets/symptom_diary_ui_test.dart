@@ -210,6 +210,7 @@ void main() {
                   required symptom,
                   required bodyArea,
                   required intensity,
+                  double? temperatureC,
                   required note,
                 }) async {
                   savedEntries.add(

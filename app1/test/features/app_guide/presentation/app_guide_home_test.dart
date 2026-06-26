@@ -60,7 +60,7 @@ void main() {
       await _nextStep(tester);
       expect(find.text('Hell oder dunkel'), findsOneWidget);
       await _nextStep(tester);
-      expect(find.textContaining('Tippe auf eine Karte'), findsOneWidget);
+      expect(find.textContaining('Tippe auf eine Funktion'), findsOneWidget);
       await _nextStep(tester);
       expect(find.text('Immer schnell erreichbar'), findsOneWidget);
       await _nextStep(tester);

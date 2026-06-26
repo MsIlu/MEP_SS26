@@ -136,8 +136,25 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     await _speechService.stop();
-
     _textController.clear();
+
+    await _submitChatRequest(() => widget.controller.sendMessage(text));
+  }
+
+  Future<void> _handleRecommendationRequest() async {
+    if (_isSending || widget.controller.isCompleted.value) return;
+
+    await _speechService.stop();
+    _textController.clear();
+
+    _showRecommendationCheckHint();
+
+    await _submitChatRequest(widget.controller.requestRecommendation);
+  }
+
+  Future<void> _submitChatRequest(
+    Future<ChatResponse?> Function() request,
+  ) async {
     setState(() {
       _isSending = true;
       _smartReplies = [];
@@ -152,7 +169,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     });
 
-    final responseFuture = widget.controller.sendMessage(text);
+    final responseFuture = request();
     _scrollToBottom();
 
     ChatResponse? response;
@@ -207,6 +224,18 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     _inputFocusNode.requestFocus();
+  }
+
+  void _showRecommendationCheckHint() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Careena prüft jetzt, ob genug Angaben für eine Versorgungsempfehlung vorliegen.',
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   void _onMessagesChanged() {
@@ -426,6 +455,22 @@ class _ChatScreenState extends State<ChatScreen> {
                 ValueListenableBuilder(
                   valueListenable: widget.controller.isCompleted,
                   builder: (context, bool isCompleted, _) {
+                    if (isCompleted) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                      child: _RecommendationRequestButton(
+                        isEnabled: !_isSending,
+                        onPressed: _handleRecommendationRequest,
+                      ),
+                    );
+                  },
+                ),
+                ValueListenableBuilder(
+                  valueListenable: widget.controller.isCompleted,
+                  builder: (context, bool isCompleted, _) {
                     return ChatInputField(
                       controller: _textController,
                       focusNode: _inputFocusNode,
@@ -500,6 +545,36 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RecommendationRequestButton extends StatelessWidget {
+  final bool isEnabled;
+  final VoidCallback onPressed;
+
+  const _RecommendationRequestButton({
+    required this.isEnabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: isEnabled ? onPressed : null,
+        icon: const Icon(Icons.medical_information_outlined),
+        label: const Text('Versorgungsempfehlung anfordern'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.careenaTeal,
+          side: BorderSide(color: AppColors.careenaTeal.withValues(alpha: 0.8)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),

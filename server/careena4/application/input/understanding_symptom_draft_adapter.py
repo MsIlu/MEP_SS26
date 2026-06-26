@@ -27,7 +27,7 @@ class UnderstandingSymptomDraftAdapter:
         active_draft = draft or SymptomInputDraft(session_id=session_id)
 
         for symptom in understanding.symptoms:
-            if not symptom.is_medical:
+            if not symptom.is_medical or symptom.is_negated:
                 continue
 
             display_label = (symptom.normalized_label_de or symptom.source_label or "").strip()

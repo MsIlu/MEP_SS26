@@ -128,6 +128,8 @@ class SafetyCatalogCache:
                 entry.lay_terms_normalized, entry.lay_terms_original
             ):
                 if norm_term and norm_term in normalized_text:
+                    if _term_is_negated(normalized_text, norm_term):
+                        continue
                     matches.append(_entry_to_match(entry, evidence_term=orig_term, matched_lay_term=orig_term))
                     seen_criteria.add(entry.criterion_key)
                     break
@@ -219,6 +221,41 @@ def _entry_to_match(
         is_red_flag_candidate=entry.is_red_flag_candidate,
         mapping_status="catalog_matched",
     )
+
+
+_NEGATION_WORDS = frozenset({
+    "kein", "keine", "keinen", "keiner", "keinem", "keines",
+    "nicht", "ohne", "weder",
+})
+
+
+def _term_is_negated(normalized_text: str, norm_term: str, window: int = 2) -> bool:
+    """Return True when every occurrence of norm_term in normalized_text is preceded by a negation word.
+
+    Works at exact token level. Punctuation is stripped per token so "atemnot," matches "atemnot".
+    Conservative: returns True only when ALL occurrences are negated.
+
+    Known limitation: does not handle German morphology (stems/compounds), e.g. "schwindel" in
+    "schwindelig" or "schmerzen" in "brustschmerzen". Those cases require LLM-based suppression.
+    """
+    words = [_strip_punct(w) for w in normalized_text.split()]
+    words = [w for w in words if w]
+    term_words = norm_term.split()
+    n = len(term_words)
+
+    found_any = False
+    for i in range(len(words) - n + 1):
+        if words[i : i + n] == term_words:
+            found_any = True
+            pre = words[max(0, i - window) : i]
+            if not (set(pre) & _NEGATION_WORDS):
+                return False  # at least one non-negated occurrence
+
+    return found_any  # True only when found_any and every occurrence was negated
+
+
+def _strip_punct(word: str) -> str:
+    return "".join(c for c in word if c.isalpha() or c.isdigit())
 
 
 def _normalize(text: str) -> str:

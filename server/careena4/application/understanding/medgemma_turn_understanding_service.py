@@ -21,6 +21,7 @@ class MedGemmaUnderstandingSymptom(PipelineModel):
 
     source_label: str
     is_medical: bool = True
+    is_negated: bool = False
     normalized_label_de: str | None = None
     clinical_term_de: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -56,6 +57,7 @@ Return JSON only in this exact structure:
     {
       "source_label": "exact symptom phrase from the user sentence",
       "is_medical": true,
+      "is_negated": false,
       "normalized_label_de": "German lay-normalized symptom label",
       "clinical_term_de": "German clinical term",
       "confidence": 0.0,
@@ -93,6 +95,9 @@ Rules:
 - Avoid weak differential guesses unless the user text explicitly supports them.
 - clinical_term_de should be German whenever possible.
 - Confidence is your own estimate and is not externally validated.
+- Set is_negated to true when the user explicitly denies a symptom: "kein Fieber", "keine Atemnot", "nicht schwindelig", "bekomme gut Luft", "keine Schmerzen".
+- Set is_negated to false for all actively present symptoms.
+- Still extract negated symptoms — they are clinically relevant context — but mark them correctly.
 """.strip()
 
 
@@ -176,6 +181,7 @@ class MedGemmaTurnUnderstandingService:
             ExtractedSymptomCandidate(
                 source_label=symptom.source_label,
                 is_medical=symptom.is_medical,
+                is_negated=symptom.is_negated,
                 normalized_label_de=symptom.normalized_label_de,
                 clinical_term_de=symptom.clinical_term_de,
                 confidence=symptom.confidence,

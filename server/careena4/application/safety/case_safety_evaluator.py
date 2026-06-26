@@ -35,7 +35,7 @@ class CaseSafetyEvaluator:
             lay_labels = [
                 s.normalized_label_de
                 for s in current_turn_understanding.symptoms
-                if s.is_medical and s.normalized_label_de
+                if s.is_medical and not s.is_negated and s.normalized_label_de
             ]
             lay_matches = self._catalog_cache.scan_lay_terms(lay_labels) if lay_labels else []
             safety_lay = [m for m in lay_matches if _is_safety_relevant(m)]
@@ -51,7 +51,7 @@ class CaseSafetyEvaluator:
             clinical_labels = [
                 s.clinical_term_de
                 for s in current_turn_understanding.symptoms
-                if s.is_medical and s.clinical_term_de
+                if s.is_medical and not s.is_negated and s.clinical_term_de
             ]
             clinical_matches = self._catalog_cache.scan_clinical_terms(clinical_labels) if clinical_labels else []
             safety_clinical = [m for m in clinical_matches if _is_safety_relevant(m)]

@@ -177,7 +177,12 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      widget.authSession.setAuthResponse(authResponse);
+      final rememberedProfileId = await widget.authSession
+          .loadRememberedProfileId(authResponse.account.id);
+      widget.authSession.setAuthResponse(
+        authResponse,
+        preferredProfileId: rememberedProfileId,
+      );
       await widget.symptomRepository.clearEntries();
       await _syncSymptomDiary();
 

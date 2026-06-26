@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import '../../data/models/careena_availability.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onBackPressed;
   final VoidCallback onToggleTheme;
   final bool isDarkMode;
+  final CareenaAvailability availability;
 
   const ChatAppBar({
     super.key,
     required this.onBackPressed,
     required this.onToggleTheme,
     required this.isDarkMode,
+    this.availability = CareenaAvailability.online,
   });
 
   @override
@@ -59,25 +62,28 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                   fontSize: 18,
                 ),
               ),
-              Row(
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
+              Tooltip(
+                message: availability.tooltip,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: availability.indicatorColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "online",
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 12,
+                    const SizedBox(width: 4),
+                    Text(
+                      availability.label,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

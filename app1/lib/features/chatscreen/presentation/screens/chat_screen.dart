@@ -359,10 +359,19 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: Scaffold(
         backgroundColor: backgroundColor,
-        appBar: ChatAppBar(
-          onBackPressed: _handleLeaveChat,
-          onToggleTheme: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ValueListenableBuilder(
+            valueListenable: widget.controller.availability,
+            builder: (context, availability, _) {
+              return ChatAppBar(
+                onBackPressed: _handleLeaveChat,
+                onToggleTheme: widget.themeController.toggleTheme,
+                isDarkMode: widget.themeController.isDarkMode,
+                availability: availability,
+              );
+            },
+          ),
         ),
         body: SafeArea(
           child: ResponsivePageBody(

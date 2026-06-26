@@ -305,6 +305,27 @@ def warmup():
     return {"status": "ok"}
 
 
+@app.get("/health/server")
+def health_server():
+    return {"status": "ok", "server": True}
+
+
+@app.get("/health/llm")
+def health_llm():
+    checked_model = careena4_services.call_model_config.default_model
+
+    if not careena4_services.llm_client.is_model_available(checked_model):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "message": "LLM service is not reachable.",
+                "model": checked_model,
+            },
+        )
+
+    return {"status": "ok", "llm": True, "model": checked_model}
+
+
 @app.get("/input-drafts/{session_id}", response_model=SymptomDraftResponse)
 def get_input_draft(
         session_id: str,

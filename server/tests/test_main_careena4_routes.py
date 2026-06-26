@@ -58,6 +58,44 @@ def test_guest_session_can_be_created(client):
     assert careena4_session_profiles[session_id] is None
 
 
+def test_server_health_endpoint_reports_ok(client):
+    response = client.get("/health/server")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "server": True}
+
+
+def test_llm_health_endpoint_reports_ok(client, monkeypatch):
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        lambda model: True,
+    )
+
+    response = client.get("/health/llm")
+
+    payload = response.json()
+    assert response.status_code == 200
+    assert payload["status"] == "ok"
+    assert payload["llm"] is True
+    assert payload["model"] == main.careena4_services.call_model_config.default_model
+
+
+def test_llm_health_endpoint_reports_unavailable(client, monkeypatch):
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        lambda model: False,
+    )
+
+    response = client.get("/health/llm")
+
+    payload = response.json()
+    assert response.status_code == 503
+    assert payload["detail"]["message"] == "LLM service is not reachable."
+    assert payload["detail"]["model"] == main.careena4_services.call_model_config.default_model
+
+
 def test_guest_input_draft_can_be_read(client):
     session_response = client.post("/session", json={})
     session_id = session_response.json()["session_id"]

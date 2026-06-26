@@ -6,6 +6,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
+import 'package:app1/features/chatscreen/data/models/careena_availability.dart';
 import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
@@ -386,6 +387,7 @@ class _FakeChatApi extends ChatApi {
   final List<String> cancelledSessionIds = [];
   final List<String> sentTexts = [];
   List<String> symptoms = [];
+  CareenaAvailability nextAvailability = CareenaAvailability.online;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -396,6 +398,11 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<void> warmup() async {}
+
+  @override
+  Future<CareenaAvailability> getCareenaAvailability() async {
+    return nextAvailability;
+  }
 
   @override
   Future<ChatResponse> sendMessage(

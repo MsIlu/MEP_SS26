@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/config/app_config.dart';
 import '../data/chat_api.dart';
 import '../data/chat_history_repository.dart';
+import '../data/models/careena_availability.dart';
 import '../data/models/chat_history_entry.dart';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
@@ -48,6 +49,8 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
+  final ValueNotifier<CareenaAvailability> availability =
+      ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
   Future<void>? _initFuture;
 
@@ -57,6 +60,8 @@ class ChatController {
   }
 
   Future<void> _initialize() async {
+    await refreshAvailability();
+
     if (messages.value.isEmpty) {
       _addMessage(
         message: Message(text: AppConfig.welcomeMessage, isUser: false),
@@ -90,6 +95,10 @@ class ChatController {
       _initFuture = null;
       return false;
     }
+  }
+
+  Future<void> refreshAvailability() async {
+    availability.value = await chatApi.getCareenaAvailability();
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
@@ -182,6 +191,7 @@ class ChatController {
 
       return response;
     } catch (e) {
+      availability.value = CareenaAvailability.limited;
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
       return null;
@@ -326,5 +336,6 @@ class ChatController {
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    availability.dispose();
   }
 }

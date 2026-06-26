@@ -71,7 +71,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _medicationController = TextEditingController();
-  final _notesController = TextEditingController();
   final _conditions = <String>{};
   String _biologicalSex = 'Keine Angabe';
 
@@ -86,7 +85,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
     _heightController.dispose();
     _weightController.dispose();
     _medicationController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -183,13 +181,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
             hint: 'Optional',
             maxLines: 3,
           ),
-          const SizedBox(height: 14),
-          AuthTextField(
-            controller: _notesController,
-            label: 'Symptomtagebuch-Zusammenfassung',
-            hint: 'Optional',
-            maxLines: 4,
-          ),
           const SizedBox(height: 18),
           SettingsPrimaryButton(
             key: const ValueKey('health-data-save-button'),
@@ -235,7 +226,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
         _heightController.text = profile.heightCm?.toString() ?? '';
         _weightController.text = _formatWeight(profile.weightKg);
         _medicationController.text = profile.relevantMedicationsSummary ?? '';
-        _notesController.text = profile.symptomDiarySummary ?? '';
         _conditions
           ..clear()
           ..addAll(
@@ -269,7 +259,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
           'relevant_medications_summary': _emptyToNull(
             _medicationController.text,
           ),
-          'symptom_diary_summary': _emptyToNull(_notesController.text),
         },
       );
 

@@ -337,6 +337,7 @@ void main() {
     await tester.ensureVisible(find.text('Geburtsgeschlecht'));
     expect(find.text('Geburtsgeschlecht'), findsOneWidget);
     expect(find.text('Regelmäßige Medikamente'), findsOneWidget);
+    expect(find.text('Symptomtagebuch-Zusammenfassung'), findsNothing);
     expect(find.widgetWithText(TextField, 'Größe'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Gewicht'), findsOneWidget);
 
@@ -359,6 +360,7 @@ void main() {
       patchBodies.last['relevant_medications_summary'],
       'Ibuprofen bei Bedarf',
     );
+    expect(patchBodies.last.containsKey('symptom_diary_summary'), isFalse);
   });
 
   testWidgets('filters settings while keeping logout visible', (tester) async {
@@ -420,9 +422,10 @@ void main() {
 
     await tester.tap(find.text('Onboarding mock'));
     await tester.pumpAndSettle();
-    expect(find.text('Einstellungen'), findsOneWidget);
+    expect(find.text('Einstellungen'), findsWidgets);
     expect(authSession.isAuthenticated, isTrue);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('settings-logout-button')));
     await tester.tap(find.byKey(const ValueKey('settings-logout-button')));
     await tester.pumpAndSettle();
 

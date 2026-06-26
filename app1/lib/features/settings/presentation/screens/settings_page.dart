@@ -1,4 +1,8 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
+import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
+import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/themes/theme_controller.dart';
@@ -71,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
               simpleView ? 20 : 18,
               22,
               simpleView ? 20 : 18,
-              28,
+              96,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -100,15 +104,70 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                     ],
                   ),
+                const SizedBox(height: 20),
+                SettingsLogoutAction(
+                  simpleView: simpleView,
+                  onPressed: () => _logout(context),
+                ),
               ],
             ),
           ),
-          bottomNavigationBar: SettingsLogoutAction(
-            simpleView: simpleView,
-            onPressed: () => _logout(context),
+          bottomNavigationBar: CustomBottomNav(
+            // Settings is the fourth primary destination in the shared app nav.
+            currentIndex: 3,
+            isSimpleView: simpleView,
+            onTap: _onBottomNavigationTap,
           ),
         );
       },
+    );
+  }
+
+  void _onBottomNavigationTap(int index) {
+    if (index == 3) return;
+    if (index == 0) {
+      // The start tab is the first route in the main app flow.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    final dependencies = AppDependenciesScope.maybeOf(context);
+
+    if (index == 1) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CalendarOverviewPage(
+            themeController: widget.themeController,
+            apiClient: dependencies?.apiClient,
+            authSession: dependencies?.authSession,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (index == 2) {
+      final activeProfileId = dependencies?.authSession.activeProfileId;
+      if (dependencies == null || activeProfileId == null) {
+        _showNavigationUnavailable();
+        return;
+      }
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => ChatHistoryScreen(
+            themeController: widget.themeController,
+            profileId: activeProfileId,
+            repository: dependencies.chatController.chatHistoryRepository,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showNavigationUnavailable() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Dieser Bereich ist aktuell nicht verfügbar.')),
     );
   }
 

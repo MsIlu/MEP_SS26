@@ -1,4 +1,5 @@
 ﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/careena_page_header.dart';
@@ -39,12 +40,9 @@ class _MedicalGlossaryPageState extends State<MedicalGlossaryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            CareenaSearchField(
               controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Glossar durchsuchen',
-                prefixIcon: Icon(Icons.search),
-              ),
+              hintText: 'Glossar durchsuchen',
               onChanged: (value) {
                 setState(() => _query = value.trim().toLowerCase());
               },

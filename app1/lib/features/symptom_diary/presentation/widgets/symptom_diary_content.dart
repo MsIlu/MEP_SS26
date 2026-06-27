@@ -1,3 +1,4 @@
+import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/core/widgets/shared_day_selector.dart';
 import 'package:flutter/material.dart';
 import '../../data/symptom_entry.dart';
@@ -39,6 +40,11 @@ class SymptomDiaryContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const CareenaInfoCard(
+                  text:
+                      'Dokumentiere Beschwerden, Intensität und Notizen für ausgewählte Tage.',
+                ),
+                const SizedBox(height: 14),
                 SharedDaySelector(
                   selectedDate: selectedDate,
                   today: today,

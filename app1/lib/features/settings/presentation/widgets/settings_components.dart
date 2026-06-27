@@ -1,4 +1,5 @@
 ﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:flutter/material.dart';
 
 class SettingsSectionHeader extends StatelessWidget {
@@ -208,42 +209,11 @@ class SettingsSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return TextField(
+    return CareenaSearchField(
       controller: controller,
+      hintText: 'Einstellung suchen...',
       onChanged: onChanged,
-      style: TextStyle(fontSize: simpleView ? 18 : 16),
-      decoration: InputDecoration(
-        hintText: 'Einstellung suchen...',
-        prefixIcon: const Icon(Icons.search, color: AppColors.careenaTeal),
-        suffixIcon: controller.text.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'Suche löschen',
-                onPressed: () {
-                  controller.clear();
-                  onChanged('');
-                },
-                icon: const Icon(Icons.close),
-              ),
-        filled: true,
-        fillColor: isDark
-            ? AppColors.darkElevatedSurface
-            : AppColors.careenaBubbleBackground,
-        border: _border(),
-        enabledBorder: _border(),
-        focusedBorder: _border(color: AppColors.careenaTeal, width: 2),
-      ),
-    );
-  }
-
-  OutlineInputBorder _border({Color? color, double width = 0}) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: color == null
-          ? BorderSide.none
-          : BorderSide(color: color, width: width),
+      simpleView: simpleView,
     );
   }
 }
@@ -296,7 +266,7 @@ class SettingsLogoutAction extends StatelessWidget {
               key: const ValueKey('settings-logout-button'),
               onPressed: onPressed,
               icon: const Icon(Icons.logout),
-              label: const Text('Abmelden'),
+              label: const Text('Vom Konto abmelden'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.warningRed,
                 side: const BorderSide(color: AppColors.warningRed),

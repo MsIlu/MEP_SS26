@@ -91,7 +91,7 @@ class RecommendationPdfService {
                   ],
 
                   _buildSectionCard(
-                    title: 'Versorgungsempfehlung',
+                    title: 'Handlungsempfehlung',
                     text: _extractRecommendationText(recommendation),
                     highlighted: true,
                   ),

@@ -92,10 +92,6 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
         title: 'Medikamentenplan',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       body: SafeArea(
         child: AnimatedBuilder(

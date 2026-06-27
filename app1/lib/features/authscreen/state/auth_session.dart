@@ -108,6 +108,28 @@ class AuthSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates the active profile sex in local session state.
+  void setActiveProfileBiologicalSex(String? biologicalSex) {
+    final activeProfile = _activeProfile;
+
+    if (activeProfile == null) {
+      return;
+    }
+
+    final updatedProfile = activeProfile.copyWith(
+      biologicalSex: biologicalSex,
+    );
+    _profiles = _profiles
+        .map(
+          (profile) =>
+              profile.id == updatedProfile.id ? updatedProfile : profile,
+        )
+        .toList();
+    _activeProfile = updatedProfile;
+
+    notifyListeners();
+  }
+
   /// Updates the warning acceptance timestamp for the active profile.
   void setActiveProfileAiDisclaimerAcceptedAt(String acceptedAt) {
     final activeProfile = _activeProfile;

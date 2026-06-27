@@ -3,6 +3,7 @@ import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/features/authscreen/presentation/widgets/registration/registration_step_indicator.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/symptom_body_area.dart';
 import 'body_area_selector.dart';
@@ -19,6 +20,7 @@ const _symptomSuggestions = [
   'Fieber',
   'Schlafprobleme',
 ];
+const _customSymptomSuggestionsKey = 'custom_symptom_suggestions';
 
 enum _SymptomEntryStep {
   symptom,
@@ -68,7 +70,14 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   int _currentStepIndex = 0;
   int _intensity = 5;
   double _temperatureC = 37.0;
+  List<String> _customSymptomSuggestions = [];
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomSymptomSuggestions();
+  }
 
   @override
   void dispose() {
@@ -129,11 +138,14 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   Widget _buildStepContent() {
     return switch (_currentStep) {
       _SymptomEntryStep.symptom => SymptomSelectionStep(
-        suggestions: _symptomSuggestions,
+        suggestions: _allSymptomSuggestions,
+        customSuggestions: _customSymptomSuggestions.toSet(),
         filteredSuggestions: _filteredSuggestions,
         controller: _symptomController,
         onChanged: _updateSymptom,
         onSelected: _selectSymptom,
+        onAddCustom: _addCustomSymptomSuggestion,
+        onRemoveCustom: _removeCustomSymptomSuggestion,
         onSubmitted: _goToNextStep,
       ),
       _SymptomEntryStep.bodyArea => BodyAreaSelector(
@@ -235,6 +247,42 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     showCareenaSnackBar(context, 'Bitte ein Symptom eintragen');
   }
 
+  Future<void> _loadCustomSymptomSuggestions() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _customSymptomSuggestions =
+          prefs.getStringList(_customSymptomSuggestionsKey) ?? const [];
+    });
+  }
+
+  Future<void> _addCustomSymptomSuggestion() async {
+    final symptom = _symptom;
+    if (symptom.isEmpty || _containsSuggestion(symptom)) return;
+
+    // Keep user-defined quick choices persistent across app starts.
+    final updated = [..._customSymptomSuggestions, symptom]..sort();
+    await _saveCustomSymptomSuggestions(updated);
+    if (!mounted) return;
+    showCareenaSnackBar(context, 'Symptom zur Auswahlliste hinzugefügt');
+  }
+
+  Future<void> _removeCustomSymptomSuggestion(String symptom) async {
+    final updated = _customSymptomSuggestions
+        .where((item) => item.toLowerCase() != symptom.toLowerCase())
+        .toList(growable: false);
+    await _saveCustomSymptomSuggestions(updated);
+  }
+
+  Future<void> _saveCustomSymptomSuggestions(List<String> suggestions) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_customSymptomSuggestionsKey, suggestions);
+    if (!mounted) return;
+
+    setState(() => _customSymptomSuggestions = suggestions);
+  }
+
   void _clampCurrentStepToActiveFlow() {
     if (_currentStepIndex > _lastStepIndex) {
       _currentStepIndex = _lastStepIndex;
@@ -242,6 +290,24 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   }
 
   String get _symptom => _symptomController.text.trim();
+  List<String> get _allSymptomSuggestions {
+    return [
+      ..._symptomSuggestions,
+      for (final symptom in _customSymptomSuggestions)
+        if (!_symptomSuggestions.any(
+          (defaultSymptom) =>
+              defaultSymptom.toLowerCase() == symptom.toLowerCase(),
+        ))
+          symptom,
+    ];
+  }
+
+  bool _containsSuggestion(String symptom) {
+    return _allSymptomSuggestions.any(
+      (suggestion) => suggestion.toLowerCase() == symptom.toLowerCase(),
+    );
+  }
+
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
   bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
@@ -272,7 +338,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       return const [];
     }
 
-    return _symptomSuggestions
+    return _allSymptomSuggestions
         .where(
           (suggestion) =>
               suggestion.toLowerCase().contains(query) &&

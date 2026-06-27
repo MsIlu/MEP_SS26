@@ -6,7 +6,7 @@ class AppConfig {
   static const String welcomeMessage =
       "Hallo, ich bin Careena, deine virtuelle Gesundheitsassistentin.\n\n"
       "Ich helfe dir dabei, Beschwerden einzuordnen, Symptome zu dokumentieren "
-      "und bei Bedarf eine passende Versorgungsempfehlung anzufordern.\n\n"
+      "und bei Bedarf eine passende Handlungsempfehlung anzufordern.\n\n"
       "Bitte beschreibe deine Beschwerden möglichst genau:\n"
       "Was spürst du? Wo tritt es auf? Seit wann besteht es? "
       "Wie stark ist es?";

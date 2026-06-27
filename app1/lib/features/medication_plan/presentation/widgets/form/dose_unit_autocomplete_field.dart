@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/dose_unit_catalog.dart';
+import 'medication_input_decoration.dart';
 
 /// Autocomplete text field for selecting common medication dose units.
 class DoseUnitAutocompleteField extends StatefulWidget {
@@ -40,10 +41,11 @@ class _DoseUnitAutocompleteFieldState extends State<DoseUnitAutocompleteField> {
               controller: textEditingController,
               focusNode: focusNode,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Art',
-                hintText: 'z. B. mg, Tablette, ...',
-                prefixIcon: Icon(Icons.scale_outlined),
+              decoration: medicationInputDecoration(
+                context: context,
+                label: 'Art',
+                hint: 'z. B. mg, Tablette, ...',
+                icon: Icons.scale_outlined,
               ),
               validator: _requiredUnit,
             );

@@ -34,18 +34,24 @@ class AppointmentDialog extends StatelessWidget {
     this.onDoctorChanged,
   });
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
+  InputDecoration _inputDecoration(
+    BuildContext context,
+    String label,
+    IconData icon,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.careenaTeal),
-      floatingLabelStyle: const TextStyle(
-        color: AppColors.careenaTeal,
+      labelStyle: TextStyle(color: colorScheme.onSurface),
+      floatingLabelStyle: TextStyle(
+        color: colorScheme.onSurface,
         fontWeight: FontWeight.w600,
       ),
-      prefixIcon: Icon(icon, color: AppColors.careenaTeal),
+      prefixIcon: Icon(icon, color: colorScheme.onSurface),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.careenaTeal, width: 2),
+        borderSide: BorderSide(color: AppColors.greyShade400, width: 2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -77,6 +83,7 @@ content: ConstrainedBox(
                 controller: doctorController,
                 onChanged: onDoctorChanged,
                 decoration: _inputDecoration(
+                  context,
                   'Arzt',
                   Icons.medical_services,
                 ).copyWith(errorText: doctorErrorText),
@@ -87,6 +94,7 @@ content: ConstrainedBox(
                 readOnly: true,
                 onTap: onPickDate,
                 decoration: _inputDecoration(
+                  context,
                   'Datum',
                   Icons.calendar_month,
                 ).copyWith(errorText: dateErrorText),
@@ -96,7 +104,11 @@ content: ConstrainedBox(
                 controller: timeController,
                 readOnly: true,
                 onTap: onPickTime,
-                decoration: _inputDecoration('Uhrzeit', Icons.access_time),
+                decoration: _inputDecoration(
+                  context,
+                  'Uhrzeit',
+                  Icons.access_time,
+                ),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -112,6 +124,7 @@ content: ConstrainedBox(
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
                   decoration: _inputDecoration(
+                    context,
                     'Notiz (optional)',
                     Icons.note_alt_outlined,
                   ),

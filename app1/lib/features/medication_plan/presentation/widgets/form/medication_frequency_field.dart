@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_schedule.dart';
+import 'medication_input_decoration.dart';
 
 /// Reusable form field for selecting how often a medication is taken.
 class MedicationFrequencyField extends StatelessWidget {
@@ -17,9 +18,10 @@ class MedicationFrequencyField extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<MedicationFrequency>(
       initialValue: value,
-      decoration: const InputDecoration(
-        labelText: 'Einnahmehäufigkeit',
-        prefixIcon: Icon(Icons.repeat),
+      decoration: medicationInputDecoration(
+        context: context,
+        label: 'Einnahmehäufigkeit',
+        icon: Icons.repeat,
       ),
       items: MedicationFrequency.values.map((frequency) {
         return DropdownMenuItem(value: frequency, child: Text(frequency.label));

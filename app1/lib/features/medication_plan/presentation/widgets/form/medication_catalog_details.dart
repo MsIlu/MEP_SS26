@@ -15,6 +15,7 @@ class MedicationCatalogDetails extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
+      constraints: const BoxConstraints(minHeight: 56),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode
@@ -28,12 +29,14 @@ class MedicationCatalogDetails extends StatelessWidget {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Icon(Icons.info_outline, color: AppColors.careenaTeal),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '${item.activeSubstance} • ${item.strength} • ${item.dosageForm}',
+              textAlign: TextAlign.left,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(

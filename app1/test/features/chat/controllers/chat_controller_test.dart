@@ -10,9 +10,13 @@ import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Unit tests for chat controller state and profile-aware chat requests.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
+
   // Test case references: documents/Testfaelle_Frontend.md#t02-chat-history
   group('ChatController', () {
     test('starts with an empty message list before initialization', () {
@@ -70,6 +74,29 @@ void main() {
       expect(chatApi.lastText, 'Hallo');
       expect(chatApi.lastSessionId, 'fake-session-1');
       expect(chatApi.lastProfileId, 42);
+    });
+
+    test('requests recommendation through backend trigger text', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.requestRecommendation();
+
+      expect(chatApi.lastText, 'Ja, Empfehlung');
+      expect(
+        controller.messages.value.where((message) => message.isUser).last.text,
+        ChatController.recommendationRequestDisplayText,
+      );
     });
 
     test('resets chat session and draft when active profile changes', () async {

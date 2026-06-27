@@ -1,7 +1,9 @@
 import 'package:app1/core/widgets/careena_action_buttons.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/features/authscreen/presentation/widgets/registration/registration_step_indicator.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/symptom_body_area.dart';
 import 'body_area_selector.dart';
@@ -18,6 +20,7 @@ const _symptomSuggestions = [
   'Fieber',
   'Schlafprobleme',
 ];
+const _customSymptomSuggestionsKey = 'custom_symptom_suggestions';
 
 enum _SymptomEntryStep {
   symptom,
@@ -39,17 +42,20 @@ class SymptomEntryForm extends StatefulWidget {
     required String symptom,
     required String bodyArea,
     required int intensity,
+    double? temperatureC,
     required String note,
   })
   onSave;
   final VoidCallback? onCancel;
   final VoidCallback? onSaved;
+  final String? biologicalSex;
 
   const SymptomEntryForm({
     super.key,
     required this.onSave,
     this.onCancel,
     this.onSaved,
+    this.biologicalSex,
   });
 
   @override
@@ -63,7 +69,15 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   String _bodyArea = '';
   int _currentStepIndex = 0;
   int _intensity = 5;
+  double _temperatureC = 37.0;
+  List<String> _customSymptomSuggestions = [];
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomSymptomSuggestions();
+  }
 
   @override
   void dispose() {
@@ -124,21 +138,28 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   Widget _buildStepContent() {
     return switch (_currentStep) {
       _SymptomEntryStep.symptom => SymptomSelectionStep(
-        suggestions: _symptomSuggestions,
+        suggestions: _allSymptomSuggestions,
+        customSuggestions: _customSymptomSuggestions.toSet(),
         filteredSuggestions: _filteredSuggestions,
         controller: _symptomController,
         onChanged: _updateSymptom,
         onSelected: _selectSymptom,
+        onAddCustom: _addCustomSymptomSuggestion,
+        onRemoveCustom: _removeCustomSymptomSuggestion,
         onSubmitted: _goToNextStep,
       ),
       _SymptomEntryStep.bodyArea => BodyAreaSelector(
         selectedArea: _bodyArea,
+        sex: BodySilhouetteSex.fromProfileSex(widget.biologicalSex),
         onChanged: (area) => setState(() => _bodyArea = area),
       ),
       _SymptomEntryStep.details => SymptomDetailsStep(
         intensity: _intensity,
+        temperatureC: _temperatureC,
+        useTemperature: _usesTemperature,
         noteController: _noteController,
         onIntensityChanged: (value) => setState(() => _intensity = value),
+        onTemperatureChanged: (value) => setState(() => _temperatureC = value),
       ),
     };
   }
@@ -174,6 +195,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       symptom: _symptom,
       bodyArea: _needsBodyArea ? _bodyArea : '',
       intensity: _intensity,
+      temperatureC: _usesTemperature ? _temperatureC : null,
       note: _noteController.text,
     );
 
@@ -216,14 +238,49 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       _bodyArea = '';
       _currentStepIndex = 0;
       _intensity = 5;
+      _temperatureC = 37.0;
       _isSaving = false;
     });
   }
 
   void _showMissingSymptomMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Bitte ein Symptom eintragen')),
-    );
+    showCareenaSnackBar(context, 'Bitte ein Symptom eintragen');
+  }
+
+  Future<void> _loadCustomSymptomSuggestions() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _customSymptomSuggestions =
+          prefs.getStringList(_customSymptomSuggestionsKey) ?? const [];
+    });
+  }
+
+  Future<void> _addCustomSymptomSuggestion() async {
+    final symptom = _symptom;
+    if (symptom.isEmpty || _containsSuggestion(symptom)) return;
+
+    // Keep user-defined quick choices persistent across app starts.
+    final updated = [..._customSymptomSuggestions, symptom]..sort();
+    await _saveCustomSymptomSuggestions(updated);
+    if (!mounted) return;
+    showCareenaSnackBar(context, 'Symptom zur Auswahlliste hinzugefügt');
+  }
+
+  Future<void> _removeCustomSymptomSuggestion(String symptom) async {
+    final updated = _customSymptomSuggestions
+        .where((item) => item.toLowerCase() != symptom.toLowerCase())
+        .toList(growable: false);
+    await _saveCustomSymptomSuggestions(updated);
+  }
+
+  Future<void> _saveCustomSymptomSuggestions(List<String> suggestions) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_customSymptomSuggestionsKey, suggestions);
+    if (!mounted) return;
+
+    setState(() => _customSymptomSuggestions = suggestions);
   }
 
   void _clampCurrentStepToActiveFlow() {
@@ -233,7 +290,26 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   }
 
   String get _symptom => _symptomController.text.trim();
+  List<String> get _allSymptomSuggestions {
+    return [
+      ..._symptomSuggestions,
+      for (final symptom in _customSymptomSuggestions)
+        if (!_symptomSuggestions.any(
+          (defaultSymptom) =>
+              defaultSymptom.toLowerCase() == symptom.toLowerCase(),
+        ))
+          symptom,
+    ];
+  }
+
+  bool _containsSuggestion(String symptom) {
+    return _allSymptomSuggestions.any(
+      (suggestion) => suggestion.toLowerCase() == symptom.toLowerCase(),
+    );
+  }
+
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
+  bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
   bool get _isLastStep => _currentStepIndex == _lastStepIndex;
   int get _lastStepIndex => _activeSteps.length - 1;
@@ -262,7 +338,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       return const [];
     }
 
-    return _symptomSuggestions
+    return _allSymptomSuggestions
         .where(
           (suggestion) =>
               suggestion.toLowerCase().contains(query) &&

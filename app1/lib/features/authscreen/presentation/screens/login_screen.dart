@@ -55,10 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
       maxWidth: AuthTheme.loginMaxWidth,
       fixedHeader: CareenaPageHeader(
         title: 'Anmelden',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,10 +102,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          TextButton(
+          AuthTextLink(
+            text: 'Passwort vergessen?',
             // TODO(backend): Connect password reset flow once email delivery is available.
             onPressed: () {},
-            child: const Text('Passwort vergessen?'),
           ),
           const SizedBox(height: 12),
           SwitchAuthMode(
@@ -177,7 +173,12 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      widget.authSession.setAuthResponse(authResponse);
+      final rememberedProfileId = await widget.authSession
+          .loadRememberedProfileId(authResponse.account.id);
+      widget.authSession.setAuthResponse(
+        authResponse,
+        preferredProfileId: rememberedProfileId,
+      );
       await widget.symptomRepository.clearEntries();
       await _syncSymptomDiary();
 

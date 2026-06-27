@@ -56,10 +56,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       fixedHeader: CareenaPageHeader(
         title: 'Konto erstellen',
         onBack: _goBack,
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

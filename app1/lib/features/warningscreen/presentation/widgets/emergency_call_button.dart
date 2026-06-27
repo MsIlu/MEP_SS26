@@ -1,7 +1,9 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/warning_copy.dart';
 import '../theme/warning_theme.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 
 /// Primary emergency action button shown at the bottom of the warning card.
 class EmergencyCallButton extends StatelessWidget {
@@ -23,7 +25,7 @@ class EmergencyCallButton extends StatelessWidget {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: WarningColors.warningRed,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -36,8 +38,6 @@ class EmergencyCallButton extends StatelessWidget {
   /// Shows manual dialing instructions until native phone dialing is supported.
   void _showManualCallHint(BuildContext context) {
     // The app does not dial automatically yet, so users get a direct manual hint.
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text(WarningCopy.manualCallHint)));
+    showCareenaSnackBar(context, WarningCopy.manualCallHint);
   }
 }

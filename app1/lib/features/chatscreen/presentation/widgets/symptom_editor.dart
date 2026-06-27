@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 /// Bottom sheet used to edit, remove and save detected symptoms.
@@ -18,6 +18,7 @@ class SymptomEditor extends StatefulWidget {
 
 class _SymptomEditorState extends State<SymptomEditor> {
   late List<TextEditingController> _controllers;
+  final ScrollController _scrollController = ScrollController();
   bool _isSaving = false;
 
   @override
@@ -34,6 +35,7 @@ class _SymptomEditorState extends State<SymptomEditor> {
     for (final controller in _controllers) {
       controller.dispose();
     }
+    _scrollController.dispose();
 
     super.dispose();
   }
@@ -79,14 +81,14 @@ class _SymptomEditorState extends State<SymptomEditor> {
 
     final backgroundColor = isDarkMode
         ? colorScheme.surface
-        : const Color(0xFFF7FAF9);
+        : AppColors.symptomEditorSurfaceLight;
     final titleColor = isDarkMode
         ? colorScheme.onSurface
-        : const Color(0xFF36594F);
-    final fieldColor = isDarkMode ? const Color(0xFF222A35) : Colors.white;
+        : AppColors.symptomEditorText;
+    final fieldColor = isDarkMode ? AppColors.darkElevatedSurface : AppColors.white;
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant
-        : const Color(0xFFB7CCC6);
+        : AppColors.symptomEditorBorder;
     final actionColor = isDarkMode
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaTeal;
@@ -116,8 +118,11 @@ class _SymptomEditorState extends State<SymptomEditor> {
               const SizedBox(height: 12),
               Expanded(
                 child: Scrollbar(
+                  controller: _scrollController,
                   thumbVisibility: true,
                   child: SingleChildScrollView(
+                    controller: _scrollController,
+                    primary: false,
                     child: Column(
                       children: [
                         ..._controllers.asMap().entries.map((entry) {
@@ -193,7 +198,7 @@ class _SymptomEditorState extends State<SymptomEditor> {
                     onPressed: _isSaving ? null : _saveSymptoms,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: actionColor,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.white,
                     ),
                     child: Text(_isSaving ? 'Speichern...' : 'Speichern'),
                   ),
@@ -203,7 +208,7 @@ class _SymptomEditorState extends State<SymptomEditor> {
                     style: TextButton.styleFrom(
                       foregroundColor: isDarkMode
                           ? colorScheme.onSurfaceVariant
-                          : const Color(0xFF6E7E79),
+                          : AppColors.symptomEditorMuted,
                     ),
                     child: const Text('Abbrechen'),
                   ),

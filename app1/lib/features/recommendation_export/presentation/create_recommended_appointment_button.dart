@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/features/appointmentscreen/controllers/appointment_controller.dart';
 import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
 import 'package:app1/features/appointmentscreen/presentation/screens/appointment_screen.dart';
@@ -23,7 +23,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         : AppColors.careenaTeal;
     final textColor = isDarkMode
         ? AppColors.toolbarButtonForegroundDark
-        : Colors.white;
+        : AppColors.white;
 
     return FilledButton.icon(
       style: FilledButton.styleFrom(
@@ -77,7 +77,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.careenaTeal,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.white,
               ),
               onPressed: () {
                 Navigator.pop(dialogContext);

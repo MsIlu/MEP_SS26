@@ -1,8 +1,11 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../controllers/symptom_diary_controller.dart';
@@ -14,12 +17,16 @@ class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final SymptomApiService? symptomApiService;
+  final ProfileApiService? profileApiService;
+  final DateTime? initialDate;
 
   const SymptomDiaryPage({
     super.key,
     required this.themeController,
     this.authSession,
     this.symptomApiService,
+    this.profileApiService,
+    this.initialDate,
   });
 
   @override
@@ -37,7 +44,10 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     super.initState();
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
-    _selectedDate = _today;
+    final initialDate = widget.initialDate;
+    _selectedDate = initialDate == null
+        ? _today
+        : DateTime(initialDate.year, initialDate.month, initialDate.day);
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
       profileId: widget.authSession?.activeProfileId,
@@ -61,10 +71,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
         title: 'Symptomtagebuch',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -106,12 +112,15 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.
   Future<void> _openSymptomForm() async {
+    final biologicalSex = await _activeProfileBiologicalSex();
+    if (!mounted) return;
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return Dialog(
           insetPadding: const EdgeInsets.all(18),
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
@@ -119,6 +128,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 onSave: _addEntry,
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
+                biologicalSex: biologicalSex,
               ),
             ),
           ),
@@ -127,21 +137,45 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     );
   }
 
+  Future<String?> _activeProfileBiologicalSex() async {
+    final session = widget.authSession;
+    final profileId = session?.activeProfileId;
+    final profileApiService = widget.profileApiService;
+
+    if (profileId == null || profileApiService == null) {
+      return session?.activeProfile?.biologicalSex;
+    }
+
+    try {
+      // Keep the silhouette aligned with the latest saved profile data.
+      final profile = await profileApiService.getProfile(profileId);
+      session?.setActiveProfileBiologicalSex(profile.biologicalSex);
+      return profile.biologicalSex;
+    } catch (_) {
+      return session?.activeProfile?.biologicalSex;
+    }
+  }
+
   /// Persists a new symptom entry and gives immediate save feedback.
   Future<void> _addEntry({
     required String symptom,
     required String bodyArea,
     required int intensity,
+    double? temperatureC,
     required String note,
   }) async {
     final entryDate = _selectedDate;
+    final savedNote = temperatureC == null
+        ? note
+        : 'Temperatur: ${temperatureC.toStringAsFixed(1)} °C'
+              '${note.trim().isEmpty ? '' : '\n$note'}';
 
     final localEntry = await _controller.addEntry(
       date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
-      note: note,
+      note: savedNote,
     );
 
     final activeProfileId = widget.authSession?.activeProfileId;
@@ -154,7 +188,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           symptom: symptom,
           bodyArea: bodyArea,
           intensity: intensity,
-          note: note,
+          note: savedNote,
         );
         await _controller.markEntrySynced(localEntry, remoteEntry.id);
       } catch (_) {
@@ -162,9 +196,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           return;
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Symptom lokal gespeichert')),
-        );
+        showCareenaSnackBar(context, 'Symptom lokal gespeichert');
         return;
       }
     }
@@ -173,8 +205,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Symptom gespeichert')));
+    showCareenaSnackBar(context, 'Symptom gespeichert');
   }
 }

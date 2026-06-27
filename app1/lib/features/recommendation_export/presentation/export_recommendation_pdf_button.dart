@@ -35,7 +35,7 @@ class ExportRecommendationPdfButton extends StatelessWidget {
 
     final textColor = isDarkMode
         ? AppColors.toolbarButtonForegroundDark
-        : Colors.white;
+        : AppColors.white;
 
     return FilledButton.icon(
       style: FilledButton.styleFrom(

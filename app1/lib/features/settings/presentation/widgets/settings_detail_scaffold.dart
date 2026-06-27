@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../../core/widgets/careena_page_header.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import 'settings_components.dart';
 
 class SettingsDetailScaffold extends StatelessWidget {
@@ -78,7 +79,5 @@ class SettingsDraftNotice extends StatelessWidget {
 }
 
 void showDraftSavedMessage(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Änderungen wurden als Entwurf übernommen.')),
-  );
+  showCareenaSnackBar(context, 'Änderungen wurden als Entwurf übernommen.');
 }

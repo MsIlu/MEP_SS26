@@ -1,3 +1,4 @@
+import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_entry.dart';
@@ -43,6 +44,11 @@ class MedicationPlanContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const CareenaInfoCard(
+                  text:
+                      'Plane deine Medikamente, Einnahmezeiten und erinnere dich an offene Dosen.',
+                ),
+                const SizedBox(height: 14),
                 MedicationDaySelector(
                   selectedDate: selectedDate,
                   today: today,

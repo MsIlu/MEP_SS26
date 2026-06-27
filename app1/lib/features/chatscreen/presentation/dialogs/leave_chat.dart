@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 Future<bool> showLeaveChatDialog(
   BuildContext context, {
-  String message = 'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+  String message = 'Wenn du fortfährst, gelangst du zurück zur Startseite. '
       'Der aktuelle Chat wird nicht gespeichert.',
-  String confirmLabel = 'Zum Homescreen',
+  String confirmLabel = 'Zur Startseite',
 }) async {
   final colorScheme = Theme.of(context).colorScheme;
   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -16,14 +16,14 @@ Future<bool> showLeaveChatDialog(
       return AlertDialog(
         backgroundColor: isDarkMode
             ? colorScheme.surface
-            : Colors.white,
-        surfaceTintColor: Colors.transparent,
+            : AppColors.white,
+        surfaceTintColor: AppColors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
             color: isDarkMode
-                ? Colors.transparent
+                ? AppColors.transparent
                 : AppColors.careenaInfoBorder,
             width: 1,
           ),

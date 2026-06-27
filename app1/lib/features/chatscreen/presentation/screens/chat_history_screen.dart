@@ -1,6 +1,11 @@
+﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_info_card.dart';
+import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
+import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
+import 'package:app1/features/settings/presentation/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_colors.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -38,11 +43,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CareenaPageHeader(
-        title: 'Nachrichten',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
+        title: 'Nachrichtenverlauf',
       ),
       body: SafeArea(
         child: ResponsivePageBody(
@@ -67,6 +68,11 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const CareenaInfoCard(
+                    text:
+                        'Sieh vergangene Chats erneut an und finde frühere Handlungsempfehlungen schneller wieder.',
+                  ),
+                  const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,
                     child: _HistorySortControl(
@@ -84,7 +90,50 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: CustomBottomNav(
+        // History is the third primary destination in the shared app nav.
+        currentIndex: 2,
+        isSimpleView: widget.themeController.isSimpleView,
+        onTap: _onBottomNavigationTap,
+      ),
     );
+  }
+
+  void _onBottomNavigationTap(int index) {
+    if (index == 2) return;
+    if (index == 0) {
+      // The start tab is the first route in the main app flow.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    final dependencies = AppDependenciesScope.maybeOf(context);
+
+    if (index == 1) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CalendarOverviewPage(
+            themeController: widget.themeController,
+            apiClient: dependencies?.apiClient,
+            authSession: dependencies?.authSession,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (index == 3) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => SettingsPage(
+            themeController: widget.themeController,
+            authSession: dependencies?.authSession,
+            authApiService: dependencies?.authApiService,
+            profileApiService: dependencies?.profileApiService,
+          ),
+        ),
+      );
+    }
   }
 }
 

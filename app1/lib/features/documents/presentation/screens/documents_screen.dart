@@ -1,5 +1,6 @@
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
+import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 
@@ -57,22 +58,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         ? 14.0
         : 20.0;
     final colorScheme = Theme.of(context).colorScheme;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final searchFillColor = isDarkMode
-        ? AppColors.darkElevatedSurface
-        : AppColors.lightCard;
-    final searchBorderColor = isDarkMode
-        ? colorScheme.outlineVariant
-        : AppColors.careenaBorder;
-    final searchIconColor = isDarkMode
-        ? colorScheme.onSurfaceVariant
-        : AppColors.careenaDark;
-    final searchTextColor = isDarkMode
-        ? colorScheme.onSurface
-        : AppColors.careenaDark;
-    final searchHintColor = isDarkMode
-        ? colorScheme.onSurfaceVariant
-        : AppColors.careenaBody;
 
     return Scaffold(
       appBar: const CareenaPageHeader(title: 'Dokumente'),
@@ -155,43 +140,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       if ((widget.authSession?.profiles.length ?? 0) > 1)
                         const SizedBox(height: 14),
                     ],
-                    TextField(
+                    CareenaSearchField(
                       controller: _searchController,
-                      style: TextStyle(color: searchTextColor),
+                      hintText: 'Dokumente durchsuchen',
                       onChanged: _controller.updateSearch,
-                      decoration: InputDecoration(
-                        hintText: 'Dokumente durchsuchen',
-                        hintStyle: TextStyle(color: searchHintColor),
-                        prefixIcon: Icon(Icons.search, color: searchIconColor),
-                        filled: true,
-                        fillColor: searchFillColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(color: searchBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(color: searchBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: const BorderSide(
-                            color: AppColors.careenaTeal,
-                            width: 2,
-                          ),
-                        ),
-                        suffixIcon: _controller.searchQuery.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'Suche löschen',
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _controller.updateSearch('');
-                                  FocusScope.of(context).unfocus();
-                                },
-                                icon: Icon(Icons.close, color: searchIconColor),
-                              ),
-                      ),
                     ),
                     const SizedBox(height: 14),
                     DocumentFilterBar(

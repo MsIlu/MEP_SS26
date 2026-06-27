@@ -2,11 +2,15 @@
 // Holds the current frontend authentication and active-profile session state.
 
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models/account.dart';
 import '../domain/models/auth_response.dart';
 
 class AuthSession extends ChangeNotifier {
+  static const _lastProfileKeyPrefix = 'last_active_profile_';
+  static final Map<int, int> _rememberedProfileIds = {};
+
   /// Access token returned by the backend after login or registration.
   String? _accessToken;
 
@@ -30,16 +34,26 @@ class AuthSession extends ChangeNotifier {
 
   /// Stores authentication data after login or registration.
   ///
-  /// The first available profile is selected as the active profile by default.
-  void setAuthResponse(AuthResponse response) {
+  /// The first available profile is selected unless a remembered profile fits.
+  void setAuthResponse(AuthResponse response, {int? preferredProfileId}) {
     _accessToken = response.accessToken;
     _account = response.account;
     _profiles = response.profiles;
-    _activeProfile = response.profiles.isNotEmpty
-        ? response.profiles.first
-        : null;
+    _activeProfile =
+        _profileById(preferredProfileId) ??
+        (response.profiles.isNotEmpty ? response.profiles.first : null);
 
+    _rememberActiveProfile();
     notifyListeners();
+  }
+
+  /// Loads the last profile used for this account on this device.
+  Future<int?> loadRememberedProfileId(int accountId) async {
+    final cachedProfileId = _rememberedProfileIds[accountId];
+    if (cachedProfileId != null) return cachedProfileId;
+
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('$_lastProfileKeyPrefix$accountId');
   }
 
   /// Updates the active profile by id.
@@ -55,6 +69,7 @@ class AuthSession extends ChangeNotifier {
     }
 
     _activeProfile = matchingProfiles.first;
+    _rememberActiveProfile();
     notifyListeners();
   }
 
@@ -69,6 +84,7 @@ class AuthSession extends ChangeNotifier {
       _activeProfile = _profiles.isNotEmpty ? _profiles.first : null;
     }
 
+    _rememberActiveProfile();
     notifyListeners();
   }
 
@@ -81,6 +97,28 @@ class AuthSession extends ChangeNotifier {
     }
 
     final updatedProfile = activeProfile.copyWith(displayName: displayName);
+    _profiles = _profiles
+        .map(
+          (profile) =>
+              profile.id == updatedProfile.id ? updatedProfile : profile,
+        )
+        .toList();
+    _activeProfile = updatedProfile;
+
+    notifyListeners();
+  }
+
+  /// Updates the active profile sex in local session state.
+  void setActiveProfileBiologicalSex(String? biologicalSex) {
+    final activeProfile = _activeProfile;
+
+    if (activeProfile == null) {
+      return;
+    }
+
+    final updatedProfile = activeProfile.copyWith(
+      biologicalSex: biologicalSex,
+    );
     _profiles = _profiles
         .map(
           (profile) =>
@@ -123,5 +161,23 @@ class AuthSession extends ChangeNotifier {
     _activeProfile = null;
 
     notifyListeners();
+  }
+
+  AuthProfile? _profileById(int? profileId) {
+    if (profileId == null) return null;
+    for (final profile in _profiles) {
+      if (profile.id == profileId) return profile;
+    }
+    return null;
+  }
+
+  Future<void> _rememberActiveProfile() async {
+    final accountId = _account?.id;
+    final profileId = _activeProfile?.id;
+    if (accountId == null || profileId == null) return;
+
+    _rememberedProfileIds[accountId] = profileId;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('$_lastProfileKeyPrefix$accountId', profileId);
   }
 }

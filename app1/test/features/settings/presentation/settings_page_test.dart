@@ -35,7 +35,7 @@ void main() {
     expect(find.text('Einstellung suchen...'), findsOneWidget);
     expect(find.text('Datenschutz und Sicherheit'), findsOneWidget);
     expect(find.text('Über Careena'), findsOneWidget);
-    expect(find.text('Abmelden'), findsOneWidget);
+    expect(find.text('Vom Konto abmelden'), findsOneWidget);
   });
 
   testWidgets('simple view switch updates the theme controller', (

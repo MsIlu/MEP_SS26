@@ -39,6 +39,9 @@ String suggestedBodyAreaForSymptom(String symptom) {
   if (normalizedSymptom.contains('hals')) {
     return 'Hals';
   }
+  if (normalizedSymptom.contains('nacken')) {
+    return 'Nacken';
+  }
   if (normalizedSymptom.contains('bauch') ||
       normalizedSymptom.contains('magen')) {
     return 'Bauch';
@@ -46,6 +49,14 @@ String suggestedBodyAreaForSymptom(String symptom) {
   if (normalizedSymptom.contains('hüfte') ||
       normalizedSymptom.contains('huefte')) {
     return 'Hüfte';
+  }
+  if (normalizedSymptom.contains('oberschenkel')) {
+    return 'Linker Oberschenkel';
+  }
+  if (normalizedSymptom.contains('geschlecht') ||
+      normalizedSymptom.contains('genital') ||
+      normalizedSymptom.contains('intim')) {
+    return 'Geschlechtsorgan';
   }
   if (normalizedSymptom.contains('rücken')) {
     return 'Rücken';
@@ -55,13 +66,13 @@ String suggestedBodyAreaForSymptom(String symptom) {
   }
   if (normalizedSymptom.contains('bein') ||
       normalizedSymptom.contains('knie')) {
-    return 'Linkes Bein';
+    return 'Linkes Knie';
   }
   if (normalizedSymptom.contains('fuß') ||
       normalizedSymptom.contains('fuss') ||
       normalizedSymptom.contains('füße') ||
       normalizedSymptom.contains('fuesse')) {
-    return 'Füße';
+    return 'Linker Fuß';
   }
   return '';
 }

@@ -32,12 +32,17 @@ from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 
 from uuid import uuid4 #for turn_id
 
-from careena4.bootstrap import build_default_services #for Careena4 runtime: LLM, TurnEngine, SessionStore
+from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
     SymptomDraftUpdateRequest,
+)
+from careena4.simulation_runtime import (
+    SimulationRequest,
+    normalized_simulation_request,
+    run_simulation_command,
 )
 
 app = FastAPI()
@@ -49,6 +54,7 @@ careena4_services = build_default_services(llm_mode="env")
 careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
+careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
@@ -139,6 +145,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "recommend",
     }
 
+    reply_options: list[str] = []
+    if (
+        active_question is not None
+        and active_question.guided_input is not None
+        and active_question.guided_input.options
+    ):
+        reply_options = [opt.label for opt in active_question.guided_input.options]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -147,6 +161,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "pending_followup": pending_followup,
         "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
+        "reply_options": reply_options,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None
@@ -183,6 +198,18 @@ def export_fhir_bundle(
         )
 
     return build_fhir_bundle_from_careena4_session(careena4_session)
+
+
+def build_careena4_simrun_response(*, message: str) -> dict:
+    selector = message.strip()[len("/simrun"):].strip()
+    response_text = run_simulation_command(
+        selector=selector,
+        simulation_runner=careena4_simulation_runner,
+    )
+    return {
+        "response": response_text,
+        "red_flag": "Stop-Grund: emergency" in response_text,
+    }
 
 
 #1. checks if Careena4-Session exist
@@ -243,6 +270,14 @@ def chat(
             session=session,
         )
 
+    if req.message.strip().startswith("/simrun"):
+        careena4_session.messages.append({"role": "user", "content": req.message})
+        response = build_careena4_simrun_response(message=req.message)
+        careena4_session.messages.append(
+            {"role": "assistant", "content": response["response"]}
+        )
+        return response
+
     turn_id = str(uuid4())
 
     turn_result = careena4_turn_engine.run_turn(
@@ -251,7 +286,6 @@ def chat(
             session_id=req.session_id,
             turn_id=turn_id,
             conversation_messages=careena4_session.messages,
-            persisted_case_topic=careena4_session.case_topic,
             persisted_medical_case=careena4_session.medical_case,
             persisted_conversation_state=careena4_session.conversation_state,
             persisted_recommendation_state=careena4_session.recommendation_state,
@@ -259,7 +293,6 @@ def chat(
         )
     )
 
-    careena4_session.case_topic = turn_result.case_topic
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state
@@ -277,6 +310,12 @@ def chat(
     )
 
     return response
+
+
+@app.post("/simulation/run")
+def run_simulation(req: SimulationRequest):
+    result = careena4_simulation_runner.run(normalized_simulation_request(req))
+    return result.model_dump()
 
 @app.post("/warmup")
 def warmup():
@@ -395,9 +434,28 @@ def create_session(
 # Modified as part of the authentication and profile management implementation.
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
+def _seed_catalog() -> None:
+    """Run catalog seed imports on startup. Logs a warning on failure instead of crashing."""
+    try:
+        from database.seed_catalog import (
+            seed_assessment_criteria,
+            seed_consultation_reason_criteria_links,
+            seed_consultation_reasons,
+        )
+        r1 = seed_consultation_reasons()
+        r2 = seed_assessment_criteria()
+        r3 = seed_consultation_reason_criteria_links()
+        print(f"Catalog seeded: reasons={r1}, criteria={r2}, links={r3}")
+    except Exception as exc:
+        print(f"Warning: Catalog seeding skipped ({exc})")
+
+
 @app.on_event("startup")
 def on_startup():
     """
     Initialize database tables on application startup.
     """
     create_db_and_tables()
+    _seed_catalog()
+    n = careena4_services.safety_catalog_cache.load()
+    print(f"SafetyCatalogCache loaded: {n} entries")

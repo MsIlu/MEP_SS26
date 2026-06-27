@@ -6,7 +6,7 @@ from typing import Literal
 from careena4.application import TurnEngine
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
-from careena4.infrastructure import Careena4SessionStore
+from careena4.infrastructure import Careena4SessionStore, SafetyCatalogCache
 from careena4.llm.call_control import CallModelConfig
 from careena4.runtime import LOCAL_LLM_MODEL, build_llm_client, build_runtime
 from careena4.simulation_runtime import SimulationRunner
@@ -20,6 +20,7 @@ class Careena4Services:
     call_model_config: CallModelConfig
     turn_engine: TurnEngine
     session_store: Careena4SessionStore
+    safety_catalog_cache: SafetyCatalogCache
 
 
 def build_default_services(
@@ -34,6 +35,7 @@ def build_default_services(
         call_model_config=runtime.call_model_config,
         turn_engine=runtime.turn_engine,
         session_store=runtime.session_store,
+        safety_catalog_cache=runtime.safety_catalog_cache,
     )
 
 

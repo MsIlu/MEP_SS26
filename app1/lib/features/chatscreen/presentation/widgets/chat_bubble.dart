@@ -8,6 +8,7 @@ import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 import '../../../recommendation_export/presentation/save_recommendation_to_documents_button.dart';
+import '../../../authscreen/state/auth_session.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -20,6 +21,7 @@ class ChatBubble extends StatelessWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final bool showLongProcessingHint;
+  final AuthSession? authSession;
 
   const ChatBubble({
     super.key,
@@ -27,6 +29,7 @@ class ChatBubble extends StatelessWidget {
     required this.symptoms,
     required this.userMessages,
     this.showLongProcessingHint = false,
+    this.authSession,
   });
 
   @override
@@ -160,6 +163,7 @@ class ChatBubble extends StatelessWidget {
                                 title:
                                     message.appointmentTitle ??
                                     'Arzttermin vereinbaren',
+                                authSession: authSession,
                               ),
                           ],
                         ),

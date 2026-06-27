@@ -149,14 +149,12 @@ def chat(req: ChatRequest):
             session_id=req.session_id,
             turn_id=turn_id,
             conversation_messages=session.messages,
-            persisted_case_topic=session.case_topic,
             persisted_medical_case=session.medical_case,
             persisted_conversation_state=session.conversation_state,
             persisted_recommendation_state=session.recommendation_state,
             persisted_symptom_input_draft=session.symptom_input_draft,
         )
     )
-    session.case_topic = turn_result.case_topic
     session.medical_case = turn_result.medical_case
     session.conversation_state = turn_result.conversation_state
     session.recommendation_state = turn_result.recommendation_state
@@ -177,7 +175,6 @@ def get_case(session_id: str):
         return {"error": "invalid_session"}
     return {
         "case": session.medical_case.model_dump() if session.medical_case is not None else None,
-        "case_topic": session.case_topic.model_dump() if session.case_topic is not None else None,
         "conversation_state": session.conversation_state.model_dump(),
         "recommendation_state": session.recommendation_state.model_dump(),
         "symptom_input_draft": session.symptom_input_draft.model_dump(),

@@ -63,7 +63,40 @@ def _map_medical_case_observations(medical_case: Any) -> list[dict[str, Any]]:
 
 
 def _map_observation(observation: Any) -> dict[str, Any]:
-    attributes = getattr(observation, "attributes", {}) or {}
+    attributes = dict(getattr(observation, "attributes", {}) or {})
+
+    onset = getattr(observation, "onset", None)
+    if onset:
+        attributes["onset"] = onset
+
+    body_site = getattr(observation, "body_site", None)
+    if body_site:
+        attributes["body_site"] = body_site
+
+    severity = getattr(observation, "severity", None)
+    if severity is not None:
+        attributes["severity"] = severity
+
+    description = getattr(observation, "description", None)
+    if description:
+        attributes["description"] = description
+
+    if hasattr(observation, "is_negated"):
+        negated = observation.is_negated()
+    else:
+        negated = getattr(observation, "negated", False)
+
+    subject_ref = (
+        getattr(observation, "person_ref", None)
+        or getattr(observation, "subject_ref", None)
+        or "unclear"
+    )
+
+    topic_relation = (
+        "central"
+        if getattr(observation, "type", None) == "symptom"
+        else getattr(observation, "topic_relation", "unclear")
+    )
 
     return {
         "id": getattr(observation, "observation_id", None),
@@ -71,15 +104,14 @@ def _map_observation(observation: Any) -> dict[str, Any]:
         "type": getattr(observation, "type", "unknown"),
         "source_span": _build_source_span(observation),
         "context": {
-            "negated": getattr(observation, "negated", False),
+            "negated": negated,
             "certainty": getattr(observation, "status", "unknown"),
             "status": getattr(observation, "status", "unknown"),
-            "topic_relation": getattr(observation, "topic_relation", "unclear"),
-            "subject_ref": getattr(observation, "subject_ref", "unclear"),
+            "topic_relation": topic_relation,
+            "subject_ref": subject_ref,
             "attributes": attributes,
         },
     }
-
 
 def _map_recommendation_result(recommendation_result: Any) -> dict[str, Any]:
     if recommendation_result is None:

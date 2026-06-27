@@ -14,6 +14,9 @@ class AppointmentDialog extends StatelessWidget {
 
   final VoidCallback onSave;
   final VoidCallback? onCancel;
+  final String? doctorErrorText;
+  final String? dateErrorText;
+  final ValueChanged<String>? onDoctorChanged;
 
   const AppointmentDialog({
     super.key,
@@ -26,6 +29,9 @@ class AppointmentDialog extends StatelessWidget {
     required this.onPickTime,
     required this.onSave,
     this.onCancel,
+    this.doctorErrorText,
+    this.dateErrorText,
+    this.onDoctorChanged,
   });
 
   InputDecoration _inputDecoration(String label, IconData icon) {
@@ -69,14 +75,21 @@ content: ConstrainedBox(
             children: [
               TextField(
                 controller: doctorController,
-                decoration: _inputDecoration('Arzt', Icons.medical_services),
+                onChanged: onDoctorChanged,
+                decoration: _inputDecoration(
+                  'Arzt',
+                  Icons.medical_services,
+                ).copyWith(errorText: doctorErrorText),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: dateController,
                 readOnly: true,
                 onTap: onPickDate,
-                decoration: _inputDecoration('Datum', Icons.calendar_month),
+                decoration: _inputDecoration(
+                  'Datum',
+                  Icons.calendar_month,
+                ).copyWith(errorText: dateErrorText),
               ),
               const SizedBox(height: 12),
               TextField(

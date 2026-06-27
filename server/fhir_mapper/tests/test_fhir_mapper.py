@@ -114,19 +114,15 @@ class DummyCareena4Session:
                 Observation(
                     type="symptom",
                     label="Kopfschmerzen",
-                    negated=False,
-                    status="reported",
-                    topic_relation="central",
-                    attributes={
-                        "duration": "seit gestern",
-                    },
+                    status="active",
+                    person_ref="self",
+                    onset="seit gestern",
                 ),
                 Observation(
                     type="symptom",
                     label="Kein Fieber",
-                    negated=True,
-                    status="reported",
-                    topic_relation="central",
+                    status="negated",
+                    person_ref="self",
                 ),
             ]
         )

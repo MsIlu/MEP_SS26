@@ -11,10 +11,15 @@ class ExtractedSymptomCandidate(PipelineModel):
 
     This is current-turn understanding only. It is not durable MedicalCase truth
     and it is not a triage decision.
+
+    is_negated mirrors the same concept as Observation.status == "negated":
+    the user explicitly denied this symptom ("kein Fieber", "keine Atemnot").
+    Negated symptoms must never trigger safety checks or appear as chips.
     """
 
     source_label: str
     is_medical: bool = True
+    is_negated: bool = False
     normalized_label_de: str | None = None
     clinical_term_de: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -64,7 +69,7 @@ class CurrentTurnUnderstanding(PipelineModel):
         seen: set[str] = set()
 
         for symptom in self.symptoms:
-            if not symptom.is_medical:
+            if not symptom.is_medical or symptom.is_negated:
                 continue
 
             label = symptom.chip_label

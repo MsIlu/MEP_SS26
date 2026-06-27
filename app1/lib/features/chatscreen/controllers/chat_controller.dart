@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/config/app_config.dart';
 import '../data/chat_api.dart';
 import '../data/chat_history_repository.dart';
@@ -232,9 +233,31 @@ class ChatController {
     } catch (e) {
       await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       return null;
     }
+  }
+
+  String _chatErrorMessage(Object error) {
+    if (error is ApiException) {
+      if (error.type == ApiErrorType.timeout) {
+        return 'Careena braucht gerade zu lange für eine Antwort. Bitte versuchen Sie es gleich erneut.';
+      }
+
+      if (error.type == ApiErrorType.network) {
+        return 'Careena kann den Server gerade nicht erreichen. Bitte prüfen Sie Ihre Verbindung.';
+      }
+
+      if (error.statusCode == 401) {
+        return 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.';
+      }
+
+      if (error.statusCode == 403) {
+        return 'Careena kann diese Anfrage für das aktuelle Profil nicht ausführen.';
+      }
+    }
+
+    return 'Careena konnte gerade nicht antworten. Bitte versuchen Sie es erneut.';
   }
 
   Future<void> loadSymptoms() async {

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/core/network/api_client.dart';
+import 'package:app1/core/network/api_exception.dart';
 import 'package:app1/features/authscreen/domain/models/account.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
@@ -416,6 +417,31 @@ void main() {
       expect(response, isNull);
       expect(controller.availability.value, CareenaAvailability.offline);
     });
+
+    test('shows a friendly chat message for network errors', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()
+        ..sendError = const ApiException(ApiErrorType.network, 'Network Error');
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      final response = await controller.sendMessage('Hallo');
+
+      expect(response, isNull);
+      expect(
+        controller.messages.value.last.text,
+        contains('Careena kann den Server gerade nicht erreichen.'),
+      );
+      expect(controller.messages.value.last.text, isNot(contains('Exception')));
+    });
   });
 }
 
@@ -438,6 +464,7 @@ class _FakeChatApi extends ChatApi {
   CareenaAvailability nextAvailability = CareenaAvailability.online;
   int availabilityRequests = 0;
   bool throwOnSend = false;
+  Object? sendError;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -463,6 +490,11 @@ class _FakeChatApi extends ChatApi {
   ) async {
     if (throwOnSend) {
       throw Exception('send failed');
+    }
+
+    final error = sendError;
+    if (error != null) {
+      throw error;
     }
 
     lastText = text;
@@ -507,3 +539,4 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
     savedEntries.add(entry);
   }
 }
+

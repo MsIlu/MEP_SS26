@@ -1,51 +1,14 @@
-﻿import 'package:flutter/material.dart';
-import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_info_card.dart';
+import 'package:flutter/material.dart';
 
 class AppointmentInfoCard extends StatelessWidget {
   const AppointmentInfoCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-  padding: const EdgeInsets.all(12),
-  decoration: BoxDecoration(
-    color: isDarkMode
-        ? colorScheme.surface
-        : AppColors.appointmentInfoBackground,
-
-    borderRadius: BorderRadius.circular(16),
-
-    border: Border.all(
-      color: AppColors.careenaTeal,
-      width: 1.5,
-    ),
-  ),
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(
-        Icons.tips_and_updates_outlined,
-        color: isDarkMode
-            ? AppColors.white
-            : AppColors.careenaTeal,
-      ),
-
-      const SizedBox(width: 12),
-
-      Expanded(
-        child: Text(
+    return const CareenaInfoCard(
+      text:
           'Verwalte deine Arzttermine, markiere erledigte Termine und füge neue Termine hinzu.',
-          style: TextStyle(
-            color: colorScheme.onSurface,
-          ),
-        ),
-      ),
-    ],
-  ),
-);
+    );
   }
 }

@@ -1,5 +1,6 @@
 ﻿import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
@@ -67,6 +68,11 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const CareenaInfoCard(
+                    text:
+                        'Sieh vergangene Chats erneut an und finde frühere Handlungsempfehlungen schneller wieder.',
+                  ),
+                  const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,
                     child: _HistorySortControl(

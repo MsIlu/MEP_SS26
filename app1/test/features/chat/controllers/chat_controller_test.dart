@@ -368,6 +368,54 @@ void main() {
       expect(controller.isCompleted.value, isTrue);
       expect(historyRepository.savedEntries.single.isEmergency, isTrue);
     });
+
+    test('rechecks limited availability before sending a message', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()
+        ..nextAvailability = CareenaAvailability.limited;
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      expect(controller.availability.value, CareenaAvailability.limited);
+
+      chatApi.nextAvailability = CareenaAvailability.online;
+      final response = await controller.sendMessage('Hallo');
+
+      expect(response, isNotNull);
+      expect(chatApi.availabilityRequests, 2);
+      expect(controller.availability.value, CareenaAvailability.online);
+      expect(chatApi.sentTexts, ['Hallo']);
+    });
+
+    test('updates availability after a send error', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()..throwOnSend = true;
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+
+      chatApi.nextAvailability = CareenaAvailability.offline;
+      final response = await controller.sendMessage('Hallo');
+
+      expect(response, isNull);
+      expect(controller.availability.value, CareenaAvailability.offline);
+    });
   });
 }
 
@@ -388,6 +436,8 @@ class _FakeChatApi extends ChatApi {
   final List<String> sentTexts = [];
   List<String> symptoms = [];
   CareenaAvailability nextAvailability = CareenaAvailability.online;
+  int availabilityRequests = 0;
+  bool throwOnSend = false;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -401,6 +451,7 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<CareenaAvailability> getCareenaAvailability() async {
+    availabilityRequests += 1;
     return nextAvailability;
   }
 
@@ -410,6 +461,10 @@ class _FakeChatApi extends ChatApi {
     String sessionId,
     int? profileId,
   ) async {
+    if (throwOnSend) {
+      throw Exception('send failed');
+    }
+
     lastText = text;
     lastSessionId = sessionId;
     lastProfileId = profileId;

@@ -22,6 +22,9 @@ class ChatController {
   final AuthSession authSession;
   int? _activeProfileId;
   bool _isCompleted = false;
+  Timer? _availabilityRetryTimer;
+  Future<void>? _availabilityRefreshFuture;
+  static const Duration _availabilityRetryDelay = Duration(seconds: 5);
 
   ChatController({
     required this.chatApi,
@@ -97,9 +100,40 @@ class ChatController {
     }
   }
 
-  Future<void> refreshAvailability() async {
-    availability.value = CareenaAvailability.checking;
-    availability.value = await chatApi.getCareenaAvailability();
+  Future<void> refreshAvailability({bool showChecking = true}) async {
+    final currentRefresh = _availabilityRefreshFuture;
+    if (currentRefresh != null) {
+      return currentRefresh;
+    }
+
+    final refreshFuture = _refreshAvailability(showChecking: showChecking);
+    _availabilityRefreshFuture = refreshFuture;
+
+    try {
+      await refreshFuture;
+    } finally {
+      if (identical(_availabilityRefreshFuture, refreshFuture)) {
+        _availabilityRefreshFuture = null;
+      }
+    }
+  }
+
+  Future<void> _refreshAvailability({required bool showChecking}) async {
+    _availabilityRetryTimer?.cancel();
+    _availabilityRetryTimer = null;
+
+    if (showChecking) {
+      availability.value = CareenaAvailability.checking;
+    }
+
+    final nextAvailability = await chatApi.getCareenaAvailability();
+    availability.value = nextAvailability;
+
+    if (nextAvailability.status != CareenaAvailabilityStatus.online) {
+      _availabilityRetryTimer = Timer(_availabilityRetryDelay, () {
+        unawaited(refreshAvailability(showChecking: false));
+      });
+    }
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
@@ -117,6 +151,10 @@ class ChatController {
 
     if (_initFuture != null) {
       await _initFuture;
+    }
+
+    if (availability.value.status != CareenaAvailabilityStatus.online) {
+      await refreshAvailability();
     }
 
     final hasSession = await _ensureSession();
@@ -192,7 +230,7 @@ class ChatController {
 
       return response;
     } catch (e) {
-      availability.value = CareenaAvailability.limited;
+      await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
       return null;
@@ -333,6 +371,7 @@ class ChatController {
 
   void dispose() {
     authSession.removeListener(_handleAuthSessionChanged);
+    _availabilityRetryTimer?.cancel();
     messages.dispose();
     symptoms.dispose();
     isCompleted.dispose();

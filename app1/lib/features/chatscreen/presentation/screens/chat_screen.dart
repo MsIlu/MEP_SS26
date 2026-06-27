@@ -45,7 +45,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final ChatWarningController _warningController;
@@ -63,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.controller.messages.addListener(_onMessagesChanged);
 
     widget.controller.init();
@@ -82,6 +83,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
       _inputFocusNode.requestFocus();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(widget.controller.refreshAvailability());
+    }
   }
 
   Future<void> _runWarningFlow() async {
@@ -334,6 +342,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.controller.messages.removeListener(_onMessagesChanged);
     _longProcessingTimer?.cancel();
     widget.controller.messages.removeListener(_handleMessagesChanged);

@@ -14,7 +14,7 @@ import '../../authscreen/state/auth_session.dart';
 
 class ChatController {
   static const recommendationRequestDisplayText =
-      'Ich möchte jetzt eine Versorgungsempfehlung.';
+      'Ich möchte jetzt eine Handlungsempfehlung.';
   static const _recommendationRequestBackendText = 'Ja, Empfehlung';
 
   final ChatApi chatApi;

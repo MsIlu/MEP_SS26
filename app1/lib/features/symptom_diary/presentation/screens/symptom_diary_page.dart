@@ -5,6 +5,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../controllers/symptom_diary_controller.dart';
@@ -16,6 +17,7 @@ class SymptomDiaryPage extends StatefulWidget {
   final ThemeController themeController;
   final AuthSession? authSession;
   final SymptomApiService? symptomApiService;
+  final ProfileApiService? profileApiService;
   final DateTime? initialDate;
 
   const SymptomDiaryPage({
@@ -23,6 +25,7 @@ class SymptomDiaryPage extends StatefulWidget {
     required this.themeController,
     this.authSession,
     this.symptomApiService,
+    this.profileApiService,
     this.initialDate,
   });
 
@@ -109,6 +112,9 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.
   Future<void> _openSymptomForm() async {
+    final biologicalSex = await _activeProfileBiologicalSex();
+    if (!mounted) return;
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -122,14 +128,32 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 onSave: _addEntry,
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
-                biologicalSex:
-                    widget.authSession?.activeProfile?.biologicalSex,
+                biologicalSex: biologicalSex,
               ),
             ),
           ),
         );
       },
     );
+  }
+
+  Future<String?> _activeProfileBiologicalSex() async {
+    final session = widget.authSession;
+    final profileId = session?.activeProfileId;
+    final profileApiService = widget.profileApiService;
+
+    if (profileId == null || profileApiService == null) {
+      return session?.activeProfile?.biologicalSex;
+    }
+
+    try {
+      // Keep the silhouette aligned with the latest saved profile data.
+      final profile = await profileApiService.getProfile(profileId);
+      session?.setActiveProfileBiologicalSex(profile.biologicalSex);
+      return profile.biologicalSex;
+    } catch (_) {
+      return session?.activeProfile?.biologicalSex;
+    }
   }
 
   /// Persists a new symptom entry and gives immediate save feedback.

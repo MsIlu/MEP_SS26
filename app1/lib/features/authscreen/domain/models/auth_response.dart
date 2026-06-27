@@ -32,12 +32,16 @@ class AuthProfile {
     );
   }
 
-  AuthProfile copyWith({String? displayName, String? aiDisclaimerAcceptedAt}) {
+  AuthProfile copyWith({
+    String? displayName,
+    String? biologicalSex,
+    String? aiDisclaimerAcceptedAt,
+  }) {
     return AuthProfile(
       id: id,
       displayName: displayName ?? this.displayName,
       profileType: profileType,
-      biologicalSex: biologicalSex,
+      biologicalSex: biologicalSex ?? this.biologicalSex,
       aiDisclaimerAcceptedAt:
           aiDisclaimerAcceptedAt ?? this.aiDisclaimerAcceptedAt,
       role: role,

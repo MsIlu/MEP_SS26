@@ -54,6 +54,16 @@ class SymptomSelectionStep extends StatelessWidget {
             final isSelected = selectedSymptom == symptom;
             final isCustom = customSuggestions.contains(symptom);
 
+            if (!isCustom) {
+              return ChoiceChip(
+                label: Text(symptom),
+                selected: isSelected,
+                selectedColor: AppColors.careenaBubbleBackground,
+                checkmarkColor: AppColors.careenaTeal,
+                onSelected: (_) => onSelected(symptom),
+              );
+            }
+
             return InputChip(
               label: Text(symptom),
               selected: isSelected,

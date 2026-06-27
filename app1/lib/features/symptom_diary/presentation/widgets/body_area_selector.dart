@@ -138,115 +138,123 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
             : AppColors.careenaBubbleBackground.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Wo tut es weh?',
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Wo tut es weh?',
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Text(
+                  widget.selectedArea.isEmpty
+                      ? 'optional'
+                      : widget.selectedArea,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-              Text(
-                widget.selectedArea.isEmpty ? 'optional' : widget.selectedArea,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          SegmentedButton<BodyView>(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.primary;
-                }
-                return AppColors.transparent;
-              }),
-              foregroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.white;
-                }
-                return colorScheme.onSurface;
-              }),
-              iconColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.white;
-                }
-                return AppColors.primary;
-              }),
+              ],
             ),
-            segments: const [
-              ButtonSegment(value: BodyView.front, label: Text('Vorne')),
-              ButtonSegment(value: BodyView.back, label: Text('Hinten')),
-            ],
-            selected: {_view},
-            onSelectionChanged: (selection) {
-              setState(() => _view = selection.first);
-              if (!_areasForView(selection.first)
-                  .any((area) => area.label == widget.selectedArea)) {
-                widget.onChanged('');
-              }
-            },
-          ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final height = constraints.maxWidth < 360 ? 280.0 : 320.0;
-              final size = Size(constraints.maxWidth, height);
+            const SizedBox(height: 10),
+            SegmentedButton<BodyView>(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return AppColors.primary;
+                  }
+                  return AppColors.transparent;
+                }),
+                foregroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return AppColors.white;
+                  }
+                  return colorScheme.onSurface;
+                }),
+                iconColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return AppColors.white;
+                  }
+                  return AppColors.primary;
+                }),
+              ),
+              segments: const [
+                ButtonSegment(value: BodyView.front, label: Text('Vorne')),
+                ButtonSegment(value: BodyView.back, label: Text('Hinten')),
+              ],
+              selected: {_view},
+              onSelectionChanged: (selection) {
+                setState(() => _view = selection.first);
+                if (!_areasForView(selection.first).any(
+                  (area) => area.label == widget.selectedArea,
+                )) {
+                  widget.onChanged('');
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final height = constraints.maxWidth < 360 ? 280.0 : 320.0;
+                final size = Size(constraints.maxWidth, height);
 
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapDown: (details) => _selectAt(details.localPosition, size),
-                child: SizedBox(
-                  height: size.height,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(_assetFor(widget.sex, _view),
-                          fit: BoxFit.contain),
-                      CustomPaint(
-                        painter: _BodyAreaHighlightPainter(
-                          selectedArea: widget.selectedArea,
-                          view: _view,
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) =>
+                      _selectAt(details.localPosition, size),
+                  child: SizedBox(
+                    height: size.height,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          _assetFor(widget.sex, _view),
+                          fit: BoxFit.contain,
                         ),
-                      ),
-                    ],
+                        CustomPaint(
+                          painter: _BodyAreaHighlightPainter(
+                            selectedArea: widget.selectedArea,
+                            view: _view,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: areas.map((area) {
-              final isSelected = widget.selectedArea == area.label;
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: areas.map((area) {
+                final isSelected = widget.selectedArea == area.label;
 
-              return ChoiceChip(
-                label: Text(area.label),
-                selected: isSelected,
-                selectedColor: AppColors.primary,
-                checkmarkColor: AppColors.white,
-                labelStyle: TextStyle(
-                  color: isSelected ? AppColors.white : colorScheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                ),
-                onSelected: (_) =>
-                    widget.onChanged(isSelected ? '' : area.label),
-              );
-            }).toList(),
-          ),
-        ],
+                return ChoiceChip(
+                  label: Text(area.label),
+                  selected: isSelected,
+                  selectedColor: AppColors.primary,
+                  checkmarkColor: AppColors.white,
+                  labelStyle: TextStyle(
+                    color: isSelected ? AppColors.white : colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                  onSelected: (_) =>
+                      widget.onChanged(isSelected ? '' : area.label),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

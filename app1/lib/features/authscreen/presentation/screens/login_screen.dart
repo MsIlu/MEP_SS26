@@ -55,10 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
       maxWidth: AuthTheme.loginMaxWidth,
       fixedHeader: CareenaPageHeader(
         title: 'Anmelden',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

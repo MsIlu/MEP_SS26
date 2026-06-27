@@ -4,14 +4,10 @@ import 'package:app1/core/themes/app_colors.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onBackPressed;
-  final VoidCallback onToggleTheme;
-  final bool isDarkMode;
 
   const ChatAppBar({
     super.key,
     required this.onBackPressed,
-    required this.onToggleTheme,
-    required this.isDarkMode,
   });
 
   @override
@@ -84,24 +80,6 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       centerTitle: false,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-
-          child: IconButton(
-            tooltip: isDarkMode
-                ? 'Lightmode aktivieren'
-                : 'Darkmode aktivieren',
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.toolbarButtonBackgroundDark,
-              foregroundColor: AppColors.white,
-              fixedSize: const Size.square(44),
-            ),
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            onPressed: onToggleTheme,
-          ),
-        ),
-      ],
     );
   }
 

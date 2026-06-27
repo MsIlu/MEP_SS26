@@ -68,10 +68,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
         title: 'Symptomtagebuch',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       body: SafeArea(
         child: AnimatedBuilder(

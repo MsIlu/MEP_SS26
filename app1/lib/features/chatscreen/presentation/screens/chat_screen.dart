@@ -230,7 +230,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showRecommendationCheckHint() {
     showCareenaSnackBar(
       context,
-      'Careena prüft jetzt, ob genug Angaben für eine Versorgungsempfehlung vorliegen.',
+      'Careena prüft jetzt, ob genug Angaben für eine Handlungsempfehlung vorliegen.',
     );
   }
 
@@ -409,8 +409,6 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: backgroundColor,
         appBar: ChatAppBar(
           onBackPressed: _handleLeaveChat,
-          onToggleTheme: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
         ),
         body: SafeArea(
           child: ResponsivePageBody(
@@ -459,12 +457,26 @@ class _ChatScreenState extends State<ChatScreen> {
                       return const SizedBox.shrink();
                     }
 
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                      child: _RecommendationRequestButton(
-                        isEnabled: !_isSending,
-                        onPressed: _handleRecommendationRequest,
-                      ),
+                    return ValueListenableBuilder(
+                      valueListenable: widget.controller.messages,
+                      builder: (context, List<Message> messages, _) {
+                        return ValueListenableBuilder(
+                          valueListenable: widget.controller.symptoms,
+                          builder: (context, List<String> symptoms, _) {
+                            if (!_hasRecommendationInput(messages, symptoms)) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                              child: _RecommendationRequestButton(
+                                isEnabled: !_isSending,
+                                onPressed: _handleRecommendationRequest,
+                              ),
+                            );
+                          },
+                        );
+                      },
                     );
                   },
                 ),
@@ -551,6 +563,11 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  bool _hasRecommendationInput(List<Message> messages, List<String> symptoms) {
+    // The backend still decides whether the available details are sufficient.
+    return symptoms.isNotEmpty || messages.any((message) => message.isUser);
+  }
 }
 
 class _RecommendationRequestButton extends StatelessWidget {
@@ -569,7 +586,7 @@ class _RecommendationRequestButton extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: isEnabled ? onPressed : null,
         icon: const Icon(Icons.medical_information_outlined),
-        label: const Text('Versorgungsempfehlung anfordern'),
+        label: const Text('Handlungsempfehlung anfordern'),
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.careenaTeal,
           foregroundColor: AppColors.white,

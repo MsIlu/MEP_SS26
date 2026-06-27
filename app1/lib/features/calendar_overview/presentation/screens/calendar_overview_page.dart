@@ -106,12 +106,6 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     return Scaffold(
       appBar: CareenaPageHeader(
         title: 'Kalender',
-        trailing: widget.themeController == null
-            ? null
-            : CareenaThemeHeaderAction(
-                onPressed: widget.themeController!.toggleTheme,
-                isDarkMode: widget.themeController!.isDarkMode,
-              ),
       ),
       body: SafeArea(
         child: AnimatedBuilder(

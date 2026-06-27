@@ -298,6 +298,7 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
           themeController: themeController,
           authSession: widget.authSession ?? dependencies?.authSession,
           symptomApiService: dependencies?.symptomApiService,
+          profileApiService: dependencies?.profileApiService,
           initialDate: entry.date,
         ),
       ),

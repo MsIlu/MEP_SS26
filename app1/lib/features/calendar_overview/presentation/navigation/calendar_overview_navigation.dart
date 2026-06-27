@@ -123,6 +123,7 @@ class CalendarOverviewNavigation {
           themeController: themeController!,
           authSession: authSession ?? dependencies?.authSession,
           symptomApiService: dependencies?.symptomApiService,
+          profileApiService: dependencies?.profileApiService,
           initialDate: entry.date,
         ),
       ),

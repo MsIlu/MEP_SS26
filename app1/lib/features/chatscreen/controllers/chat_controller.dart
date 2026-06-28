@@ -27,6 +27,9 @@ class ChatController {
   int? _activeProfileId;
   bool _isCompleted = false;
   final Map<String, ChatRunState> _chatRunStates = {};
+  final Map<String, Future<void>> _resumeOperations = {};
+  final Map<String, Future<void>> _continueOperations = {};
+  final Set<String> _openingHistoryEntries = {};
   String? _activeHistoryEntryId;
   DateTime? _activeHistoryCreatedAt;
   int _profileChangeGeneration = 0;
@@ -57,6 +60,22 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
+  final ValueNotifier<Set<String>> continuingHistoryIds =
+      ValueNotifier<Set<String>>(<String>{});
+
+  bool get isActiveChatContinuing {
+    final historyEntryId = _activeHistoryEntryId;
+    return historyEntryId != null &&
+        continuingHistoryIds.value.contains(historyEntryId);
+  }
+
+  bool tryBeginOpeningHistory(String historyEntryId) {
+    return _openingHistoryEntries.add(historyEntryId);
+  }
+
+  void finishOpeningHistory(String historyEntryId) {
+    _openingHistoryEntries.remove(historyEntryId);
+  }
 
   Future<void>? _initFuture;
 
@@ -147,10 +166,7 @@ class ChatController {
     }
 
     _addMessage(
-      message: Message(
-        text: visibleUserText?.trim() ?? trimmed,
-        isUser: true,
-      ),
+      message: Message(text: visibleUserText?.trim() ?? trimmed, isUser: true),
     );
 
     lastReplyOptions.value = [];
@@ -318,17 +334,40 @@ class ChatController {
   Future<void> resumeHistoryEntry(
     ChatHistoryEntry entry, {
     bool continuePendingResponse = true,
+  }) {
+    final existingOperation = _resumeOperations[entry.id];
+    if (existingOperation != null) {
+      return existingOperation;
+    }
+
+    final operation = _resumeHistoryEntry(
+      entry,
+      continuePendingResponse: continuePendingResponse,
+    );
+    _resumeOperations[entry.id] = operation;
+
+    return operation.whenComplete(() {
+      if (identical(_resumeOperations[entry.id], operation)) {
+        _resumeOperations.remove(entry.id);
+      }
+    });
+  }
+
+  Future<void> _resumeHistoryEntry(
+    ChatHistoryEntry entry, {
+    required bool continuePendingResponse,
   }) async {
+    final resumedMessages = _collapseStreamingSnapshots(entry.messages);
     _activeHistoryEntryId = entry.id;
     _activeHistoryCreatedAt = entry.createdAt;
     _setCompleted(entry.status == 'completed');
-    messages.value = entry.messages;
+    messages.value = resumedMessages;
     _setChatRunState(
       ChatRunState(
         historyId: entry.id,
         sessionId: entry.sessionId,
         profileId: entry.profileId,
-        messages: entry.messages,
+        messages: resumedMessages,
         status: entry.status,
       ),
     );
@@ -358,9 +397,9 @@ class ChatController {
       return;
     }
 
-    final runState = _chatRunStates[historyEntryId];
-
-    if (runState?.isContinuing == true) {
+    final existingOperation = _continueOperations[historyEntryId];
+    if (existingOperation != null) {
+      await existingOperation;
       return;
     }
 
@@ -368,13 +407,31 @@ class ChatController {
       return;
     }
 
-    _updateChatRunState(historyEntryId, isContinuing: true);
+    _setHistoryContinuing(historyEntryId, true);
+    final operation = _continuePendingAssistantResponse(historyEntryId);
+    _continueOperations[historyEntryId] = operation;
 
     try {
-      await _continuePendingAssistantResponse(historyEntryId);
+      await operation;
     } finally {
-      _updateChatRunState(historyEntryId, isContinuing: false);
+      if (identical(_continueOperations[historyEntryId], operation)) {
+        _continueOperations.remove(historyEntryId);
+        _setHistoryContinuing(historyEntryId, false);
+      }
     }
+  }
+
+  void _setHistoryContinuing(String historyEntryId, bool isContinuing) {
+    _updateChatRunState(historyEntryId, isContinuing: isContinuing);
+    final updatedIds = Set<String>.from(continuingHistoryIds.value);
+
+    if (isContinuing) {
+      updatedIds.add(historyEntryId);
+    } else {
+      updatedIds.remove(historyEntryId);
+    }
+
+    continuingHistoryIds.value = updatedIds;
   }
 
   Future<void> _continuePendingAssistantResponse(String historyEntryId) async {
@@ -535,6 +592,36 @@ class ChatController {
 
     final lastMessage = messages.value.last;
     return lastMessage.isUser && lastMessage.text.trim().isNotEmpty;
+  }
+
+  List<Message> _collapseStreamingSnapshots(List<Message> source) {
+    final collapsed = <Message>[];
+
+    for (final message in source) {
+      if (collapsed.isNotEmpty) {
+        final previous = collapsed.last;
+        final timestampDifference = message.timestamp!
+            .difference(previous.timestamp!)
+            .abs();
+        final isLikelyStreamingSnapshot =
+            !previous.isUser &&
+            !message.isUser &&
+            timestampDifference <= const Duration(seconds: 2) &&
+            (message.text.startsWith(previous.text) ||
+                previous.text.startsWith(message.text));
+
+        if (isLikelyStreamingSnapshot) {
+          if (message.text.length >= previous.text.length) {
+            collapsed[collapsed.length - 1] = message;
+          }
+          continue;
+        }
+      }
+
+      collapsed.add(message);
+    }
+
+    return collapsed;
   }
 
   Future<void> resetChat() async {
@@ -797,5 +884,6 @@ class ChatController {
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    continuingHistoryIds.dispose();
   }
 }

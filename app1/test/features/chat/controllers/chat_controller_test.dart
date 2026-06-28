@@ -10,6 +10,7 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
 import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
+import 'package:app1/features/chatscreen/data/models/message_model.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -209,6 +210,134 @@ void main() {
           isNot(contains('Antwort fuer Anna')),
         );
         expect(historyRepository.savedEntries.single.profileId, 42);
+      },
+    );
+
+    test(
+      'deduplicates parallel resume and continue operations per chat',
+      () async {
+        final authSession = AuthSession();
+        final chatApi = _FakeChatApi();
+        final resumeCompleter = Completer<String>();
+        final continueCompleter = Completer<ChatResponse>();
+        chatApi
+          ..resumeCompleter = resumeCompleter
+          ..continueCompleter = continueCompleter;
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: _FakeChatHistoryRepository(),
+        );
+
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        authSession.setAuthResponse(
+          AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: const Account(id: 1, email: 'test@example.com'),
+            profiles: const [
+              AuthProfile(
+                id: 42,
+                displayName: 'Anna',
+                profileType: 'self',
+                role: 'owner',
+              ),
+            ],
+          ),
+        );
+
+        final entry = ChatHistoryEntry(
+          id: 'history-1',
+          profileId: 42,
+          sessionId: 'old-session',
+          status: 'waiting_for_assistant',
+          createdAt: DateTime(2026, 6, 28),
+          messages: [Message(text: 'Seit zwei Tagen', isUser: true)],
+          recommendation: '',
+        );
+
+        expect(controller.tryBeginOpeningHistory(entry.id), isTrue);
+        expect(controller.tryBeginOpeningHistory(entry.id), isFalse);
+        controller.finishOpeningHistory(entry.id);
+
+        final firstResume = controller.resumeHistoryEntry(
+          entry,
+          continuePendingResponse: false,
+        );
+        final secondResume = controller.resumeHistoryEntry(
+          entry,
+          continuePendingResponse: false,
+        );
+        expect(chatApi.resumeHistorySessionCalls, 1);
+
+        resumeCompleter.complete('resumed-session');
+        await Future.wait([firstResume, secondResume]);
+
+        final firstContinue = controller
+            .continuePendingAssistantResponseIfNeeded();
+        final secondContinue = controller
+            .continuePendingAssistantResponseIfNeeded();
+        expect(chatApi.continueHistorySessionCalls, 1);
+        expect(controller.isActiveChatContinuing, isTrue);
+
+        continueCompleter.complete(
+          const ChatResponse(text: 'Eine Antwort', redFlag: false),
+        );
+        await Future.wait([firstContinue, secondContinue]);
+
+        expect(chatApi.continueHistorySessionCalls, 1);
+        expect(controller.isActiveChatContinuing, isFalse);
+        expect(
+          controller.messages.value
+              .where((message) => !message.isUser)
+              .map((message) => message.text),
+          ['Eine Antwort'],
+        );
+
+        final snapshotTimestamp = DateTime(2026, 6, 28, 12);
+        await controller.resumeHistoryEntry(
+          ChatHistoryEntry(
+            id: 'history-with-snapshots',
+            profileId: 42,
+            sessionId: 'snapshot-session',
+            status: 'active',
+            createdAt: snapshotTimestamp,
+            messages: [
+              Message(text: 'Frage', isUser: true),
+              Message(
+                text: 'Möchten Sie wei',
+                isUser: false,
+                timestamp: snapshotTimestamp,
+              ),
+              Message(
+                text: 'Möchten Sie weit',
+                isUser: false,
+                timestamp: snapshotTimestamp.add(
+                  const Duration(milliseconds: 5),
+                ),
+              ),
+              Message(
+                text: 'Möchten Sie weitere Angaben machen?',
+                isUser: false,
+                timestamp: snapshotTimestamp.add(
+                  const Duration(milliseconds: 10),
+                ),
+              ),
+            ],
+            recommendation: '',
+          ),
+          continuePendingResponse: false,
+        );
+
+        expect(
+          controller.messages.value
+              .where((message) => !message.isUser)
+              .map((message) => message.text),
+          ['Möchten Sie weitere Angaben machen?'],
+        );
       },
     );
 
@@ -499,6 +628,10 @@ class _FakeChatApi extends ChatApi {
   final List<String> sentTexts = [];
   List<String> symptoms = [];
   Completer<ChatResponse>? responseCompleter;
+  Completer<String>? resumeCompleter;
+  Completer<ChatResponse>? continueCompleter;
+  int resumeHistorySessionCalls = 0;
+  int continueHistorySessionCalls = 0;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -509,6 +642,18 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<void> warmup() async {}
+
+  @override
+  Future<String> resumeHistorySession(String historyId) async {
+    resumeHistorySessionCalls += 1;
+    return resumeCompleter?.future ?? 'resumed-session';
+  }
+
+  @override
+  Future<ChatResponse> continueHistorySession(String historyId) async {
+    continueHistorySessionCalls += 1;
+    return continueCompleter?.future ?? nextResponse;
+  }
 
   @override
   Future<ChatResponse> sendMessage(

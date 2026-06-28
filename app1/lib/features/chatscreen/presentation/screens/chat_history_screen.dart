@@ -318,30 +318,39 @@ class _ChatHistoryTile extends StatelessWidget {
     return InkWell(
       onTap: () async {
         if (_canResumeEntry(entry) && chatController != null) {
-          await chatController!.resumeHistoryEntry(
-            entry,
-            continuePendingResponse: false,
-          );
+          final controller = chatController!;
+          if (!controller.tryBeginOpeningHistory(entry.id)) {
+            return;
+          }
 
-          if (!context.mounted) return;
+          try {
+            await controller.resumeHistoryEntry(
+              entry,
+              continuePendingResponse: false,
+            );
 
-          unawaited(chatController!.continuePendingAssistantResponseIfNeeded());
+            if (!context.mounted) return;
 
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(
-                controller: chatController!,
-                themeController: themeController,
-                leaveDialogMessage:
-                    'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
-                    'Der aktuelle Chat wurde gespeichert.',
+            unawaited(controller.continuePendingAssistantResponseIfNeeded());
+
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  controller: controller,
+                  themeController: themeController,
+                  leaveDialogMessage:
+                      'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+                      'Der aktuelle Chat wurde gespeichert.',
+                ),
               ),
-            ),
-          );
+            );
 
-          if (context.mounted) {
-            onReturnedFromChat();
+            if (context.mounted) {
+              onReturnedFromChat();
+            }
+          } finally {
+            controller.finishOpeningHistory(entry.id);
           }
           return;
         }

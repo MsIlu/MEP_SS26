@@ -92,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(widget.controller.refreshAvailability());
+      unawaited(widget.controller.refreshAvailability(refreshLlmStatus: true));
     }
   }
 

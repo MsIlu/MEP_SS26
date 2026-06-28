@@ -40,6 +40,53 @@ void main() {
       expect(controller.messages.value, isEmpty);
     });
 
+    test('warms up LLM status before the first availability check', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+
+      expect(chatApi.operationLog, [
+        'createSession',
+        'warmup',
+        'getCareenaAvailability',
+        'getInputDraftSymptoms',
+      ]);
+    });
+
+    test('refreshes LLM status when an initialized chat is opened again', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      chatApi.operationLog.clear();
+
+      await controller.init();
+
+      expect(chatApi.operationLog, [
+        'warmup',
+        'getCareenaAvailability',
+      ]);
+    });
+
     test('sends active profile id from auth session to chat api', () async {
       final authSession = AuthSession();
       final chatApi = _FakeChatApi();
@@ -487,6 +534,7 @@ class _FakeChatApi extends ChatApi {
   final List<int?> createdProfileIds = [];
   final List<String> cancelledSessionIds = [];
   final List<String> sentTexts = [];
+  final List<String> operationLog = [];
   List<String> symptoms = [];
   CareenaAvailability nextAvailability = CareenaAvailability.online;
   int availabilityRequests = 0;
@@ -497,15 +545,19 @@ class _FakeChatApi extends ChatApi {
   Future<String> createSession([int? profileId]) async {
     createSessionCalls += 1;
     createdProfileIds.add(profileId);
+    operationLog.add('createSession');
     return 'fake-session-$createSessionCalls';
   }
 
   @override
-  Future<void> warmup() async {}
+  Future<void> warmup() async {
+    operationLog.add('warmup');
+  }
 
   @override
   Future<CareenaAvailability> getCareenaAvailability() async {
     availabilityRequests += 1;
+    operationLog.add('getCareenaAvailability');
     return nextAvailability;
   }
 
@@ -534,6 +586,7 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<List<String>> getInputDraftSymptoms(String sessionId) async {
+    operationLog.add('getInputDraftSymptoms');
     return symptoms;
   }
 

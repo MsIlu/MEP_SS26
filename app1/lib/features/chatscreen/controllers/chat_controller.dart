@@ -63,13 +63,16 @@ class ChatController {
   Future<void>? _initFuture;
 
   Future<void> init() async {
+    final wasAlreadyInitialized = _initFuture != null;
     _initFuture ??= _initialize();
     await _initFuture;
+
+    if (wasAlreadyInitialized) {
+      await refreshAvailability(refreshLlmStatus: true);
+    }
   }
 
   Future<void> _initialize() async {
-    await refreshAvailability();
-
     if (messages.value.isEmpty) {
       _addMessage(
         message: Message(text: AppConfig.welcomeMessage, isUser: false),
@@ -77,6 +80,7 @@ class ChatController {
     }
 
     final hasSession = await _ensureSession(showOfflineMessage: true);
+    await refreshAvailability();
 
     if (hasSession) {
       await loadSymptoms();
@@ -105,13 +109,22 @@ class ChatController {
     }
   }
 
-  Future<void> refreshAvailability({bool showChecking = true}) async {
+  Future<void> refreshAvailability({
+    bool showChecking = true,
+    bool refreshLlmStatus = false,
+  }) async {
     final currentRefresh = _availabilityRefreshFuture;
     if (currentRefresh != null) {
-      return currentRefresh;
+      await currentRefresh;
+      if (!refreshLlmStatus) {
+        return;
+      }
     }
 
-    final refreshFuture = _refreshAvailability(showChecking: showChecking);
+    final refreshFuture = _refreshAvailability(
+      showChecking: showChecking,
+      refreshLlmStatus: refreshLlmStatus,
+    );
     _availabilityRefreshFuture = refreshFuture;
 
     try {
@@ -123,12 +136,19 @@ class ChatController {
     }
   }
 
-  Future<void> _refreshAvailability({required bool showChecking}) async {
+  Future<void> _refreshAvailability({
+    required bool showChecking,
+    required bool refreshLlmStatus,
+  }) async {
     _availabilityRetryTimer?.cancel();
     _availabilityRetryTimer = null;
 
     if (showChecking) {
       availability.value = CareenaAvailability.checking;
+    }
+
+    if (refreshLlmStatus) {
+      await chatApi.warmup();
     }
 
     final nextAvailability = await chatApi.getCareenaAvailability();

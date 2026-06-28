@@ -46,7 +46,7 @@ class ChatApi {
 
   Future<void> warmup() async {
     try {
-      await client.post("/warmup", {});
+      await client.post("/warmup", {}).timeout(const Duration(seconds: 5));
     } catch (_) {}
   }
 

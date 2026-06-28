@@ -64,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _themeKey = GlobalKey();
   final _navigationKey = GlobalKey();
   int? _guideStep;
+  int _openChatCount = 0;
   final DocumentRepository _documentRepository = DocumentRepository.instance;
 
   List<AppGuideStep> get _visibleGuideSteps =>
@@ -82,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     _documentRepository.unreadCounts.addListener(_onDocumentBadgeChanged);
+    widget.controller.historyRevision.addListener(_refreshOpenChatCount);
+    widget.controller.authSession.addListener(_refreshOpenChatCount);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _refreshOpenChatCount(),
+    );
 
     if (widget.startGuide) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startGuide());
@@ -97,7 +103,36 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _documentRepository.unreadCounts.removeListener(_onDocumentBadgeChanged);
+    widget.controller.historyRevision.removeListener(_refreshOpenChatCount);
+    widget.controller.authSession.removeListener(_refreshOpenChatCount);
     super.dispose();
+  }
+
+  Future<void> _refreshOpenChatCount() async {
+    final profileId = widget.controller.authSession.activeProfileId;
+    if (profileId == null) {
+      if (mounted && _openChatCount != 0) setState(() => _openChatCount = 0);
+      return;
+    }
+
+    try {
+      final entries = await widget.controller.chatHistoryRepository.loadEntries(
+        profileId: profileId,
+      );
+      final count = entries
+          .where(
+            (entry) =>
+                entry.status == 'active' ||
+                entry.status == 'waiting_for_assistant',
+          )
+          .length;
+      if (mounted &&
+          profileId == widget.controller.authSession.activeProfileId) {
+        setState(() => _openChatCount = count);
+      }
+    } catch (_) {
+      // Keep the last known count while the backend is unavailable.
+    }
   }
 
   @override
@@ -164,6 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 guideTargetKey: _navigationKey,
                 currentIndex: 0,
                 isSimpleView: widget.themeController.isSimpleView,
+                historyBadgeCount: _openChatCount,
                 onTap: (index) => _onBottomNavigationTap(context, index),
               ),
             ),
@@ -206,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _navigateToChatHistory(BuildContext context) {
+  Future<void> _navigateToChatHistory(BuildContext context) async {
     final activeProfileId = widget.controller.authSession.activeProfileId;
 
     if (activeProfileId == null) {
@@ -217,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatHistoryScreen(
@@ -228,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    await _refreshOpenChatCount();
   }
 
   void _openSettings(BuildContext context) {
@@ -282,8 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
     AppGuideTarget.navigation => _navigationKey,
   };
 
-  void _navigateToChat(BuildContext context) {
-    Navigator.push(
+  Future<void> _navigateToChat(BuildContext context) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatScreen(
@@ -292,6 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    await _refreshOpenChatCount();
   }
 
   List<HomeFeature> _buildFeatures(BuildContext context) {
@@ -411,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) => DocumentsScreen(
           authSession:
-          widget.authSession ?? dependencies?.dependencies.authSession,
+              widget.authSession ?? dependencies?.dependencies.authSession,
         ),
       ),
     );

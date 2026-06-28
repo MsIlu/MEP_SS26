@@ -53,6 +53,40 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     });
   }
 
+  Future<void> _deleteEntry(ChatHistoryEntry entry) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verlauf löschen?'),
+        content: Text('Möchtest du „${entry.title}“ wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Löschen'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await widget.repository.deleteChat(entry.id);
+      if (mounted) _reloadEntries();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Der Verlauf konnte nicht gelöscht werden.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,6 +141,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                       themeController: widget.themeController,
                       chatController: widget.chatController,
                       onReturnedFromChat: _reloadEntries,
+                      onDelete: _deleteEntry,
                     ),
                 ],
               );
@@ -224,12 +259,14 @@ class _ChatHistoryGroup extends StatelessWidget {
   final ThemeController themeController;
   final ChatController? chatController;
   final VoidCallback onReturnedFromChat;
+  final ValueChanged<ChatHistoryEntry> onDelete;
 
   const _ChatHistoryGroup({
     required this.group,
     required this.themeController,
     required this.chatController,
     required this.onReturnedFromChat,
+    required this.onDelete,
   });
 
   @override
@@ -275,6 +312,7 @@ class _ChatHistoryGroup extends StatelessWidget {
               themeController: themeController,
               chatController: chatController,
               onReturnedFromChat: onReturnedFromChat,
+              onDelete: onDelete,
             ),
         ],
       ),
@@ -287,12 +325,14 @@ class _ChatHistoryTile extends StatelessWidget {
   final ThemeController themeController;
   final ChatController? chatController;
   final VoidCallback onReturnedFromChat;
+  final ValueChanged<ChatHistoryEntry> onDelete;
 
   const _ChatHistoryTile({
     required this.entry,
     required this.themeController,
     required this.chatController,
     required this.onReturnedFromChat,
+    required this.onDelete,
   });
 
   @override
@@ -385,14 +425,31 @@ class _ChatHistoryTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    entry.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          entry.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (_canResumeEntry(entry)) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 9,
+                          height: 9,
+                          decoration: const BoxDecoration(
+                            color: AppColors.careenaTeal,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (entry.isEmergency) ...[
                     const SizedBox(height: 4),
@@ -441,7 +498,27 @@ class _ChatHistoryTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+                PopupMenuButton<String>(
+                  tooltip: 'Verlauf verwalten',
+                  onSelected: (value) {
+                    if (value == 'delete') onDelete(entry);
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: AppColors.warningRed,
+                          ),
+                          SizedBox(width: 10),
+                          Text('Löschen'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],

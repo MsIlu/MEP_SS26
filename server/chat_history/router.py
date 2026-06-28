@@ -14,6 +14,7 @@ from chat_history.schemas import (
 from chat_history.service import (
     continue_chat_history,
     create_chat_history,
+    delete_chat_history,
     list_chat_history,
     resume_chat_history,
     update_chat_history,
@@ -95,3 +96,17 @@ def post_continue_chat_history(
         turn_engine=request.app.state.careena4_turn_engine,
         response_builder=request.app.state.careena4_response_builder,
     )
+
+
+@router.delete("/{history_id}")
+def delete_chat_history_entry(
+        history_id: int,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
+    delete_chat_history(
+        history_id=history_id,
+        current_user=current_user,
+        session=session,
+    )
+    return {"deleted": True}

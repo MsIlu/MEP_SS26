@@ -60,6 +60,7 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
+  final ValueNotifier<int> historyRevision = ValueNotifier<int>(0);
   final ValueNotifier<Set<String>> continuingHistoryIds =
       ValueNotifier<Set<String>>(<String>{});
 
@@ -782,6 +783,7 @@ class ChatController {
         hasUnreadUpdate: false,
       ),
     );
+    historyRevision.value += 1;
   }
 
   Future<void> _markActiveChatFailed() async {
@@ -885,5 +887,6 @@ class ChatController {
     isCompleted.dispose();
     lastReplyOptions.dispose();
     continuingHistoryIds.dispose();
+    historyRevision.dispose();
   }
 }

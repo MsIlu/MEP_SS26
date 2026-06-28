@@ -118,6 +118,27 @@ void main() {
       expect(updatedEntry.id, '99');
       expect(updatedEntry.status, 'active');
     });
+
+    test('deletes chat history through the API', () async {
+      late http.Request capturedRequest;
+      final repository = ApiChatHistoryRepository(
+        ApiClient(
+          MockClient((request) async {
+            capturedRequest = request;
+            return http.Response(
+              jsonEncode({'deleted': true}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        ),
+      );
+
+      await repository.deleteChat('99');
+
+      expect(capturedRequest.method, 'DELETE');
+      expect(capturedRequest.url.path, '/chat-history/99');
+    });
   });
 }
 

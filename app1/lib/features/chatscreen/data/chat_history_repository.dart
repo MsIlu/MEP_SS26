@@ -11,6 +11,10 @@ abstract class ChatHistoryRepository {
 
   Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry);
 
+  Future<void> deleteChat(String historyId) {
+    throw UnimplementedError('Deleting chat history is not supported.');
+  }
+
   Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) {
     return saveChat(entry);
   }
@@ -46,5 +50,10 @@ class ApiChatHistoryRepository extends ChatHistoryRepository {
     );
 
     return ChatHistoryEntry.fromJson(response);
+  }
+
+  @override
+  Future<void> deleteChat(String historyId) async {
+    await _apiClient.delete('/chat-history/$historyId');
   }
 }

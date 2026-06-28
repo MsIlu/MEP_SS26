@@ -66,6 +66,7 @@ class ChatController {
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
   final ValueNotifier<CareenaAvailability> availability =
       ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
+  final ValueNotifier<int> historyRevision = ValueNotifier<int>(0);
   final ValueNotifier<Set<String>> continuingHistoryIds =
       ValueNotifier<Set<String>>(<String>{});
 
@@ -377,7 +378,6 @@ class ChatController {
         );
       }
     } catch (e) {
-
       await refreshAvailability();
 
       if (!_isChatRequestActive(
@@ -882,6 +882,7 @@ class ChatController {
         hasUnreadUpdate: false,
       ),
     );
+    historyRevision.value += 1;
   }
 
   Future<void> _markActiveChatFailed() async {
@@ -987,5 +988,6 @@ class ChatController {
     lastReplyOptions.dispose();
     availability.dispose();
     continuingHistoryIds.dispose();
+    historyRevision.dispose();
   }
 }

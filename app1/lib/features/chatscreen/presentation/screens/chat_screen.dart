@@ -337,6 +337,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _handleLeaveChat() async {
+    if (widget.controller.authSession.isAuthenticated) {
+      await _speechService.stop();
+      if (!mounted) return;
+
+      _allowPopAfterConfirmation = true;
+      Navigator.of(context).pop();
+      return;
+    }
+
     final shouldLeave = await showLeaveChatDialog(
       context,
       message: widget.leaveDialogMessage,

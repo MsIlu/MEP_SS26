@@ -98,6 +98,26 @@ def update_chat_history(
     return _to_response(entry)
 
 
+def delete_chat_history(
+        history_id: int,
+        current_user: User,
+        session: Session,
+) -> None:
+    entry = session.get(ChatHistory, history_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Chat history entry not found.")
+
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=entry.profile_id,
+        session=session,
+    )
+
+    session.delete(entry)
+    session.commit()
+
+
 def resume_chat_history(
         history_id: int,
         current_user: User,

@@ -145,6 +145,35 @@ def test_chat_history_can_update_active_entry(client):
     assert len(body["messages"]) == 2
 
 
+def test_chat_history_can_be_deleted(client):
+    auth = register_user(client, email="delete-history@example.com")
+    create_response = client.post(
+        "/chat-history",
+        headers=auth["headers"],
+        json={
+            "profile_id": auth["profile_id"],
+            "title": "Alter Verlauf",
+            "status": "active",
+            "recommendation": "",
+            "messages": [{"text": "Test", "is_user": True}],
+        },
+    )
+    history_id = create_response.json()["id"]
+
+    delete_response = client.delete(
+        f"/chat-history/{history_id}",
+        headers=auth["headers"],
+    )
+
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {"deleted": True}
+    list_response = client.get(
+        f"/chat-history/{auth['profile_id']}",
+        headers=auth["headers"],
+    )
+    assert list_response.json() == []
+
+
 def test_chat_history_can_resume_active_entry(client):
     auth = register_user(client, email="resume-history@example.com")
 

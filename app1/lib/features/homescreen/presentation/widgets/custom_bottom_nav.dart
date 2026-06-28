@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
@@ -7,6 +7,7 @@ class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
   final bool isSimpleView;
   final Key? guideTargetKey;
+  final int historyBadgeCount;
 
   const CustomBottomNav({
     super.key,
@@ -14,6 +15,7 @@ class CustomBottomNav extends StatelessWidget {
     this.currentIndex = 0,
     this.isSimpleView = false,
     this.guideTargetKey,
+    this.historyBadgeCount = 0,
   });
 
   @override
@@ -75,39 +77,55 @@ class CustomBottomNav extends StatelessWidget {
                 iconSize: isSimpleView ? 32 : 24,
                 currentIndex: currentIndex,
                 onTap: onTap,
-                items: isSimpleView
-                    ? const [
-                        BottomNavigationBarItem(
+                                items: isSimpleView
+                    ? [
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.home_outlined),
                           label: "Startseite",
                         ),
-                        BottomNavigationBarItem(
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.calendar_today_outlined),
                           label: "Kalender",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.chat_bubble_outline),
+                          icon: Badge(
+                            isLabelVisible: historyBadgeCount > 0,
+                            label: Text(
+                              historyBadgeCount > 9
+                                  ? '9+'
+                                  : '$historyBadgeCount',
+                            ),
+                            child: const Icon(Icons.chat_bubble_outline),
+                          ),
                           label: "Verlauf",
                         ),
-                        BottomNavigationBarItem(
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.settings_outlined),
                           label: "Einstellungen",
                         ),
                       ]
-                    : const [
-                        BottomNavigationBarItem(
+                    : [
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.home_outlined),
                           label: "Startseite",
                         ),
-                        BottomNavigationBarItem(
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.calendar_today_outlined),
                           label: "Kalender",
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.chat_bubble_outline),
+                          icon: Badge(
+                            isLabelVisible: historyBadgeCount > 0,
+                            label: Text(
+                              historyBadgeCount > 9
+                                  ? '9+'
+                                  : '$historyBadgeCount',
+                            ),
+                            child: const Icon(Icons.chat_bubble_outline),
+                          ),
                           label: "Chathistorie",
                         ),
-                        BottomNavigationBarItem(
+                        const BottomNavigationBarItem(
                           icon: Icon(Icons.settings_outlined),
                           label: "Einstellungen",
                         ),

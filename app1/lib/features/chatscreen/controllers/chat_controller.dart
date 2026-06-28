@@ -33,6 +33,7 @@ class ChatController {
   final Map<String, ChatRunState> _chatRunStates = {};
   String? _activeHistoryEntryId;
   DateTime? _activeHistoryCreatedAt;
+  int _profileChangeGeneration = 0;
 
   ChatController({
     required this.chatApi,
@@ -210,6 +211,8 @@ class ChatController {
       await refreshAvailability();
     }
 
+    final expectedProfileId = authSession.activeProfileId;
+    final expectedGeneration = _profileChangeGeneration;
     final hasSession = await _ensureSession();
     final sessionId = chatSessionService.sessionId;
 
@@ -217,8 +220,24 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
+    if (expectedGeneration != _profileChangeGeneration ||
+        expectedProfileId != authSession.activeProfileId) {
+      return null;
+    }
+
     _addMessage(message: Message(text: visibleUserText, isUser: true));
+
     await _persistActiveChat(status: 'waiting_for_assistant');
+    final expectedHistoryEntryId = _activeHistoryEntryId;
+
+    if (!_isChatRequestActive(
+      generation: expectedGeneration,
+      profileId: expectedProfileId,
+      historyEntryId: expectedHistoryEntryId,
+      sessionId: sessionId,
+    )) {
+      return null;
+    }
 
     lastReplyOptions.value = [];
 
@@ -234,8 +253,27 @@ class ChatController {
     try {
       final response = await request(sessionId);
 
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      await loadSymptoms();
+      final loadedSymptoms = await symptomDraftService.loadSymptoms(sessionId);
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
+      symptoms.value = loadedSymptoms;
 
       lastReplyOptions.value = response.replyOptions;
 
@@ -243,6 +281,14 @@ class ChatController {
         final botMessage = chatService.buildAssistantMessage(response);
         _addMessage(message: botMessage);
         await _persistActiveChat();
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: sessionId,
+        )) {
+          return response;
+        }
         await _completeChat(
           recommendation: response.text,
           nextSteps: response.action,
@@ -255,12 +301,30 @@ class ChatController {
       _addMessage(message: botMessage.copyWith(text: ''));
 
       await for (final partialText in chatService.streamText(response.text)) {
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: sessionId,
+        )) {
+          return response;
+        }
+
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
             message: botMessage.copyWith(text: partialText, isStreaming: true),
           ),
         );
+      }
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
       }
 
       _setMessages(
@@ -271,6 +335,15 @@ class ChatController {
       );
 
       await _persistActiveChat(status: 'active');
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
 
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
@@ -283,7 +356,18 @@ class ChatController {
         );
       }
     } catch (e) {
+
       await refreshAvailability();
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return null;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       await _markActiveChatFailed();
@@ -390,6 +474,9 @@ class ChatController {
 
   Future<void> _continuePendingAssistantResponse(String historyEntryId) async {
     final expectedHistoryEntryId = historyEntryId;
+    final expectedProfileId = authSession.activeProfileId;
+    final expectedGeneration = _profileChangeGeneration;
+    final expectedSessionId = chatSessionService.sessionId;
 
     if (_isCompleted) {
       return;
@@ -408,8 +495,12 @@ class ChatController {
       final response = await chatSessionService.continueHistorySession(
         historyId: historyEntryId,
       );
-
-      if (_activeHistoryEntryId != expectedHistoryEntryId) {
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
         _updateChatRunState(
           historyEntryId,
           status: _statusForResponse(response),
@@ -419,18 +510,63 @@ class ChatController {
       }
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      await loadSymptoms();
+      final loadedSymptoms = await symptomDraftService.loadSymptoms(
+        expectedSessionId,
+      );
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+      symptoms.value = loadedSymptoms;
 
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
       await for (final partialText in chatService.streamText(response.text)) {
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: expectedSessionId,
+        )) {
+          _updateChatRunState(
+            historyEntryId,
+            status: _statusForResponse(response),
+            hasUnreadUpdate: true,
+          );
+          return;
+        }
+
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
             message: botMessage.copyWith(text: partialText, isStreaming: true),
           ),
         );
+      }
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
       }
 
       _setMessages(
@@ -441,6 +577,20 @@ class ChatController {
       );
 
       await _persistActiveChat(status: 'active');
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
 
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
@@ -453,6 +603,20 @@ class ChatController {
         );
       }
     } catch (e) {
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: 'failed',
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
       await _markActiveChatFailed();
@@ -492,6 +656,7 @@ class ChatController {
       return;
     }
 
+    _profileChangeGeneration++;
     _activeProfileId = nextProfileId;
     unawaited(_resetAfterProfileChange());
   }
@@ -504,6 +669,18 @@ class ChatController {
     if (wasInitialized) {
       await init();
     }
+  }
+
+  bool _isChatRequestActive({
+    required int generation,
+    required int? profileId,
+    required String? historyEntryId,
+    required String? sessionId,
+  }) {
+    return generation == _profileChangeGeneration &&
+        profileId == authSession.activeProfileId &&
+        historyEntryId == _activeHistoryEntryId &&
+        sessionId == chatSessionService.sessionId;
   }
 
   void _addMessage({required Message message}) {
@@ -571,6 +748,8 @@ class ChatController {
       return;
     }
 
+    final expectedGeneration = _profileChangeGeneration;
+    final expectedHistoryEntryId = _activeHistoryEntryId;
     final now = DateTime.now();
     final createdAt = _activeHistoryCreatedAt ?? now;
 
@@ -591,6 +770,12 @@ class ChatController {
     final savedEntry = _activeHistoryEntryId == null
         ? await chatHistoryRepository.saveChat(entry)
         : await chatHistoryRepository.updateChat(entry);
+
+    if (expectedGeneration != _profileChangeGeneration ||
+        activeProfileId != authSession.activeProfileId ||
+        expectedHistoryEntryId != _activeHistoryEntryId) {
+      return;
+    }
 
     _activeHistoryEntryId = savedEntry.id;
     _activeHistoryCreatedAt = savedEntry.createdAt;

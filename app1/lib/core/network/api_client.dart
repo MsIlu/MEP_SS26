@@ -137,7 +137,7 @@ class ApiClient {
             break;
           case 409:
             message =
-                _errorDetailFromResponse(response) ??
+                _mappedErrorDetailFromResponse(response) ??
                 'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
             break;
           default:
@@ -275,7 +275,7 @@ class ApiClient {
           break;
         case 409:
           message =
-              _errorDetailFromResponse(response) ??
+              _mappedErrorDetailFromResponse(response) ??
               'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
           break;
         default:
@@ -315,6 +315,17 @@ class ApiClient {
     } catch (_) {}
 
     return null;
+  }
+
+  String? _mappedErrorDetailFromResponse(http.Response response) {
+    final detail = _errorDetailFromResponse(response);
+
+    switch (detail) {
+      case 'Email is already registered.':
+        return 'Diese E-Mail-Adresse wurde schon registriert.';
+      default:
+        return detail;
+    }
   }
 
   /*

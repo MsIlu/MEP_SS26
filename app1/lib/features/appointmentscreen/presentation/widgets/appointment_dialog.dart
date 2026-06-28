@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 class AppointmentDialog extends StatelessWidget {
@@ -49,7 +49,7 @@ class AppointmentDialog extends StatelessWidget {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderSide: BorderSide(color: AppColors.greyShade400),
       ),
     );
   }
@@ -99,16 +99,22 @@ content: ConstrainedBox(
                 decoration: _inputDecoration('Uhrzeit', Icons.access_time),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: noteController,
-                minLines: 3,
-                maxLines: 6,
-                maxLength: 300,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
-                decoration: _inputDecoration(
-                  'Notiz (optional)',
-                  Icons.note_alt_outlined,
+              SizedBox(
+                height: 140,
+                child: TextField(
+                  controller: noteController,
+                  expands: true,
+                  minLines: null,
+                  maxLines: null,
+                  maxLength: 300,
+                  textAlign: TextAlign.start,
+                  textAlignVertical: TextAlignVertical.center,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  decoration: _inputDecoration(
+                    'Notiz (optional)',
+                    Icons.note_alt_outlined,
+                  ),
                 ),
               ),
             ],
@@ -128,7 +134,7 @@ content: ConstrainedBox(
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.careenaTeal,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.white,
           ),
           onPressed: onSave,
           child: const Text('Speichern'),

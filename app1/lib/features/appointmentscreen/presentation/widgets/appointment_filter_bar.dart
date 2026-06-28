@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 class AppointmentFilterBar extends StatelessWidget {
@@ -35,9 +35,9 @@ class AppointmentFilterBar extends StatelessWidget {
         label: Text(label),
         selected: isSelected,
         selectedColor: AppColors.careenaTeal,
-        checkmarkColor: Colors.white,
+        checkmarkColor: AppColors.white,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : null,
+          color: isSelected ? AppColors.white : null,
         ),
         onSelected: (_) {
           onFilterChanged(label);

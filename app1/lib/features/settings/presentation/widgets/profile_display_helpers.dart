@@ -31,6 +31,7 @@ AuthProfile authProfileFromProfile(Profile profile) {
     id: profile.id,
     displayName: profile.displayName,
     profileType: profile.profileType,
+    biologicalSex: profile.biologicalSex,
     aiDisclaimerAcceptedAt: profile.aiDisclaimerAcceptedAt,
     role: profile.role,
   );

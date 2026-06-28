@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/medication_date_format.dart';
@@ -30,13 +30,16 @@ class MedicationDayChip extends StatelessWidget {
         : isDarkMode
         ? AppColors.darkElevatedSurface
         : AppColors.lightBackground;
+    final accentColor = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
     final unselectedDayColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaDark;
     final dayColor = isSelected || isToday
-        ? AppColors.careenaTeal
+        ? accentColor
         : unselectedDayColor;
-    final dateColor = isSelected ? Colors.white : colorScheme.onSurface;
+    final dateColor = isSelected ? AppColors.white : colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,
@@ -49,9 +52,9 @@ class MedicationDayChip extends StatelessWidget {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 160),
               opacity: isSelected ? 1 : 0,
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_drop_down,
-                color: AppColors.careenaTeal,
+                color: accentColor,
                 size: 18,
               ),
             ),
@@ -70,8 +73,8 @@ class MedicationDayChip extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isToday && !isSelected
-                      ? AppColors.careenaTeal
-                      : Colors.transparent,
+                      ? accentColor
+                      : AppColors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -87,8 +90,8 @@ class MedicationDayChip extends StatelessWidget {
               height: 6,
               decoration: BoxDecoration(
                 color: hasPlannedMedication
-                    ? AppColors.careenaTeal
-                    : Colors.transparent,
+                    ? accentColor
+                    : AppColors.transparent,
                 shape: BoxShape.circle,
               ),
             ),

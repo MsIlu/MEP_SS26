@@ -1,6 +1,7 @@
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
 import 'core/themes/app_theme.dart';
@@ -95,21 +96,36 @@ class _AppBootState extends State<_AppBoot> {
       child: AnimatedBuilder(
         animation: _themeController,
         builder: (context, _) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Careena',
-            locale: const Locale('de', 'DE'),
-            supportedLocales: const [Locale('de', 'DE')],
-            localizationsDelegates: GlobalMaterialLocalizations.delegates,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: _themeController.themeMode,
-            home: OnboardingScreen(
-              chatController: _chatController,
-              themeController: _themeController,
-              authSession: _authSession,
-              authApiService: _authApiService,
-              symptomRepository: _symptomRepository,
+          return FocusTraversalGroup(
+            policy: ReadingOrderTraversalPolicy(),
+            child: Shortcuts(
+              shortcuts: const {
+                SingleActivator(LogicalKeyboardKey.arrowDown):
+                    DirectionalFocusIntent(TraversalDirection.down),
+                SingleActivator(LogicalKeyboardKey.arrowUp):
+                    DirectionalFocusIntent(TraversalDirection.up),
+                SingleActivator(LogicalKeyboardKey.arrowRight):
+                    DirectionalFocusIntent(TraversalDirection.right),
+                SingleActivator(LogicalKeyboardKey.arrowLeft):
+                    DirectionalFocusIntent(TraversalDirection.left),
+              },
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'Careena',
+                locale: const Locale('de', 'DE'),
+                supportedLocales: const [Locale('de', 'DE')],
+                localizationsDelegates: GlobalMaterialLocalizations.delegates,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: _themeController.themeMode,
+                home: OnboardingScreen(
+                  chatController: _chatController,
+                  themeController: _themeController,
+                  authSession: _authSession,
+                  authApiService: _authApiService,
+                  symptomRepository: _symptomRepository,
+                ),
+              ),
             ),
           );
         },

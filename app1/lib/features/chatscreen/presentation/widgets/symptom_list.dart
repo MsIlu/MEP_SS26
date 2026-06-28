@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 /// Displays detected symptoms as a single compact row below the message list.
@@ -29,15 +29,15 @@ class SymptomList extends StatelessWidget {
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
     final chipBackground = isDarkMode
-        ? const Color(0xFF222A35)
-        : const Color(0xFFF4F7F6);
-    final editBackground = isDarkMode ? colorScheme.surface : Colors.white;
+        ? AppColors.darkElevatedSurface
+        : AppColors.symptomListSurfaceLight;
+    final editBackground = isDarkMode ? colorScheme.surface : AppColors.white;
     final chipBorder = isDarkMode
         ? colorScheme.outlineVariant
-        : const Color(0xFFB7CCC6);
+        : AppColors.symptomEditorBorder;
     final symptomColor = isDarkMode
         ? colorScheme.onSurface
-        : const Color(0xFF36594F);
+        : AppColors.symptomEditorText;
     final actionColor = isDarkMode
         ? AppColors.toolbarButtonBackgroundDark
         : AppColors.careenaTeal;
@@ -243,7 +243,7 @@ class _SymptomChip extends StatelessWidget {
     final icon = this.icon;
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(9),
         onTap: onPressed,

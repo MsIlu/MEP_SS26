@@ -1,5 +1,5 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/themes/app_colors.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../settings_icons.dart';
 import 'settings_components.dart';
@@ -16,21 +16,26 @@ class DisplaySettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (showSimpleView) ...[
-          _SimpleViewCard(themeController: themeController),
-          const SizedBox(height: 22),
-        ],
-        const SettingsSectionHeader(
-          icon: SettingsIcons.display,
-          title: 'Aussehen',
-          subtitle: 'Wähle die Einstellung, die du gut erkennen kannst.',
-        ),
-        const SizedBox(height: 10),
-        _ThemeChoice(themeController: themeController),
-      ],
+    return AnimatedBuilder(
+      animation: themeController,
+      builder: (context, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showSimpleView) ...[
+              _SimpleViewCard(themeController: themeController),
+              const SizedBox(height: 22),
+            ],
+            const SettingsSectionHeader(
+              icon: SettingsIcons.display,
+              title: 'Aussehen',
+              subtitle: 'Wähle die Einstellung, die du gut erkennen kannst.',
+            ),
+            const SizedBox(height: 10),
+            _ThemeChoice(themeController: themeController),
+          ],
+        );
+      },
     );
   }
 }

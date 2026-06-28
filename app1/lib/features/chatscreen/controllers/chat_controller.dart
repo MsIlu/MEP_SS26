@@ -13,6 +13,10 @@ import '../services/symptom_draft_service.dart';
 import '../../authscreen/state/auth_session.dart';
 
 class ChatController {
+  static const recommendationRequestDisplayText =
+      'Ich möchte jetzt eine Handlungsempfehlung.';
+  static const _recommendationRequestBackendText = 'Ja, Empfehlung';
+
   final ChatApi chatApi;
   final ChatService chatService;
   final ChatSessionService chatSessionService;
@@ -93,6 +97,20 @@ class ChatController {
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
+    return _sendMessage(text);
+  }
+
+  Future<ChatResponse?> requestRecommendation() async {
+    return _sendMessage(
+      _recommendationRequestBackendText,
+      visibleUserText: recommendationRequestDisplayText,
+    );
+  }
+
+  Future<ChatResponse?> _sendMessage(
+    String text, {
+    String? visibleUserText,
+  }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
@@ -116,9 +134,12 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
+    // Keep backend trigger wording separate from the text shown in the chat.
+    _addMessage(
+      message: Message(text: visibleUserText?.trim() ?? trimmed, isUser: true),
+    );
 
     lastReplyOptions.value = [];
-    _addMessage(message: Message(text: trimmed, isUser: true));
     _addMessage(
       message: Message(
         text: '',
@@ -151,6 +172,17 @@ class ChatController {
         return response;
       }
 
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation: response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+        return response;
+      }
+
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
@@ -169,16 +201,6 @@ class ChatController {
           message: botMessage.copyWith(isStreaming: false),
         ),
       );
-
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation: response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
-        );
-      }
 
       return response;
     } catch (e) {

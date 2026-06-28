@@ -1,6 +1,7 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/data/registration_condition_options.dart';
 import '../../../authscreen/presentation/widgets/common/auth_fields.dart';
 import '../../../authscreen/state/auth_session.dart';
@@ -70,8 +71,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
   final _formKey = GlobalKey<FormState>();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
-  final _medicationController = TextEditingController();
-  final _notesController = TextEditingController();
   final _conditions = <String>{};
   String _biologicalSex = 'Keine Angabe';
 
@@ -85,8 +84,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
   void dispose() {
     _heightController.dispose();
     _weightController.dispose();
-    _medicationController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -176,20 +173,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
-          AuthTextField(
-            controller: _medicationController,
-            label: 'Regelmäßige Medikamente',
-            hint: 'Optional',
-            maxLines: 3,
-          ),
-          const SizedBox(height: 14),
-          AuthTextField(
-            controller: _notesController,
-            label: 'Symptomtagebuch-Zusammenfassung',
-            hint: 'Optional',
-            maxLines: 4,
-          ),
           const SizedBox(height: 18),
           SettingsPrimaryButton(
             key: const ValueKey('health-data-save-button'),
@@ -234,8 +217,6 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
         _biologicalSex = _sexLabelFromBackend(profile.biologicalSex);
         _heightController.text = profile.heightCm?.toString() ?? '';
         _weightController.text = _formatWeight(profile.weightKg);
-        _medicationController.text = profile.relevantMedicationsSummary ?? '';
-        _notesController.text = profile.symptomDiarySummary ?? '';
         _conditions
           ..clear()
           ..addAll(
@@ -257,23 +238,21 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
     }
 
     try {
+      final biologicalSex = _sexValueForBackend(_biologicalSex);
       await profileApiService.updateProfileFields(
         profileId: profileId,
         fields: {
-          'biological_sex': _sexValueForBackend(_biologicalSex),
+          'biological_sex': biologicalSex,
           'height_cm': int.tryParse(_heightController.text.trim()),
           'weight_kg': double.tryParse(
             _weightController.text.trim().replaceAll(',', '.'),
           ),
           'relevant_preconditions_summary': _summaryFromConditions(),
-          'relevant_medications_summary': _emptyToNull(
-            _medicationController.text,
-          ),
-          'symptom_diary_summary': _emptyToNull(_notesController.text),
         },
       );
 
       if (!mounted) return;
+      widget.authSession?.setActiveProfileBiologicalSex(biologicalSex);
       _showMessage('Gesundheitsangaben wurden gespeichert.');
     } catch (_) {
       if (!mounted) return;
@@ -318,14 +297,7 @@ class _HealthDataSettingsFormState extends State<HealthDataSettingsForm> {
     };
   }
 
-  String? _emptyToNull(String value) {
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showCareenaSnackBar(context, message);
   }
 }

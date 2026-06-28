@@ -3,6 +3,7 @@ import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/app_guide/data/app_guide_store.dart';
 import 'package:app1/features/app_guide/data/app_guide_steps.dart';
@@ -10,6 +11,7 @@ import 'package:app1/features/app_guide/presentation/widgets/app_guide_overlay.d
 import 'package:app1/features/authscreen/data/auth_api_service.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 
+import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
@@ -160,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               bottomNavigationBar: CustomBottomNav(
                 guideTargetKey: _navigationKey,
+                currentIndex: 0,
                 isSimpleView: widget.themeController.isSimpleView,
                 onTap: (index) => _onBottomNavigationTap(context, index),
               ),
@@ -190,12 +193,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onBottomNavigationTap(BuildContext context, int index) {
-    if (widget.themeController.isSimpleView && index == 1) {
-      _openSettings(context);
+    if (index == 0) {
       return;
     }
 
-    if (index == 2) {
+    if (index == 1) {
+      _navigateToCalendar(context);
+    } else if (index == 2) {
       _navigateToChatHistory(context);
     } else if (index == 3) {
       _openSettings(context);
@@ -206,10 +210,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final activeProfileId = widget.controller.authSession.activeProfileId;
 
     if (activeProfileId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Melde dich an, um gespeicherte Verläufe zu sehen.'),
-        ),
+      showCareenaSnackBar(
+        context,
+        'Melde dich an, um gespeicherte Verläufe zu sehen.',
       );
       return;
     }
@@ -300,16 +303,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return [
       HomeFeature(
-        icon: Icons.access_time,
-        title: 'Terminplanung',
+        icon: Icons.menu_book_outlined,
+        title: 'Symptomtagebuch',
         backgroundColor: featureColor,
-        onTap: () => _navigateToAppointments(context),
+        onTap: () => _navigateToSymptomDiary(context),
       ),
       HomeFeature(
         icon: Icons.medication,
         title: 'Medikamententagebuch',
         backgroundColor: featureColor,
         onTap: () => _navigateToMedicationPlan(context),
+      ),
+      HomeFeature(
+        icon: Icons.access_time,
+        title: 'Terminplanung',
+        backgroundColor: featureColor,
+        onTap: () => _navigateToAppointments(context),
       ),
       HomeFeature(
         icon: Icons.description_outlined,
@@ -323,12 +332,6 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Präventive Angebote',
         backgroundColor: featureColor,
         onTap: () {},
-      ),
-      HomeFeature(
-        icon: Icons.menu_book_outlined,
-        title: 'Symptomtagebuch',
-        backgroundColor: featureColor,
-        onTap: () => _navigateToSymptomDiary(context),
       ),
     ];
   }
@@ -362,24 +365,42 @@ class _HomeScreenState extends State<HomeScreen> {
           symptomApiService:
               widget.symptomApiService ??
               dependencies?.dependencies.symptomApiService,
+          profileApiService: dependencies?.dependencies.profileApiService,
         ),
       ),
     );
   }
 
   void _navigateToAppointments(BuildContext context) {
-  final dependencies = _dependenciesFromContext(context);
+    final dependencies = _dependenciesFromContext(context);
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => AppointmentScreen(
-        authSession:
-            widget.authSession ?? dependencies?.dependencies.authSession,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AppointmentScreen(
+          themeController: widget.themeController,
+          authSession:
+              widget.authSession ?? dependencies?.dependencies.authSession,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void _navigateToCalendar(BuildContext context) {
+    final dependencies = _dependenciesFromContext(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CalendarOverviewPage(
+          themeController: widget.themeController,
+          apiClient: widget.apiClient ?? dependencies?.dependencies.apiClient,
+          authSession:
+              widget.authSession ?? dependencies?.dependencies.authSession,
+        ),
+      ),
+    );
+  }
 
   void _navigateToDocuments(BuildContext context) {
     final dependencies = _dependenciesFromContext(context);
@@ -389,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) => DocumentsScreen(
           authSession:
-              widget.authSession ?? dependencies?.dependencies.authSession,
+          widget.authSession ?? dependencies?.dependencies.authSession,
         ),
       ),
     );

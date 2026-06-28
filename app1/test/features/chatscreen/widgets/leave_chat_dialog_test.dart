@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // Test case references: documents/Testfaelle_Frontend.md#t06-chat-core-und-ui
   const defaultMessage =
-      'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+      'Wenn du fortfährst, gelangst du zurück zur Startseite. '
       'Der aktuelle Chat wird nicht gespeichert.';
 
   Future<void> pumpDialogLauncher(
@@ -28,7 +28,7 @@ void main() {
                   showLeaveChatDialog(
                     context,
                     message: message ?? defaultMessage,
-                    confirmLabel: confirmLabel ?? 'Zum Homescreen',
+                    confirmLabel: confirmLabel ?? 'Zur Startseite',
                   );
                 },
                 child: const Text('Dialog öffnen'),
@@ -46,8 +46,8 @@ void main() {
   testWidgets('shows homescreen copy by default', (tester) async {
     await pumpDialogLauncher(tester);
 
-    expect(find.text('Zum Homescreen'), findsOneWidget);
-    expect(find.textContaining('zurück zum Homescreen'), findsOneWidget);
+    expect(find.text('Zur Startseite'), findsOneWidget);
+    expect(find.textContaining('zurück zur Startseite'), findsOneWidget);
   });
 
   testWidgets('shows custom destination copy', (tester) async {

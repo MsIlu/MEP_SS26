@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
@@ -65,25 +65,33 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final bubbleColor = isDarkMode ? colorScheme.surface : Colors.white;
-    final textColor = isDarkMode ? colorScheme.onSurface : Colors.grey;
+    final bubbleColor = isDarkMode ? colorScheme.surface : AppColors.white;
+    final textColor = isDarkMode ? colorScheme.onSurface : AppColors.careenaMuted;
     final hintTextColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
-    final dotColor = isDarkMode ? colorScheme.onSurfaceVariant : Colors.grey;
+    final dotColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaMuted;
+    final avatarBackground = isDarkMode
+        ? AppColors.chatAvatarBackgroundDark
+        : AppColors.chatAvatarBackgroundLight;
     final shadowColor = isDarkMode
-        ? Colors.black.withValues(alpha: 0.15)
-        : Colors.black.withValues(alpha: 0.06);
+        ? AppColors.black.withValues(alpha: 0.15)
+        : AppColors.black.withValues(alpha: 0.06);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 16,
-            backgroundColor: AppColors.careenaBubbleBackground,
-            backgroundImage: AssetImage(AppAssets.careenaDoctor),
+            backgroundColor: avatarBackground,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Image.asset(AppAssets.careenaProfil, fit: BoxFit.contain),
+            ),
           ),
           const SizedBox(width: 8),
           Flexible(
@@ -129,7 +137,7 @@ class _ThinkingBubbleState extends State<ThinkingBubble>
                     if (widget.showLongProcessingHint) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'Die Antwort dauert etwas länger. Bitte bleiben Sie kurz im Chat.',
+                        'Die Antwort dauert etwas länger. Bitte bleib kurz im Chat.',
                         softWrap: true,
                         style: TextStyle(fontSize: 12, color: hintTextColor),
                       ),

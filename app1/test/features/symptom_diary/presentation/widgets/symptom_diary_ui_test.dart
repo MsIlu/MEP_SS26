@@ -87,10 +87,8 @@ void main() {
       expect(savedDate.month, now.month);
       expect(savedDate.day, now.day);
 
-      await tester.tap(find.byTooltip('Lightmode aktivieren'));
-      await tester.pump();
-
-      expect(themeController.isDarkMode, isFalse);
+      expect(find.byTooltip('Lightmode aktivieren'), findsNothing);
+      expect(themeController.isDarkMode, isTrue);
     });
 
     testWidgets('selects and clears a body area from chips', (tester) async {
@@ -210,6 +208,7 @@ void main() {
                   required symptom,
                   required bodyArea,
                   required intensity,
+                  double? temperatureC,
                   required note,
                 }) async {
                   savedEntries.add(

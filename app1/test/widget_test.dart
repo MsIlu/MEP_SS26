@@ -159,6 +159,70 @@ void main() {
     expect(find.textContaining('Notruf 112'), findsWidgets);
   });
 
+  testWidgets('Warning page lists chat details as recommendation reasons', (
+    WidgetTester tester,
+  ) async {
+    const response = ChatResponse(
+      text: 'Kein akuter Notfall erkannt.',
+      redFlag: false,
+      recommendationReady: true,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WarningPage(
+          response: response,
+          symptoms: ['pulsierende Kopfschmerzen'],
+          userMessages: ['Ich habe seit 2 Tagen Kopfschmerzen links'],
+        ),
+      ),
+    );
+
+    expect(find.text('Gründe'), findsOneWidget);
+    expect(find.textContaining('pulsierende Kopfschmerzen'), findsOneWidget);
+    expect(find.textContaining('Seit 2 Tagen Kopfschmerzen links'), findsOneWidget);
+  });
+
+  testWidgets('Warning page summarizes duplicate recommendation reasons', (
+    WidgetTester tester,
+  ) async {
+    const response = ChatResponse(
+      text: 'Kein akuter Notfall erkannt.',
+      redFlag: false,
+      recommendationReady: true,
+      recommendationResult: RecommendationResult(
+        allowed: true,
+        urgency: 'routine',
+        urgencyLevel: 'low',
+        careLevel: 'Hausarztpraxis',
+        specialty: 'Allgemeinmedizin',
+        reasons: ['Kopfschmerzen seit 2 Tagen'],
+      ),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WarningPage(
+          response: response,
+          symptoms: ['pulsierende Kopfschmerzen', 'Übelkeit'],
+          userMessages: [
+            'Ich habe seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit',
+            'Ja',
+          ],
+        ),
+      ),
+    );
+
+    expect(
+      find.text('• Seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit'),
+      findsOneWidget,
+    );
+    expect(find.text('• Kopfschmerzen seit 2 Tagen'), findsNothing);
+    expect(find.text('• pulsierende Kopfschmerzen'), findsNothing);
+    expect(find.text('• Übelkeit'), findsNothing);
+    expect(find.text('• Ja'), findsNothing);
+  });
+
   testWidgets('shows warning title, content and button', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

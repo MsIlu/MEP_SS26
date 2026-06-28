@@ -4,19 +4,25 @@ import 'package:flutter/material.dart';
 /// First step of the symptom form: choose or type the symptom name.
 class SymptomSelectionStep extends StatelessWidget {
   final List<String> suggestions;
+  final Set<String> customSuggestions;
   final List<String> filteredSuggestions;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSelected;
+  final VoidCallback onAddCustom;
+  final ValueChanged<String> onRemoveCustom;
   final VoidCallback onSubmitted;
 
   const SymptomSelectionStep({
     super.key,
     required this.suggestions,
+    required this.customSuggestions,
     required this.filteredSuggestions,
     required this.controller,
     required this.onChanged,
     required this.onSelected,
+    required this.onAddCustom,
+    required this.onRemoveCustom,
     required this.onSubmitted,
   });
 
@@ -24,6 +30,10 @@ class SymptomSelectionStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedSymptom = controller.text.trim();
+    final canAddCustom = selectedSymptom.isNotEmpty &&
+        !suggestions.any(
+          (symptom) => symptom.toLowerCase() == selectedSymptom.toLowerCase(),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -42,13 +52,28 @@ class SymptomSelectionStep extends StatelessWidget {
           runSpacing: 8,
           children: suggestions.map((symptom) {
             final isSelected = selectedSymptom == symptom;
+            final isCustom = customSuggestions.contains(symptom);
 
-            return ChoiceChip(
+            if (!isCustom) {
+              return ChoiceChip(
+                label: Text(symptom),
+                selected: isSelected,
+                selectedColor: AppColors.careenaBubbleBackground,
+                checkmarkColor: AppColors.careenaTeal,
+                onSelected: (_) => onSelected(symptom),
+              );
+            }
+
+            return InputChip(
               label: Text(symptom),
               selected: isSelected,
               selectedColor: AppColors.careenaBubbleBackground,
               checkmarkColor: AppColors.careenaTeal,
               onSelected: (_) => onSelected(symptom),
+              // Only user-created symptoms can be removed from the quick list.
+              onDeleted: isCustom ? () => onRemoveCustom(symptom) : null,
+              deleteIcon: const Icon(Icons.close, size: 16),
+              deleteButtonTooltipMessage: 'Eigenes Symptom entfernen',
             );
           }).toList(),
         ),
@@ -60,6 +85,17 @@ class SymptomSelectionStep extends StatelessWidget {
           onChanged: onChanged,
           onSubmitted: onSubmitted,
         ),
+        if (canAddCustom) ...[
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: onAddCustom,
+              icon: const Icon(Icons.add),
+              label: const Text('Zur Auswahlliste hinzufügen'),
+            ),
+          ),
+        ],
         if (filteredSuggestions.isNotEmpty) ...[
           const SizedBox(height: 8),
           _InlineSymptomSuggestions(

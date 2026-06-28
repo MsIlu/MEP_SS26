@@ -88,7 +88,9 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/logo.png
+    - assets/images/careena/
+    - assets/images/body_silhouette/
+    - assets/images/logo_medbitaid.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

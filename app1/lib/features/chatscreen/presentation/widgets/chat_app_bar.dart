@@ -1,19 +1,15 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../data/models/careena_availability.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onBackPressed;
-  final VoidCallback onToggleTheme;
-  final bool isDarkMode;
   final CareenaAvailability availability;
 
   const ChatAppBar({
     super.key,
     required this.onBackPressed,
-    required this.onToggleTheme,
-    required this.isDarkMode,
     this.availability = CareenaAvailability.online,
   });
 
@@ -22,8 +18,8 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkModeTheme = Theme.of(context).brightness == Brightness.dark;
     final avatarBackground = isDarkModeTheme
-        ? const Color(0xFF86B2B2)
-        : const Color(0xFFC3E7E7);
+        ? AppColors.chatAvatarBackgroundDark
+        : AppColors.chatAvatarBackgroundLight;
 
     return AppBar(
       leadingWidth: 72,
@@ -33,7 +29,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         tooltip: 'Zurück',
         style: IconButton.styleFrom(
           backgroundColor: AppColors.toolbarButtonBackgroundDark,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           fixedSize: const Size.square(44),
         ),
         onPressed: onBackPressed,
@@ -90,24 +86,6 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       centerTitle: false,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-
-          child: IconButton(
-            tooltip: isDarkMode
-                ? 'Lightmode aktivieren'
-                : 'Darkmode aktivieren',
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.toolbarButtonBackgroundDark,
-              foregroundColor: Colors.white,
-              fixedSize: const Size.square(44),
-            ),
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            onPressed: onToggleTheme,
-          ),
-        ),
-      ],
     );
   }
 

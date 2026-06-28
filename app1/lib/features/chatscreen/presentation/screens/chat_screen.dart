@@ -1,6 +1,8 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/chat_warning_controller.dart';
@@ -36,9 +38,9 @@ class ChatScreen extends StatefulWidget {
     required this.controller,
     required this.themeController,
     this.leaveDialogMessage =
-        'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+        'Wenn du fortfährst, gelangst du zurück zur Startseite. '
         'Der aktuelle Chat wird nicht gespeichert.',
-    this.leaveDialogConfirmLabel = 'Zum Homescreen',
+    this.leaveDialogConfirmLabel = 'Zur Startseite',
   });
 
   @override
@@ -46,6 +48,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+  static const Duration _longProcessingHintDelay = Duration(seconds: 8);
+
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final ChatWarningController _warningController;
@@ -141,8 +145,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (text.isEmpty) return;
 
     await _speechService.stop();
-
     _textController.clear();
+
+    await _submitChatRequest(() => widget.controller.sendMessage(text));
+  }
+
+  Future<void> _handleRecommendationRequest() async {
+    if (_isSending || widget.controller.isCompleted.value) return;
+
+    await _speechService.stop();
+    _textController.clear();
+
+    _showRecommendationCheckHint();
+
+    await _submitChatRequest(widget.controller.requestRecommendation);
+  }
+
+  Future<void> _submitChatRequest(
+    Future<ChatResponse?> Function() request,
+  ) async {
     setState(() {
       _isSending = true;
       _smartReplies = [];
@@ -150,14 +171,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     _longProcessingTimer?.cancel();
-    _longProcessingTimer = Timer(const Duration(seconds: 4), () {
+    _longProcessingTimer = Timer(_longProcessingHintDelay, () {
       if (!mounted || !_isSending) return;
 
       setState(() => _showLongProcessingHint = true);
       _scrollToBottom();
     });
 
-    final responseFuture = widget.controller.sendMessage(text);
+    final responseFuture = request();
     _scrollToBottom();
 
     ChatResponse? response;
@@ -178,20 +199,47 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _showLongProcessingHint = false;
     });
 
-    if (response != null &&
-        widget.controller.chatService.isEmergencyRecommendation(response)) {
+    final showsRecommendation = response != null &&
+        (widget.controller.chatService.isFinalRecommendation(response) ||
+            widget.controller.chatService.isEmergencyRecommendation(response));
+
+    final recommendationResponse = showsRecommendation ? response : null;
+
+    if (recommendationResponse != null) {
+      final recommendationSymptoms = List<String>.from(
+        widget.controller.symptoms.value,
+      );
+      final recommendationUserMessages = widget.controller.messages.value
+          .where((message) => message.isUser)
+          .map((message) => message.text.trim())
+          .where((text) => text.isNotEmpty)
+          .toList(growable: false);
+
       await widget.controller.resetChat();
 
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => WarningPage(response: response!)),
+        MaterialPageRoute(
+          builder: (_) => WarningPage(
+            response: recommendationResponse,
+            symptoms: recommendationSymptoms,
+            userMessages: recommendationUserMessages,
+          ),
+        ),
       );
       return;
     }
 
     _inputFocusNode.requestFocus();
+  }
+
+  void _showRecommendationCheckHint() {
+    showCareenaSnackBar(
+      context,
+      'Careena prüft jetzt, ob genug Angaben für eine Handlungsempfehlung vorliegen.',
+    );
   }
 
   void _onMessagesChanged() {
@@ -357,7 +405,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final backgroundColor = widget.themeController.isDarkMode
         ? Theme.of(context).scaffoldBackgroundColor
-        : const Color(0xFFF7F9FA);
+        : AppColors.chatBackgroundLight;
 
     return PopScope(
       canPop: _allowPopAfterConfirmation,
@@ -375,8 +423,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             builder: (context, availability, _) {
               return ChatAppBar(
                 onBackPressed: _handleLeaveChat,
-                onToggleTheme: widget.themeController.toggleTheme,
-                isDarkMode: widget.themeController.isDarkMode,
                 availability: availability,
               );
             },
@@ -425,6 +471,36 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ValueListenableBuilder(
                   valueListenable: widget.controller.isCompleted,
                   builder: (context, bool isCompleted, _) {
+                    if (isCompleted) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return ValueListenableBuilder(
+                      valueListenable: widget.controller.messages,
+                      builder: (context, List<Message> messages, _) {
+                        return ValueListenableBuilder(
+                          valueListenable: widget.controller.symptoms,
+                          builder: (context, List<String> symptoms, _) {
+                            if (!_hasRecommendationInput(messages, symptoms)) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                              child: _RecommendationRequestButton(
+                                isEnabled: !_isSending,
+                                onPressed: _handleRecommendationRequest,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+                ValueListenableBuilder(
+                  valueListenable: widget.controller.isCompleted,
+                  builder: (context, bool isCompleted, _) {
                     return ChatInputField(
                       controller: _textController,
                       focusNode: _inputFocusNode,
@@ -469,6 +545,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     .toList();
                 return ListView.builder(
                   controller: _scrollController,
+                  primary: false,
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -499,6 +576,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 );
               },
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _hasRecommendationInput(List<Message> messages, List<String> symptoms) {
+    // The backend still decides whether the available details are sufficient.
+    return symptoms.isNotEmpty || messages.any((message) => message.isUser);
+  }
+}
+
+class _RecommendationRequestButton extends StatelessWidget {
+  final bool isEnabled;
+  final VoidCallback onPressed;
+
+  const _RecommendationRequestButton({
+    required this.isEnabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: isEnabled ? onPressed : null,
+        icon: const Icon(Icons.medical_information_outlined),
+        label: const Text('Handlungsempfehlung anfordern'),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.careenaTeal,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.35),
+          disabledForegroundColor: AppColors.white70,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),

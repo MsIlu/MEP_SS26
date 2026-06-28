@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/services/speech_service.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 
 /// Bottom input area for composing and sending chat messages.
 class ChatInputField extends StatefulWidget {
@@ -90,13 +91,9 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     if (!available) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Mikrofon nicht verfügbar oder keine Berechtigung erteilt.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showCareenaSnackBar(
+          context,
+          'Mikrofon nicht verfügbar oder keine Berechtigung erteilt.',
         );
       }
       return;
@@ -140,7 +137,7 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     final outerBackground = isDarkMode
         ? AppColors.chatInputOuterDark
-        : Colors.white;
+        : AppColors.white;
 
     final inputBackground = isDarkMode
         ? AppColors.chatInputInnerDark
@@ -157,6 +154,9 @@ class _ChatInputFieldState extends State<ChatInputField>
     final sendingIconColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaMuted;
+    final accentForeground = isDarkMode
+        ? AppColors.careenaAccentOnDark
+        : AppColors.careenaTeal;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -189,7 +189,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                     child: Semantics(
                       textField: true,
                       label: 'Eingabefeld für Symptome',
-                      hint: 'Beschreiben Sie kurz Ihre Beschwerden.',
+                      hint: 'Beschreibe kurz deine Beschwerden.',
                       child: Container(
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
@@ -205,7 +205,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
+                              color: AppColors.black.withValues(alpha: 0.08),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -257,12 +257,12 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     },
                                     decoration: InputDecoration(
                                       hintText: _isListening
-                                          ? '🎤 Ich höre zu...'
+                                          ? 'Ich höre zu...'
                                           : (!widget.isEnabled
                                                 ? 'Chat abgeschlossen'
                                                 : (isCompact
                                                       ? 'Beschwerden beschreiben'
-                                                      : 'Beschreiben Sie kurz Ihre Beschwerden')),
+                                                      : 'Beschreibe kurz deine Beschwerden')),
                                       hintStyle: TextStyle(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -270,7 +270,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                       enabledBorder: InputBorder.none,
                                       focusedBorder: InputBorder.none,
                                       filled: false,
-                                      fillColor: Colors.transparent,
+                                      fillColor: AppColors.transparent,
                                       isDense: true,
                                       contentPadding: EdgeInsets.symmetric(
                                         vertical: fieldVerticalPadding,
@@ -311,7 +311,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                             key: ValueKey(_isListening),
 
                                             color: _isListening
-                                                ? AppColors.careenaTeal
+                                                ? accentForeground
                                                 : colorScheme.onSurfaceVariant,
 
                                             size: 22,
@@ -350,7 +350,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                       ),
                       icon: Icon(
                         widget.isSending ? Icons.hourglass_top : Icons.send,
-                        color: isInputEnabled ? Colors.white : sendingIconColor,
+                        color: isInputEnabled ? AppColors.white : sendingIconColor,
                         size: 20,
                       ),
                     ),

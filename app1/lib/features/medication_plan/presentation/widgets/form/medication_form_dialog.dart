@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +68,7 @@ class _MedicationFormDialogState extends State<MedicationFormDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.all(18),
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       child: SingleChildScrollView(
         child: ResponsiveFrame(
           maxWidth: 720,

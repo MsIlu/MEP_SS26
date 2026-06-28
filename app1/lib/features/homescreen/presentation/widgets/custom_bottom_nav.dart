@@ -77,7 +77,7 @@ class CustomBottomNav extends StatelessWidget {
                 iconSize: isSimpleView ? 32 : 24,
                 currentIndex: currentIndex,
                 onTap: onTap,
-                                items: isSimpleView
+                items: isSimpleView
                     ? [
                         const BottomNavigationBarItem(
                           icon: Icon(Icons.home_outlined),

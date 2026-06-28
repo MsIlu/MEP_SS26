@@ -1,5 +1,7 @@
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import '../../../chatscreen/controllers/chat_controller.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
@@ -7,7 +9,7 @@ class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
   final bool isSimpleView;
   final Key? guideTargetKey;
-  final int historyBadgeCount;
+  final int? historyBadgeCount;
 
   const CustomBottomNav({
     super.key,
@@ -15,7 +17,7 @@ class CustomBottomNav extends StatelessWidget {
     this.currentIndex = 0,
     this.isSimpleView = false,
     this.guideTargetKey,
-    this.historyBadgeCount = 0,
+    this.historyBadgeCount,
   });
 
   @override
@@ -88,15 +90,9 @@ class CustomBottomNav extends StatelessWidget {
                           label: "Kalender",
                         ),
                         BottomNavigationBarItem(
-                          icon: Badge(
-                            isLabelVisible: historyBadgeCount > 0,
-                            label: Text(
-                              historyBadgeCount > 9
-                                  ? '9+'
-                                  : '$historyBadgeCount',
-                            ),
-                            child: const Icon(Icons.chat_bubble_outline),
-                          ),
+                          icon: historyBadgeCount == null
+                              ? const _LiveHistoryBadgeIcon()
+                              : _HistoryBadgeIcon(count: historyBadgeCount!),
                           label: "Verlauf",
                         ),
                         const BottomNavigationBarItem(
@@ -114,15 +110,9 @@ class CustomBottomNav extends StatelessWidget {
                           label: "Kalender",
                         ),
                         BottomNavigationBarItem(
-                          icon: Badge(
-                            isLabelVisible: historyBadgeCount > 0,
-                            label: Text(
-                              historyBadgeCount > 9
-                                  ? '9+'
-                                  : '$historyBadgeCount',
-                            ),
-                            child: const Icon(Icons.chat_bubble_outline),
-                          ),
+                          icon: historyBadgeCount == null
+                              ? const _LiveHistoryBadgeIcon()
+                              : _HistoryBadgeIcon(count: historyBadgeCount!),
                           label: "Chathistorie",
                         ),
                         const BottomNavigationBarItem(
@@ -137,4 +127,82 @@ class CustomBottomNav extends StatelessWidget {
       ),
     );
   }
+}
+
+class _HistoryBadgeIcon extends StatelessWidget {
+  final int count;
+
+  const _HistoryBadgeIcon({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Badge(
+      isLabelVisible: count > 0,
+      label: Text(count > 9 ? '9+' : '$count'),
+      child: const Icon(Icons.chat_bubble_outline),
+    );
+  }
+}
+
+class _LiveHistoryBadgeIcon extends StatefulWidget {
+  const _LiveHistoryBadgeIcon();
+
+  @override
+  State<_LiveHistoryBadgeIcon> createState() => _LiveHistoryBadgeIconState();
+}
+
+class _LiveHistoryBadgeIconState extends State<_LiveHistoryBadgeIcon> {
+  ChatController? _controller;
+  int _count = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextController = AppDependenciesScope.maybeOf(
+      context,
+    )?.chatController;
+    if (identical(nextController, _controller)) return;
+
+    _controller?.historyRevision.removeListener(_refresh);
+    _controller?.authSession.removeListener(_refresh);
+    _controller = nextController;
+    _controller?.historyRevision.addListener(_refresh);
+    _controller?.authSession.addListener(_refresh);
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final controller = _controller;
+    final profileId = controller?.authSession.activeProfileId;
+    if (controller == null || profileId == null) {
+      if (mounted && _count != 0) setState(() => _count = 0);
+      return;
+    }
+
+    try {
+      final entries = await controller.chatHistoryRepository.loadEntries(
+        profileId: profileId,
+      );
+      final count = entries
+          .where(
+            (entry) =>
+                entry.status == 'active' ||
+                entry.status == 'waiting_for_assistant',
+          )
+          .length;
+      if (mounted && profileId == controller.authSession.activeProfileId) {
+        setState(() => _count = count);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _controller?.historyRevision.removeListener(_refresh);
+    _controller?.authSession.removeListener(_refresh);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _HistoryBadgeIcon(count: _count);
 }

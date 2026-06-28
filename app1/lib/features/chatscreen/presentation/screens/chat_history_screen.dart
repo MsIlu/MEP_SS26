@@ -76,7 +76,12 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
 
     try {
       await widget.repository.deleteChat(entry.id);
-      if (mounted) _reloadEntries();
+      if (!mounted) return;
+      final controller =
+          widget.chatController ??
+          AppDependenciesScope.maybeOf(context)?.chatController;
+      if (controller != null) controller.historyRevision.value += 1;
+      _reloadEntries();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

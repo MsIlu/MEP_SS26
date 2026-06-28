@@ -12,8 +12,6 @@ void main() {
         home: Scaffold(
           appBar: ChatAppBar(
             onBackPressed: () {},
-            onToggleTheme: () {},
-            isDarkMode: false,
             availability: CareenaAvailability.limited,
           ),
         ),

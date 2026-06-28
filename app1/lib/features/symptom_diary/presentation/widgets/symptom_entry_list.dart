@@ -29,7 +29,9 @@ class SymptomEntryList extends StatelessWidget {
         Text(
           entries.isEmpty
               ? 'Einträge für diesen Tag'
-              : '${entries.length} Einträge für diesen Tag',
+              : entries.length == 1
+                  ? '1 Eintrag für diesen Tag'
+                  : '${entries.length} Einträge für diesen Tag',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,

@@ -9,12 +9,14 @@ import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
 import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/message_model.dart';
+import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen_test_harness.dart';
 
@@ -38,12 +40,12 @@ void main() {
 
       expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
-      expect(find.text('Kalender'), findsNothing);
-      expect(find.text('Chathistorie'), findsNothing);
+      expect(find.text('Kalender'), findsOneWidget);
+      expect(find.text('Verlauf'), findsOneWidget);
       expect(find.text('Einstellungen'), findsOneWidget);
 
       final iconBackground = find.byKey(
-        const ValueKey('feature-icon-background-Terminplanung'),
+        const ValueKey('feature-icon-background-Symptomtagebuch'),
       );
       expect(tester.getSize(iconBackground), const Size.square(64));
     });
@@ -72,7 +74,20 @@ void main() {
       expect(featureCard.shadowColor, AppColors.darkBackground);
     });
 
-    testWidgets('opens saved chat history from Chathistorie navigation', (
+    testWidgets('opens calendar overview from bottom navigation', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+
+      await pumpHomeScreen(tester);
+      await tester.tap(find.text('Kalender'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CalendarOverviewPage), findsOneWidget);
+      expect(find.text('Keine Einträge'), findsOneWidget);
+    });
+
+    testWidgets('opens saved chat history from Verlauf navigation', (
       WidgetTester tester,
     ) async {
       final firstProfileEntry = ChatHistoryEntry(
@@ -167,7 +182,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Chathistorie'));
+      await tester.tap(find.text('Verlauf'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChatHistoryScreen), findsOneWidget);

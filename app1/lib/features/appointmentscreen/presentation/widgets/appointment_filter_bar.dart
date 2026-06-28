@@ -35,8 +35,8 @@ class AppointmentFilterBar extends StatelessWidget {
         label: Text(label),
         selected: isSelected,
         selectedColor: AppColors.careenaTeal,
-        checkmarkColor: Colors.white,
-        labelStyle: TextStyle(color: isSelected ? Colors.white : null),
+        checkmarkColor: AppColors.white,
+        labelStyle: TextStyle(color: isSelected ? AppColors.white : null),
         onSelected: (_) {
           onFilterChanged(label);
         },

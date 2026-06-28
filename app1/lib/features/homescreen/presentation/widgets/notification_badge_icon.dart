@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Notification icon with a small numeric badge.
@@ -23,10 +23,10 @@ class NotificationBadgeIcon extends StatelessWidget {
             right: 0,
             child: CircleAvatar(
               radius: 7,
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.red,
               child: Text(
                 count.toString(),
-                style: const TextStyle(color: Colors.white, fontSize: 8),
+                style: const TextStyle(color: AppColors.white, fontSize: 8),
               ),
             ),
           ),

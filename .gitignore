@@ -35,3 +35,6 @@ secrets.py
 .DS_Store
 Thumbs.db
 *.log
+
+# Claude Code
+.claude/

@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Color tokens used by the warning screen.
@@ -83,7 +83,7 @@ class WarningDecorations {
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDarkMode ? 0.18 : 0.05),
+          color: AppColors.black.withValues(alpha: isDarkMode ? 0.18 : 0.05),
           blurRadius: 10,
           offset: const Offset(0, 4),
         ),
@@ -97,7 +97,7 @@ class WarningDecorations {
     return BoxDecoration(
       color: isDarkMode
           ? AppColors.warningReasonBackgroundDark
-          : Colors.white.withValues(alpha: 0.72),
+          : AppColors.white.withValues(alpha: 0.72),
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
         color: WarningColors.warningRed.withValues(
@@ -112,14 +112,14 @@ class WarningDecorations {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return BoxDecoration(
-      color: isDarkMode ? colorScheme.surface : Colors.white,
+      color: isDarkMode ? colorScheme.surface : AppColors.white,
       borderRadius: BorderRadius.circular(14),
       border: Border.all(
-        color: isDarkMode ? colorScheme.outlineVariant : Colors.grey.shade200,
+        color: isDarkMode ? colorScheme.outlineVariant : AppColors.greyShade200,
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDarkMode ? 0.16 : 0.03),
+          color: AppColors.black.withValues(alpha: isDarkMode ? 0.16 : 0.03),
           blurRadius: 8,
           offset: const Offset(0, 3),
         ),

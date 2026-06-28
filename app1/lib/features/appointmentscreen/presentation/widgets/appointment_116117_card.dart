@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +10,8 @@ class Appointment116117Card extends StatefulWidget {
 }
 
 class _Appointment116117CardState extends State<Appointment116117Card> {
-  static const Color serviceBlue = Color(0xFF2BA4D4);
-  static const Color servicePink = Color(0xFFE91E63);
+  static const Color serviceBlue = AppColors.appointmentServiceBlue;
+  static const Color servicePink = AppColors.appointmentServicePink;
 
   Future<void> _open116117() async {
     final url = Uri.parse('https://www.116117-termine.de');
@@ -32,7 +33,7 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -43,7 +44,7 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDarkMode ? const Color(0xFF203246) : const Color(0xFFF8FAFB),
+          color: isDarkMode ? AppColors.appointmentServiceCardDark : AppColors.appointmentServiceCardLight,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -117,7 +118,7 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
                       child: FilledButton(
                         style: FilledButton.styleFrom(
                           backgroundColor: serviceBlue,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),

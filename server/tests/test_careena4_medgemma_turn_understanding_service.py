@@ -126,7 +126,7 @@ def test_understanding_service_returns_failed_understanding_without_fallback():
     assert "medgemma_turn_understanding:failed" in result.trace_notes
 
 
-def test_understanding_service_does_not_request_snomed_mapping():
+def test_understanding_service_prompt_does_not_contain_snomed():
     engine = FakeExtractionEngine(
         MedGemmaTurnUnderstandingOutput(
             symptoms=[],
@@ -143,5 +143,4 @@ def test_understanding_service_does_not_request_snomed_mapping():
     service.extract(message="Mir ist ?bel.")
 
     call = engine.calls[0]
-    assert "SNOMED" in call["system_prompt"]
-    assert "Do not use or invent SNOMED codes" in call["system_prompt"]
+    assert "SNOMED" not in call["system_prompt"]

@@ -1,6 +1,6 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/app_dependencies_scope.dart';
-import '../../../../core/themes/app_colors.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
 import '../../../authscreen/state/auth_session.dart';
 import 'profile_display_helpers.dart';
@@ -45,7 +45,7 @@ class ActiveProfileOverview extends StatelessWidget {
             label: const Text('Wechseln'),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.careenaDark,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               disabledBackgroundColor: AppColors.careenaBorder,
               disabledForegroundColor: AppColors.careenaMuted,
             ),
@@ -65,31 +65,42 @@ class ActiveProfileOverview extends StatelessWidget {
       backgroundColor: isDark
           ? AppColors.darkElevatedSurface
           : AppColors.careenaNoteBackground,
+      isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Aktives Profil wechseln',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 12),
-              SettingsPanel(
-                children: [
-                  for (final profile in session.profiles)
-                    _ProfileChoiceTile(
-                      profile: profile,
-                      isActive: profile.id == activeProfile.id,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Aktives Profil wechseln',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  // Keeps the sheet usable when many profiles are available.
+                  child: SingleChildScrollView(
+                    child: SettingsPanel(
+                      children: [
+                        for (final profile in session.profiles)
+                          _ProfileChoiceTile(
+                            profile: profile,
+                            isActive: profile.id == activeProfile.id,
+                          ),
+                      ],
                     ),
-                ],
-              ),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

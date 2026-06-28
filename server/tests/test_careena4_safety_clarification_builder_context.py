@@ -1,5 +1,6 @@
-﻿import sys
+import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
@@ -9,133 +10,110 @@ if str(SERVER_DIR) not in sys.path:
 
 from careena4.application.dialogue.safety_clarification_builder import (
     SafetyClarificationBuilder,
+    _FALLBACK_QUESTION,
 )
-from careena4.models.domain import SafetyCatalogMatch
 from careena4.models.turn import SafetyAction, SafetyRedFlagStatus, SafetyState
 
 
-class MatchingSafetyCatalogRepository:
-    def find_matches_for_evidence_terms(
-        self,
-        evidence_terms: list[str],
-    ) -> list[SafetyCatalogMatch]:
-        return [
-            SafetyCatalogMatch(
-                evidence_term="schlecht luft",
-                matched_lay_term="schlecht luft",
-                source_system="STS",
-                source_version="1.10",
-                consultation_reason_source_id="1008",
-                consultation_reason_key="respiratory_symptoms",
-                consultation_reason_label_de="Atemsymptome",
-                criterion_key="dyspnea_or_shortness_of_breath_reported",
-                criterion_label_de="Atemnot oder Kurzatmigkeit berichtet",
-                criterion_role="entry_criterion",
-                urgency_effect="requires_safety_clarification",
-                careena_decision_role="safety_clarification",
-                suggested_question_text=(
-                    "Bekommen Sie schlecht Luft oder sind Sie kurzatmig?"
-                ),
-                suggested_input_mode="structured_required",
-                free_text_allowed=False,
-                is_safety_relevant=True,
-                is_red_flag_candidate=True,
-                mapping_status="catalog_matched",
-            )
-        ]
-
-
-class EmptySafetyCatalogRepository:
-    def find_matches_for_evidence_terms(
-        self,
-        evidence_terms: list[str],
-    ) -> list[SafetyCatalogMatch]:
-        return []
-
-
-class FailingSafetyCatalogRepository:
-    def find_matches_for_evidence_terms(
-        self,
-        evidence_terms: list[str],
-    ) -> list[SafetyCatalogMatch]:
-        raise RuntimeError("database unavailable")
-
-
-def suspected_safety_state() -> SafetyState:
+def suspected_state(evidence_terms: list[str] | None = None) -> SafetyState:
     return SafetyState(
-        checked_sources=["raw_message"],
+        checked_sources=["safety_pipeline"],
         red_flag_detected=True,
         red_flag_status=SafetyRedFlagStatus.SUSPECTED,
         action=SafetyAction.ASK_SAFETY_CLARIFICATION,
         severity="unclear",
-        evidence_terms=["schlecht luft"],
+        evidence_terms=evidence_terms if evidence_terms is not None else ["Atemnot"],
         clarification_question_code="raw_red_flag_clarification",
     )
 
 
-def test_builder_preserves_safety_context_from_catalog_match():
-    builder = SafetyClarificationBuilder(
-        safety_catalog_repository=MatchingSafetyCatalogRepository()
-    )
+def test_builder_uses_medgemma_question_when_llm_available():
+    llm = MagicMock()
+    llm.complete.return_value = "Bekommen Sie gerade Schwierigkeiten beim Atmen?"
+    builder = SafetyClarificationBuilder(llm_client=llm)
 
-    question = builder.build_active_question(safety_state=suspected_safety_state())
+    question = builder.build_active_question(safety_state=suspected_state())
+
+    assert question.prompt_text == "Bekommen Sie gerade Schwierigkeiten beim Atmen?"
+    assert question.safety_context.catalog_mapping_status == "medgemma_generated"
+    llm.complete.assert_called_once()
+
+
+def test_builder_falls_back_when_no_llm():
+    builder = SafetyClarificationBuilder(llm_client=None)
+
+    question = builder.build_active_question(safety_state=suspected_state())
+
+    assert question.prompt_text == _FALLBACK_QUESTION
+    assert question.safety_context.catalog_mapping_status == "fallback"
+
+
+def test_builder_falls_back_when_llm_raises():
+    llm = MagicMock()
+    llm.complete.side_effect = RuntimeError("LLM unavailable")
+    builder = SafetyClarificationBuilder(llm_client=llm)
+
+    question = builder.build_active_question(safety_state=suspected_state())
+
+    assert question.prompt_text == _FALLBACK_QUESTION
+
+
+def test_builder_falls_back_when_llm_returns_empty():
+    llm = MagicMock()
+    llm.complete.return_value = "   "
+    builder = SafetyClarificationBuilder(llm_client=llm)
+
+    question = builder.build_active_question(safety_state=suspected_state())
+
+    assert question.prompt_text == _FALLBACK_QUESTION
+
+
+def test_builder_falls_back_when_no_evidence_terms():
+    llm = MagicMock()
+    builder = SafetyClarificationBuilder(llm_client=llm)
+
+    question = builder.build_active_question(safety_state=suspected_state(evidence_terms=[]))
+
+    assert question.prompt_text == _FALLBACK_QUESTION
+    assert question.safety_context.catalog_mapping_status == "fallback"
+    llm.complete.assert_not_called()
+
+
+def test_builder_sets_correct_safety_context_fields():
+    builder = SafetyClarificationBuilder(llm_client=None)
+
+    question = builder.build_active_question(safety_state=suspected_state(["Atemnot", "Brustschmerzen"]))
+
+    ctx = question.safety_context
+    assert ctx.question_code == "raw_red_flag_clarification"
+    assert ctx.source_stage == "case_slice"
+    assert ctx.evidence_terms == ["Atemnot", "Brustschmerzen"]
+    assert ctx.source_system == "STS"
+    assert question.safety_question_code == ctx.question_code
+    assert question.safety_evidence_terms == ctx.evidence_terms
+
+
+def test_builder_guided_input_has_four_options():
+    builder = SafetyClarificationBuilder(llm_client=None)
+
+    question = builder.build_active_question(safety_state=suspected_state())
+
+    options = question.guided_input.options
+    effect_codes = {opt.effect_code for opt in options}
+    assert len(options) == 4
+    assert effect_codes == {
+        "confirms_red_flag",
+        "clears_red_flag",
+        "keeps_clarification_open",
+        "confirms_emergency",
+    }
+    assert question.guided_input.free_text_allowed is False
+
+
+def test_builder_question_is_safety_clarification_kind():
+    builder = SafetyClarificationBuilder()
+
+    question = builder.build_active_question(safety_state=suspected_state())
 
     assert question.kind == "safety_clarification"
-    assert question.safety_context is not None
-    assert question.prompt_text == "Bekommen Sie schlecht Luft oder sind Sie kurzatmig?"
-
-    context = question.safety_context
-    assert context.question_code == "raw_red_flag_clarification"
-    assert context.source_stage == "raw_message"
-    assert context.evidence_terms == ["schlecht luft"]
-    assert context.source_system == "STS"
-    assert context.source_version == "1.10"
-    assert context.consultation_reason_source_id == "1008"
-    assert context.consultation_reason_key == "respiratory_symptoms"
-    assert context.consultation_reason_label_de == "Atemsymptome"
-    assert context.criterion_key == "dyspnea_or_shortness_of_breath_reported"
-    assert context.criterion_role == "entry_criterion"
-    assert context.urgency_effect == "requires_safety_clarification"
-    assert context.careena_decision_role == "safety_clarification"
-    assert context.catalog_mapping_status == "catalog_matched"
-    assert context.matched_lay_term == "schlecht luft"
-
-    # Compatibility bridge for existing resolver code.
-    assert question.safety_question_code == context.question_code
-    assert question.safety_evidence_terms == context.evidence_terms
-
-
-def test_builder_marks_no_repository_fallback_in_safety_context():
-    builder = SafetyClarificationBuilder(safety_catalog_repository=None)
-
-    question = builder.build_active_question(safety_state=suspected_safety_state())
-
-    assert question.safety_context is not None
-    assert question.safety_context.catalog_mapping_status == "fallback_no_catalog_repository"
-    assert question.safety_context.source_system == "STS"
-
-
-def test_builder_marks_no_catalog_match_fallback_in_safety_context():
-    builder = SafetyClarificationBuilder(
-        safety_catalog_repository=EmptySafetyCatalogRepository()
-    )
-
-    question = builder.build_active_question(safety_state=suspected_safety_state())
-
-    assert question.safety_context is not None
-    assert question.safety_context.catalog_mapping_status == "fallback_no_catalog_match"
-    assert question.safety_context.consultation_reason_source_id is None
-    assert question.safety_context.criterion_key is None
-
-
-def test_builder_marks_catalog_unavailable_fallback_in_safety_context():
-    builder = SafetyClarificationBuilder(
-        safety_catalog_repository=FailingSafetyCatalogRepository()
-    )
-
-    question = builder.build_active_question(safety_state=suspected_safety_state())
-
-    assert question.safety_context is not None
-    assert question.safety_context.catalog_mapping_status == "fallback_catalog_unavailable"
-    assert question.safety_context.consultation_reason_source_id is None
-    assert question.safety_context.criterion_key is None
+    assert question.blocking is True

@@ -1,6 +1,5 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/themes/app_colors.dart';
 import '../../data/app_guide_steps.dart';
 import 'app_guide_companion.dart';
 import 'app_guide_spotlight_painter.dart';

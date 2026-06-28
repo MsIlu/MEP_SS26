@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../controllers/chat_warning_controller.dart';
 import 'package:app1/app/app_dependencies_scope.dart';
@@ -20,7 +20,7 @@ class ChatWarningDialog extends StatelessWidget {
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.careenaTeal,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.white,
           ),
           onPressed: () {
             ChatWarningController warningController = AppDependenciesScope.of(

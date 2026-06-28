@@ -1,15 +1,17 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 /// Pill-shaped bottom navigation used on the home screen.
 class CustomBottomNav extends StatelessWidget {
   final ValueChanged<int>? onTap;
+  final int currentIndex;
   final bool isSimpleView;
   final Key? guideTargetKey;
 
   const CustomBottomNav({
     super.key,
     this.onTap,
+    this.currentIndex = 0,
     this.isSimpleView = false,
     this.guideTargetKey,
   });
@@ -28,7 +30,7 @@ class CustomBottomNav extends StatelessWidget {
         : AppColors.careenaInfoBorder;
 
     final selectedColor = isDarkMode
-        ? AppColors.toolbarButtonBackgroundDark
+        ? AppColors.careenaAccentOnDark
         : AppColors.careenaTeal;
 
     final unselectedColor = isDarkMode
@@ -71,13 +73,21 @@ class CustomBottomNav extends StatelessWidget {
                 selectedFontSize: isSimpleView ? 16 : 11,
                 unselectedFontSize: isSimpleView ? 16 : 11,
                 iconSize: isSimpleView ? 32 : 24,
-                currentIndex: 0,
+                currentIndex: currentIndex,
                 onTap: onTap,
                 items: isSimpleView
                     ? const [
                         BottomNavigationBarItem(
                           icon: Icon(Icons.home_outlined),
                           label: "Startseite",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.calendar_today_outlined),
+                          label: "Kalender",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.chat_bubble_outline),
+                          label: "Verlauf",
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings_outlined),
@@ -95,7 +105,7 @@ class CustomBottomNav extends StatelessWidget {
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.chat_bubble_outline),
-                          label: "Chathistorie",
+                          label: "Verlauf",
                         ),
                         BottomNavigationBarItem(
                           icon: Icon(Icons.settings_outlined),

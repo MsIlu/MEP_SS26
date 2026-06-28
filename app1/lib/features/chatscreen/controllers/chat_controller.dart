@@ -14,6 +14,10 @@ import '../services/symptom_draft_service.dart';
 import '../../authscreen/state/auth_session.dart';
 
 class ChatController {
+  static const recommendationRequestDisplayText =
+      'Ich möchte jetzt eine Handlungsempfehlung.';
+  static const _recommendationRequestBackendText = 'Ja, Empfehlung';
+
   final ChatApi chatApi;
   final ChatService chatService;
   final ChatSessionService chatSessionService;
@@ -46,6 +50,12 @@ class ChatController {
   );
 
   final ValueNotifier<List<String>> symptoms = ValueNotifier<List<String>>([]);
+
+  /// Structured reply options from the last backend response.
+  /// Non-empty only when the backend expects a structured answer (ask_safety_question).
+  /// Cleared when the user sends the next message.
+  final ValueNotifier<List<String>> lastReplyOptions =
+      ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
 
   Future<void>? _initFuture;
@@ -92,6 +102,20 @@ class ChatController {
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
+    return _sendMessage(text);
+  }
+
+  Future<ChatResponse?> requestRecommendation() async {
+    return _sendMessage(
+      _recommendationRequestBackendText,
+      visibleUserText: recommendationRequestDisplayText,
+    );
+  }
+
+  Future<ChatResponse?> _sendMessage(
+    String text, {
+    String? visibleUserText,
+  }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
@@ -122,7 +146,15 @@ class ChatController {
       return null;
     }
 
-    _addMessage(message: Message(text: trimmed, isUser: true));
+    _addMessage(
+      message: Message(
+        text: visibleUserText?.trim() ?? trimmed,
+        isUser: true,
+      ),
+    );
+
+    lastReplyOptions.value = [];
+
     await _persistActiveChat(status: 'waiting_for_assistant');
     final expectedHistoryEntryId = _activeHistoryEntryId;
 
@@ -134,7 +166,6 @@ class ChatController {
     )) {
       return null;
     }
-
     _addMessage(
       message: Message(
         text: '',
@@ -172,6 +203,8 @@ class ChatController {
         return response;
       }
       symptoms.value = loadedSymptoms;
+
+      lastReplyOptions.value = response.replyOptions;
 
       if (response.redFlag) {
         final botMessage = chatService.buildAssistantMessage(response);
@@ -240,7 +273,6 @@ class ChatController {
       )) {
         return response;
       }
-
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
       if (chatService.isFinalRecommendation(response) || isEmergency) {
@@ -764,5 +796,6 @@ class ChatController {
     messages.dispose();
     symptoms.dispose();
     isCompleted.dispose();
+    lastReplyOptions.dispose();
   }
 }

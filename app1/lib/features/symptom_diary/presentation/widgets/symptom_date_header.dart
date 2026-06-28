@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Compact day navigation for moving through diary days.
@@ -24,7 +24,7 @@ class SymptomDateHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDarkMode ? colorScheme.surface : Colors.white,
+        color: isDarkMode ? colorScheme.surface : AppColors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDarkMode

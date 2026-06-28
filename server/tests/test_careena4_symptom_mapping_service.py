@@ -20,7 +20,6 @@ def test_symptom_mapping_service_enriches_known_symptom_with_candidate_mapping()
     chip = updated_draft.chips[0]
     assert chip.display_label_de == "Atemnot"
     assert chip.clinical_term_de == "Dyspnoe"
-    assert chip.snomed_code == "267036007"
     assert chip.mapping_confidence == 0.94
     assert chip.mapping is not None
     assert chip.mapping.validation_status == "mapping_candidate"
@@ -43,7 +42,6 @@ def test_symptom_mapping_service_marks_unknown_extracted_symptom_as_low_confiden
     updated_draft = service.enrich_draft(draft)
 
     chip = updated_draft.chips[0]
-    assert chip.snomed_code is None
     assert chip.mapping_confidence == 0.35
     assert chip.mapping is not None
     assert chip.mapping.validation_status == "fallback_low_confidence"
@@ -60,4 +58,3 @@ def test_symptom_mapping_service_preserves_user_edited_status_for_low_confidence
     chip = updated_draft.chips[0]
     assert chip.status == "user_edited"
     assert chip.mapping_confidence == 0.35
-    assert chip.snomed_code is None

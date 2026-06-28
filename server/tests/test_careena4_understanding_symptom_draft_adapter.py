@@ -36,7 +36,6 @@ def test_understanding_adapter_merges_symptoms_into_input_draft():
     assert draft.chips[0].raw_text == "?bel"
     assert draft.chips[0].clinical_term_de == "?belkeit"
     assert draft.chips[0].extraction_confidence == 0.95
-    assert draft.chips[0].snomed_code is None
     assert draft.chips[0].mapping is None
 
 
@@ -93,7 +92,6 @@ def test_understanding_adapter_preserves_fever_clinical_term_and_confidence():
     assert draft.chips[0].raw_text == "Fieber"
     assert draft.chips[0].clinical_term_de == "Pyrexie"
     assert draft.chips[0].extraction_confidence == 0.95
-    assert draft.chips[0].snomed_code is None
 
 
 def test_understanding_adapter_raises_existing_confidence_when_same_chip_reappears():

@@ -20,7 +20,7 @@ const appGuideSteps = [
     spotlightRadius: 30,
     title: 'Careena ist für dich da',
     description:
-        'Tippe auf diese Karte, wenn du Beschwerden beschreiben oder eine gesundheitliche Frage stellen möchtest.',
+        'Tippe auf diesen Knopf, wenn du Beschwerden beschreiben oder eine gesundheitliche Frage stellen möchtest.',
   ),
   AppGuideStep(
     target: AppGuideTarget.search,
@@ -34,20 +34,20 @@ const appGuideSteps = [
     spotlightRadius: 24,
     title: 'Hell oder dunkel',
     description:
-        'Mit diesem Schalter oben rechts wechselst du jederzeit zwischen Light- und Darkmode.',
+        'Mit diesem Schalter oben rechts wechselst du jederzeit zwischen Hell- und Dunkelmodus.',
   ),
   AppGuideStep(
     target: AppGuideTarget.features,
     spotlightRadius: 22,
     title: 'Alles Wichtige an einem Ort',
     description:
-        'Tippe auf eine Karte, um Termine, Medikamente, Dokumente oder dein Symptomtagebuch zu öffnen.',
+        'Tippe auf eine Funktion, um dein Symptom- oder Medikamententagebuch, deine Termine, oder deine Dokumente zu öffnen.',
   ),
   AppGuideStep(
     target: AppGuideTarget.navigation,
     spotlightRadius: 40,
     title: 'Immer schnell erreichbar',
     description:
-        'Mit dieser Leiste wechselst du jederzeit zur Startseite, zur Chathistorie oder zu deinen Einstellungen.',
+        'Mit dieser Leiste wechselst du jederzeit zur Startseite, zum Kalender, zu deinem Nachrichtenverlauf oder zu deinen Einstellungen.',
   ),
 ];

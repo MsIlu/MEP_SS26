@@ -1,4 +1,4 @@
-import 'package:app1/core/themes/app_colors.dart';
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/symptom_entry.dart';
@@ -41,7 +41,7 @@ class SymptomSummaryCard extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: Icon(copy.icon, color: Colors.white, size: 25),
+            child: Icon(copy.icon, color: AppColors.white, size: 25),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -51,7 +51,7 @@ class SymptomSummaryCard extends StatelessWidget {
                 Text(
                   copy.eyebrow,
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.white70,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
@@ -60,7 +60,7 @@ class SymptomSummaryCard extends StatelessWidget {
                 Text(
                   copy.title,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                   ),
@@ -70,8 +70,8 @@ class SymptomSummaryCard extends StatelessWidget {
                   copy.body,
                   style: TextStyle(
                     color: colorScheme.brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.78)
-                        : Colors.white.withValues(alpha: 0.84),
+                        ? AppColors.white.withValues(alpha: 0.78)
+                        : AppColors.white.withValues(alpha: 0.84),
                     height: 1.35,
                     fontWeight: FontWeight.w600,
                   ),
@@ -166,7 +166,7 @@ class _IntensityBadge extends StatelessWidget {
       height: 44,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: AppColors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Text(

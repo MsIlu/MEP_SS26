@@ -5,6 +5,7 @@ import '../../../authscreen/presentation/widgets/registration/birth_date/birth_d
 import '../../../authscreen/state/auth_session.dart';
 import '../../../authscreen/utils/auth_validators.dart';
 import '../../../authscreen/utils/birth_date_utils.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../profiles/data/profile_api_service.dart';
 import '../settings_icons.dart';
 import '../widgets/profile_display_helpers.dart';
@@ -252,9 +253,7 @@ class _PersonalDataSettingsFormState extends State<PersonalDataSettingsForm> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showCareenaSnackBar(context, message);
   }
 
   bool get _isBirthDateComplete {

@@ -1,3 +1,4 @@
+﻿import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 
 import 'package:app1/core/widgets/responsive_frame.dart';
@@ -14,18 +15,23 @@ import '../widgets/form/medication_form_dialog.dart';
 import '../widgets/list/medication_list_dialog.dart';
 import '../widgets/layout/medication_plan_content.dart';
 import '../../../../core/widgets/careena_page_header.dart';
+import '../../../../core/widgets/careena_snack_bar.dart';
 
 /// Page for managing personal medications and daily intake reminders.
 class MedicationPlanPage extends StatefulWidget {
   final ThemeController themeController;
   final ApiClient? apiClient;
   final AuthSession? authSession;
+  final int? initialMedicationId;
+  final DateTime? initialDate;
 
   const MedicationPlanPage({
     super.key,
     required this.themeController,
     this.apiClient,
     this.authSession,
+    this.initialMedicationId,
+    this.initialDate,
   });
 
   @override
@@ -43,7 +49,10 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     super.initState();
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
-    _selectedDate = _today;
+    final initialDate = widget.initialDate;
+    _selectedDate = initialDate == null
+        ? _today
+        : DateTime(initialDate.year, initialDate.month, initialDate.day);
     _controller = MedicationPlanController(
       repository: MedicationRepository(
         apiService: widget.apiClient == null
@@ -52,7 +61,19 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
         profileId: widget.authSession?.activeProfileId,
       ),
     );
-    _controller.loadEntries();
+    _controller.loadEntries().then((_) => _openInitialMedication());
+  }
+
+  void _openInitialMedication() {
+    final medicationId = widget.initialMedicationId;
+    if (medicationId == null || !mounted) return;
+
+    for (final entry in _controller.entries) {
+      if (entry.id == medicationId) {
+        _openMedicationForm(entry: entry);
+        return;
+      }
+    }
   }
 
   @override
@@ -71,10 +92,6 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
         title: 'Medikamentenplan',
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -152,14 +169,9 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     );
 
     if (mounted && wasSaved == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            entry == null
-                ? 'Medikament gespeichert'
-                : 'Medikament aktualisiert',
-          ),
-        ),
+      showCareenaSnackBar(
+        context,
+        entry == null ? 'Medikament gespeichert' : 'Medikament aktualisiert',
       );
     }
   }
@@ -171,7 +183,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       builder: (context) {
         return Dialog(
           insetPadding: const EdgeInsets.all(18),
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: ResponsiveFrame(
             maxWidth: 720,
             child: Container(
@@ -266,9 +278,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
       await action;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        showCareenaSnackBar(context, errorMessage);
       }
     }
   }

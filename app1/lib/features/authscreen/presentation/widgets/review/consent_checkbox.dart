@@ -1,4 +1,4 @@
-import 'package:flutter/gestures.dart';
+﻿import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app1/core/themes/app_colors.dart';
@@ -51,7 +51,7 @@ class _ConsentCheckboxState extends State<ConsentCheckbox> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final boxColor = isDarkMode ? colorScheme.surface : Colors.white;
+    final boxColor = isDarkMode ? colorScheme.surface : AppColors.white;
     final borderColor = isDarkMode
         ? colorScheme.outlineVariant
         : AppColors.careenaBorder;

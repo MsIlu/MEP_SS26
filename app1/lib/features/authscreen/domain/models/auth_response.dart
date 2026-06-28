@@ -8,6 +8,7 @@ class AuthProfile {
   final int id;
   final String displayName;
   final String profileType;
+  final String? biologicalSex;
   final String? aiDisclaimerAcceptedAt;
   final String? role;
 
@@ -15,6 +16,7 @@ class AuthProfile {
     required this.id,
     required this.displayName,
     required this.profileType,
+    this.biologicalSex,
     this.aiDisclaimerAcceptedAt,
     this.role,
   });
@@ -24,16 +26,22 @@ class AuthProfile {
       id: json['id'] as int,
       displayName: json['display_name'] as String,
       profileType: json['profile_type'] as String,
+      biologicalSex: json['biological_sex'] as String?,
       aiDisclaimerAcceptedAt: json['ai_disclaimer_accepted_at'] as String?,
       role: json['role'] as String?,
     );
   }
 
-  AuthProfile copyWith({String? displayName, String? aiDisclaimerAcceptedAt}) {
+  AuthProfile copyWith({
+    String? displayName,
+    String? biologicalSex,
+    String? aiDisclaimerAcceptedAt,
+  }) {
     return AuthProfile(
       id: id,
       displayName: displayName ?? this.displayName,
       profileType: profileType,
+      biologicalSex: biologicalSex ?? this.biologicalSex,
       aiDisclaimerAcceptedAt:
           aiDisclaimerAcceptedAt ?? this.aiDisclaimerAcceptedAt,
       role: role,

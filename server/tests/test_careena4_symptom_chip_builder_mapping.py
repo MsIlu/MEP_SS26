@@ -20,7 +20,6 @@ def test_symptom_chip_builder_enriches_extracted_chip_with_mapping_candidate():
 
     chip = updated_draft.chips[0]
     assert chip.display_label_de == "Schwindel"
-    assert chip.snomed_code == "404640003"
     assert chip.mapping_confidence == 0.92
     assert chip.mapping is not None
     assert chip.mapping.mapper_name == "local_symptom_mapping"

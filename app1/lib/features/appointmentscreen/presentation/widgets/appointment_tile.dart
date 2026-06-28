@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../data/models/appointment.dart';
 
@@ -94,7 +94,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
 
-                      color: appointment.isCompleted ? Colors.grey : null,
+                      color: appointment.isCompleted ? AppColors.grey : null,
 
                       decoration: appointment.isCompleted
                           ? TextDecoration.lineThrough
@@ -115,7 +115,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
 
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.08),
+                    color: AppColors.red.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
@@ -124,7 +124,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
                         : 'Termin löschen',
                     icon: const Icon(
                       Icons.delete_outline,
-                      color: Colors.red,
+                      color: AppColors.red,
                       size: 22,
                     ),
                     onPressed: widget.onDelete,

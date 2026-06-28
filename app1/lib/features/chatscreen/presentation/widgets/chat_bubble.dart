@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
-import '../../utils/medical_terms.dart';
 import 'package:app1/core/themes/app_colors.dart';
-import 'medical_term_info_box.dart';
 import 'thinking_bubble.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 import '../../../recommendation_export/presentation/save_recommendation_to_documents_button.dart';
+import '../../../authscreen/state/auth_session.dart';
 
 /// UI component that displays a single chat message.
 ///
@@ -20,6 +19,7 @@ class ChatBubble extends StatelessWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final bool showLongProcessingHint;
+  final AuthSession? authSession;
 
   const ChatBubble({
     super.key,
@@ -27,34 +27,34 @@ class ChatBubble extends StatelessWidget {
     required this.symptoms,
     required this.userMessages,
     this.showLongProcessingHint = false,
+    this.authSession,
   });
 
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-    final medicalTerm = isUser ? null : MedicalTerms.firstMatch(message.text);
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final avatarBackground = isDarkMode
-        ? const Color(0xFF86B2B2)
-        : const Color(0xFFC3E7E7);
+        ? AppColors.chatAvatarBackgroundDark
+        : AppColors.chatAvatarBackgroundLight;
 
     final bubbleColor = isUser
         ? AppColors.careenaTeal
         : isDarkMode
         ? colorScheme.surface
-        : Colors.white;
+        : AppColors.white;
 
     final textColor = isUser
-        ? Colors.white
+        ? AppColors.white
         : isDarkMode
         ? colorScheme.onSurface
         : AppColors.careenaDark;
 
     final shadowColor = isDarkMode
-        ? Colors.black.withValues(alpha: 0.15)
-        : Colors.black.withValues(alpha: 0.10);
+        ? AppColors.black.withValues(alpha: 0.15)
+        : AppColors.black.withValues(alpha: 0.10);
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -107,7 +107,7 @@ class ChatBubble extends StatelessWidget {
                     ),
 
                     border: !isUser && !isDarkMode
-                        ? Border.all(color: Colors.grey.shade200, width: 1)
+                        ? Border.all(color: AppColors.greyShade200, width: 1)
                         : null,
 
                     boxShadow: [
@@ -125,8 +125,6 @@ class ChatBubble extends StatelessWidget {
                         message.text,
                         style: TextStyle(color: textColor, fontSize: 15),
                       ),
-                      if (medicalTerm != null)
-                        MedicalTermInfoBox(term: medicalTerm),
                       if (!isUser &&
                           message.canExportPdf &&
                           !message.isStreaming) ...[
@@ -160,6 +158,7 @@ class ChatBubble extends StatelessWidget {
                                 title:
                                     message.appointmentTitle ??
                                     'Arzttermin vereinbaren',
+                                authSession: authSession,
                               ),
                           ],
                         ),

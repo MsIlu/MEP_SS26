@@ -14,6 +14,9 @@ class AppointmentDialog extends StatelessWidget {
 
   final VoidCallback onSave;
   final VoidCallback? onCancel;
+  final String? doctorErrorText;
+  final String? dateErrorText;
+  final ValueChanged<String>? onDoctorChanged;
 
   const AppointmentDialog({
     super.key,
@@ -26,6 +29,9 @@ class AppointmentDialog extends StatelessWidget {
     required this.onPickTime,
     required this.onSave,
     this.onCancel,
+    this.doctorErrorText,
+    this.dateErrorText,
+    this.onDoctorChanged,
   });
 
   InputDecoration _inputDecoration(String label, IconData icon) {
@@ -43,7 +49,7 @@ class AppointmentDialog extends StatelessWidget {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderSide: BorderSide(color: AppColors.greyShade400),
       ),
     );
   }
@@ -63,20 +69,26 @@ class AppointmentDialog extends StatelessWidget {
           width: double.maxFinite,
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: doctorController,
-                  decoration: _inputDecoration('Arzt', Icons.medical_services),
+                  onChanged: onDoctorChanged,
+                  decoration: _inputDecoration(
+                    'Arzt',
+                    Icons.medical_services,
+                  ).copyWith(errorText: doctorErrorText),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: dateController,
                   readOnly: true,
                   onTap: onPickDate,
-                  decoration: _inputDecoration('Datum', Icons.calendar_month),
+                  decoration: _inputDecoration(
+                    'Datum',
+                    Icons.calendar_month,
+                  ).copyWith(errorText: dateErrorText),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -86,16 +98,22 @@ class AppointmentDialog extends StatelessWidget {
                   decoration: _inputDecoration('Uhrzeit', Icons.access_time),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: noteController,
-                  minLines: 3,
-                  maxLines: 6,
-                  maxLength: 300,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  decoration: _inputDecoration(
-                    'Notiz (optional)',
-                    Icons.note_alt_outlined,
+                SizedBox(
+                  height: 140,
+                  child: TextField(
+                    controller: noteController,
+                    expands: true,
+                    minLines: null,
+                    maxLines: null,
+                    maxLength: 300,
+                    textAlign: TextAlign.start,
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    decoration: _inputDecoration(
+                      'Notiz (optional)',
+                      Icons.note_alt_outlined,
+                    ),
                   ),
                 ),
               ],
@@ -103,6 +121,7 @@ class AppointmentDialog extends StatelessWidget {
           ),
         ),
       ),
+
       actions: [
         TextButton(
           style: TextButton.styleFrom(foregroundColor: AppColors.careenaTeal),
@@ -115,7 +134,7 @@ class AppointmentDialog extends StatelessWidget {
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.careenaTeal,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.white,
           ),
           onPressed: onSave,
           child: const Text('Speichern'),

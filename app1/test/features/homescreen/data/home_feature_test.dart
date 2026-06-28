@@ -1,3 +1,4 @@
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/features/homescreen/data/home_feature.dart';
@@ -13,18 +14,16 @@ void main() {
     test(
       'Konstruktor muss alle übergebenen Attribute korrekt in die Felder mappen',
       () {
-        // Execution
         final feature = HomeFeature(
           icon: Icons.calendar_today,
           title: 'Terminplanung',
-          backgroundColor: Colors.teal,
+          backgroundColor: AppColors.careenaTeal,
           onTap: () {},
         );
 
-        // Verification
         expect(feature.title, 'Terminplanung');
         expect(feature.icon, Icons.calendar_today);
-        expect(feature.backgroundColor, Colors.teal);
+        expect(feature.backgroundColor, AppColors.careenaTeal);
       },
     );
   });

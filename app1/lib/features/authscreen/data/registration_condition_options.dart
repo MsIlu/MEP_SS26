@@ -5,7 +5,7 @@ const registrationConditionOptions = [
   'Schilddrüsenerkrankung',
   'Depression',
   'Herzkrankheit',
-  'Rückenschmerzen',
+  'Endometriose',
   'Übergewicht / Adipositas',
   'Arthrose',
   'Bluthochdruck',

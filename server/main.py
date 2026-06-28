@@ -28,6 +28,7 @@ from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
 from logging_config import configure_logging
+from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 
 from uuid import uuid4 #for turn_id
 
@@ -147,6 +148,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "recommend",
     }
 
+    reply_options: list[str] = []
+    if (
+        active_question is not None
+        and active_question.guided_input is not None
+        and active_question.guided_input.options
+    ):
+        reply_options = [opt.label for opt in active_question.guided_input.options]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -155,6 +164,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "pending_followup": pending_followup,
         "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
+        "reply_options": reply_options,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None
@@ -171,6 +181,26 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             else None
         ),
     }
+
+@app.get("/fhir/export/{session_id}")
+def export_fhir_bundle(
+        session_id: str,
+        current_user: User | None = Depends(get_optional_current_account),
+        db_session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=db_session,
+    )
+
+    if careena4_session.medical_case is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No extracted medical case data available for this session.",
+        )
+
+    return build_fhir_bundle_from_careena4_session(careena4_session)
 
 
 def build_careena4_simrun_response(*, message: str) -> dict:
@@ -196,6 +226,7 @@ app.state.careena4_response_builder = build_careena4_chat_response
 #5. Careena4 processes TurnInput
 #6. write new state in session
 #7. build API-Response for Flutter
+
 @app.post("/chatscreen")
 def chat(
         req: ChatRequest,
@@ -410,9 +441,28 @@ def create_session(
 # Modified as part of the authentication and profile management implementation.
 # Runs automatically when the FastAPI server starts.
 # Creates all database tables if they do not already exist.
+def _seed_catalog() -> None:
+    """Run catalog seed imports on startup. Logs a warning on failure instead of crashing."""
+    try:
+        from database.seed_catalog import (
+            seed_assessment_criteria,
+            seed_consultation_reason_criteria_links,
+            seed_consultation_reasons,
+        )
+        r1 = seed_consultation_reasons()
+        r2 = seed_assessment_criteria()
+        r3 = seed_consultation_reason_criteria_links()
+        print(f"Catalog seeded: reasons={r1}, criteria={r2}, links={r3}")
+    except Exception as exc:
+        print(f"Warning: Catalog seeding skipped ({exc})")
+
+
 @app.on_event("startup")
 def on_startup():
     """
     Initialize database tables on application startup.
     """
     create_db_and_tables()
+    _seed_catalog()
+    n = careena4_services.safety_catalog_cache.load()
+    print(f"SafetyCatalogCache loaded: {n} entries")

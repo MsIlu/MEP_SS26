@@ -10,7 +10,7 @@ from careena4.models.common import (
     PipelineModel,
     SubjectScope,
 )
-from careena4.models.domain.provenance import Source
+from careena4.models.domain.source import Source
 
 
 class Observation(PipelineModel):

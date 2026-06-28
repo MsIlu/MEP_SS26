@@ -59,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return AnimatedBuilder(
       animation: Listenable.merge([
         widget.themeController,
-        if (authSession != null) authSession,
+        ?authSession,
       ]),
       builder: (context, _) {
         final simpleView = widget.themeController.isSimpleView;

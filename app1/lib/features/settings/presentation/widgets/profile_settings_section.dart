@@ -225,6 +225,8 @@ class ProfileSettingsSection extends StatelessWidget {
         remainingProfiles.map(authProfileFromProfile).toList(),
       );
 
+      if (!context.mounted) return;
+
       final dependencies = AppDependenciesScope.maybeOf(context);
       if (dependencies != null) {
         try {

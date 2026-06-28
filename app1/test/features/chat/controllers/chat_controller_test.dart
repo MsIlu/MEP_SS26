@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/features/authscreen/domain/models/account.dart';
@@ -121,6 +123,69 @@ void main() {
     });
 
     test(
+      'does not show a delayed response after the profile changes',
+      () async {
+        final authSession = AuthSession();
+        final chatApi = _FakeChatApi();
+        final delayedResponse = Completer<ChatResponse>();
+        chatApi.responseCompleter = delayedResponse;
+        final historyRepository = _FakeChatHistoryRepository();
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: historyRepository,
+        );
+
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        authSession.setAuthResponse(
+          AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: const Account(id: 1, email: 'test@example.com'),
+            profiles: const [
+              AuthProfile(
+                id: 42,
+                displayName: 'Anna',
+                profileType: 'self',
+                role: 'owner',
+              ),
+              AuthProfile(
+                id: 43,
+                displayName: 'Ben',
+                profileType: 'child',
+                role: 'guardian',
+              ),
+            ],
+          ),
+        );
+
+        await controller.init();
+        final pendingResponse = controller.sendMessage('Nachricht fuer Anna');
+        while (chatApi.sentTexts.isEmpty) {
+          await Future<void>.delayed(Duration.zero);
+        }
+
+        authSession.setActiveProfileById(43);
+        delayedResponse.complete(
+          const ChatResponse(text: 'Antwort fuer Anna', redFlag: false),
+        );
+        await pendingResponse;
+        await Future<void>.delayed(Duration.zero);
+
+        expect(authSession.activeProfileId, 43);
+        expect(controller.chatSessionService.profileId, 43);
+        expect(
+          controller.messages.value.map((message) => message.text),
+          isNot(contains('Antwort fuer Anna')),
+        );
+        expect(historyRepository.savedEntries.single.profileId, 42);
+      },
+    );
+
+    test(
       'saves recommendation history and blocks follow-up messages',
       () async {
         final authSession = AuthSession();
@@ -176,7 +241,10 @@ void main() {
         expect(controller.isCompleted.value, isTrue);
         expect(chatApi.sentTexts, ['Ich habe Schmerzen']);
         expect(historyRepository.savedEntries, hasLength(1));
-        expect(historyRepository.savedEntries.single.status, 'active');
+        expect(
+          historyRepository.savedEntries.single.status,
+          'waiting_for_assistant',
+        );
         expect(historyRepository.updatedEntries.last.status, 'completed');
         expect(historyRepository.updatedEntries.last.profileId, 42);
         expect(
@@ -272,7 +340,10 @@ void main() {
       expect(secondResponse, isNull);
       expect(controller.isCompleted.value, isTrue);
       expect(historyRepository.savedEntries, hasLength(1));
-      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(
+        historyRepository.savedEntries.single.status,
+        'waiting_for_assistant',
+      );
       expect(historyRepository.updatedEntries.last.status, 'completed');
       expect(historyRepository.updatedEntries.last.symptomTitle, 'Blutung');
       expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
@@ -324,7 +395,10 @@ void main() {
       expect(response?.redFlag, isFalse);
       expect(controller.isCompleted.value, isTrue);
       expect(historyRepository.savedEntries, hasLength(1));
-      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(
+        historyRepository.savedEntries.single.status,
+        'waiting_for_assistant',
+      );
       expect(historyRepository.updatedEntries.last.status, 'completed');
       expect(historyRepository.updatedEntries.last.symptomTitle, 'Atemnot');
       expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
@@ -371,7 +445,10 @@ void main() {
       await controller.sendMessage('Ich bekomme schlecht Luft');
 
       expect(controller.isCompleted.value, isTrue);
-      expect(historyRepository.savedEntries.single.status, 'active');
+      expect(
+        historyRepository.savedEntries.single.status,
+        'waiting_for_assistant',
+      );
       expect(historyRepository.updatedEntries.last.status, 'completed');
       expect(historyRepository.updatedEntries.last.isEmergency, isTrue);
     });
@@ -394,6 +471,7 @@ class _FakeChatApi extends ChatApi {
   final List<String> cancelledSessionIds = [];
   final List<String> sentTexts = [];
   List<String> symptoms = [];
+  Completer<ChatResponse>? responseCompleter;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -416,7 +494,7 @@ class _FakeChatApi extends ChatApi {
     lastProfileId = profileId;
     sentTexts.add(text);
 
-    return nextResponse;
+    return responseCompleter?.future ?? nextResponse;
   }
 
   @override

@@ -215,7 +215,6 @@ def continue_chat_history(
                 session_id=session_id,
                 turn_id=str(uuid4()),
                 conversation_messages=careena4_session.messages,
-                persisted_case_topic=careena4_session.case_topic,
                 persisted_medical_case=careena4_session.medical_case,
                 persisted_conversation_state=careena4_session.conversation_state,
                 persisted_recommendation_state=careena4_session.recommendation_state,
@@ -232,7 +231,6 @@ def continue_chat_history(
             detail="Assistant response could not be continued.",
         ) from exc
 
-    careena4_session.case_topic = turn_result.case_topic
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state

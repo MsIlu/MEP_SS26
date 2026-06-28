@@ -69,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     widget.controller.messages.addListener(_onMessagesChanged);
 
-    widget.controller.init();
+    unawaited(_initializeChat());
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
 
@@ -86,6 +86,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
       _inputFocusNode.requestFocus();
     });
+  }
+
+  Future<void> _initializeChat() async {
+    await widget.controller.init();
+    if (!mounted) return;
+    _onMessagesChanged();
   }
 
   Future<void> _runWarningFlow() async {

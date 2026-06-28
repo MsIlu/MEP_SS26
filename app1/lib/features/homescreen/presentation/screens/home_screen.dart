@@ -320,6 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
   };
 
   Future<void> _navigateToChat(BuildContext context) async {
+    await widget.controller.resetChat();
+    if (!context.mounted) return;
+
     await Navigator.push(
       context,
       MaterialPageRoute(

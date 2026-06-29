@@ -3,24 +3,28 @@ import '../../../../core/widgets/responsive_frame.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
+import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
-/// Safety page shown when the backend detects a red-flag response.
+/// Recommendation result page shown after a chat session is completed.
 class WarningPage extends StatelessWidget {
-  /// Backend response that contains the red-flag metadata.
   final ChatResponse response;
   final List<String> symptoms;
   final List<String> userMessages;
+  final ThemeController? themeController;
 
   const WarningPage({
     super.key,
     required this.response,
     this.symptoms = const [],
     this.userMessages = const [],
+    this.themeController,
   });
 
   @override
@@ -67,10 +71,36 @@ class WarningPage extends StatelessWidget {
                 userMessages: userMessages,
               ),
 
+              if (symptoms.isNotEmpty && themeController != null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _navigateToSymptomDiary(context),
+                  icon: const Icon(Icons.book_outlined, size: 18),
+                  label: const Text('Symptome ins Tagebuch'),
+                ),
+              ],
               const SizedBox(height: 16),
               const NoDiagnosisInfoBox(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSymptomDiary(BuildContext context) {
+    final tc = themeController;
+    if (tc == null) return;
+    final deps = AppDependenciesScope.of(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SymptomDiaryPage(
+          themeController: tc,
+          authSession: deps.authSession,
+          symptomApiService: deps.symptomApiService,
+          profileApiService: deps.profileApiService,
+          initialSymptoms: symptoms,
         ),
       ),
     );

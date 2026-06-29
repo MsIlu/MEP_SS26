@@ -49,6 +49,7 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onSaved;
   final String? biologicalSex;
+  final String? initialSymptom;
 
   const SymptomEntryForm({
     super.key,
@@ -56,6 +57,7 @@ class SymptomEntryForm extends StatefulWidget {
     this.onCancel,
     this.onSaved,
     this.biologicalSex,
+    this.initialSymptom,
   });
 
   @override
@@ -77,6 +79,11 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   void initState() {
     super.initState();
     _loadCustomSymptomSuggestions();
+    final pre = widget.initialSymptom;
+    if (pre != null && pre.isNotEmpty) {
+      _symptomController.text = pre;
+      _currentStepIndex = 1;
+    }
   }
 
   @override

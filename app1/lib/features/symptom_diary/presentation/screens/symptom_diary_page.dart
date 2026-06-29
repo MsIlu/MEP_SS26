@@ -19,6 +19,9 @@ class SymptomDiaryPage extends StatefulWidget {
   final SymptomApiService? symptomApiService;
   final ProfileApiService? profileApiService;
   final DateTime? initialDate;
+  /// When set, shows an import dialog on open so the user can transfer
+  /// chat-confirmed symptoms into the diary without re-typing them.
+  final List<String>? initialSymptoms;
 
   const SymptomDiaryPage({
     super.key,
@@ -27,6 +30,7 @@ class SymptomDiaryPage extends StatefulWidget {
     this.symptomApiService,
     this.profileApiService,
     this.initialDate,
+    this.initialSymptoms,
   });
 
   @override
@@ -53,6 +57,12 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       profileId: widget.authSession?.activeProfileId,
     );
     _controller.loadEntries();
+    final toImport = widget.initialSymptoms;
+    if (toImport != null && toImport.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showChatImportDialog(toImport);
+      });
+    }
   }
 
   @override
@@ -108,6 +118,64 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
 
     setState(() => _selectedDate = DateTime(date.year, date.month, date.day));
+  }
+
+  /// Shows a confirmation dialog to import chat symptoms into the diary.
+  Future<void> _showChatImportDialog(List<String> symptoms) async {
+    final selected = List<bool>.filled(symptoms.length, true);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Symptome übernehmen'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Folgende Symptome aus deinem Chat ins Tagebuch übernehmen?',
+                  ),
+                  const SizedBox(height: 12),
+                  for (var i = 0; i < symptoms.length; i++)
+                    CheckboxListTile(
+                      value: selected[i],
+                      title: Text(symptoms[i]),
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (v) =>
+                          setDialogState(() => selected[i] = v ?? false),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Abbrechen'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Übernehmen'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    for (var i = 0; i < symptoms.length; i++) {
+      if (!selected[i]) continue;
+      await _addEntry(
+        symptom: symptoms[i],
+        bodyArea: '',
+        intensity: 5,
+        note: '',
+      );
+    }
   }
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.

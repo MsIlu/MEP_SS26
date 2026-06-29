@@ -57,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _speechService = SpeechService();
 
   List<String> _smartReplies = [];
+  List<String>? _preRecommendationSymptoms;
   Timer? _longProcessingTimer;
   bool _isSending = false;
   bool _shouldAutoScroll = true;
@@ -153,6 +154,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _handleRecommendationRequest() async {
     if (_isSending || widget.controller.isCompleted.value) return;
 
+    _preRecommendationSymptoms =
+        List<String>.from(widget.controller.symptoms.value);
+
     await _speechService.stop();
     _textController.clear();
 
@@ -206,9 +210,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final recommendationResponse = showsRecommendation ? response : null;
 
     if (recommendationResponse != null) {
-      final recommendationSymptoms = List<String>.from(
-        widget.controller.symptoms.value,
-      );
+      final recommendationSymptoms =
+          _preRecommendationSymptoms ?? List<String>.from(widget.controller.symptoms.value);
+      _preRecommendationSymptoms = null;
       final recommendationUserMessages = widget.controller.messages.value
           .where((message) => message.isUser)
           .map((message) => message.text.trim())
@@ -226,6 +230,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             response: recommendationResponse,
             symptoms: recommendationSymptoms,
             userMessages: recommendationUserMessages,
+            themeController: widget.themeController,
           ),
         ),
       );

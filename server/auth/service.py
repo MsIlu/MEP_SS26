@@ -148,15 +148,36 @@ def login_account(request: LoginRequest, session: Session) -> AuthResponse:
 
 def deactivate_account(current_user: User, session: Session) -> dict:
     """
-    Soft-delete an account by marking it as inactive.
+    Soft-delete an account and profiles managed only by this account.
 
-    The account row remains in the database for safety and traceability.
-    Related profiles are not deleted here, because profiles may later be shared
-    with or transferred to other accounts.
+    Shared profiles remain available to their other accounts. Health records
+    stay in the database and become inaccessible through soft-deleted profiles.
     """
+    deleted_at = datetime.utcnow()
+    accesses = session.exec(
+        select(AccountProfileAccess).where(
+            AccountProfileAccess.account_id == current_user.id
+        )
+    ).all()
+
+    for access in accesses:
+        shared_access = session.exec(
+            select(AccountProfileAccess)
+            .where(AccountProfileAccess.profile_id == access.profile_id)
+            .where(AccountProfileAccess.account_id != current_user.id)
+        ).first()
+
+        if shared_access is None:
+            profile = session.get(Profile, access.profile_id)
+            if profile is not None and profile.deleted_at is None:
+                profile.deleted_at = deleted_at
+                profile.updated_at = deleted_at
+                session.add(profile)
+
     current_user.is_active = False
-    current_user.deleted_at = datetime.utcnow()
-    current_user.updated_at = datetime.utcnow()
+    current_user.active_profile_id = None
+    current_user.deleted_at = deleted_at
+    current_user.updated_at = deleted_at
 
     session.add(current_user)
     session.commit()

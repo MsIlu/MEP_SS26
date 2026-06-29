@@ -105,7 +105,10 @@ def _archive_existing_log(path: Path, *, archive_type: str) -> None:
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     archive_dir = LOG_ARCHIVE_DIR / archive_type
     archive_dir.mkdir(parents=True, exist_ok=True)
-    path.rename(archive_dir / f"{path.stem}-{timestamp}{path.suffix}")
+    try:
+        path.rename(archive_dir / f"{path.stem}-{timestamp}{path.suffix}")
+    except PermissionError:
+        return
 
 
 def _configure_console_encoding() -> None:

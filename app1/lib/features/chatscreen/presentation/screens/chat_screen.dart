@@ -560,7 +560,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       canRequestFocus: true,
                       child: Semantics(
                         label: message.isUser
-                            ? 'Ihre Nachricht: $semanticText'
+                            ? 'Deine Nachricht: $semanticText'
                             : 'Antwort von Careena: $semanticText',
                         child: ChatBubble(
                           authSession: widget.controller.authSession,

@@ -52,7 +52,7 @@ class BirthDateUtils {
       return 'Bitte nutze das Format TT.MM.JJJJ.';
     }
 
-    const invalidMessage = 'Bitte geben Sie ein gültiges Geburtsdatum ein.';
+    const invalidMessage = 'Bitte gib ein gültiges Geburtsdatum ein.';
     final birthDate = parse(rawValue);
     if (birthDate == null) {
       return invalidMessage;

@@ -6,11 +6,11 @@ void main() {
   group('ChatResponse', () {
     test('maps normal backend responses', () {
       final response = ChatResponse.fromJson({
-        'response': 'Bitte trinken Sie Wasser.',
+        'response': 'Bitte trinke Wasser.',
         'red_flag': false,
       });
 
-      expect(response.text, 'Bitte trinken Sie Wasser.');
+      expect(response.text, 'Bitte trinke Wasser.');
       expect(response.redFlag, isFalse);
       expect(response.matchedKeywords, isEmpty);
     });

@@ -579,7 +579,7 @@ void main() {
       final chatApi = _FakeChatApi()
         ..nextResponse = const ChatResponse(
           text:
-              'Wichtiger Hinweis:\nIhre Angaben koennen auf eine akute Notfallsituation hinweisen.\n\nNächster Schritt:\nBitte wählen Sie sofort den Notruf 112.',
+              'Wichtiger Hinweis:\nDeine Angaben koennen auf eine akute Notfallsituation hinweisen.\n\nNächster Schritt:\nBitte wähle sofort den Notruf 112.',
           redFlag: false,
           action: 'Notruf 112',
         );
@@ -629,7 +629,7 @@ void main() {
       );
       final chatApi = _FakeChatApi()
         ..nextResponse = const ChatResponse(
-          text: 'Bitte holen Sie umgehend medizinische Hilfe.',
+          text: 'Bitte hole umgehend medizinische Hilfe.',
           redFlag: false,
           severity: 'sofort',
           category: 'emergency',

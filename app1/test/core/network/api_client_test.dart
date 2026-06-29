@@ -38,12 +38,12 @@ void main() {
 
   group('ApiClient HTTP errors', () {
     const expectedMessages = {
-      400: 'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.',
-      401: 'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.',
-      403: 'Sie haben keine Berechtigung für diese Aktion.',
+      400: 'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.',
+      401: 'Du bist nicht angemeldet. Bitte melde dich erneut an.',
+      403: 'Du hast keine Berechtigung für diese Aktion.',
       404: 'Die angefragten Daten wurden nicht gefunden.',
       500:
-          'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.',
+          'Es ist ein Serverfehler aufgetreten. Bitte versuche es später erneut.',
     };
 
     for (final entry in expectedMessages.entries) {

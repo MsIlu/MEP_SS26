@@ -27,6 +27,6 @@ class RecommendationBuilder:
             care_level="general_practice",
             specialty="general_practice",
             reasons=reasons,
-            next_step="Wenn die Beschwerden anhalten, zunehmen oder Sie sich unsicher fuehlen, vereinbaren Sie einen Termin in einer Hausarztpraxis.",
+            next_step="Wenn die Beschwerden anhalten, zunehmen oder du dich unsicher fuehlst, vereinbare einen Termin in einer Hausarztpraxis.",
             limitations=limitations,
         )

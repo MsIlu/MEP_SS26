@@ -73,7 +73,7 @@ GREETINGS = [
 
 OUT_OF_SCOPE_RESPONSE = """Diese Anwendung ist nur für gesundheitsbezogene Anliegen gedacht.
 
-Bitte beschreiben Sie eine körperliche oder psychische Beschwerde, ein Symptom oder eine gesundheitliche Sorge.
+Bitte beschreibe eine körperliche oder psychische Beschwerde, ein Symptom oder eine gesundheitliche Sorge.
 
 Hinweis:
 Diese Anwendung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar."""
@@ -81,7 +81,7 @@ Diese Anwendung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose 
 
 SMALLTALK_GOODBYE_RESPONSE = """Ich verstehe. Diese Anwendung ist nur für gesundheitsbezogene Anliegen gedacht und nicht für allgemeinen Smalltalk.
 
-Wenn Sie eine körperliche oder psychische Beschwerde, ein Symptom oder eine gesundheitliche Sorge haben, können Sie diese gerne beschreiben.
+Wenn du eine körperliche oder psychische Beschwerde, ein Symptom oder eine gesundheitliche Sorge hast, kannst du diese gerne beschreiben.
 
 Alles Gute."""
 

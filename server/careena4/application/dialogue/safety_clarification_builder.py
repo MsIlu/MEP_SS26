@@ -13,7 +13,7 @@ from careena4.models.turn import SafetyState
 logger = logging.getLogger(__name__)
 
 _FALLBACK_QUESTION = (
-    "Sie haben etwas erwähnt, das ich kurz einordnen möchte. "
+    "Du hast etwas erwähnt, das ich kurz einordnen möchte. "
     "Sind diese Beschwerden gerade sehr stark oder plötzlich aufgetreten?"
 )
 
@@ -23,7 +23,7 @@ _QUESTION_SYSTEM_PROMPT = (
     "Die Frage soll klären ob ein Notfall vorliegt: "
     "Frage nach Schwerezeichen wie plötzlichem Beginn, starker Intensität oder begleitenden Warnsymptomen. "
     "Formuliere die Frage so, dass 'Ja' einem ernsthaften Notfall entspricht und 'Nein' einem milden Verlauf. "
-    "Keine Diagnose nennen. Maximal 2 Sätze. Mit 'Sie' ansprechen."
+    "Keine Diagnose nennen. Maximal 2 Sätze. Mit 'du' ansprechen."
 )
 
 

@@ -122,7 +122,7 @@ class ChatController {
         _addMessage(
           message: Message(
             text:
-                'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
+                'Der Chat ist gerade offline. Bitte prüfe die Backend-Verbindung und versuche es erneut.',
             isUser: false,
           ),
         );
@@ -957,7 +957,7 @@ class ChatController {
   void _addTestRecommendation() {
     const recommendationText = '''Dringlichkeit: Nicht akut
     Empfohlene Versorgungsebene: Hausarzt
-    Nächster Schritt: Bitte vereinbaren Sie einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
+    Nächster Schritt: Bitte vereinbare einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
     Hinweis: Diese Test-Handlungsempfehlung dient nur der Frontend-Entwicklung und ersetzt keine ärztliche Diagnose.''';
 
     _addMessage(message: Message(text: '/hp', isUser: true));

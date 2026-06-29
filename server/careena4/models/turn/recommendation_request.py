@@ -5,9 +5,6 @@ from careena4.models.domain import ConversationState, MedicalCase, Recommendatio
 from careena4.models.input import SymptomInputDraft
 
 
-RECOMMENDATION_RESPONSE_HISTORY_LIMIT = 6
-
-
 class RecommendationRequestInput(PipelineModel):
     session_id: str | None = None
     turn_id: str | None = None
@@ -29,11 +26,10 @@ class RecommendationRequestInput(PipelineModel):
         persisted_recommendation_state: RecommendationState | None = None,
         persisted_symptom_input_draft: SymptomInputDraft | None = None,
     ) -> "RecommendationRequestInput":
-        history = list(conversation_messages or [])
         return cls(
             session_id=session_id,
             turn_id=turn_id,
-            response_history_messages=list(history[-RECOMMENDATION_RESPONSE_HISTORY_LIMIT:]),
+            response_history_messages=list(conversation_messages or []),
             persisted_medical_case=persisted_medical_case,
             persisted_conversation_state=persisted_conversation_state,
             persisted_recommendation_state=persisted_recommendation_state,

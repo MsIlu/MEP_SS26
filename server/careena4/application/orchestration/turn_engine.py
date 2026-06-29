@@ -635,7 +635,7 @@ class TurnEngine:
             active_question=active_question,
             medical_case=medical_case,
             conversation_state=conversation_state,
-            response_history_messages=response_input.response_history_messages,
+            response_history_messages=getattr(response_input, "response_history_messages", []),
             latest_user_message=getattr(response_input, "message", None),
             resolved_question=resolved_question,
         )

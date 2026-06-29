@@ -3,12 +3,11 @@ from __future__ import annotations
 import re
 
 from careena4.application.dialogue.safety_clarification_resolver import SafetyClarificationResolver
-from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.core.engine import ExtractionEngine
 from careena4.llm.call_control import CallModelConfig, FOLLOWUP_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, Source
-from careena4.models.turn import ExtractedCaseInput, ObservationPatch, PersonUpdate, QuestionResolution
+from careena4.models.turn import ObservationPatch, PersonUpdate, QuestionResolution
 from careena4.server_log import log_event
 
 
@@ -17,12 +16,10 @@ class QuestionResolver:
         self,
         *,
         safety_clarification_resolver: SafetyClarificationResolver | None = None,
-        medical_extractor: MedicalExtractor | None = None,
         extraction_engine: ExtractionEngine | None = None,
         call_model_config: CallModelConfig | None = None,
     ):
         self.safety_clarification_resolver = safety_clarification_resolver or SafetyClarificationResolver()
-        self.medical_extractor = medical_extractor or MedicalExtractor()
         self.extraction_engine = extraction_engine
         self.call_model_config = call_model_config
 
@@ -114,7 +111,7 @@ class QuestionResolver:
                         age_source=Source(source_span=age_match.group(1)),
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                    extra_case_input=None,
                 )
 
             if question.question_intent == "person_sex":
@@ -135,7 +132,7 @@ class QuestionResolver:
                         sex_source=Source(source_span=stripped),
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                    extra_case_input=None,
                 )
 
             if "kind" in normalized or "sohn" in normalized or "tochter" in normalized:
@@ -155,7 +152,7 @@ class QuestionResolver:
                         else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                    extra_case_input=None,
                 )
             if "andere" in normalized or "mutter" in normalized or "vater" in normalized:
                 source = self._first_source(normalized, ("andere", "mutter", "vater"))
@@ -174,7 +171,7 @@ class QuestionResolver:
                         else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                    extra_case_input=None,
                 )
             if "ich" in normalized or "selbst" in normalized:
                 source = self._first_source(normalized, ("ich", "selbst"))
@@ -193,7 +190,7 @@ class QuestionResolver:
                         else None
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                    extra_case_input=None,
                 )
             return QuestionResolution(
                 status="unclear",
@@ -505,19 +502,6 @@ class QuestionResolver:
             f"Letzte Konversation:\n{history_text}\n"
             f"Letzte Nutzernachricht:\n{message}"
         )
-
-    def _extra_case_input_if_needed(self, *, question: ActiveQuestion, message: str) -> ExtractedCaseInput | None:
-        if not question.allows_additional_medical_info:
-            return None
-        case_input = self.medical_extractor.extract(message=message)
-        if (
-            not case_input.has_topic_update()
-            and
-            case_input.person is None
-            and not case_input.observations
-        ):
-            return None
-        return case_input
 
     @staticmethod
     def _contains_additional_medical_info(normalized: str) -> bool:

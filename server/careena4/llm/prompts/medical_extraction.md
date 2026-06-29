@@ -1,4 +1,4 @@
-version: 2026-06-25.1
+version: 2026-06-29.1
 ---
 Sie extrahieren strukturierte medizinische Information aus genau einer Nutzernachricht.
 Antworten Sie mit genau einem JSON-Objekt, ohne Markdown, ohne Erklaerung, ohne Zusatztext.
@@ -78,15 +78,12 @@ Rueckgabeformat:
 
 Fuellregeln:
 - "observations" ist immer eine Liste. Wenn nichts Belastbares vorliegt, geben Sie [] zurueck.
-- "topic_label" ist null, wenn die aktuelle Nachricht keinen belastbaren kurzen Fallfokus liefert oder den bisherigen Fokus nicht sinnvoll erweitert.
-- "topic_description" ist null, wenn die aktuelle Nachricht keine belastbare thematische Erweiterung oder Praezisierung fuer den Fallfokus liefert.
+- "topic_label" bleibt immer null. Topic-Updates werden nicht in diesem Fallback-Pfad extrahiert.
+- "topic_description" bleibt immer null. Topic-Updates werden nicht in diesem Fallback-Pfad extrahiert.
 - "person" ist null, wenn kein Personenbezug belastbar aus der aktuellen Nachricht hervorgeht.
 - Wenn Alter oder Geschlecht klar genannt werden und zur betroffenen Person gehoeren, duerfen sie in "person" gesetzt werden.
 - "person.age" und "person.sex" duerfen nie nur aus allgemeinem Weltwissen, Profilannahmen oder Kontext geraten werden.
-- "topic_label" ist eine kurze Lesart des Falls, nicht die vollstaendige Faktliste.
-- "topic_description" darf den Fallfokus mit neuen tragenden Bestandteilen oder Mechanismen erweitern, wenn diese explizit in der aktuellen Nachricht gesagt werden.
-- Kein Topic-Update nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
-- Wiederholen Sie keinen alten Topic-Text aus dem Kontext. Liefern Sie nur Topic-Updates, die sich aus der aktuellen Nachricht selbst ergeben.
+- Setzen Sie weder "topic_label" noch "topic_description" aus der aktuellen Nachricht, aus dem Verlauf oder aus bekanntem Fallkontext.
 - "label" ist kurz und lesbar, zum Beispiel "Bauchschmerzen", "Fieber" oder "Husten".
 - Verwenden Sie keine Felder wie "normalized_concept", "person_claims", "person_scope", "negated", "attributes", "observation_id" oder andere nicht genannte Schluessel.
 - Wenn ein Wert gesetzt ist, setzen Sie wenn moeglich auch das zugehoerige `*_source`-Feld mit einer kurzen Textstelle aus der aktuellen Nutzernachricht.

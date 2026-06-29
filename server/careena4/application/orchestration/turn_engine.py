@@ -338,7 +338,6 @@ class TurnEngine:
                 )
                 case_input = self.medical_extractor.extract(
                     message=turn_input.message,
-                    topic_context=self.case_manager.topic_label(medical_case=medical_case),
                     history_messages=turn_input.extraction_history_messages,
                 )
         elif extra_case_input is not None and (
@@ -361,7 +360,6 @@ class TurnEngine:
                 )
                 case_input = self.medical_extractor.extract(
                     message=turn_input.message,
-                    topic_context=self.case_manager.topic_label(medical_case=medical_case),
                     history_messages=turn_input.extraction_history_messages,
                 )
 

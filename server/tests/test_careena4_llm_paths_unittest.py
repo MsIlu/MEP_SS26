@@ -263,8 +263,6 @@ class Careena4LlmPathTests(unittest.TestCase):
         extractor = MedicalExtractor(
             extraction_engine=_FakeExtractionEngine(
                 {
-                    "topic_label": "Bauchschmerzen",
-                    "topic_description": "Bauchschmerzen seit gestern",
                     "person": {
                         "relation": "self",
                         "relation_source": {"message_id": None, "source_span": "ich"},
@@ -301,7 +299,8 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertIsInstance(result, ExtractedCaseInput)
         self.assertEqual(result.observations[0].label, "Bauchschmerzen")
-        self.assertEqual(result.topic_label, "Bauchschmerzen")
+        self.assertIsNone(result.topic_label)
+        self.assertIsNone(result.topic_description)
         assert result.person is not None
         self.assertEqual(result.person.age, 24)
         self.assertEqual(result.person.sex, "female")
@@ -313,8 +312,10 @@ class Careena4LlmPathTests(unittest.TestCase):
         self.assertIn('"observations": [', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"topic_label": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"topic_description": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('bleibt immer null', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"label_source": {', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertNotIn('"topic_signal"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertNotIn("Aktuelles Chat-Thema", extractor.extraction_engine.calls[0]["text"])
 
     def test_medical_extractor_returns_empty_case_input_when_llm_is_unavailable(self):
         extractor = MedicalExtractor(

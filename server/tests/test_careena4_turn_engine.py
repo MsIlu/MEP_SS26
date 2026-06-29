@@ -40,10 +40,8 @@ def _make_cache_with_signal() -> MagicMock:
 
 
 class _StubMedicalExtractor:
-    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_label="Bauchschmerzen",
-            topic_description="Bauchschmerzen",
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
@@ -56,10 +54,8 @@ class _StubMedicalExtractor:
 
 
 class _ReadyMedicalExtractor:
-    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_label="Kopfschmerzen",
-            topic_description="Kopfschmerzen seit gestern",
             person=ExtractedPersonInput(
                 relation="self",
                 relation_source={"message_id": None, "source_span": "ich"},
@@ -157,9 +153,7 @@ def test_sparse_symptom_creates_person_followup_first():
 
     assert result.response_mode == "ask_followup"
     assert result.medical_case is not None
-    assert result.medical_case.topic is not None
-    assert result.medical_case.topic.label == "Bauchschmerzen"
-    assert result.medical_case.topic.description == "Bauchschmerzen"
+    assert result.medical_case.topic is None
     assert len(result.medical_case.observations) == 1
     assert result.conversation_state.active_question is not None
     assert result.conversation_state.active_question.kind == "person_clarification"

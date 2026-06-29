@@ -13,10 +13,8 @@ from careena4.models.turn import (
 
 
 class _SparseMedicalExtractor:
-    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_label="Bauchschmerzen",
-            topic_description="Bauchschmerzen",
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
@@ -28,10 +26,8 @@ class _SparseMedicalExtractor:
 
 
 class _ReadyMedicalExtractor:
-    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_label="Kopfschmerzen",
-            topic_description="Kopfschmerzen seit gestern",
             person=ExtractedPersonInput(
                 relation="self",
                 relation_source={"message_id": None, "source_span": "ich"},

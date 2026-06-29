@@ -188,7 +188,7 @@ class EntryClassifier:
         )
         topic_text = self.case_manager.topic_label(medical_case=medical_case) or "none"
         return (
-            f"Aktuelles Thema: {topic_text}\n"
+            f"Aktueller Fallfokus: {topic_text}\n"
             f"Offene Frage: {active_question_text}\n"
             f"Letzte Konversation:\n{history_text}\n"
             f"Letzte Nutzernachricht:\n{message}"

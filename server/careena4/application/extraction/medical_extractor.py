@@ -21,12 +21,10 @@ class MedicalExtractor:
         self,
         *,
         message: str,
-        topic_context: str | None = None,
         history_messages: list[dict[str, str]] | None = None,
     ) -> ExtractedCaseInput:
         llm_result = self._extract_with_llm(
             message=message,
-            topic_context=topic_context,
             history_messages=history_messages,
         )
         if llm_result is not None:
@@ -42,7 +40,6 @@ class MedicalExtractor:
         self,
         *,
         message: str,
-        topic_context: str | None,
         history_messages: list[dict[str, str]] | None,
     ) -> ExtractedCaseInput | None:
         if self.extraction_engine is None:
@@ -52,7 +49,6 @@ class MedicalExtractor:
             result = self.extraction_engine.extract(
                 text=self._build_user_prompt(
                     message=message,
-                    topic_context=topic_context,
                     history_messages=history_messages,
                 ),
                 system_prompt=prompt.system_prompt,
@@ -76,15 +72,15 @@ class MedicalExtractor:
             "extraction.medical.completed",
             layer="application",
             observation_count=len(result.observations),
-            topic_updated=result.has_topic_update(),
         )
+        result.topic_label = None
+        result.topic_description = None
         return result
 
     def _build_user_prompt(
         self,
         *,
         message: str,
-        topic_context: str | None,
         history_messages: list[dict[str, str]] | None,
     ) -> str:
         history_lines = []
@@ -95,7 +91,6 @@ class MedicalExtractor:
                 history_lines.append(f"- {role}: {content}")
         history_text = "\n".join(history_lines[-4:]) if history_lines else "- none"
         return (
-            f"Aktuelles Chat-Thema: {topic_context or 'none'}\n"
             f"Letzte Konversation:\n{history_text}\n"
             f"Letzte Nutzernachricht:\n{message}"
         )

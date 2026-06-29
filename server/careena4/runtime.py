@@ -127,7 +127,6 @@ def build_runtime(
     )
     question_resolver = QuestionResolver(
         safety_clarification_resolver=safety_clarification_resolver,
-        medical_extractor=medical_extractor,
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
     )

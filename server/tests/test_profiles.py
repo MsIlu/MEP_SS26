@@ -175,6 +175,24 @@ def test_delete_profile_soft_deletes_and_hides_profile(client, db_session):
     assert child_profile_id not in profile_ids
 
 
+def test_delete_main_profile_requires_account_deletion(client, db_session):
+    auth = register_user(client)
+
+    delete_response = client.delete(
+        f"/profiles/{auth['profile_id']}",
+        headers=auth["headers"],
+    )
+
+    assert delete_response.status_code == 409
+    assert delete_response.json()["detail"] == (
+        "The main profile can only be deleted with its account."
+    )
+
+    profile = db_session.get(Profile, auth["profile_id"])
+    assert profile is not None
+    assert profile.deleted_at is None
+
+
 def test_deleted_profile_returns_404(client):
     auth = register_user(client)
 

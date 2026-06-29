@@ -162,7 +162,10 @@ def test_me_returns_current_account_with_token(client):
     assert response.json()["email"] == "me@example.com"
 
 
-def test_delete_account_soft_deletes_user_and_blocks_login(client, db_session):
+def test_delete_account_soft_deletes_user_profiles_and_blocks_login(
+    client,
+    db_session,
+):
     register_response = client.post(
         "/auth/register",
         json={
@@ -175,10 +178,21 @@ def test_delete_account_soft_deletes_user_and_blocks_login(client, db_session):
     )
 
     token = register_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    create_profile_response = client.post(
+        "/profiles",
+        headers=headers,
+        json={
+            "display_name": "Ben",
+            "profile_type": "child",
+        },
+    )
+    assert create_profile_response.status_code == 200
 
     delete_response = client.delete(
         "/auth/me",
-        headers={"Authorization": f"Bearer {token}"},
+        headers=headers,
     )
 
     assert delete_response.status_code == 200
@@ -187,10 +201,14 @@ def test_delete_account_soft_deletes_user_and_blocks_login(client, db_session):
     user = db_session.exec(
         select(User).where(User.email == "delete@example.com")
     ).first()
+    profiles = db_session.exec(select(Profile)).all()
 
     assert user is not None
     assert user.is_active is False
+    assert user.active_profile_id is None
     assert user.deleted_at is not None
+    assert len(profiles) == 2
+    assert all(profile.deleted_at is not None for profile in profiles)
 
     login_response = client.post(
         "/auth/login",

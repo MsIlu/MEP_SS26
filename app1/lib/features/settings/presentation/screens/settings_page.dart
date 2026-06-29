@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
@@ -51,10 +51,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    final authSession = widget.authSession ?? dependencies?.authSession;
+    final authApiService =
+        widget.authApiService ?? dependencies?.authApiService;
+
     return AnimatedBuilder(
       animation: Listenable.merge([
         widget.themeController,
-        if (widget.authSession != null) widget.authSession!,
+        ?authSession,
       ]),
       builder: (context, _) {
         final simpleView = widget.themeController.isSimpleView;
@@ -111,6 +116,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   simpleView: simpleView,
                   onPressed: () => _logout(context),
                 ),
+                if (authSession?.isAuthenticated == true &&
+                    authApiService != null)
+                  Center(
+                    child: TextButton.icon(
+                      key: const ValueKey('settings-delete-account-button'),
+                      onPressed: () =>
+                          _deleteAccount(context, authSession!, authApiService),
+                      icon: const Icon(Icons.delete_forever),
+                      label: const Text('Account löschen'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.warningRed,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -302,6 +321,71 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       rootNavigator: true,
     ).popUntil((route) => route.isFirst);
+  }
+
+  Future<void> _deleteAccount(
+    BuildContext context,
+    AuthSession authSession,
+    AuthApiService authApiService,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark
+              ? AppColors.warningEmergencyBackgroundDark
+              : AppColors.warningBackground,
+          title: const Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.warningRed,
+                size: 30,
+              ),
+              SizedBox(width: 12),
+              Expanded(child: Text('Account löschen?')),
+            ],
+          ),
+          content: const Text(
+            'Dein Account und alle ausschließlich von dir verwalteten Profile '
+            'werden deaktiviert. Du kannst dich danach nicht mehr anmelden.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Abbrechen'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.warningRed,
+                foregroundColor: AppColors.white,
+              ),
+              child: const Text('Account löschen'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await authApiService.deleteAccount();
+      authSession.clear();
+      if (!context.mounted) return;
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).popUntil((route) => route.isFirst);
+    } catch (_) {
+      if (!context.mounted) return;
+      showCareenaSnackBar(
+        context,
+        'Der Account konnte nicht gelöscht werden. Bitte versuche es erneut.',
+      );
+    }
   }
 }
 

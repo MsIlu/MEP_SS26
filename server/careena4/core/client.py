@@ -31,6 +31,37 @@ class LLMClient:
         )
         self.default_model = model
 
+    def is_available(self) -> bool:
+        return self.is_model_available(self.default_model)
+
+    def is_model_available(self, model: str) -> bool:
+        if self.client is None:
+            return False
+        try:
+            self.client.with_options(
+                timeout=15.0,
+                max_retries=0,
+            ).chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "Antworte nur mit OK.",
+                    },
+                ],
+                temperature=0.0,
+                max_tokens=2,
+            )
+        except Exception as exc:
+            log_event(
+                "llm.health.failed",
+                layer="core",
+                model=model,
+                reason=type(exc).__name__,
+            )
+            return False
+        return True
+
     def complete(
         self,
         *,

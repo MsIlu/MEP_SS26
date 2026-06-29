@@ -167,6 +167,21 @@ def _migrate_chat_history_schema():
         connection.execute(
             text("ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS title VARCHAR(80)")
         )
+
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS session_id VARCHAR(100)"
+            )
+        )
+
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_chat_history_session_id "
+                "ON chat_history (session_id)"
+            )
+        )
+
         connection.execute(
             text(
                 "ALTER TABLE chat_history "
@@ -178,6 +193,46 @@ def _migrate_chat_history_schema():
                 "UPDATE chat_history "
                 "SET is_emergency = FALSE "
                 "WHERE is_emergency IS NULL"
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'completed'"
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ALTER COLUMN status TYPE VARCHAR(40)"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE chat_history "
+                "SET status = 'completed' "
+                "WHERE status IS NULL OR status = ''"
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE"
+            )
+        )
+        connection.execute(
+            text(
+                """
+                UPDATE chat_history
+                SET updated_at = COALESCE(updated_at, created_at, NOW())
+                WHERE updated_at IS NULL
+                """
+            )
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE chat_history "
+                "ALTER COLUMN recommendation SET DEFAULT ''"
             )
         )
 

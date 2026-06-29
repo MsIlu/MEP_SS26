@@ -6,31 +6,34 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // Test case references: documents/Testfaelle_Frontend.md#t01-medicationbook
   group('MedicationEntry', () {
-    test('T01.2.1 preserves schedule, second dose, and taken state in JSON', () {
-      final entry = MedicationEntry(
-        id: 7,
-        name: 'Ibuprofen',
-        dose: '400 mg',
-        intakeTime: const TimeOfDay(hour: 8, minute: 0),
-        secondIntakeTime: const TimeOfDay(hour: 20, minute: 30),
-        frequency: MedicationFrequency.twiceDaily,
-        remindersEnabled: false,
-        createdAt: DateTime(2026, 6, 2),
-        takenDateKeys: const ['2026-06-02#0'],
-      );
+    test(
+      'T01.2.1 preserves schedule, second dose, and taken state in JSON',
+      () {
+        final entry = MedicationEntry(
+          id: 7,
+          name: 'Ibuprofen',
+          dose: '400 mg',
+          intakeTime: const TimeOfDay(hour: 8, minute: 0),
+          secondIntakeTime: const TimeOfDay(hour: 20, minute: 30),
+          frequency: MedicationFrequency.twiceDaily,
+          remindersEnabled: false,
+          createdAt: DateTime(2026, 6, 2),
+          takenDateKeys: const ['2026-06-02#0'],
+        );
 
-      final decoded = MedicationEntry.decode(entry.encode());
+        final decoded = MedicationEntry.decode(entry.encode());
 
-      expect(decoded.id, 7);
-      expect(decoded.name, 'Ibuprofen');
-      expect(decoded.dose, '400 mg');
-      expect(decoded.intakeTime, const TimeOfDay(hour: 8, minute: 0));
-      expect(decoded.secondIntakeTime, const TimeOfDay(hour: 20, minute: 30));
-      expect(decoded.frequency, MedicationFrequency.twiceDaily);
-      expect(decoded.remindersEnabled, isFalse);
-      expect(decoded.createdAt, DateTime(2026, 6, 2));
-      expect(decoded.takenDateKeys, ['2026-06-02#0']);
-    });
+        expect(decoded.id, 7);
+        expect(decoded.name, 'Ibuprofen');
+        expect(decoded.dose, '400 mg');
+        expect(decoded.intakeTime, const TimeOfDay(hour: 8, minute: 0));
+        expect(decoded.secondIntakeTime, const TimeOfDay(hour: 20, minute: 30));
+        expect(decoded.frequency, MedicationFrequency.twiceDaily);
+        expect(decoded.remindersEnabled, isFalse);
+        expect(decoded.createdAt, DateTime(2026, 6, 2));
+        expect(decoded.takenDateKeys, ['2026-06-02#0']);
+      },
+    );
 
     test('T01.2.2 restores legacy entries with safe defaults', () {
       final entry = MedicationEntry.fromJson({

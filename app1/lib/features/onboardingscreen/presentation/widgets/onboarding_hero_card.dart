@@ -34,10 +34,7 @@ class OnboardingHeroCard extends StatelessWidget {
               color: cardColor,
               borderRadius: BorderRadius.circular(20),
 
-              border: Border.all(
-                color: AppColors.careenaGlow,
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.careenaGlow, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.careenaGlow.withValues(
@@ -76,10 +73,7 @@ class OnboardingHeroCard extends StatelessWidget {
                       : AppColors.white,
                   borderRadius: 40,
                   height: 58,
-                  side: BorderSide(
-                    color: AppColors.careenaGlow,
-                    width: 3,
-                  ),
+                  side: BorderSide(color: AppColors.careenaGlow, width: 3),
                 ),
               ],
             ),

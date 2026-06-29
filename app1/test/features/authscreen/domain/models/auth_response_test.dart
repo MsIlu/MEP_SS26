@@ -9,10 +9,7 @@ void main() {
       final response = AuthResponse.fromJson({
         'access_token': 'test-token',
         'token_type': 'bearer',
-        'account': {
-          'id': 1,
-          'email': 'test@example.com',
-        },
+        'account': {'id': 1, 'email': 'test@example.com'},
         'profiles': [
           {
             'id': 10,

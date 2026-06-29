@@ -116,9 +116,7 @@ class AuthSession extends ChangeNotifier {
       return;
     }
 
-    final updatedProfile = activeProfile.copyWith(
-      biologicalSex: biologicalSex,
-    );
+    final updatedProfile = activeProfile.copyWith(biologicalSex: biologicalSex);
     _profiles = _profiles
         .map(
           (profile) =>
@@ -165,15 +163,18 @@ class AuthSession extends ChangeNotifier {
 
   AuthProfile? _profileById(int? profileId) {
     if (profileId == null) return null;
+
     for (final profile in _profiles) {
       if (profile.id == profileId) return profile;
     }
+
     return null;
   }
 
   Future<void> _rememberActiveProfile() async {
     final accountId = _account?.id;
     final profileId = _activeProfile?.id;
+
     if (accountId == null || profileId == null) return;
 
     _rememberedProfileIds[accountId] = profileId;

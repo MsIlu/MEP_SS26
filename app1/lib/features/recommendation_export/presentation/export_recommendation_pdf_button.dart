@@ -1,10 +1,9 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/features/profiles/domain/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../data/recommendation_pdf_service.dart';
-
 
 /// Button that exports a generated care recommendation as a PDF.
 class ExportRecommendationPdfButton extends StatelessWidget {

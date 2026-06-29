@@ -133,9 +133,7 @@ class _BirthDateSegmentField extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       onChanged: (value) {
         onChanged();
         if (value.length == maxLength) {

@@ -12,7 +12,6 @@ from careena4.models.common import PipelineModel
 from careena4.models.understanding import (
     CurrentTurnUnderstanding,
     ExtractedSymptomCandidate,
-    StsConsultationReasonCandidate,
 )
 
 
@@ -28,28 +27,15 @@ class MedGemmaUnderstandingSymptom(PipelineModel):
     reasoning_note: str | None = None
 
 
-class MedGemmaUnderstandingStsMatch(PipelineModel):
-    """Raw MedGemma output STS match. Metadata may be hydrated after validation."""
-
-    sts_id: str
-    sts_label_de: str | None = None
-    source_category_de: str | None = None
-    source_sts_levels_present: list[int] = Field(default_factory=list)
-    match_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
-    match_reason: str | None = None
-
-
 class MedGemmaTurnUnderstandingOutput(PipelineModel):
     """Structured MedGemma output for current-turn understanding."""
 
     symptoms: list[MedGemmaUnderstandingSymptom] = Field(default_factory=list)
-    sts_matches: list[MedGemmaUnderstandingStsMatch] = Field(default_factory=list)
-    no_match_reason: str | None = None
     trace_notes: list[str] = Field(default_factory=list)
 
 
 MEDGEMMA_TURN_UNDERSTANDING_PROMPT = """
-You extract medical symptoms from German user sentences and match the case to possible Swiss Triage System (STS) consultation reasons.
+You extract and normalize medical symptoms from German user sentences.
 
 Return JSON only in this exact structure:
 {
@@ -58,44 +44,27 @@ Return JSON only in this exact structure:
       "source_label": "exact symptom phrase from the user sentence",
       "is_medical": true,
       "is_negated": false,
-      "normalized_label_de": "German lay-normalized symptom label",
+      "normalized_label_de": "German lay-normalized symptom label derived from user wording",
       "clinical_term_de": "German clinical term",
       "confidence": 0.0,
       "reasoning_note": "short explanation without diagnosis"
     }
   ],
-  "sts_matches": [
-    {
-      "sts_id": "1008",
-      "sts_label_de": "Atemsymptome (...)",
-      "source_category_de": "Kardiovaskulaer und respiratorisch",
-      "source_sts_levels_present": [1, 2, 3],
-      "match_confidence": 0.0,
-      "match_reason": "why this STS consultation reason fits the user sentence"
-    }
-  ],
-  "no_match_reason": null,
   "trace_notes": ["medgemma_turn_understanding:v1"]
 }
 
 Rules:
 - Do not diagnose.
-- Do not decide urgency.
-- Do not decide emergency handling.
+- Do not decide urgency or emergency handling.
 - Do not output care recommendations.
-- Always extract symptoms when symptoms are present, even if no STS consultation reason fits.
-- STS matching must never suppress symptom extraction.
-- If symptoms are present but no STS reason fits, return symptoms and an empty sts_matches list.
-- If the sentence contains no medical symptom, return an empty symptoms list and an empty sts_matches list.
-- If multiple symptoms are present, return multiple symptoms.
-- Select up to 3 possible STS consultation reasons from the provided STS reason catalog only.
-- Use only STS IDs that are present in the provided catalog.
-- The STS levels are source metadata only. They are not a final triage result.
-- Prefer direct matches over speculative matches.
-- Avoid weak differential guesses unless the user text explicitly supports them.
-- clinical_term_de should be German whenever possible.
-- Confidence is your own estimate and is not externally validated.
-- Set is_negated to true when the user explicitly denies a symptom: "kein Fieber", "keine Atemnot", "nicht schwindelig", "bekomme gut Luft", "keine Schmerzen".
+- If the sentence contains no medical symptom, return an empty symptoms list.
+- If multiple symptoms are present, return multiple symptom objects.
+- normalized_label_de must reflect the user's own wording, corrected for spelling only.
+  Do NOT replace the user's symptom with a different concept to fit any external catalog.
+- clinical_term_de is the standard German medical term for what the user described.
+- confidence is your own estimate and is not externally validated.
+- Set is_negated to true when the user explicitly denies a symptom:
+  "kein Fieber", "keine Atemnot", "nicht schwindelig", "keine Schmerzen".
 - Set is_negated to false for all actively present symptoms.
 - Still extract negated symptoms — they are clinically relevant context — but mark them correctly.
 """.strip()
@@ -155,16 +124,13 @@ class MedGemmaTurnUnderstandingService:
         return self._to_current_turn_understanding(raw_message=message, output=output)
 
     def _payload(self, raw_message: str) -> str:
-        """Build a compact JSON payload with the allowed STS catalog."""
-
         return json.dumps(
             {
                 "raw_user_sentence": raw_message,
                 "task": (
-                    "Extract symptoms first. Then map to possible STS consultation reasons. "
-                    "If no STS reason fits, keep the extracted symptoms and return no STS match."
+                    "Extract all medical symptoms. For each, provide a normalized German lay label "
+                    "derived strictly from the user's wording and the standard clinical term."
                 ),
-                "allowed_sts_consultation_reasons": self.sts_catalog.reasons_for_prompt(),
             },
             ensure_ascii=False,
         )
@@ -190,10 +156,16 @@ class MedGemmaTurnUnderstandingService:
             for symptom in output.symptoms
         ]
 
-        sts_matches: list[StsConsultationReasonCandidate] = []
-        for match in output.sts_matches:
-            hydrated = self.sts_catalog.hydrate_match(match.model_dump())
-            sts_matches.append(StsConsultationReasonCandidate.model_validate(hydrated))
+        # STS matching is done deterministically after normalization so that the
+        # STS catalog cannot bias the normalized_label_de assigned by MedGemma.
+        candidate_labels = [
+            label
+            for s in symptoms
+            if s.is_medical and not s.is_negated
+            for label in (s.normalized_label_de, s.clinical_term_de)
+            if label
+        ]
+        sts_matches = self.sts_catalog.match_by_labels(candidate_labels)
 
         trace_notes = list(output.trace_notes)
         trace_notes.append(f"medgemma_turn_understanding:symptoms:{len(symptoms)}")
@@ -203,6 +175,5 @@ class MedGemmaTurnUnderstandingService:
             raw_message=raw_message,
             symptoms=symptoms,
             sts_matches=sts_matches,
-            no_match_reason=output.no_match_reason,
             trace_notes=trace_notes,
         )

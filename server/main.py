@@ -27,12 +27,14 @@ from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
+from symptoms.service import list_symptom_entries
 from logging_config import configure_logging
 
 from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
+from careena4.models.turn.input import DiaryEntry
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
@@ -258,11 +260,31 @@ def chat(
 
     turn_id = str(uuid4())
 
+    diary_history: list[DiaryEntry] = []
+    if session_profile_id is not None:
+        raw_entries = list_symptom_entries(
+            profile_id=session_profile_id,
+            current_user=current_user,
+            session=session,
+        )
+        diary_history = [
+            DiaryEntry(
+                date=e.date.isoformat() if hasattr(e.date, "isoformat") else str(e.date),
+                symptom=e.symptom,
+                body_area=e.body_area or "",
+                intensity=e.intensity,
+                note=e.note or "",
+            )
+            for e in raw_entries
+        ]
+
     turn_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
             message=req.message,
             session_id=req.session_id,
             turn_id=turn_id,
+            profile_id=session_profile_id,
+            diary_history=diary_history,
             conversation_messages=careena4_session.messages,
             persisted_medical_case=careena4_session.medical_case,
             persisted_conversation_state=careena4_session.conversation_state,

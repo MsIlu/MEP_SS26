@@ -27,6 +27,10 @@ app.add_middleware(
 )
 
 
+class SessionCreateRequest(BaseModel):
+    profile_id: int | None = None
+
+
 class ChatRequest(BaseModel):
     message: str
     session_id: str
@@ -44,9 +48,10 @@ def root():
 
 
 @app.post("/session")
-def create_session():
-    session_id = session_store.create_session()
-    log_event("http.session.created", layer="http", route="/session", session_id=session_id)
+def create_session(req: SessionCreateRequest | None = None):
+    profile_id = req.profile_id if req is not None else None
+    session_id = session_store.create_session(profile_id=profile_id)
+    log_event("http.session.created", layer="http", route="/session", session_id=session_id, profile_id=profile_id)
     return {"session_id": session_id}
 
 
@@ -148,6 +153,7 @@ def chat(req: ChatRequest):
             message=req.message,
             session_id=req.session_id,
             turn_id=turn_id,
+            profile_id=session.profile_id,
             conversation_messages=session.messages,
             persisted_medical_case=session.medical_case,
             persisted_conversation_state=session.conversation_state,

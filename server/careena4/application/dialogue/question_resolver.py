@@ -214,8 +214,11 @@ class QuestionResolver:
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
                 )
-            if "ich" in normalized or "selbst" in normalized:
-                source = self._first_source(normalized, ("ich", "selbst"))
+            _self_terms = ("ich", "selbst", "mich")
+            if any(t in normalized for t in _self_terms) or normalized.strip() in {
+                "ja", "jo", "ja bitte", "ja klar", "ja genau", "yes",
+            }:
+                source = self._first_source(normalized, ("ich", "selbst", "mich"))
                 return QuestionResolution(
                     status="resolved",
                     answer_kind="subject_self",

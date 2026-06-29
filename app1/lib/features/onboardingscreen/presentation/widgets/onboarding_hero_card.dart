@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/config/app_assets.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -42,15 +42,16 @@ class OnboardingHeroCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.all(useDenseLayout ? 12 : (isCompact ? 16 : 18)),
+            padding: EdgeInsets.all(
+              useDenseLayout
+                  ? 12
+                  : (useCompactLayout ? 16 : (isCompact ? 16 : 18)),
+            ),
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(20),
 
-              border: Border.all(
-                color: AppColors.careenaGlow,
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.careenaGlow, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.careenaGlow.withValues(
@@ -68,22 +69,28 @@ class OnboardingHeroCard extends StatelessWidget {
                 Text(
                   _heroTitle,
                   style: TextStyle(
-                    fontSize: useDenseLayout ? 28 : (isCompact ? 24 : 28),
+                    fontSize: useDenseLayout
+                        ? 28
+                        : (useCompactLayout ? 18 : (isCompact ? 24 : 32)),
                     fontWeight: FontWeight.w800,
-                    height: 1.2,
+                    height: useCompactLayout ? 1.16 : 1.2,
                     color: isDarkMode
                         ? Theme.of(context).colorScheme.onSurface
                         : AppColors.careenaTitle,
                   ),
                 ),
-                SizedBox(height: useDenseLayout ? 8 : 14),
+                SizedBox(
+                  height: useDenseLayout ? 8 : (useCompactLayout ? 8 : 14),
+                ),
                 if (useDenseLayout)
                   const _DenseHeroBody()
-                else if (isCompact)
+                else if (isCompact && !useCompactLayout)
                   const _CompactHeroBody()
                 else
                   _RegularHeroBody(compact: useCompactLayout),
-                SizedBox(height: useDenseLayout ? 10 : 16),
+                SizedBox(
+                  height: useDenseLayout ? 14 : (useCompactLayout ? 8 : 24),
+                ),
                 Align(
                   alignment: Alignment.center,
                   child: FractionallySizedBox(
@@ -98,12 +105,13 @@ class OnboardingHeroCard extends StatelessWidget {
                           ? AppColors.toolbarButtonForegroundDark
                           : AppColors.white,
                       borderRadius: 40,
-                      height: useDenseLayout ? 48 : (useCompactLayout ? 46 : 58),
-                      fontSize: useDenseLayout ? 16 : 18,
-                      side: BorderSide(
-                        color: AppColors.careenaGlow,
-                        width: 3,
-                      ),
+                      height: useDenseLayout
+                          ? 48
+                          : (useCompactLayout ? 36 : 54),
+                      fontSize: useDenseLayout
+                          ? 16
+                          : (useCompactLayout ? 14 : 18),
+                      side: BorderSide(color: AppColors.careenaGlow, width: 3),
                     ),
                   ),
                 ),
@@ -122,13 +130,6 @@ class _DenseHeroBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bubbleRight = -54.0;
-    const bubbleTop = 14.0;
-    const bubbleWidth = 140.0;
-    const careenaLeft = 20.0;
-    const careenaTop = 74.0;
-    const careenaHeight = 116.0;
-
     return SizedBox(
       height: 178,
       width: double.infinity,
@@ -149,28 +150,12 @@ class _DenseHeroBody extends StatelessWidget {
                 child: const _HeroDescription(dense: true),
               ),
               Positioned(
-                right: 64,
-                top: -16,
-                width: illustrationWidth,
-                height: 190,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Positioned(
-                      right: bubbleRight,
-                      top: bubbleTop,
-                      width: bubbleWidth,
-                      child: CareenaChatBubble(fontSize: 10),
-                    ),
-                    Positioned(
-                      left: careenaLeft,
-                      top: careenaTop,
-                      child: Image.asset(
-                        AppAssets.careenaHi,
-                        height: careenaHeight,
-                      ),
-                    ),
-                  ],
+                right: 12,
+                top: 4,
+                child: Transform.scale(
+                  scale: 1.18,
+                  alignment: Alignment.topRight,
+                  child: const _CareenaBubbleGroup(compact: true),
                 ),
               ),
             ],
@@ -190,37 +175,107 @@ class _RegularHeroBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: compact ? 160 : 190,
+      height: compact ? 118 : 284,
       width: double.infinity,
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Stack(
+            clipBehavior: Clip.none,
             children: [
               // Widths are proportional to the available card width so the
               // illustration stays balanced on tablet and desktop frames.
               Positioned(
                 left: 0,
                 top: 6,
-                width: constraints.maxWidth * 0.58,
-                child: const _HeroDescription(),
+                width: constraints.maxWidth * (compact ? 0.46 : 0.58),
+                child: compact
+                    ? const _CompactWideHeroDescription()
+                    : const _HeroDescription(),
               ),
               Positioned(
-                right: 34,
-                top: compact ? 28 : 36,
-                width: constraints.maxWidth * 0.36,
-                child: CareenaChatBubble(fontSize: compact ? 9 : 10),
-              ),
-              Positioned(
-                bottom: compact ? 0 : 4,
-                left: constraints.maxWidth * 0.33,
-                child: Image.asset(
-                  AppAssets.careenaHi,
-                  height: compact ? 92 : 108,
+                right: compact ? 20 : 40,
+                top: compact ? -34 : 34,
+                child: _CareenaBubbleGroup(
+                  compact: compact,
+                  availableWidth: constraints.maxWidth,
+                  compactWide: compact,
                 ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _CareenaBubbleGroup extends StatelessWidget {
+  final bool compact;
+  final bool compactWide;
+  final double? availableWidth;
+
+  const _CareenaBubbleGroup({
+    required this.compact,
+    this.compactWide = false,
+    this.availableWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = availableWidth ?? 520;
+    final scale = compact ? 0.0 : ((width - 400) / 220).clamp(0.0, 1.0);
+    double mix(double small, double large) => small + (large - small) * scale;
+
+    final groupWidth = compactWide ? 228.0 : (compact ? 210.0 : mix(200, 560));
+    final groupHeight = compactWide
+        ? 150.0
+        : (compact ? 142.0 : mix(142, 320));
+    final bubbleWidth = compactWide
+        ? 130.0
+        : (compact ? 112.0 : mix(132, 340));
+    final bubbleLeft = compactWide
+        ? 98.0
+        : (compact ? 98.0 : mix(66, 220));
+    final careenaLeft = compactWide
+        ? 24.0
+        : (compact ? 34.0 : mix(14, 73));
+    final careenaTop = compactWide
+        ? 38.0
+        : (compact ? 50.0 : mix(58, 122));
+    final careenaHeight = compactWide
+        ? 102.0
+        : (compact ? 98.0 : mix(76, 250));
+    final bubbleFontSize = compactWide
+        ? 7.3
+        : (compact ? 7.4 : mix(6.8, 15.5));
+    final bubbleTop = compactWide ? -18.0 : (compact ? -18.0 : mix(0, 20));
+    final bubbleText = scale > 0.66
+        ? 'Ich bin Careena!\nDeine persönliche KI-Gesundheitsassistentin.'
+        : scale > 0.25
+        ? 'Ich bin Careena!\nDeine persönliche\nKI-Gesundheitsassistentin.'
+        : 'Ich bin Careena!\nDeine persönliche\nKI-Gesundheits-\nassistentin.';
+
+    return SizedBox(
+      width: groupWidth,
+      height: groupHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: bubbleLeft,
+            top: bubbleTop,
+            width: bubbleWidth,
+            child: CareenaChatBubble(
+              fontSize: bubbleFontSize,
+              text: bubbleText,
+            ),
+          ),
+          Positioned(
+            left: careenaLeft,
+            top: careenaTop,
+            child: Image.asset(AppAssets.careenaHi, height: careenaHeight),
+          ),
+        ],
       ),
     );
   }
@@ -251,6 +306,27 @@ class _CompactHeroBody extends StatelessWidget {
   }
 }
 
+/// Smaller copy used in the compact wide hero to keep artwork and text apart.
+class _CompactWideHeroDescription extends StatelessWidget {
+  const _CompactWideHeroDescription();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Text(
+      _heroDescription,
+      style: TextStyle(
+        fontSize: 12.4,
+        fontWeight: FontWeight.w500,
+        color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.black87,
+        height: 1.22,
+      ),
+    );
+  }
+}
+
 /// Short supporting copy below the main onboarding headline.
 class _HeroDescription extends StatelessWidget {
   final bool dense;
@@ -265,7 +341,7 @@ class _HeroDescription extends StatelessWidget {
     return Text(
       _heroDescription,
       style: TextStyle(
-        fontSize: dense ? 12 : 13,
+        fontSize: dense ? 12 : 14.5,
         fontWeight: FontWeight.w500,
         color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.black87,
         height: dense ? 1.24 : 1.3,

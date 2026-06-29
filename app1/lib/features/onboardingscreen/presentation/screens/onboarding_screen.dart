@@ -40,6 +40,8 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final useDesktopLayout = screenWidth >= 640;
 
     return Scaffold(
       backgroundColor: isDarkMode
@@ -55,9 +57,12 @@ class OnboardingScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: ResponsivePageBody(
-          maxWidth: 490,
-          scrollable: MediaQuery.sizeOf(context).width >= 500,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          maxWidth: screenWidth >= 1100 ? 1040 : (useDesktopLayout ? 900 : 490),
+          scrollable: true,
+          padding: EdgeInsets.symmetric(
+            horizontal: useDesktopLayout ? 24 : 0,
+            vertical: useDesktopLayout ? 18 : 8,
+          ),
           child: Builder(
             builder: (context) {
               // The auth controls need tighter padding on narrow devices to
@@ -69,123 +74,202 @@ class OnboardingScreen extends StatelessWidget {
               return LayoutBuilder(
                 builder: (context, constraints) {
                   final screenSize = MediaQuery.sizeOf(context);
+                  final safeAreaPadding = MediaQuery.paddingOf(context);
+                  final viewportHeight = constraints.maxHeight.isFinite
+                      ? constraints.maxHeight
+                      : (screenSize.height -
+                                kToolbarHeight -
+                                safeAreaPadding.vertical -
+                                (useDesktopLayout ? 36 : 16))
+                            .clamp(0.0, double.infinity);
                   final isWideScreen = screenSize.width >= 500;
                   final isShortWideScreen =
-                      isWideScreen && constraints.maxHeight < 760;
+                      isWideScreen &&
+                      (viewportHeight < 760 || screenSize.width < 640);
                   final isShortScreen =
                       !isWideScreen &&
-                      (constraints.maxHeight < 780 || screenSize.width < 430);
+                      (viewportHeight < 780 || screenSize.width < 430);
+                  final isFullDesktop = screenSize.width >= 1100;
                   final spacing = isShortScreen ? 8.0 : 14.0;
                   final topOffset = isWideScreen
                       ? isShortWideScreen
                             ? 4.0
                             : 12.0
                       : isShortScreen
-                      ? 6.0
-                      : 10.0;
+                      ? 18.0
+                      : 22.0;
                   final authActions = _AuthActions(
                     horizontalPadding: horizontalPadding,
                     isDense: isShortScreen,
                     isWide: isWideScreen,
-                    isCompactWide: isShortWideScreen,
+                    isCompactWide:
+                        isShortWideScreen ||
+                        (useDesktopLayout && !isFullDesktop),
                     isDarkMode: isDarkMode,
                     onLogin: () => _navigateToLogin(context),
                     onRegister: () => _navigateToRegistration(context),
                     onOpenHome: () => _navigateToHome(context),
                   );
+                  final privacyButton = Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: TextButton.icon(
+                        onPressed: () => _showPrivacyInfo(context),
+                        style: TextButton.styleFrom(
+                          minimumSize: Size(0, isShortScreen ? 30 : 42),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isWideScreen || isShortScreen ? 8 : 12,
+                            vertical: isWideScreen ? 0 : 4,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: isDarkMode
+                              ? AppColors.toolbarButtonBackgroundDark
+                              : AppColors.careenaTeal,
+                        ),
+                        icon: Icon(
+                          Icons.privacy_tip_outlined,
+                          size: isWideScreen
+                              ? 14
+                              : isShortScreen
+                              ? 14
+                              : 18,
+                        ),
+                        label: Text(
+                          'Datenschutzhinweise anzeigen',
+                          style: TextStyle(
+                            fontSize: isWideScreen
+                                ? 12
+                                : isShortScreen
+                                ? 12
+                                : 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                  final isTwoColumnLayout = screenSize.width >= 640;
+                  final isNarrowTwoColumn =
+                      isTwoColumnLayout && screenSize.width < 900;
+                  final placeNoticeBelowActions =
+                      isShortWideScreen || isShortScreen;
 
+                  if (isTwoColumnLayout) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: viewportHeight),
+                      child: Center(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: OnboardingHeroCard(
+                                compact: !isFullDesktop,
+                                onPressed: () => _navigateToChat(context),
+                              ),
+                            ),
+                            SizedBox(width: isNarrowTwoColumn ? 24 : 48),
+                            Expanded(
+                              flex: isNarrowTwoColumn ? 6 : 5,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 390,
+                                    ),
+                                    child: authActions,
+                                  ),
+                                  SizedBox(height: isShortWideScreen ? 30 : 50),
+                                  _OnboardingNotice(
+                                    horizontalPadding: horizontalPadding,
+                                    isDense: true,
+                                    isWide: true,
+                                    isCompactWide: !isFullDesktop,
+                                  ),
+                                  SizedBox(height: isShortWideScreen ? 0 : 4),
+                                  privacyButton,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  final onboardingNotice = _OnboardingNotice(
+                    horizontalPadding: horizontalPadding,
+                    isDense: isShortScreen,
+                    isWide: isWideScreen,
+                    isCompactWide: isShortWideScreen,
+                  );
+                  final authActionsSection = <Widget>[
+                    if (isWideScreen) ...[
+                      SizedBox(height: isShortWideScreen ? 4 : 8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: authActions,
+                      ),
+                    ] else ...[
+                      SizedBox(height: isShortScreen ? 8 : 18),
+                      authActions,
+                    ],
+                  ];
                   final content = Column(
-                    mainAxisSize: isWideScreen
-                        ? MainAxisSize.min
-                        : MainAxisSize.max,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(height: topOffset),
                       Align(
                         alignment: Alignment.topCenter,
-                        child: OnboardingHeroCard(
-                          dense: isShortScreen,
-                          compact: isShortWideScreen,
-                          onPressed: () => _navigateToChat(context),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: isWideScreen ? double.infinity : 390,
+                          ),
+                          child: OnboardingHeroCard(
+                            dense: isShortScreen,
+                            compact: isShortWideScreen,
+                            onPressed: () => _navigateToChat(context),
+                          ),
                         ),
                       ),
                       SizedBox(
                         height: isShortWideScreen
-                            ? 8
-                            : isShortScreen
                             ? 20
+                            : isShortScreen
+                            ? 18
                             : spacing,
                       ),
-                      _OnboardingNotice(
-                        horizontalPadding: horizontalPadding,
-                        isDense: isShortScreen,
-                        isWide: isWideScreen,
-                        isCompactWide: isShortWideScreen,
-                      ),
-                      SizedBox(height: isShortWideScreen || isShortScreen ? 0 : 6),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
+                      if (placeNoticeBelowActions) ...[
+                        ...authActionsSection,
+                        SizedBox(height: isShortScreen ? 4 : 22),
+                        onboardingNotice,
+                        SizedBox(
+                          height: isShortWideScreen || isShortScreen ? 0 : 6,
                         ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => _showPrivacyInfo(context),
-                            style: TextButton.styleFrom(
-                              minimumSize: Size(0, isShortScreen ? 36 : 42),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isWideScreen || isShortScreen
-                                    ? 8
-                                    : 12,
-                                vertical: isWideScreen ? 0 : 4,
-                              ),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              foregroundColor: isDarkMode
-                                  ? AppColors.toolbarButtonBackgroundDark
-                                  : AppColors.careenaTeal,
-                            ),
-                            icon: Icon(
-                              Icons.privacy_tip_outlined,
-                              size: isWideScreen
-                                  ? 14
-                                  : isShortScreen
-                                  ? 16
-                                  : 18,
-                            ),
-                            label: Text(
-                              'Datenschutzhinweise anzeigen',
-                              style: TextStyle(
-                                fontSize: isWideScreen
-                                    ? 12
-                                    : isShortScreen
-                                    ? 13
-                                    : 14,
-                              ),
-                            ),
-                          ),
+                        privacyButton,
+                      ] else ...[
+                        onboardingNotice,
+                        SizedBox(
+                          height: isShortWideScreen || isShortScreen ? 0 : 6,
                         ),
-                      ),
-                      if (isWideScreen) ...[
-                        SizedBox(height: isShortWideScreen ? 4 : 8),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 420),
-                          child: authActions,
-                        ),
-                      ] else
-                        Expanded(
-                          child: Center(
-                            child: authActions,
-                          ),
-                        ),
+                        privacyButton,
+                        ...authActionsSection,
+                      ],
                       SizedBox(height: isShortScreen ? 12 : 10),
                     ],
                   );
 
                   if (isWideScreen) {
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 16),
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: viewportHeight),
                       child: Align(
-                        alignment: Alignment.topCenter,
-                        child: content,
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: content,
+                        ),
                       ),
                     );
                   }
@@ -329,7 +413,7 @@ class _AuthActions extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final buttonHeight = isDense ? 50.0 : 56.0;
     final fontSize = isDense ? 16.0 : 18.0;
-    final gap = isDense ? 6.0 : 16.0;
+    final gap = isDense ? 12.0 : 16.0;
     final testLinkFontSize = isWide ? 11.0 : (isDense ? 10.5 : 14.0);
     final testLinkIconSize = isWide ? 14.0 : (isDense ? 13.0 : 18.0);
     final testLinkHeight = isWide ? 22.0 : (isDense ? 24.0 : 40.0);
@@ -366,12 +450,12 @@ class _AuthActions extends StatelessWidget {
               foregroundColor: colorScheme.onSurface,
               borderRadius: 16,
               elevation: 2,
-              height: isCompactWide ? 38 : 44,
-              fontSize: isCompactWide ? 14 : 15,
+              height: isCompactWide ? 60 : 42,
+              fontSize: isCompactWide ? 15 : 17,
             ),
-            SizedBox(height: isCompactWide ? 4 : 8),
+            SizedBox(height: isCompactWide ? 10 : 34),
             const _CompactAuthDivider(),
-            SizedBox(height: isCompactWide ? 4 : 8),
+            SizedBox(height: isCompactWide ? 10 : 34),
             CareenaButton(
               text: 'Registrieren',
               onPressed: onRegister,
@@ -379,10 +463,10 @@ class _AuthActions extends StatelessWidget {
               foregroundColor: colorScheme.onSurface,
               borderRadius: 16,
               elevation: 2,
-              height: isCompactWide ? 38 : 44,
-              fontSize: isCompactWide ? 14 : 15,
+              height: isCompactWide ? 60 : 42,
+              fontSize: isCompactWide ? 15 : 17,
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: isCompactWide ? 2 : 6),
             testLink,
           ],
         ),
@@ -405,7 +489,7 @@ class _AuthActions extends StatelessWidget {
             fontSize: fontSize,
           ),
           SizedBox(height: gap),
-          const AuthDivider(),
+          const _ShortAuthDivider(),
           SizedBox(height: gap),
           CareenaButton(
             text: 'Registrieren',
@@ -435,23 +519,56 @@ class _CompactAuthDivider extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-              width: 96,
+        Expanded(
           child: Divider(color: colorScheme.outlineVariant, thickness: 0.6),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
             'oder',
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+          ),
+        ),
+        Expanded(
+          child: Divider(color: colorScheme.outlineVariant, thickness: 0.6),
+        ),
+      ],
+    );
+  }
+}
+
+class _ShortAuthDivider extends StatelessWidget {
+  const _ShortAuthDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final dividerColor = isDarkMode
+        ? colorScheme.outlineVariant
+        : AppColors.greyShade500;
+    final textColor = isDarkMode
+        ? colorScheme.onSurfaceVariant
+        : AppColors.careenaBody;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 104,
+          child: Divider(color: dividerColor, thickness: 0.6),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'oder',
+            style: TextStyle(fontSize: 14, color: textColor),
           ),
         ),
         SizedBox(
-          width: 96,
-          child: Divider(color: colorScheme.outlineVariant, thickness: 0.6),
+          width: 104,
+          child: Divider(color: dividerColor, thickness: 0.6),
         ),
       ],
     );
@@ -480,25 +597,22 @@ class _OnboardingNotice extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Container(
         padding: EdgeInsets.all(
-          isCompactWide ? 6 : (isWide ? 8 : (isDense ? 10 : 12)),
+          isCompactWide ? 10 : (isWide ? 16 : (isDense ? 8 : 10)),
         ),
         decoration: BoxDecoration(
           color: isDarkMode ? colorScheme.surface : AppColors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.careenaTeal,
-            width: 2,
-          ),
+          border: Border.all(color: AppColors.careenaTeal, width: 2),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               Icons.info_outline,
-              size: isCompactWide ? 14 : (isWide ? 16 : (isDense ? 18 : 20)),
+              size: isCompactWide ? 13 : (isWide ? 18 : (isDense ? 15 : 18)),
               color: isDarkMode ? AppColors.white : AppColors.careenaTeal,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: isDense ? 6 : 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,22 +620,22 @@ class _OnboardingNotice extends StatelessWidget {
                   Text(
                     'Hinweis',
                     style: TextStyle(
-                      fontSize: isCompactWide ? 13 : (isDense ? 14 : 15),
+                      fontSize: isCompactWide ? 12 : (isDense ? 13 : 15),
                       fontWeight: FontWeight.w900,
                       color: isDarkMode
                           ? AppColors.white
                           : AppColors.careenaTeal,
                     ),
                   ),
-                  SizedBox(height: isCompactWide || isDense ? 2 : 4),
+                  SizedBox(height: isCompactWide || isDense ? 1 : 6),
                   Text(
                     'Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
                     'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
                     style: TextStyle(
                       fontSize: isCompactWide
-                          ? 10.5
-                          : (isWide ? 11 : (isDense ? 12 : 13)),
-                      height: isWide || isDense ? 1.18 : 1.3,
+                          ? 9.8
+                          : (isWide ? 12.5 : (isDense ? 10.8 : 12.2)),
+                      height: isWide || isDense ? 1.18 : 1.24,
                       color: colorScheme.onSurface,
                     ),
                   ),

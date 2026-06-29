@@ -16,7 +16,8 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
-import '../widgets/symptom_editor.dart';
+import '../widgets/symptom_chat_editor_sheet.dart';
+import '../../../symptom_diary/data/symptom_import.dart';
 import '../widgets/symptom_list.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
@@ -58,6 +59,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   List<String> _smartReplies = [];
   List<String>? _preRecommendationSymptoms;
+  List<SymptomImport> _enrichedChatSymptoms = [];
   Timer? _longProcessingTimer;
   bool _isSending = false;
   bool _shouldAutoScroll = true;
@@ -231,6 +233,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             symptoms: recommendationSymptoms,
             userMessages: recommendationUserMessages,
             themeController: widget.themeController,
+            enrichedSymptoms: _enrichedChatSymptoms.isNotEmpty
+                ? _enrichedChatSymptoms
+                : null,
           ),
         ),
       );
@@ -359,14 +364,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _showSymptomEditor() async {
+    final initialSymptoms = _enrichedChatSymptoms.isNotEmpty
+        ? _enrichedChatSymptoms
+        : widget.controller.symptoms.value
+            .map((s) => SymptomImport(name: s))
+            .toList();
+    final biologicalSex =
+        widget.controller.authSession.activeProfile?.biologicalSex;
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) {
-        return SymptomEditor(
-          symptoms: widget.controller.symptoms.value,
-          onSave: widget.controller.updateSymptomsDirectly,
+        return SymptomChatEditorSheet(
+          symptoms: initialSymptoms,
+          biologicalSex: biologicalSex,
+          onChanged: (updated) {
+            setState(() => _enrichedChatSymptoms = updated);
+            widget.controller.updateSymptomsDirectly(
+              updated.map((s) => s.name).toList(),
+            );
+          },
         );
       },
     );

@@ -19,6 +19,9 @@ class WarningPage extends StatelessWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final ThemeController? themeController;
+  /// Symptom data enriched via the in-chat editor (body area + intensity).
+  /// Takes priority over [response.caseObservations] when building the diary import list.
+  final List<SymptomImport>? enrichedSymptoms;
 
   const WarningPage({
     super.key,
@@ -26,6 +29,7 @@ class WarningPage extends StatelessWidget {
     this.symptoms = const [],
     this.userMessages = const [],
     this.themeController,
+    this.enrichedSymptoms,
   });
 
   @override
@@ -90,13 +94,16 @@ class WarningPage extends StatelessWidget {
   }
 
   List<SymptomImport> _buildSymptomImports() {
+    // User-enriched data (set via the in-chat editor) takes priority.
+    final enriched = enrichedSymptoms;
+    if (enriched != null && enriched.isNotEmpty) return enriched;
+    // Backend observations carry the severity extracted from the conversation.
     final observations = response.caseObservations;
     if (observations.isNotEmpty) {
       return observations
           .map((o) => SymptomImport(name: o.label, severity: o.severity))
           .toList();
     }
-    // Fallback: chip labels without severity when no observations are in the response.
     return symptoms.map((s) => SymptomImport(name: s)).toList();
   }
 

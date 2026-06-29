@@ -50,6 +50,9 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onSaved;
   final String? biologicalSex;
   final String? initialSymptom;
+  /// When true and [initialSymptom] is set, skips straight to the details
+  /// (intensity) step instead of stopping at body area first.
+  final bool skipToDetails;
 
   const SymptomEntryForm({
     super.key,
@@ -58,6 +61,7 @@ class SymptomEntryForm extends StatefulWidget {
     this.onSaved,
     this.biologicalSex,
     this.initialSymptom,
+    this.skipToDetails = false,
   });
 
   @override
@@ -82,7 +86,9 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     final pre = widget.initialSymptom;
     if (pre != null && pre.isNotEmpty) {
       _symptomController.text = pre;
-      _currentStepIndex = 1;
+      // skipToDetails: jump to the last step (intensity); the index is clamped
+      // to _lastStepIndex at render time so using a large value is safe.
+      _currentStepIndex = widget.skipToDetails ? 999 : 1;
     }
   }
 

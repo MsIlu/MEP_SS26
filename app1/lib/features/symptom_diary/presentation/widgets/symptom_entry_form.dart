@@ -324,7 +324,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
   bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
-  bool get _isLastStep => _currentStepIndex == _lastStepIndex;
+  bool get _isLastStep => _currentStepIndex >= _lastStepIndex;
   int get _lastStepIndex => _activeSteps.length - 1;
 
   List<String> get _stepLabels {

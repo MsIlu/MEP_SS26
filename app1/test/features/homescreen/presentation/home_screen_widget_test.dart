@@ -40,7 +40,7 @@ void main() {
 
       expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
-      expect(find.text('Kalender'), findsNothing);
+      expect(find.text('Kalender'), findsOneWidget);
       expect(find.text('Chathistorie'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
 

@@ -377,6 +377,7 @@ class ChatController {
           isEmergency: isEmergency,
         );
       }
+      return response;
     } catch (e) {
       await refreshAvailability();
 

@@ -51,7 +51,6 @@ Rueckgabeformat:
     "person": null,
     "observations": []
   } | null,
-  "recommendation_choice": "<string|null>",
   "next_question_text": "<string|null>",
   "trace_notes": ["<kurze_notiz>"]
 }
@@ -66,7 +65,6 @@ Fuellregeln:
 - Wenn zusaetzliche neue medizinische Fakten vorliegen, duerfen "extra_case_input" nur diese zusaetzlichen Fakten enthalten, nicht die bereits aufgeloeste Zielinformation noch einmal.
 - `extra_case_input.topic_entries_to_add` darf nur dann Eintraege enthalten, wenn die Follow-up-Antwort das groessere Chat-Thema um einen neuen thematischen Baustein erweitert.
 - Kein Topic-Entry nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
-- "recommendation_choice" bleibt fuer normale medizinische Rueckfragen null.
 - "next_question_text" bleibt null, solange kein schon extern entschiedener Folge-Intent mitgegeben wurde.
 - Keine Recommendation-Freigabe, keine Safety-Gesamtentscheidung, keine Fall-Neudeutung.
 - Verwenden Sie keine Felder wie "extracted_answer_attributes", "extra_claims", "subject_claims" oder andere nicht genannte Schluessel.

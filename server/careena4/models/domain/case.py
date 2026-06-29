@@ -3,9 +3,8 @@ from uuid import uuid4
 from pydantic import Field
 
 from careena4.models.common import PipelineModel
-from careena4.models.domain.case_issue import CaseIssue
 from careena4.models.domain.observation import Observation
-from careena4.models.domain.subject import Person
+from careena4.models.domain.person import Person
 from careena4.models.domain.topic import Topic
 
 
@@ -14,7 +13,6 @@ class MedicalCase(PipelineModel):
     topic: Topic | None = None
     person: Person = Field(default_factory=Person)
     observations: list[Observation] = Field(default_factory=list)
-    issues: list[CaseIssue] = Field(default_factory=list)
 
     def central_observations(self) -> list[Observation]:
         return [

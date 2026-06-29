@@ -14,6 +14,8 @@
 # or
 # <bash> python -m uvicorn main:app --reload
 
+from datetime import datetime, timezone
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlmodel import Session
 from auth.security import get_optional_current_account, get_session
@@ -33,7 +35,7 @@ from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
-from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
+from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
@@ -55,6 +57,11 @@ careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
 careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
+careena4_llm_health_status: dict[str, object] = {
+    "available": False,
+    "model": careena4_services.call_model_config.default_model,
+    "checked_at": None,
+}
 
 app.state.careena4_session_store = careena4_session_store
 app.state.careena4_session_profiles = careena4_session_profiles
@@ -84,6 +91,23 @@ class ChatRequest(BaseModel):
 
 class SessionRequest(BaseModel):
     profile_id: int | None = None
+
+
+def _refresh_llm_health_status() -> bool:
+    checked_model = careena4_services.call_model_config.default_model
+    available = careena4_services.llm_client.is_model_available(checked_model)
+    careena4_llm_health_status.update(
+        {
+            "available": available,
+            "model": checked_model,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    return available
+
+
+class RecommendationRequest(BaseModel):
+    session_id: str
 
 
 def require_careena4_session(session_id: str):
@@ -143,10 +167,11 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             "blocking": active_question.blocking,
         }
 
-    recommendation_ready = result.response_mode in {
-        "guide_next_step",
-        "recommend",
-    }
+    recommendation_state = result.recommendation_state
+    recommendation_ready = bool(
+        recommendation_state is not None
+        and recommendation_state.recommendation_allowed
+    )
 
     reply_options: list[str] = []
     if (
@@ -162,7 +187,6 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "red_flag": result.response_mode == "emergency",
         "trace_notes": list(result.trace_notes),
         "pending_followup": pending_followup,
-        "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
         "reply_options": reply_options,
         "recommendation_result": (
@@ -217,6 +241,15 @@ def build_careena4_simrun_response(*, message: str) -> dict:
 
 app.state.careena4_turn_engine = careena4_turn_engine
 app.state.careena4_response_builder = build_careena4_chat_response
+
+def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -> None:
+    careena4_session.medical_case = turn_result.medical_case
+    careena4_session.conversation_state = turn_result.conversation_state
+    careena4_session.recommendation_state = turn_result.recommendation_state
+    careena4_session.last_turn_understanding = turn_result.current_turn_understanding
+
+    if turn_result.symptom_input_draft is not None:
+        careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
 
 #1. checks if Careena4-Session exist
@@ -300,13 +333,18 @@ def chat(
         )
     )
 
-    careena4_session.medical_case = turn_result.medical_case
-    careena4_session.conversation_state = turn_result.conversation_state
-    careena4_session.recommendation_state = turn_result.recommendation_state
-    careena4_session.last_turn_understanding = turn_result.current_turn_understanding
+    careena4_llm_health_status.update(
+        {
+            "available": True,
+            "model": careena4_services.call_model_config.default_model,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
 
-    if turn_result.symptom_input_draft is not None:
-        careena4_session.symptom_input_draft = turn_result.symptom_input_draft
+    persist_careena4_turn_result(
+        careena4_session=careena4_session,
+        turn_result=turn_result,
+    )
 
     careena4_session.messages.append({"role": "user", "content": req.message})
 
@@ -316,6 +354,44 @@ def chat(
         {"role": "assistant", "content": response["response"]}
     )
 
+    return response
+
+
+@app.post("/recommendation/request")
+def request_recommendation(
+        req: RecommendationRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=req.session_id,
+        current_user=current_user,
+        db_session=session,
+    )
+
+    turn_id = str(uuid4())
+
+    turn_result = careena4_turn_engine.request_recommendation(
+        RecommendationRequestInput.from_persisted_state(
+            session_id=req.session_id,
+            turn_id=turn_id,
+            conversation_messages=careena4_session.messages,
+            persisted_medical_case=careena4_session.medical_case,
+            persisted_conversation_state=careena4_session.conversation_state,
+            persisted_recommendation_state=careena4_session.recommendation_state,
+            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+        )
+    )
+
+    persist_careena4_turn_result(
+        careena4_session=careena4_session,
+        turn_result=turn_result,
+    )
+
+    response = build_careena4_chat_response(turn_result)
+    careena4_session.messages.append(
+        {"role": "assistant", "content": response["response"]}
+    )
     return response
 
 
@@ -329,9 +405,43 @@ def warmup():
     """
     Lightweight readiness endpoint for the chat backend.
 
-    Kept for frontend compatibility; Careena4 manages LLM calls internally.
+    Called when a new chat session starts, so it is the explicit refresh path
+    for the cached LLM status. Repeated health polling reads the cached value.
     """
-    return {"status": "ok"}
+    available = _refresh_llm_health_status()
+    return {
+        "status": "ok" if available else "unavailable",
+        "llm": available,
+        "model": careena4_llm_health_status["model"],
+        "checked_at": careena4_llm_health_status["checked_at"],
+    }
+
+
+@app.get("/health/server")
+def health_server():
+    return {"status": "ok", "server": True}
+
+
+@app.get("/health/llm")
+def health_llm():
+    checked_model = careena4_llm_health_status["model"]
+
+    if not careena4_llm_health_status["available"]:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "message": "LLM service is not reachable.",
+                "model": checked_model,
+                "checked_at": careena4_llm_health_status["checked_at"],
+            },
+        )
+
+    return {
+        "status": "ok",
+        "llm": True,
+        "model": checked_model,
+        "checked_at": careena4_llm_health_status["checked_at"],
+    }
 
 
 @app.get("/input-drafts/{session_id}", response_model=SymptomDraftResponse)
@@ -466,3 +576,4 @@ def on_startup():
     _seed_catalog()
     n = careena4_services.safety_catalog_cache.load()
     print(f"SafetyCatalogCache loaded: {n} entries")
+    _refresh_llm_health_status()

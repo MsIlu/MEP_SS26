@@ -47,7 +47,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   static const Duration _longProcessingHintDelay = Duration(seconds: 8);
 
   final TextEditingController _textController = TextEditingController();
@@ -67,6 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.controller.messages.addListener(_onMessagesChanged);
 
     unawaited(_initializeChat());
@@ -92,6 +93,13 @@ class _ChatScreenState extends State<ChatScreen> {
     await widget.controller.init();
     if (!mounted) return;
     _onMessagesChanged();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(widget.controller.refreshAvailability(refreshLlmStatus: true));
+    }
   }
 
   Future<void> _runWarningFlow() async {
@@ -398,6 +406,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.controller.messages.removeListener(_onMessagesChanged);
     _longProcessingTimer?.cancel();
     widget.controller.messages.removeListener(_handleMessagesChanged);
@@ -423,7 +432,18 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: Scaffold(
         backgroundColor: backgroundColor,
-        appBar: ChatAppBar(onBackPressed: _handleLeaveChat),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ValueListenableBuilder(
+            valueListenable: widget.controller.availability,
+            builder: (context, availability, _) {
+              return ChatAppBar(
+                onBackPressed: _handleLeaveChat,
+                availability: availability,
+              );
+            },
+          ),
+        ),
         body: SafeArea(
           child: ResponsivePageBody(
             maxWidth: 820,

@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:flutter/material.dart';
 
@@ -262,14 +262,14 @@ class SettingsLogoutAction extends StatelessWidget {
           heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
-            child: OutlinedButton.icon(
+            child: FilledButton.icon(
               key: const ValueKey('settings-logout-button'),
               onPressed: onPressed,
               icon: const Icon(Icons.logout),
               label: const Text('Vom Konto abmelden'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warningRed,
-                side: const BorderSide(color: AppColors.warningRed),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.warningRed,
+                foregroundColor: AppColors.white,
                 minimumSize: Size.fromHeight(simpleView ? 64 : 52),
                 textStyle: TextStyle(
                   fontSize: simpleView ? 18 : 16,

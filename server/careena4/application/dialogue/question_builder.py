@@ -27,7 +27,7 @@ class QuestionBuilder:
                 kind="subject_clarification",
                 question_intent="subject_clarification",
                 target_followup_id=need.followup_id,
-                prompt_text="Geht es um Sie selbst, um Ihr Kind oder um eine andere Person?",
+                prompt_text="Geht es um dich selbst, um dein Kind oder um eine andere Person?",
                 blocking=True,
                 allows_additional_medical_info=True,
             )
@@ -41,7 +41,7 @@ class QuestionBuilder:
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
                 prompt_text=(
-                    f"Betreffen {self._accusative_label(label)} Sie selbst, Ihr Kind oder eine andere Person?"
+                    f"Betreffen {self._accusative_label(label)} dich selbst, dein Kind oder eine andere Person?"
                 ),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
@@ -91,7 +91,7 @@ class QuestionBuilder:
                 question_intent="localization",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text="Wo genau spueren Sie das?",
+                prompt_text="Wo genau spuerst du das?",
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
@@ -102,7 +102,7 @@ class QuestionBuilder:
             question_intent="free_description",
             target_followup_id=need.followup_id,
             target_observation_id=need.observation_id,
-            prompt_text="Koennen Sie das bitte noch etwas genauer beschreiben?",
+            prompt_text="Kannst du das bitte noch etwas genauer beschreiben?",
             blocking=need.blocking,
             allows_additional_medical_info=True,
         )
@@ -113,7 +113,7 @@ class QuestionBuilder:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu Ihren Beschwerden moechten Sie noch hinzufuegen?",
+            prompt_text="Welche weiteren Angaben zu deinen Beschwerden moechtest du noch hinzufuegen?",
             blocking=False,
             allows_additional_medical_info=True,
         )
@@ -170,9 +170,9 @@ class QuestionBuilder:
     def _description_prompt(self, *, case_focus_label: str | None, fallback_label: str | None) -> str:
         body_site = self._body_site_from_label(case_focus_label) or self._body_site_from_label(fallback_label)
         if body_site is not None:
-            return f"Koennen Sie die Beschwerden {self._body_site_phrase(body_site)} noch etwas genauer beschreiben?"
+            return f"Kannst du die Beschwerden {self._body_site_phrase(body_site)} noch etwas genauer beschreiben?"
         label = fallback_label or case_focus_label or "die Beschwerden"
-        return f"Koennen Sie {self._accusative_label(label)} bitte etwas genauer beschreiben?"
+        return f"Kannst du {self._accusative_label(label)} bitte etwas genauer beschreiben?"
 
     @staticmethod
     def _body_site_from_label(label: str | None) -> str | None:

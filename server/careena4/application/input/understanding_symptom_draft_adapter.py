@@ -24,7 +24,7 @@ class UnderstandingSymptomDraftAdapter:
     ) -> SymptomInputDraft:
         """Merge understood current-turn symptoms into the editable draft."""
 
-        active_draft = draft or SymptomInputDraft(session_id=session_id)
+        active_draft = draft or SymptomInputDraft(session_id=session_id or "")
 
         for symptom in understanding.symptoms:
             if not symptom.is_medical or symptom.is_negated:

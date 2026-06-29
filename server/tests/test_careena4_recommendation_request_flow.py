@@ -7,7 +7,6 @@ from careena4.models.turn import (
     ExtractedCaseInput,
     ExtractedObservationInput,
     ExtractedPersonInput,
-    ExtractedTopicEntryInput,
     RecommendationRequestInput,
     TurnInput,
 )
@@ -16,12 +15,8 @@ from careena4.models.turn import (
 class _SparseMedicalExtractor:
     def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_entries_to_add=[
-                ExtractedTopicEntryInput(
-                    topic_part="Bauchschmerzen",
-                    source={"message_id": None, "source_span": "Bauchschmerzen"},
-                )
-            ],
+            topic_label="Bauchschmerzen",
+            topic_description="Bauchschmerzen",
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
@@ -35,15 +30,15 @@ class _SparseMedicalExtractor:
 class _ReadyMedicalExtractor:
     def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_entries_to_add=[
-                ExtractedTopicEntryInput(
-                    topic_part="Kopfschmerzen",
-                    source={"message_id": None, "source_span": "Kopfschmerzen"},
-                )
-            ],
+            topic_label="Kopfschmerzen",
+            topic_description="Kopfschmerzen seit gestern",
             person=ExtractedPersonInput(
                 relation="self",
                 relation_source={"message_id": None, "source_span": "ich"},
+                age=24,
+                age_source={"message_id": None, "source_span": "24"},
+                sex="female",
+                sex_source={"message_id": None, "source_span": "weiblich"},
             ),
             observations=[
                 ExtractedObservationInput(
@@ -86,12 +81,14 @@ def _safety_engine() -> TurnEngine:
     return TurnEngine(raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache))
 
 
-def test_recommendation_request_returns_request_case_description_without_case():
+def test_recommendation_request_requests_additional_information_without_case():
     engine = TurnEngine()
 
     result = engine.request_recommendation(RecommendationRequestInput())
 
-    assert result.response_mode == "request_case_description"
+    assert result.response_mode == "ask_followup"
+    assert result.conversation_state.active_question is not None
+    assert result.conversation_state.active_question.question_intent == "free_description"
 
 
 def test_recommendation_request_keeps_active_followup_block():

@@ -9,8 +9,8 @@ from careena4.application.dialogue import QuestionBuilder, QuestionResolver, Saf
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
+from careena4.application.interpretation import TurnInterpreter
 from careena4.application.safety import CaseSafetyEvaluator
-from careena4.application.topic import TopicLabelBuilder, TopicUpdater
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.response import ResponseBuilder
 from careena4.domain.case import CaseManager
@@ -121,6 +121,10 @@ def build_runtime(
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
     )
+    turn_interpreter = TurnInterpreter(
+        extraction_engine=extraction_engine,
+        call_model_config=call_model_config,
+    )
     question_resolver = QuestionResolver(
         safety_clarification_resolver=safety_clarification_resolver,
         medical_extractor=medical_extractor,
@@ -130,14 +134,6 @@ def build_runtime(
     question_builder = QuestionBuilder(
         llm_client=llm_client,
         call_model_config=call_model_config,
-    )
-    topic_label_builder = TopicLabelBuilder(
-        extraction_engine=extraction_engine,
-        call_model_config=call_model_config,
-    )
-    topic_updater = TopicUpdater(
-        case_manager=case_manager,
-        topic_label_builder=topic_label_builder,
     )
     response_builder = ResponseBuilder(
         llm_client=llm_client,
@@ -158,11 +154,11 @@ def build_runtime(
         safety_clarification_builder=safety_clarification_builder,
         entry_classifier=entry_classifier,
         question_resolver=question_resolver,
-        topic_updater=topic_updater,
         medical_extractor=medical_extractor,
         case_manager=case_manager,
         question_builder=question_builder,
         response_builder=response_builder,
+        turn_interpreter=turn_interpreter,
         turn_understanding_service=turn_understanding_service,
     )
     session_store = Careena4SessionStore()

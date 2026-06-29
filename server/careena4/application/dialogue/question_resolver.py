@@ -44,7 +44,7 @@ class QuestionResolver:
                 clear_active_question=safety_resolution.clear_pending_clarification,
                 trace_notes=list(safety_resolution.trace_notes),
             )
-        if question.kind == "subject_clarification":
+        if question.kind == "person_clarification":
             return self._resolve_without_llm(
                 question=question,
                 message=message,
@@ -59,11 +59,187 @@ class QuestionResolver:
         )
         if llm_result is not None:
             return llm_result
-        return self._resolve_without_llm(
+        return self.normalize_resolution(
             question=question,
-            message=message,
-            normalized=normalized,
-            stripped=stripped,
+            resolution=self._resolve_without_llm(
+                question=question,
+                message=message,
+                normalized=normalized,
+                stripped=stripped,
+            ),
+        )
+
+    def normalize_resolution(
+        self,
+        *,
+        question: ActiveQuestion,
+        resolution: QuestionResolution,
+    ) -> QuestionResolution:
+        return self._validate_resolution(
+            question=question,
+            resolution=self._canonicalize_resolution(
+                question=question,
+                resolution=resolution,
+            ),
+        )
+
+    def _resolve_without_llm(
+        self,
+        *,
+        question: ActiveQuestion,
+        message: str,
+        normalized: str,
+        stripped: str,
+    ) -> QuestionResolution:
+        if question.kind == "person_clarification":
+            def _observation_person_patch(relation: str, source: Source | None) -> ObservationPatch:
+                return ObservationPatch(person_ref=relation, person_ref_source=source)
+
+            if question.question_intent == "person_age":
+                age_match = re.search(r"\b(\d{1,3})\b", normalized)
+                if age_match is None:
+                    return QuestionResolution(
+                        status="unclear",
+                        answer_kind="unclear",
+                        trace_notes=["person_age:unclear"],
+                    )
+                age_value = int(age_match.group(1))
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_age_provided",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=PersonUpdate(
+                        age=age_value,
+                        age_source=Source(source_span=age_match.group(1)),
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                )
+
+            if question.question_intent == "person_sex":
+                sex_value = self._sex_from_message(normalized)
+                if sex_value is None:
+                    return QuestionResolution(
+                        status="unclear",
+                        answer_kind="unclear",
+                        trace_notes=["person_sex:unclear"],
+                    )
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_sex_provided",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=PersonUpdate(
+                        sex=sex_value,
+                        sex_source=Source(source_span=stripped),
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                )
+
+            if "kind" in normalized or "sohn" in normalized or "tochter" in normalized:
+                source = self._first_source(normalized, ("kind", "sohn", "tochter"))
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_child",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
+                        relation="child",
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("child", source)
+                        if question.target_observation_id is not None
+                        else None
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                )
+            if "andere" in normalized or "mutter" in normalized or "vater" in normalized:
+                source = self._first_source(normalized, ("andere", "mutter", "vater"))
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_other",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
+                        relation="other",
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("other", source)
+                        if question.target_observation_id is not None
+                        else None
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                )
+            if "ich" in normalized or "selbst" in normalized:
+                source = self._first_source(normalized, ("ich", "selbst"))
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_self",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=None if question.target_observation_id is not None else PersonUpdate(
+                        relation="self",
+                        relation_source=source,
+                    ),
+                    observation_patch=(
+                        _observation_person_patch("self", source)
+                        if question.target_observation_id is not None
+                        else None
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
+                )
+            return QuestionResolution(
+                status="unclear",
+                answer_kind="unclear",
+                trace_notes=["person_clarification:unclear"],
+            )
+
+        if not stripped:
+            return QuestionResolution(
+                status="invalid",
+                answer_kind="invalid",
+                trace_notes=["followup:invalid_empty"],
+            )
+        if self._looks_unclear(normalized):
+            return QuestionResolution(
+                status="unclear",
+                answer_kind="unclear",
+                trace_notes=["followup:unclear_answer"],
+            )
+        if self._looks_negated(normalized):
+            return QuestionResolution(
+                status="resolved",
+                answer_kind="negated",
+                clear_active_question=True,
+                resolved_followup_id=question.target_followup_id,
+                trace_notes=["followup:resolved:negated"],
+            )
+
+        answer_kind = {
+            "duration": "duration_provided",
+            "description": "description_provided",
+            "severity": "severity_provided",
+            "free_description": "free_description_provided",
+        }.get(question.question_intent, "resolved")
+        return QuestionResolution(
+            status="resolved",
+            answer_kind=answer_kind,
+            clear_active_question=True,
+            resolved_followup_id=question.target_followup_id,
+            observation_patch=self._patch_for_intent(
+                question_intent=question.question_intent,
+                value=stripped,
+            ),
+            additional_medical_information=False,
+            extra_case_input=None,
+            trace_notes=[f"followup:resolved:{question.question_intent or 'generic'}"],
         )
 
     def _resolve_with_llm(
@@ -107,8 +283,7 @@ class QuestionResolver:
                 trace_notes=["followup:llm_resolution_failed"],
             )
 
-        result = self._canonicalize_resolution(question=question, resolution=result)
-        result = self._validate_resolution(question=question, resolution=result)
+        result = self.normalize_resolution(question=question, resolution=result)
 
         log_event(
             "followup.resolution.completed",
@@ -121,124 +296,6 @@ class QuestionResolver:
             update_keys=",".join(self._resolution_field_keys(result)) or "none",
         )
         return result
-
-    def _resolve_without_llm(
-        self,
-        *,
-        question: ActiveQuestion,
-        message: str,
-        normalized: str,
-        stripped: str,
-    ) -> QuestionResolution:
-        if question.kind == "subject_clarification":
-            def _observation_person_patch(relation: str, source: Source | None) -> ObservationPatch:
-                return ObservationPatch(person_ref=relation, person_ref_source=source)
-
-            if "kind" in normalized or "sohn" in normalized or "tochter" in normalized:
-                source = self._first_source(normalized, ("kind", "sohn", "tochter"))
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="subject_child",
-                    clear_active_question=True,
-                    resolved_followup_id=question.target_followup_id,
-                    person_update=None if question.target_observation_id is not None else PersonUpdate(
-                        relation="child",
-                        relation_source=source,
-                    ),
-                    observation_patch=(
-                        _observation_person_patch("child", source)
-                        if question.target_observation_id is not None
-                        else None
-                    ),
-                    additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
-                )
-            if "andere" in normalized or "mutter" in normalized or "vater" in normalized:
-                source = self._first_source(normalized, ("andere", "mutter", "vater"))
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="subject_other",
-                    clear_active_question=True,
-                    resolved_followup_id=question.target_followup_id,
-                    person_update=None if question.target_observation_id is not None else PersonUpdate(
-                        relation="other",
-                        relation_source=source,
-                    ),
-                    observation_patch=(
-                        _observation_person_patch("other", source)
-                        if question.target_observation_id is not None
-                        else None
-                    ),
-                    additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
-                )
-            if "ich" in normalized or "selbst" in normalized:
-                source = self._first_source(normalized, ("ich", "selbst"))
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="subject_self",
-                    clear_active_question=True,
-                    resolved_followup_id=question.target_followup_id,
-                    person_update=None if question.target_observation_id is not None else PersonUpdate(
-                        relation="self",
-                        relation_source=source,
-                    ),
-                    observation_patch=(
-                        _observation_person_patch("self", source)
-                        if question.target_observation_id is not None
-                        else None
-                    ),
-                    additional_medical_information=self._contains_additional_medical_info(normalized),
-                    extra_case_input=self._extra_case_input_if_needed(question=question, message=message),
-                )
-            return QuestionResolution(
-                status="unclear",
-                answer_kind="unclear",
-                trace_notes=["subject_clarification:unclear"],
-            )
-
-        if not stripped:
-            return QuestionResolution(
-                status="invalid",
-                answer_kind="invalid",
-                trace_notes=["followup:invalid_empty"],
-            )
-        if self._looks_unclear(normalized):
-            return QuestionResolution(
-                status="unclear",
-                answer_kind="unclear",
-                trace_notes=["followup:unclear_answer"],
-            )
-        if self._looks_negated(normalized):
-            return QuestionResolution(
-                status="resolved",
-                answer_kind="negated",
-                clear_active_question=True,
-                resolved_followup_id=question.target_followup_id,
-                trace_notes=["followup:resolved:negated"],
-            )
-
-        observation_patch = self._patch_for_intent(
-            question_intent=question.question_intent,
-            value=stripped,
-        )
-        answer_kind = {
-            "duration": "duration_provided",
-            "description": "description_provided",
-            "severity": "severity_provided",
-        }.get(question.question_intent, "resolved")
-        result = QuestionResolution(
-            status="resolved",
-            answer_kind=answer_kind,
-            clear_active_question=True,
-            resolved_followup_id=question.target_followup_id,
-            observation_patch=observation_patch,
-            additional_medical_information=False,
-            extra_case_input=None,
-            trace_notes=[f"followup:resolved:{question.question_intent or 'generic'}"],
-        )
-        result = self._canonicalize_resolution(question=question, resolution=result)
-        return self._validate_resolution(question=question, resolution=result)
 
     def _canonicalize_resolution(
         self,
@@ -260,9 +317,6 @@ class QuestionResolver:
         question: ActiveQuestion,
         resolution: QuestionResolution,
     ) -> QuestionResolution:
-        if question.kind != "followup":
-            return resolution
-
         if resolution.answer_kind in {None, ""}:
             return QuestionResolution(
                 status="invalid",
@@ -271,6 +325,93 @@ class QuestionResolver:
                 trace_notes=["followup:invalid_missing_answer_kind"],
             )
 
+        if question.kind == "person_clarification":
+            return self._validate_person_resolution(question=question, resolution=resolution)
+        if question.kind != "followup":
+            return resolution
+        return self._validate_followup_resolution(question=question, resolution=resolution)
+
+    def _validate_person_resolution(
+        self,
+        *,
+        question: ActiveQuestion,
+        resolution: QuestionResolution,
+    ) -> QuestionResolution:
+        if resolution.answer_kind in {"unclear", "invalid"}:
+            resolution.status = resolution.answer_kind
+            resolution.clear_active_question = False
+            return resolution
+
+        if question.question_intent == "person_age":
+            if resolution.answer_kind != "person_age_provided":
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
+                )
+            if resolution.person_update is None or resolution.person_update.age is None:
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=["followup:missing_expected_attribute:person_age"],
+                )
+            return resolution
+
+        if question.question_intent == "person_sex":
+            if resolution.answer_kind != "person_sex_provided":
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
+                )
+            if resolution.person_update is None or resolution.person_update.sex in (None, ""):
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=["followup:missing_expected_attribute:person_sex"],
+                )
+            return resolution
+
+        expected_relation = {
+            "person_self": "self",
+            "person_child": "child",
+            "person_other": "other",
+        }.get(resolution.answer_kind)
+        if expected_relation is None:
+            return QuestionResolution(
+                status="invalid",
+                answer_kind="invalid",
+                clear_active_question=False,
+                trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
+            )
+        if question.target_observation_id is not None:
+            if resolution.observation_patch is None or resolution.observation_patch.person_ref != expected_relation:
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=["followup:missing_expected_attribute:person_ref"],
+                )
+            return resolution
+        if resolution.person_update is None or resolution.person_update.relation != expected_relation:
+            return QuestionResolution(
+                status="invalid",
+                answer_kind="invalid",
+                clear_active_question=False,
+                trace_notes=["followup:missing_expected_attribute:person_relation"],
+            )
+        return resolution
+
+    def _validate_followup_resolution(
+        self,
+        *,
+        question: ActiveQuestion,
+        resolution: QuestionResolution,
+    ) -> QuestionResolution:
         if resolution.answer_kind == "negated":
             resolution.status = "resolved"
             resolution.clear_active_question = True
@@ -289,11 +430,13 @@ class QuestionResolver:
             "duration": "onset",
             "description": "description",
             "severity": "severity",
+            "free_description": "description",
         }.get(question.question_intent)
         allowed_answer_kinds = {
             "duration": {"duration_provided", "duration_plus_more", "negated", "unclear", "invalid"},
             "description": {"description_provided", "description_plus_more", "negated", "unclear", "invalid"},
             "severity": {"severity_provided", "severity_plus_more", "negated", "unclear", "invalid"},
+            "free_description": {"free_description_provided", "free_description_plus_more", "negated", "unclear", "invalid"},
         }.get(question.question_intent)
 
         if expected_field is None or allowed_answer_kinds is None:
@@ -368,9 +511,10 @@ class QuestionResolver:
             return None
         case_input = self.medical_extractor.extract(message=message)
         if (
+            not case_input.has_topic_update()
+            and
             case_input.person is None
             and not case_input.observations
-            and not case_input.topic_entries_to_add
         ):
             return None
         return case_input
@@ -422,11 +566,19 @@ class QuestionResolver:
             return ObservationPatch(onset=value, onset_source=source)
         if question_intent in {"description", "free_description"}:
             return ObservationPatch(description=value, description_source=source)
-        if question_intent == "localization":
-            return ObservationPatch(body_site=value, body_site_source=source)
         if question_intent == "severity":
             return ObservationPatch(severity=value, severity_source=source)
         return ObservationPatch(description=value, description_source=source)
+
+    @staticmethod
+    def _sex_from_message(normalized: str) -> str | None:
+        if any(token in normalized for token in ("weiblich", "frau", "maedchen", "mädchen")):
+            return "female"
+        if any(token in normalized for token in ("maennlich", "männlich", "mann", "junge")):
+            return "male"
+        if any(token in normalized for token in ("divers", "nonbinaer", "non-binaer", "nonbinär", "non-binär")):
+            return "diverse"
+        return None
 
     @staticmethod
     def _resolution_field_keys(resolution: QuestionResolution) -> list[str]:
@@ -436,9 +588,9 @@ class QuestionResolver:
         if resolution.observation_patch is not None:
             keys.extend(resolution.observation_patch.field_keys())
         if resolution.extra_case_input is not None and (
-            resolution.extra_case_input.person is not None
+            resolution.extra_case_input.has_topic_update()
+            or resolution.extra_case_input.person is not None
             or resolution.extra_case_input.observations
-            or resolution.extra_case_input.topic_entries_to_add
         ):
             keys.append("extra_case_input")
         return keys

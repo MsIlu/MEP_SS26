@@ -10,22 +10,26 @@ Erlaubte Werte:
 - observation.type: "symptom"
 - observation.status: "active", "negated", "historical"
 - person.relation: "self", "child", "other", "unclear"
+- person.sex: "female", "male", "diverse" oder null
 - observation.person_ref: "self", "child", "other", "unclear" oder null
 
 Rueckgabeformat:
 {
-  "topic_entries_to_add": [
-    {
-      "topic_part": "<string>",
-      "source": {
-        "message_id": "<string|null>",
-        "source_span": "<string|null>"
-      }
-    }
-  ],
+  "topic_label": "<string|null>",
+  "topic_description": "<string|null>",
   "person": {
     "relation": "<self|child|other|unclear>",
     "relation_source": {
+      "message_id": "<string|null>",
+      "source_span": "<string|null>"
+    } | null,
+    "age": "<number|null>",
+    "age_source": {
+      "message_id": "<string|null>",
+      "source_span": "<string|null>"
+    } | null,
+    "sex": "<female|male|diverse|null>",
+    "sex_source": {
       "message_id": "<string|null>",
       "source_span": "<string|null>"
     } | null
@@ -74,15 +78,17 @@ Rueckgabeformat:
 
 Fuellregeln:
 - "observations" ist immer eine Liste. Wenn nichts Belastbares vorliegt, geben Sie [] zurueck.
-- "topic_entries_to_add" ist immer eine Liste. Wenn die aktuelle Nachricht das groessere Thema des Chats nicht erweitert, geben Sie [] zurueck.
+- "topic_label" ist null, wenn die aktuelle Nachricht keinen belastbaren kurzen Fallfokus liefert oder den bisherigen Fokus nicht sinnvoll erweitert.
+- "topic_description" ist null, wenn die aktuelle Nachricht keine belastbare thematische Erweiterung oder Praezisierung fuer den Fallfokus liefert.
 - "person" ist null, wenn kein Personenbezug belastbar aus der aktuellen Nachricht hervorgeht.
-- Topic-Entries beschreiben groessere thematische Bausteine des Chats, nicht die vollstaendige medizinische Faktliste.
-- Topic-Entries duerfen uebergeordnete Falllesarten oder Mechanismen wie "Sturz mit dem Fahrrad" tragen, wenn das explizit in der aktuellen Nachricht gesagt wird.
-- Topic-Entries duerfen neue groessere Beschwerdebestandteile wie "Uebelkeit" oder "Brustschmerzen" tragen, wenn sie das Chat-Thema erweitern.
-- Kein Topic-Entry nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
-- Wiederholen Sie keine alten Topic-Entries aus dem Kontext. Liefern Sie nur neue Topic-Entries aus der aktuellen Nachricht.
+- Wenn Alter oder Geschlecht klar genannt werden und zur betroffenen Person gehoeren, duerfen sie in "person" gesetzt werden.
+- "person.age" und "person.sex" duerfen nie nur aus allgemeinem Weltwissen, Profilannahmen oder Kontext geraten werden.
+- "topic_label" ist eine kurze Lesart des Falls, nicht die vollstaendige Faktliste.
+- "topic_description" darf den Fallfokus mit neuen tragenden Bestandteilen oder Mechanismen erweitern, wenn diese explizit in der aktuellen Nachricht gesagt werden.
+- Kein Topic-Update nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
+- Wiederholen Sie keinen alten Topic-Text aus dem Kontext. Liefern Sie nur Topic-Updates, die sich aus der aktuellen Nachricht selbst ergeben.
 - "label" ist kurz und lesbar, zum Beispiel "Bauchschmerzen", "Fieber" oder "Husten".
-- Verwenden Sie keine Felder wie "normalized_concept", "subject_claims", "subject_ref", "negated", "attributes", "observation_id" oder andere nicht genannte Schluessel.
+- Verwenden Sie keine Felder wie "normalized_concept", "person_claims", "person_scope", "negated", "attributes", "observation_id" oder andere nicht genannte Schluessel.
 - Wenn ein Wert gesetzt ist, setzen Sie wenn moeglich auch das zugehoerige `*_source`-Feld mit einer kurzen Textstelle aus der aktuellen Nutzernachricht.
 - Wenn die Quelle fuer einen gesetzten Wert nicht sicher isoliert werden kann, duerfen Sie das `*_source`-Feld auf null setzen, aber erfinden Sie keine Quelle.
 - Wenn die Nachricht nur eine Frage, Bitte oder allgemeine Aussage ohne neuen medizinischen Fakt enthaelt, geben Sie leere Eingaben zurueck.
@@ -91,7 +97,8 @@ Fuellregeln:
 
 Beispiel fuer eine leere, aber valide Antwort:
 {
-  "topic_entries_to_add": [],
+  "topic_label": null,
+  "topic_description": null,
   "person": null,
   "observations": []
 }

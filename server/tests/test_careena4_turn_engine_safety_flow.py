@@ -8,9 +8,12 @@ if str(SERVER_DIR) not in sys.path:
 
 
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
+from careena4.application.interpretation.turn_interpreter import TurnInterpreter
 from careena4.application.orchestration.turn_engine import TurnEngine
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
-from careena4.models.turn import TurnInput
+from careena4.models.interpretation import TurnInterpretation, TurnUnderstandingSignal
+from careena4.models.turn import EntryAssessment, ExtractedCaseInput, ExtractedObservationInput, TurnInput
+from careena4.models.understanding import ExtractedSymptomCandidate
 
 
 def _safety_match(term: str = "atemnot") -> SafetyCatalogMatch:
@@ -36,6 +39,64 @@ def _engine_with_cache(*, terms: list[str]) -> TurnEngine:
     return TurnEngine(raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache))
 
 
+class _SafetyCaseTurnInterpreter:
+    def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+        return TurnInterpretation(
+            entry_assessment=EntryAssessment(
+                in_scope=True,
+                medical_relevance="medical",
+                answers_active_question=False,
+                contains_new_medical_information=True,
+                message_kind="new_case_report",
+            ),
+            question_resolution=None,
+            case_input=ExtractedCaseInput(
+                topic_label="Atemnot",
+                topic_description="Atemnot und Brustschmerzen",
+                observations=[
+                    ExtractedObservationInput(
+                        type="symptom",
+                        label="Atemnot",
+                        status="active",
+                        person_ref="self",
+                    ),
+                    ExtractedObservationInput(
+                        type="symptom",
+                        label="Brustschmerzen",
+                        status="active",
+                        person_ref="self",
+                    ),
+                ],
+            ),
+            current_turn_understanding=TurnUnderstandingSignal(
+                symptoms=[
+                    ExtractedSymptomCandidate(
+                        source_label="Atemnot",
+                        normalized_label_de="Atemnot",
+                        confidence=0.95,
+                    ),
+                    ExtractedSymptomCandidate(
+                        source_label="Brustschmerzen",
+                        normalized_label_de="Brustschmerzen",
+                        confidence=0.95,
+                    ),
+                ],
+            ),
+        )
+
+    def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
+        from careena4.models.understanding import CurrentTurnUnderstanding
+
+        assert interpretation.current_turn_understanding is not None
+        return CurrentTurnUnderstanding(
+            raw_message=raw_message,
+            symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
+            sts_matches=[],
+            no_match_reason=None,
+            trace_notes=[],
+        )
+
+
 def test_raw_suspected_dyspnea_opens_safety_question_without_emergency():
     engine = _engine_with_cache(terms=["atemnot"])
 
@@ -54,6 +115,33 @@ def test_raw_suspected_dyspnea_opens_safety_question_without_emergency():
     assert result.conversation_state.active_question.blocking is True
     assert "turn:safety_clarification_opened" in result.trace_notes
     assert result.response_mode != "emergency"
+
+
+def test_raw_safety_question_opens_after_case_truth_and_symptom_draft_are_kept():
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [_safety_match("atemnot")]
+    cache.scan_labels.return_value = []
+    engine = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    )
+
+    result = engine.run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+
+    assert result.response_mode == "ask_safety_question"
+    assert result.medical_case.topic is not None
+    assert result.medical_case.topic.label == "Atemnot"
+    assert len(result.medical_case.observations) == 2
+    assert result.symptom_input_draft is not None
+    assert result.symptom_input_draft.symptom_labels() == ["Atemnot", "Brustschmerzen"]
+    assert "turn:safety_clarification_opened" in result.trace_notes
 
 
 def test_yes_to_open_safety_question_confirms_emergency():
@@ -134,3 +222,85 @@ def test_unsure_to_open_safety_question_keeps_question_open():
     assert second.conversation_state.active_question is not None
     assert second.conversation_state.active_question.kind == "safety_clarification"
     assert second.conversation_state.active_question.safety_context is not None
+
+
+def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text():
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [_safety_match("atemnot")]
+    cache.scan_labels.return_value = []
+    first_engine = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    )
+    first = first_engine.run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+
+    class _FakeExtractionEngine:
+        def extract(self, **kwargs):
+            return kwargs["output_schema"].model_validate(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": True,
+                        "contains_new_medical_information": False,
+                        "message_kind": "question_answer",
+                    },
+                    "question_resolution": {
+                        "status": "cleared_red_flag",
+                        "answer_kind": "cleared_red_flag",
+                        "clear_active_question": True,
+                        "resolved_followup_id": None,
+                        "person_update": None,
+                        "observation_patch": None,
+                        "additional_medical_information": False,
+                        "extra_case_input": None,
+                        "next_question_text": None,
+                        "trace_notes": [],
+                    },
+                    "case_input": None,
+                    "current_turn_understanding": {
+                        "symptoms": [
+                            {
+                                "source_label": "Nein",
+                                "is_medical": True,
+                                "is_negated": False,
+                                "normalized_label_de": "keine anderen Symptome",
+                                "clinical_term_de": None,
+                                "confidence": 1.0,
+                                "reasoning_note": "falsch als neues Symptom verstanden",
+                            }
+                        ],
+                        "sts_matches": [],
+                        "no_match_reason": None,
+                        "trace_notes": [],
+                    },
+                    "trace_notes": [],
+                }
+            )
+
+    second_engine = TurnEngine(
+        turn_interpreter=TurnInterpreter(extraction_engine=_FakeExtractionEngine()),
+    )
+    second = second_engine.run_turn(
+        TurnInput(
+            message="Nein",
+            session_id="test-session",
+            turn_id="turn-2",
+            persisted_conversation_state=first.conversation_state,
+            persisted_medical_case=first.medical_case,
+            persisted_recommendation_state=first.recommendation_state,
+            persisted_symptom_input_draft=first.symptom_input_draft,
+        )
+    )
+
+    assert second.symptom_input_draft is not None
+    assert second.symptom_input_draft.symptom_labels() == ["Atemnot", "Brustschmerzen"]
+    assert "turn_interpretation:understanding_skipped_for_guided_safety_answer" in second.trace_notes
+    assert "symptom_input_draft:updated_from_understanding" not in second.trace_notes

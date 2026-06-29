@@ -76,7 +76,7 @@ class MedicalExtractor:
             "extraction.medical.completed",
             layer="application",
             observation_count=len(result.observations),
-            topic_entry_count=len(result.topic_entries_to_add),
+            topic_updated=result.has_topic_update(),
         )
         return result
 

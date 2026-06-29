@@ -6,11 +6,11 @@ from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.input import SymptomChipBuilder
 from careena4.application.input import UnderstandingSymptomDraftAdapter
+from careena4.application.interpretation import TurnInterpreter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.response.response_policy import ResponsePolicy
 from careena4.application.safety import CaseSafetyEvaluator
-from careena4.application.topic import TopicUpdater
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
@@ -29,7 +29,6 @@ class TurnEngine:
         safety_clarification_builder: SafetyClarificationBuilder | None = None,
         entry_classifier: EntryClassifier | None = None,
         question_resolver: QuestionResolver | None = None,
-        topic_updater: TopicUpdater | None = None,
         medical_extractor: MedicalExtractor | None = None,
         case_manager: CaseManager | None = None,
         followup_need_builder: FollowupNeedBuilder | None = None,
@@ -40,6 +39,7 @@ class TurnEngine:
         recommendation_builder: RecommendationBuilder | None = None,
         response_policy: ResponsePolicy | None = None,
         response_builder: ResponseBuilder | None = None,
+        turn_interpreter: TurnInterpreter | None = None,
         turn_understanding_service: MedGemmaTurnUnderstandingService | None = None,
         understanding_symptom_draft_adapter: UnderstandingSymptomDraftAdapter | None = None,
         case_safety_evaluator: CaseSafetyEvaluator | None = None,
@@ -49,7 +49,6 @@ class TurnEngine:
         self.case_manager = case_manager or CaseManager()
         self.entry_classifier = entry_classifier or EntryClassifier(case_manager=self.case_manager)
         self.question_resolver = question_resolver or QuestionResolver()
-        self.topic_updater = topic_updater or TopicUpdater(case_manager=self.case_manager)
         self.medical_extractor = medical_extractor or MedicalExtractor()
         self.symptom_chip_builder = SymptomChipBuilder()
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
@@ -60,6 +59,7 @@ class TurnEngine:
         self.recommendation_builder = recommendation_builder or RecommendationBuilder(case_manager=self.case_manager)
         self.response_policy = response_policy or ResponsePolicy()
         self.response_builder = response_builder or ResponseBuilder(case_manager=self.case_manager)
+        self.turn_interpreter = turn_interpreter
         self.turn_understanding_service = turn_understanding_service
         self.understanding_symptom_draft_adapter = (
             understanding_symptom_draft_adapter or UnderstandingSymptomDraftAdapter()
@@ -73,8 +73,10 @@ class TurnEngine:
         symptom_input_draft = turn_input.persisted_symptom_input_draft
         trace_notes: list[str] = []
         current_turn_understanding = None
+        turn_interpretation = None
         resolved_question: ActiveQuestion | None = None
         resolution_additional_information = False
+        resolved_safety_clarification = False
 
         log_event(
             "turn.start",
@@ -82,7 +84,9 @@ class TurnEngine:
             session_id=turn_input.session_id,
             turn_id=turn_input.turn_id,
             has_topic=self.case_manager.has_topic(medical_case=medical_case),
-            has_medical_case=turn_input.persisted_medical_case is not None,
+            has_medical_case=self.case_manager.has_active_observations(
+                medical_case=turn_input.persisted_medical_case or MedicalCase()
+            ),
             has_active_question=conversation_state.active_question is not None,
         )
 
@@ -103,54 +107,86 @@ class TurnEngine:
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes,
+                turn_interpretation=turn_interpretation,
             )
 
-        if self.turn_understanding_service is not None:
+        if self.turn_interpreter is not None:
+            turn_interpretation = self.turn_interpreter.interpret(
+                message=turn_input.message,
+                active_question=conversation_state.active_question,
+                medical_case=medical_case,
+                history_messages=turn_input.extraction_history_messages,
+            )
+            if turn_interpretation is not None:
+                trace_notes.append("turn_interpretation:primary_used")
+                trace_notes.extend(turn_interpretation.trace_notes)
+                log_event(
+                    "turn_interpretation.primary_used",
+                    layer="application",
+                    has_active_question=conversation_state.active_question is not None,
+                    message_kind=turn_interpretation.entry_assessment.message_kind,
+                    has_question_resolution=turn_interpretation.question_resolution is not None,
+                    has_case_input=turn_interpretation.case_input is not None,
+                    has_understanding=turn_interpretation.current_turn_understanding is not None,
+                )
+                if self._should_apply_interpreter_understanding(
+                    active_question=conversation_state.active_question,
+                    interpretation=turn_interpretation,
+                ):
+                    current_turn_understanding = self.turn_interpreter.to_current_turn_understanding(
+                        raw_message=turn_input.message,
+                        interpretation=turn_interpretation,
+                    )
+                    symptom_input_draft = self._apply_current_turn_understanding(
+                        symptom_input_draft=symptom_input_draft,
+                        current_turn_understanding=current_turn_understanding,
+                        session_id=turn_input.session_id,
+                        trace_notes=trace_notes,
+                    )
+                else:
+                    trace_notes.append("turn_interpretation:understanding_skipped_for_guided_safety_answer")
+
+        if (
+            current_turn_understanding is None
+            and self.turn_understanding_service is not None
+            and self._should_use_understanding_fallback(
+                active_question=conversation_state.active_question,
+                interpretation=turn_interpretation,
+            )
+        ):
+            trace_notes.append("turn_understanding:fallback_service_used")
+            log_event(
+                "turn_understanding.fallback_service_used",
+                layer="application",
+                reason="missing_turn_interpretation_understanding",
+            )
             current_turn_understanding = self.turn_understanding_service.extract(
                 message=turn_input.message,
             )
-            trace_notes.extend(current_turn_understanding.trace_notes)
-            symptom_input_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
-                draft=symptom_input_draft,
-                understanding=current_turn_understanding,
-                session_id=turn_input.session_id,
-            )
-            if current_turn_understanding.symptoms:
-                trace_notes.append("symptom_input_draft:updated_from_understanding")
-            for symptom in current_turn_understanding.symptoms:
-                trace_notes.append(
-                    "understanding:symptom:"
-                    f"{symptom.normalized_label_de or symptom.source_label}"
-                )
-            for match in current_turn_understanding.sts_matches:
-                trace_notes.append(f"understanding:sts:{match.sts_id}")
-
-        if raw_safety.requires_safety_clarification and (
-            conversation_state.active_question is None
-            or conversation_state.active_question.kind != "safety_clarification"
-        ):
-            conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                safety_state=raw_safety
-            )
-            conversation_state.phase = "followup"
-            return self._ask_existing_question(
-                response_input=turn_input,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                recommendation_state=recommendation_state,
+            symptom_input_draft = self._apply_current_turn_understanding(
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
+                session_id=turn_input.session_id,
                 trace_notes=trace_notes,
-                active_question=conversation_state.active_question,
-                extra_trace_notes=["turn:safety_clarification_opened"],
             )
 
-        entry_assessment = self.entry_classifier.classify(
-            message=turn_input.message,
-            active_question=conversation_state.active_question,
-            medical_case=medical_case,
-            history_messages=turn_input.entry_history_messages,
+        entry_assessment = (
+            turn_interpretation.entry_assessment
+            if turn_interpretation is not None
+            else self.entry_classifier.classify(
+                message=turn_input.message,
+                active_question=conversation_state.active_question,
+                medical_case=medical_case,
+                history_messages=turn_input.entry_history_messages,
+            )
         )
+        if turn_interpretation is None:
+            trace_notes.append("entry:fallback_classifier_used")
+            log_event(
+                "entry.fallback_classifier_used",
+                layer="application",
+                reason="missing_turn_interpretation",
+            )
         trace_notes.append(f"entry:{entry_assessment.message_kind}")
 
         if not entry_assessment.in_scope:
@@ -168,16 +204,37 @@ class TurnEngine:
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes,
+                turn_interpretation=turn_interpretation,
             )
 
         extra_case_input = None
         if conversation_state.active_question is not None:
             current_question = conversation_state.active_question
-            resolution = self.question_resolver.resolve(
-                question=current_question,
-                message=turn_input.message,
-                history_messages=turn_input.extraction_history_messages,
+            resolution = (
+                self._normalize_interpreter_question_resolution(
+                    question=current_question,
+                    resolution=turn_interpretation.question_resolution,
+                )
+                if turn_interpretation is not None and turn_interpretation.question_resolution is not None
+                else self.question_resolver.resolve(
+                    question=current_question,
+                    message=turn_input.message,
+                    history_messages=turn_input.extraction_history_messages,
+                )
             )
+            if turn_interpretation is None or turn_interpretation.question_resolution is None:
+                trace_notes.append("followup:fallback_resolution_used")
+                log_event(
+                    "followup.fallback_resolution_used",
+                    layer="application",
+                    reason=(
+                        "missing_turn_interpretation"
+                        if turn_interpretation is None
+                        else "missing_turn_interpretation_question_resolution"
+                    ),
+                    question_kind=current_question.kind,
+                    question_intent=current_question.question_intent,
+                )
             trace_notes.extend(resolution.trace_notes)
 
             if resolution.status.startswith("confirmed_") and current_question.kind == "safety_clarification":
@@ -195,6 +252,7 @@ class TurnEngine:
                     symptom_input_draft=symptom_input_draft,
                     current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes,
+                    turn_interpretation=turn_interpretation,
                 )
 
             if resolution.status in {"invalid", "unclear", "still_unclear", "invalid_answer"}:
@@ -214,6 +272,7 @@ class TurnEngine:
                     current_turn_understanding=current_turn_understanding,
                     trace_notes=trace_notes,
                     active_question=current_question,
+                    turn_interpretation=turn_interpretation,
                 )
 
             if resolution.clear_active_question:
@@ -241,25 +300,70 @@ class TurnEngine:
                 resolution_additional_information = resolution.additional_medical_information
                 extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
+                resolved_safety_clarification = current_question.kind == "safety_clarification"
                 conversation_state.active_question = None
 
         case_input = None
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
-            case_input = self.medical_extractor.extract(
-                message=turn_input.message,
-                topic_context=self.case_manager.topic_label(medical_case=medical_case),
-                history_messages=turn_input.extraction_history_messages,
-            )
+            case_input = turn_interpretation.case_input if turn_interpretation is not None else None
+            if (
+                turn_interpretation is not None
+                and case_input is not None
+                and not case_input.has_content()
+            ):
+                trace_notes.append("turn_interpretation:empty_case_input_for_medical_turn")
+                log_event(
+                    "turn_interpretation.empty_case_input_for_medical_turn",
+                    layer="application",
+                    message_kind=entry_assessment.message_kind,
+                    contains_new_medical_information=entry_assessment.contains_new_medical_information,
+                    symptom_count=(
+                        len(current_turn_understanding.symptoms)
+                        if current_turn_understanding is not None
+                        else 0
+                    ),
+                )
+                case_input = None
+            if case_input is None:
+                trace_notes.append("case_input:fallback_medical_extractor_used")
+                log_event(
+                    "case_input.fallback_medical_extractor_used",
+                    layer="application",
+                    reason=(
+                        "missing_turn_interpretation"
+                        if turn_interpretation is None
+                        else "missing_turn_interpretation_case_input"
+                    ),
+                    message_kind=entry_assessment.message_kind,
+                )
+                case_input = self.medical_extractor.extract(
+                    message=turn_input.message,
+                    topic_context=self.case_manager.topic_label(medical_case=medical_case),
+                    history_messages=turn_input.extraction_history_messages,
+                )
         elif extra_case_input is not None and (
-            extra_case_input.observations or extra_case_input.topic_entries_to_add
+            extra_case_input.observations or extra_case_input.has_topic_update()
         ):
             case_input = extra_case_input
         elif resolution_additional_information and entry_assessment.contains_new_medical_information:
-            case_input = self.medical_extractor.extract(
-                message=turn_input.message,
-                topic_context=self.case_manager.topic_label(medical_case=medical_case),
-                history_messages=turn_input.extraction_history_messages,
-            )
+            case_input = turn_interpretation.case_input if turn_interpretation is not None else None
+            if case_input is None:
+                trace_notes.append("case_input:fallback_medical_extractor_used")
+                log_event(
+                    "case_input.fallback_medical_extractor_used",
+                    layer="application",
+                    reason=(
+                        "missing_turn_interpretation"
+                        if turn_interpretation is None
+                        else "missing_turn_interpretation_case_input"
+                    ),
+                    message_kind=entry_assessment.message_kind,
+                )
+                case_input = self.medical_extractor.extract(
+                    message=turn_input.message,
+                    topic_context=self.case_manager.topic_label(medical_case=medical_case),
+                    history_messages=turn_input.extraction_history_messages,
+                )
 
         if case_input is not None:
             understanding_has_symptoms = (
@@ -281,12 +385,6 @@ class TurnEngine:
                 claims=case_input,
             )
             trace_notes.extend(write_trace)
-            if case_input.topic_entries_to_add:
-                medical_case = self.topic_updater.apply(
-                    medical_case=medical_case,
-                    topic_entries_to_add=case_input.topic_entries_to_add,
-                )
-                trace_notes.append("topic:updated")
 
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
@@ -311,7 +409,48 @@ class TurnEngine:
                         trace_notes=trace_notes,
                         active_question=conversation_state.active_question,
                         extra_trace_notes=["turn:case_safety_clarification_selected"],
+                        turn_interpretation=turn_interpretation,
                     )
+
+        if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
+            decision = TurnDecision(
+                kind="ask_followup",
+                response_mode="ask_followup",
+                trace_notes=["turn:safety_clarification_resolved"],
+            )
+            return self._build_result(
+                response_input=turn_input,
+                decision=decision,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
+                trace_notes=trace_notes,
+                resolved_question=resolved_question,
+                turn_interpretation=turn_interpretation,
+            )
+
+        if not resolved_safety_clarification and raw_safety.requires_safety_clarification and (
+            conversation_state.active_question is None
+            or conversation_state.active_question.kind != "safety_clarification"
+        ):
+            conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                safety_state=raw_safety
+            )
+            conversation_state.phase = "followup"
+            return self._ask_existing_question(
+                response_input=turn_input,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=current_turn_understanding,
+                trace_notes=trace_notes,
+                active_question=conversation_state.active_question,
+                extra_trace_notes=["turn:safety_clarification_opened"],
+                turn_interpretation=turn_interpretation,
+            )
 
         conversation_state.followup_needs = self.followup_need_builder.build(
             medical_case=medical_case,
@@ -350,6 +489,7 @@ class TurnEngine:
                 current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes,
                 active_question=conversation_state.active_question,
+                turn_interpretation=turn_interpretation,
             )
 
         recommendation_state = self.readiness_evaluator.evaluate(
@@ -384,6 +524,7 @@ class TurnEngine:
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
                 trace_notes=trace_notes,
+                turn_interpretation=turn_interpretation,
             )
 
         conversation_state.phase = (
@@ -391,10 +532,14 @@ class TurnEngine:
             if self.case_manager.has_active_observations(medical_case=medical_case)
             else "intake"
         )
+        additional_information_question = self.question_builder.build_additional_information_request()
+        conversation_state.active_question = additional_information_question
+        conversation_state.phase = "followup"
         decision = TurnDecision(
-            kind="request_case_description",
-            response_mode="request_case_description",
-            trace_notes=["turn:request_case_description"],
+            kind="ask_followup",
+            response_mode="ask_followup",
+            active_question=additional_information_question,
+            trace_notes=["turn:additional_information_requested"],
         )
         return self._build_result(
             response_input=turn_input,
@@ -405,7 +550,9 @@ class TurnEngine:
             symptom_input_draft=symptom_input_draft,
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes,
+            active_question=additional_information_question,
             resolved_question=resolved_question,
+            turn_interpretation=turn_interpretation,
         )
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
@@ -443,9 +590,13 @@ class TurnEngine:
             )
 
         if medical_case is None or not self.case_manager.has_active_observations(medical_case=medical_case):
+            additional_information_question = self.question_builder.build_additional_information_request()
+            conversation_state.active_question = additional_information_question
+            conversation_state.phase = "followup"
             decision = TurnDecision(
-                kind="request_case_description",
-                response_mode="request_case_description",
+                kind="ask_followup",
+                response_mode="ask_followup",
+                active_question=additional_information_question,
                 trace_notes=["recommendation_request:missing_case_information"],
             )
             return self._build_result(
@@ -457,6 +608,7 @@ class TurnEngine:
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=None,
                 trace_notes=trace_notes,
+                active_question=additional_information_question,
             )
 
         conversation_state.followup_needs = self.followup_need_builder.build(
@@ -533,9 +685,13 @@ class TurnEngine:
                 recommendation_result=recommendation_result,
             )
 
+        additional_information_question = self.question_builder.build_additional_information_request()
+        conversation_state.active_question = additional_information_question
+        conversation_state.phase = "followup"
         decision = TurnDecision(
-            kind="request_case_description",
-            response_mode="request_case_description",
+            kind="ask_followup",
+            response_mode="ask_followup",
+            active_question=additional_information_question,
             trace_notes=["recommendation_request:not_ready"],
         )
         return self._build_result(
@@ -547,6 +703,7 @@ class TurnEngine:
             symptom_input_draft=symptom_input_draft,
             current_turn_understanding=None,
             trace_notes=trace_notes,
+            active_question=additional_information_question,
         )
 
     def _ask_existing_question(
@@ -561,6 +718,7 @@ class TurnEngine:
         trace_notes: list[str],
         active_question: ActiveQuestion | None,
         extra_trace_notes: list[str],
+        turn_interpretation=None,
     ) -> TurnResult:
         if active_question is not None and active_question.safety_context is not None:
             safety_context = active_question.safety_context
@@ -596,6 +754,7 @@ class TurnEngine:
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes,
             active_question=active_question,
+            turn_interpretation=turn_interpretation,
         )
 
     def _build_result(
@@ -609,6 +768,7 @@ class TurnEngine:
         symptom_input_draft,
         current_turn_understanding,
         trace_notes: list[str],
+        turn_interpretation=None,
         active_question: ActiveQuestion | None = None,
         recommendation_result=None,
         resolved_question: ActiveQuestion | None = None,
@@ -632,6 +792,76 @@ class TurnEngine:
             recommendation_state=recommendation_state,
             recommendation_result=recommendation_result,
             symptom_input_draft=symptom_input_draft,
+            turn_interpretation=turn_interpretation,
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes + decision.trace_notes,
         )
+
+    def _apply_current_turn_understanding(
+        self,
+        *,
+        symptom_input_draft,
+        current_turn_understanding,
+        session_id: str | None,
+        trace_notes: list[str],
+    ):
+        if current_turn_understanding is None:
+            return symptom_input_draft
+
+        trace_notes.extend(current_turn_understanding.trace_notes)
+        updated_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
+            draft=symptom_input_draft,
+            understanding=current_turn_understanding,
+            session_id=session_id,
+        )
+        if current_turn_understanding.symptoms:
+            trace_notes.append("symptom_input_draft:updated_from_understanding")
+        for symptom in current_turn_understanding.symptoms:
+            trace_notes.append(
+                "understanding:symptom:"
+                f"{symptom.normalized_label_de or symptom.source_label}"
+            )
+        for match in current_turn_understanding.sts_matches:
+            trace_notes.append(f"understanding:sts:{match.sts_id}")
+        return updated_draft
+
+    @staticmethod
+    def _should_apply_interpreter_understanding(
+        *,
+        active_question: ActiveQuestion | None,
+        interpretation,
+    ) -> bool:
+        if active_question is None:
+            return True
+        if active_question.kind != "safety_clarification":
+            return True
+        if interpretation.question_resolution is None:
+            return True
+        return not interpretation.entry_assessment.answers_active_question
+
+    @staticmethod
+    def _should_use_understanding_fallback(
+        *,
+        active_question: ActiveQuestion | None,
+        interpretation,
+    ) -> bool:
+        if active_question is None:
+            return True
+        if active_question.kind != "safety_clarification":
+            return True
+        if interpretation is None:
+            return True
+        if interpretation.question_resolution is None:
+            return True
+        return not interpretation.entry_assessment.answers_active_question
+
+    def _normalize_interpreter_question_resolution(
+        self,
+        *,
+        question: ActiveQuestion,
+        resolution,
+    ):
+        normalize_resolution = getattr(self.question_resolver, "normalize_resolution", None)
+        if callable(normalize_resolution):
+            return normalize_resolution(question=question, resolution=resolution)
+        return resolution

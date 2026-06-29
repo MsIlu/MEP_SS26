@@ -1,17 +1,23 @@
 from unittest.mock import MagicMock
 
+from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
+from careena4.application.interpretation.turn_interpreter import TurnInterpreter
+from careena4.models.interpretation import TurnInterpretation, TurnUnderstandingSignal
 from careena4.application.orchestration.turn_engine import TurnEngine
-from careena4.models.domain import TopicEntry
+from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, Observation
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import (
+    EntryAssessment,
     ExtractedCaseInput,
     ExtractedObservationInput,
     ExtractedPersonInput,
-    ExtractedTopicEntryInput,
+    QuestionResolution,
     RecommendationRequestInput,
+    SafetyState,
     TurnInput,
 )
+from careena4.models.understanding import ExtractedSymptomCandidate
 
 
 def _make_cache_with_signal() -> MagicMock:
@@ -36,12 +42,8 @@ def _make_cache_with_signal() -> MagicMock:
 class _StubMedicalExtractor:
     def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_entries_to_add=[
-                ExtractedTopicEntryInput(
-                    topic_part="Bauchschmerzen",
-                    source={"message_id": None, "source_span": "Bauchschmerzen"},
-                )
-            ],
+            topic_label="Bauchschmerzen",
+            topic_description="Bauchschmerzen",
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
@@ -56,15 +58,15 @@ class _StubMedicalExtractor:
 class _ReadyMedicalExtractor:
     def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
-            topic_entries_to_add=[
-                ExtractedTopicEntryInput(
-                    topic_part="Kopfschmerzen",
-                    source={"message_id": None, "source_span": "Kopfschmerzen"},
-                )
-            ],
+            topic_label="Kopfschmerzen",
+            topic_description="Kopfschmerzen seit gestern",
             person=ExtractedPersonInput(
                 relation="self",
                 relation_source={"message_id": None, "source_span": "ich"},
+                age=24,
+                age_source={"message_id": None, "source_span": "24"},
+                sex="female",
+                sex_source={"message_id": None, "source_span": "weiblich"},
             ),
             observations=[
                 ExtractedObservationInput(
@@ -80,6 +82,65 @@ class _ReadyMedicalExtractor:
         )
 
 
+class _StubTurnInterpreter:
+    def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+        return TurnInterpretation(
+            entry_assessment=EntryAssessment(
+                in_scope=True,
+                medical_relevance="medical",
+                answers_active_question=False,
+                contains_new_medical_information=True,
+                message_kind="new_case_report",
+            ),
+            question_resolution=None,
+            case_input=ExtractedCaseInput(
+                topic_label="Kopfschmerzen",
+                topic_description="Kopfschmerzen seit gestern",
+                person=ExtractedPersonInput(
+                    relation="self",
+                    relation_source={"message_id": None, "source_span": "ich"},
+                    age=24,
+                    age_source={"message_id": None, "source_span": "24"},
+                    sex="female",
+                    sex_source={"message_id": None, "source_span": "weiblich"},
+                ),
+                observations=[
+                    ExtractedObservationInput(
+                        type="symptom",
+                        label="Kopfschmerzen",
+                        status="active",
+                        person_ref="self",
+                        onset="seit gestern",
+                        severity="5/10",
+                        description="dumpf",
+                    )
+                ],
+            ),
+            current_turn_understanding=TurnUnderstandingSignal(
+                symptoms=[
+                    ExtractedSymptomCandidate(
+                        source_label="Kopfschmerzen",
+                        normalized_label_de="Kopfschmerzen",
+                        clinical_term_de="Kopfschmerz",
+                        confidence=0.9,
+                    )
+                ],
+            ),
+        )
+
+    def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
+        from careena4.models.understanding import CurrentTurnUnderstanding
+
+        assert interpretation.current_turn_understanding is not None
+        return CurrentTurnUnderstanding(
+            raw_message=raw_message,
+            symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
+            sts_matches=[],
+            no_match_reason=interpretation.current_turn_understanding.sts_no_match_reason,
+            trace_notes=list(interpretation.current_turn_understanding.trace_notes),
+        )
+
+
 def _next_input(message: str, result):
     return TurnInput(
         message=message,
@@ -89,7 +150,7 @@ def _next_input(message: str, result):
     )
 
 
-def test_sparse_symptom_creates_subject_followup_first():
+def test_sparse_symptom_creates_person_followup_first():
     engine = TurnEngine(medical_extractor=_StubMedicalExtractor())
 
     result = engine.run_turn(TurnInput(message="Ich habe Bauchschmerzen."))
@@ -98,25 +159,20 @@ def test_sparse_symptom_creates_subject_followup_first():
     assert result.medical_case is not None
     assert result.medical_case.topic is not None
     assert result.medical_case.topic.label == "Bauchschmerzen"
-    assert result.medical_case.topic.entries == [
-        TopicEntry(
-            topic_part="Bauchschmerzen",
-            source={"message_id": None, "source_span": "Bauchschmerzen"},
-        )
-    ]
+    assert result.medical_case.topic.description == "Bauchschmerzen"
     assert len(result.medical_case.observations) == 1
     assert result.conversation_state.active_question is not None
-    assert result.conversation_state.active_question.kind == "subject_clarification"
+    assert result.conversation_state.active_question.kind == "person_clarification"
 
 
-def test_missing_subject_can_trigger_subject_clarification():
+def test_missing_person_can_trigger_person_clarification():
     engine = TurnEngine(medical_extractor=_StubMedicalExtractor())
 
     result = engine.run_turn(TurnInput(message="Bauchschmerzen seit gestern."))
 
     assert result.response_mode == "ask_followup"
     assert result.conversation_state.active_question is not None
-    assert result.conversation_state.active_question.kind == "subject_clarification"
+    assert result.conversation_state.active_question.kind == "person_clarification"
 
 
 def test_safety_signal_opens_safety_question():
@@ -162,4 +218,276 @@ def test_free_text_recommendation_question_does_not_trigger_recommendation_path(
 
     result = engine.run_turn(TurnInput(message="Was soll ich tun?"))
 
-    assert result.response_mode == "request_case_description"
+    assert result.response_mode == "ask_followup"
+    assert result.conversation_state.active_question is not None
+    assert result.conversation_state.active_question.question_intent == "free_description"
+    assert "turn:additional_information_requested" in result.trace_notes
+
+
+def test_turn_engine_uses_single_call_turn_interpreter_before_legacy_split_services():
+    class _FailingService:
+        def __getattr__(self, _name):
+            raise AssertionError("legacy split service should not be used when turn interpreter succeeds")
+
+    engine = TurnEngine(
+        turn_interpreter=_StubTurnInterpreter(),
+        entry_classifier=_FailingService(),
+        medical_extractor=_FailingService(),
+        turn_understanding_service=_FailingService(),
+    )
+
+    result = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))
+
+    assert result.response_mode == "guide_next_step"
+    assert result.recommendation_state.recommendation_allowed is True
+    assert result.turn_interpretation is not None
+    assert "turn_interpretation:primary_used" in result.trace_notes
+
+
+def test_turn_engine_can_resolve_followup_via_single_call_turn_interpreter():
+    class _FollowupTurnInterpreter:
+        def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=True,
+                    contains_new_medical_information=False,
+                    message_kind="question_answer",
+                ),
+                question_resolution=QuestionResolution(
+                    status="resolved",
+                    answer_kind="duration_provided",
+                    clear_active_question=True,
+                    resolved_followup_id=active_question.target_followup_id if active_question is not None else None,
+                    observation_patch={"onset": "seit gestern", "onset_source": {"message_id": None, "source_span": "seit gestern"}},
+                ),
+                case_input=None,
+                current_turn_understanding=TurnUnderstandingSignal(),
+            )
+
+        def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
+            return None
+
+    persisted_medical_case = MedicalCase(
+        observations=[
+            Observation(
+                observation_id="obs-1",
+                type="symptom",
+                label="Bauchschmerzen",
+                status="active",
+            )
+        ]
+    )
+    persisted_conversation_state = ConversationState(
+        active_question=ActiveQuestion(
+            kind="followup",
+            question_intent="duration",
+            target_observation_id="obs-1",
+            target_followup_id="followup-1",
+            prompt_text="Seit wann bestehen die Bauchschmerzen?",
+            blocking=True,
+        ),
+        phase="followup",
+    )
+
+    engine = TurnEngine(
+        turn_interpreter=_FollowupTurnInterpreter(),
+    )
+    result = engine.run_turn(
+        TurnInput(
+            message="Seit gestern.",
+            persisted_medical_case=persisted_medical_case,
+            persisted_conversation_state=persisted_conversation_state,
+        )
+    )
+
+    assert result.medical_case is not None
+    assert result.medical_case.observations[0].onset == "seit gestern"
+
+
+def test_turn_engine_updates_symptom_input_draft_from_single_call_turn_interpreter_understanding():
+    class _UnderstandingOnlyTurnInterpreter:
+        def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=False,
+                    contains_new_medical_information=False,
+                    message_kind="dialogue_only",
+                ),
+                question_resolution=None,
+                case_input=None,
+                current_turn_understanding=TurnUnderstandingSignal(
+                    symptoms=[
+                        ExtractedSymptomCandidate(
+                            source_label="Schwindel",
+                            normalized_label_de="Schwindel",
+                            clinical_term_de="Vertigo",
+                            confidence=0.88,
+                        )
+                    ],
+                    trace_notes=["turn_interpretation:understanding_only"],
+                ),
+            )
+
+        def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
+            from careena4.models.understanding import CurrentTurnUnderstanding
+
+            assert interpretation.current_turn_understanding is not None
+            return CurrentTurnUnderstanding(
+                raw_message=raw_message,
+                symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
+                sts_matches=[],
+                no_match_reason=None,
+                trace_notes=["turn_interpretation:understanding_only"],
+            )
+
+    engine = TurnEngine(turn_interpreter=_UnderstandingOnlyTurnInterpreter())
+
+    result = engine.run_turn(TurnInput(message="Mir ist schwindelig."))
+
+    assert result.symptom_input_draft is not None
+    assert result.symptom_input_draft.symptom_labels() == ["Schwindel"]
+    assert "symptom_input_draft:updated_from_understanding" in result.trace_notes
+
+
+def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpreter_without_followup_fallback():
+    class _FakeExtractionEngine:
+        def extract(self, **kwargs):
+            return kwargs["output_schema"].model_validate(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": True,
+                        "contains_new_medical_information": False,
+                        "message_kind": "question_answer",
+                    },
+                    "question_resolution": None,
+                    "case_input": None,
+                    "current_turn_understanding": {
+                        "symptoms": [],
+                        "sts_matches": [],
+                        "no_match_reason": None,
+                        "trace_notes": [],
+                    },
+                    "trace_notes": [],
+                }
+            )
+
+    class _FailingResolver:
+        def resolve(self, **_kwargs):
+            raise AssertionError("legacy followup resolver should not be used")
+
+    safety_question = SafetyClarificationBuilder().build_active_question(
+        safety_state=SafetyState(
+            checked_sources=["raw_message"],
+            red_flag_detected=True,
+            red_flag_status="suspected",
+            action="ask_safety_clarification",
+            evidence_terms=["Brustschmerzen"],
+        )
+    )
+    conversation_state = ConversationState(active_question=safety_question, phase="followup")
+    engine = TurnEngine(
+        turn_interpreter=TurnInterpreter(extraction_engine=_FakeExtractionEngine()),
+        question_resolver=_FailingResolver(),
+    )
+
+    result = engine.run_turn(
+        TurnInput(
+            message="Nein",
+            persisted_conversation_state=conversation_state,
+        )
+    )
+
+    assert result.conversation_state.active_question is None
+    assert "followup:fallback_resolution_used" not in result.trace_notes
+    assert "turn_interpretation:guided_safety_resolution_applied" in result.trace_notes
+
+
+def test_turn_engine_marks_split_fallbacks_when_turn_interpreter_is_missing():
+    class _StubUnderstandingService:
+        def extract(self, *, message: str):
+            from careena4.models.understanding import CurrentTurnUnderstanding
+
+            return CurrentTurnUnderstanding(
+                raw_message=message,
+                symptoms=[],
+                sts_matches=[],
+                no_match_reason=None,
+            )
+
+    engine = TurnEngine(
+        medical_extractor=_ReadyMedicalExtractor(),
+        turn_understanding_service=_StubUnderstandingService(),
+    )
+
+    result = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))
+
+    assert "entry:fallback_classifier_used" in result.trace_notes
+    assert "turn_understanding:fallback_service_used" in result.trace_notes
+    assert "case_input:fallback_medical_extractor_used" in result.trace_notes
+
+
+def test_turn_engine_treats_empty_primary_case_input_as_missing_and_uses_marked_fallback():
+    class _EmptyCaseInputTurnInterpreter:
+        def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=False,
+                    contains_new_medical_information=True,
+                    message_kind="new_case_report",
+                ),
+                question_resolution=None,
+                case_input=ExtractedCaseInput(
+                    topic_label=None,
+                    topic_description=None,
+                    person=ExtractedPersonInput(
+                        relation="unclear",
+                        relation_source=None,
+                        age=None,
+                        age_source=None,
+                        sex=None,
+                        sex_source=None,
+                    ),
+                    observations=[],
+                ),
+                current_turn_understanding=TurnUnderstandingSignal(
+                    symptoms=[
+                        ExtractedSymptomCandidate(
+                            source_label="Bauchschmerzen",
+                            normalized_label_de="Bauchschmerzen",
+                            confidence=0.95,
+                        )
+                    ],
+                ),
+            )
+
+        def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
+            from careena4.models.understanding import CurrentTurnUnderstanding
+
+            assert interpretation.current_turn_understanding is not None
+            return CurrentTurnUnderstanding(
+                raw_message=raw_message,
+                symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
+                sts_matches=[],
+                no_match_reason=None,
+                trace_notes=[],
+            )
+
+    engine = TurnEngine(
+        turn_interpreter=_EmptyCaseInputTurnInterpreter(),
+        medical_extractor=_StubMedicalExtractor(),
+    )
+
+    result = engine.run_turn(TurnInput(message="Ich habe Bauchschmerzen."))
+
+    assert result.medical_case is not None
+    assert len(result.medical_case.observations) == 1
+    assert "turn_interpretation:empty_case_input_for_medical_turn" in result.trace_notes
+    assert "case_input:fallback_medical_extractor_used" in result.trace_notes

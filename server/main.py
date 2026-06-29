@@ -132,7 +132,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
 
     if active_question is not None and active_question.kind in {
         "followup",
-        "subject_clarification",
+        "person_clarification",
     }:
         pending_followup = {
             "question_id": active_question.question_id,
@@ -220,6 +220,7 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state
+    careena4_session.last_turn_interpretation = getattr(turn_result, "turn_interpretation", None)
     careena4_session.last_turn_understanding = turn_result.current_turn_understanding
 
     if turn_result.symptom_input_draft is not None:

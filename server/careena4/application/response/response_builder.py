@@ -53,11 +53,6 @@ class ResponseBuilder:
                 "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. "
                 "Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button."
             )
-        if decision.response_mode == "request_case_description":
-            return self._render_case_description_request(
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-            )
         if decision.response_mode == "recommend" and recommendation_result is not None:
             return self._render_recommendation(recommendation_result=recommendation_result)
         return "Bitte beschreiben Sie Ihr gesundheitliches Anliegen genauer."
@@ -119,13 +114,3 @@ class ResponseBuilder:
             f"Naechster Schritt: {recommendation_result.next_step}\n\n"
             "Hinweis: Diese Orientierung ersetzt keine aerztliche Untersuchung oder Diagnose."
         )
-
-    def _render_case_description_request(
-        self,
-        *,
-        medical_case: MedicalCase | None,
-        conversation_state: ConversationState | None,
-    ) -> str:
-        if medical_case is not None and self.case_manager.has_active_observations(medical_case=medical_case):
-            return "Bitte beschreiben Sie Ihre Beschwerden noch etwas genauer."
-        return "Bitte beschreiben Sie Ihr gesundheitliches Anliegen oder Ihre Beschwerden genauer."

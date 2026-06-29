@@ -8,6 +8,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
+import '../../data/symptom_import.dart';
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
 import '../widgets/symptom_entry_form.dart';
@@ -21,7 +22,8 @@ class SymptomDiaryPage extends StatefulWidget {
   final DateTime? initialDate;
   /// When set, shows an import dialog on open so the user can transfer
   /// chat-confirmed symptoms into the diary without re-typing them.
-  final List<String>? initialSymptoms;
+  /// Each entry carries the symptom name and, when known, its severity (1–10).
+  final List<SymptomImport>? initialSymptoms;
 
   const SymptomDiaryPage({
     super.key,
@@ -63,6 +65,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         if (mounted) _showChatImportDialog(toImport);
       });
     }
+
   }
 
   @override
@@ -121,8 +124,12 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }
 
   /// Shows a confirmation dialog to import chat symptoms into the diary.
-  Future<void> _showChatImportDialog(List<String> symptoms) async {
-    final selected = List<bool>.filled(symptoms.length, true);
+  ///
+  /// Symptoms with a known severity (from the chat) are saved directly.
+  /// For symptoms without severity, [SymptomEntryForm] opens so the user
+  /// can set intensity and body area without re-typing the symptom name.
+  Future<void> _showChatImportDialog(List<SymptomImport> imports) async {
+    final selected = List<bool>.filled(imports.length, true);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -139,10 +146,16 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                     'Folgende Symptome aus deinem Chat ins Tagebuch übernehmen?',
                   ),
                   const SizedBox(height: 12),
-                  for (var i = 0; i < symptoms.length; i++)
+                  for (var i = 0; i < imports.length; i++)
                     CheckboxListTile(
                       value: selected[i],
-                      title: Text(symptoms[i]),
+                      title: Text(imports[i].name),
+                      subtitle: imports[i].severity != null
+                          ? Text(
+                              'Intensität: ${imports[i].severity}/10 (aus Chat)',
+                              style: const TextStyle(fontSize: 12),
+                            )
+                          : null,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) =>
                           setDialogState(() => selected[i] = v ?? false),
@@ -167,15 +180,49 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     if (confirmed != true || !mounted) return;
 
-    for (var i = 0; i < symptoms.length; i++) {
+    final biologicalSex = await _activeProfileBiologicalSex();
+    if (!mounted) return;
+
+    for (var i = 0; i < imports.length; i++) {
       if (!selected[i]) continue;
-      await _addEntry(
-        symptom: symptoms[i],
-        bodyArea: '',
-        intensity: 5,
-        note: '',
-      );
+      final imp = imports[i];
+      if (imp.severity != null) {
+        await _addEntry(
+          symptom: imp.name,
+          bodyArea: '',
+          intensity: imp.severity!,
+          note: '',
+        );
+      } else {
+        await _openSymptomFormForImport(imp.name, biologicalSex);
+      }
+      if (!mounted) return;
     }
+  }
+
+  Future<void> _openSymptomFormForImport(
+      String symptom, String? biologicalSex) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(18),
+          backgroundColor: AppColors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: SingleChildScrollView(
+              child: SymptomEntryForm(
+                initialSymptom: symptom,
+                onSave: _addEntry,
+                onCancel: () => Navigator.pop(dialogContext),
+                onSaved: () => Navigator.pop(dialogContext),
+                biologicalSex: biologicalSex,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.

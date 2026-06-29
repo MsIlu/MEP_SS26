@@ -5,6 +5,7 @@ import '../../../chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/app/app_dependencies_scope.dart';
+import '../../../symptom_diary/data/symptom_import.dart';
 import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
@@ -71,7 +72,7 @@ class WarningPage extends StatelessWidget {
                 userMessages: userMessages,
               ),
 
-              if (symptoms.isNotEmpty && themeController != null) ...[
+              if ((symptoms.isNotEmpty || response.caseObservations.isNotEmpty) && themeController != null) ...[
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => _navigateToSymptomDiary(context),
@@ -88,6 +89,17 @@ class WarningPage extends StatelessWidget {
     );
   }
 
+  List<SymptomImport> _buildSymptomImports() {
+    final observations = response.caseObservations;
+    if (observations.isNotEmpty) {
+      return observations
+          .map((o) => SymptomImport(name: o.label, severity: o.severity))
+          .toList();
+    }
+    // Fallback: chip labels without severity when no observations are in the response.
+    return symptoms.map((s) => SymptomImport(name: s)).toList();
+  }
+
   void _navigateToSymptomDiary(BuildContext context) {
     final tc = themeController;
     if (tc == null) return;
@@ -100,7 +112,7 @@ class WarningPage extends StatelessWidget {
           authSession: deps.authSession,
           symptomApiService: deps.symptomApiService,
           profileApiService: deps.profileApiService,
-          initialSymptoms: symptoms,
+          initialSymptoms: _buildSymptomImports(),
         ),
       ),
     );

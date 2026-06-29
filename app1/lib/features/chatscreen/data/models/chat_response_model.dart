@@ -1,9 +1,25 @@
+class CaseObservation {
+  final String label;
+  final int? severity;
+
+  const CaseObservation({required this.label, this.severity});
+
+  factory CaseObservation.fromJson(Map<String, dynamic> json) {
+    final rawSeverity = json['severity'];
+    int? parsedSeverity;
+    if (rawSeverity is int) {
+      parsedSeverity = rawSeverity;
+    } else if (rawSeverity is String) {
+      parsedSeverity = int.tryParse(rawSeverity);
+    }
+    return CaseObservation(
+      label: json['label']?.toString() ?? '',
+      severity: parsedSeverity,
+    );
+  }
+}
+
 /// Structured response returned by the chat backend.
-///
-/// A response can be either a normal assistant answer or a red-flag result that
-/// should redirect the user to the warning flow.
-/// TODO: add other "Handlungsempfehlungen"
-///
 class RecommendationResult {
   final bool allowed;
   final String? summary;
@@ -84,6 +100,9 @@ class ChatResponse {
   /// ask_safety_question responses). Used to populate smart reply chips.
   final List<String> replyOptions;
 
+  /// Active observations from the medical case, including their severity when known.
+  final List<CaseObservation> caseObservations;
+
   const ChatResponse({
     required this.text,
     required this.redFlag,
@@ -98,6 +117,7 @@ class ChatResponse {
     this.recommendationReady = false,
     this.recommendationResult,
     this.replyOptions = const [],
+    this.caseObservations = const [],
   });
 
   /// Maps raw JSON from the backend into a typed chat response.
@@ -126,6 +146,13 @@ class ChatResponse {
       replyOptions:
           (json['reply_options'] as List<dynamic>?)
               ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      caseObservations:
+          (json['case_observations'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(CaseObservation.fromJson)
+              .where((o) => o.label.isNotEmpty)
               .toList() ??
           const [],
     );

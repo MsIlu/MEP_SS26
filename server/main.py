@@ -180,6 +180,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     ):
         reply_options = [opt.label for opt in active_question.guided_input.options]
 
+    case_observations = []
+    if result.medical_case is not None:
+        case_observations = [
+            {"label": obs.label, "severity": obs.severity}
+            for obs in result.medical_case.observations
+            if obs.is_active() and obs.label
+        ]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -203,6 +211,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             if result.recommendation_result is not None
             else None
         ),
+        "case_observations": case_observations,
     }
 
 @app.get("/fhir/export/{session_id}")

@@ -92,7 +92,6 @@ class TurnEngine:
             decision = TurnDecision(
                 kind="ask_safety_question",
                 response_mode="emergency",
-                recommendation_ready=False,
                 trace_notes=["turn:emergency_shortcut"],
             )
             return self._build_result(
@@ -158,7 +157,6 @@ class TurnEngine:
             decision = TurnDecision(
                 kind="out_of_scope",
                 response_mode="out_of_scope",
-                recommendation_ready=False,
                 trace_notes=["turn:out_of_scope"],
             )
             return self._build_result(
@@ -186,7 +184,6 @@ class TurnEngine:
                 decision = TurnDecision(
                     kind="ask_safety_question",
                     response_mode="emergency",
-                    recommendation_ready=False,
                     trace_notes=["turn:safety_confirmation_emergency"],
                 )
                 return self._build_result(
@@ -205,7 +202,6 @@ class TurnEngine:
                     kind="ask_safety_question" if current_question.kind == "safety_clarification" else "ask_followup",
                     response_mode="ask_safety_question" if current_question.kind == "safety_clarification" else "ask_followup",
                     active_question=current_question,
-                    recommendation_ready=False,
                     trace_notes=["turn:repeat_active_question"],
                 )
                 return self._build_result(
@@ -342,7 +338,6 @@ class TurnEngine:
                 kind="ask_followup",
                 response_mode="ask_followup",
                 active_question=conversation_state.active_question,
-                recommendation_ready=False,
                 trace_notes=["turn:followup_selected"],
             )
             return self._build_result(
@@ -378,7 +373,6 @@ class TurnEngine:
             decision = TurnDecision(
                 kind="guide_next_step",
                 response_mode="guide_next_step",
-                recommendation_ready=True,
                 trace_notes=["turn:recommendation_available"],
             )
             return self._build_result(
@@ -400,7 +394,6 @@ class TurnEngine:
         decision = TurnDecision(
             kind="request_case_description",
             response_mode="request_case_description",
-            recommendation_ready=False,
             trace_notes=["turn:request_case_description"],
         )
         return self._build_result(
@@ -434,7 +427,6 @@ class TurnEngine:
         recommendation_state = self.readiness_evaluator.evaluate(
             medical_case=medical_case,
             conversation_state=conversation_state,
-            request_present=True,
         )
 
         if conversation_state.active_question is not None:
@@ -454,7 +446,6 @@ class TurnEngine:
             decision = TurnDecision(
                 kind="request_case_description",
                 response_mode="request_case_description",
-                recommendation_ready=False,
                 trace_notes=["recommendation_request:missing_case_information"],
             )
             return self._build_result(
@@ -487,13 +478,11 @@ class TurnEngine:
             recommendation_state = self.readiness_evaluator.evaluate(
                 medical_case=medical_case,
                 conversation_state=conversation_state,
-                request_present=True,
             )
             decision = TurnDecision(
                 kind="ask_followup",
                 response_mode="ask_followup",
                 active_question=conversation_state.active_question,
-                recommendation_ready=False,
                 trace_notes=["recommendation_request:followup_required"],
             )
             return self._build_result(
@@ -511,7 +500,6 @@ class TurnEngine:
         recommendation_state = self.readiness_evaluator.evaluate(
             medical_case=medical_case,
             conversation_state=conversation_state,
-            request_present=True,
         )
         assessment_readiness = self.readiness_builder.build(
             medical_case=medical_case,
@@ -526,13 +514,11 @@ class TurnEngine:
             )
             recommendation_state.recommendation_result = recommendation_result
             recommendation_state.recommendation_allowed = True
-            recommendation_state.request_present = True
             conversation_state.active_question = None
             conversation_state.phase = "recommendation"
             decision = TurnDecision(
                 kind="recommend",
                 response_mode="recommend",
-                recommendation_ready=True,
                 trace_notes=["recommendation_request:delivered"],
             )
             return self._build_result(
@@ -550,7 +536,6 @@ class TurnEngine:
         decision = TurnDecision(
             kind="request_case_description",
             response_mode="request_case_description",
-            recommendation_ready=False,
             trace_notes=["recommendation_request:not_ready"],
         )
         return self._build_result(
@@ -599,7 +584,6 @@ class TurnEngine:
             kind="ask_safety_question" if active_question is not None and active_question.kind == "safety_clarification" else "ask_followup",
             response_mode="ask_safety_question" if active_question is not None and active_question.kind == "safety_clarification" else "ask_followup",
             active_question=active_question,
-            recommendation_ready=False,
             trace_notes=extra_trace_notes,
         )
         return self._build_result(

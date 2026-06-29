@@ -130,7 +130,7 @@ def test_safety_signal_opens_safety_question():
     assert result.conversation_state.active_question.kind == "safety_clarification"
 
 
-def test_chat_turn_with_sufficient_information_returns_guide_next_step_without_closing_choice():
+def test_chat_turn_with_sufficient_information_returns_guide_next_step_when_case_is_ready():
     engine = TurnEngine(medical_extractor=_ReadyMedicalExtractor())
 
     result = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))

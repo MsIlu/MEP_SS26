@@ -56,7 +56,6 @@ ConversationPhase = Literal[
     "intake",
     "exploration",
     "followup",
-    "closing_check",
     "recommendation",
 ]
 

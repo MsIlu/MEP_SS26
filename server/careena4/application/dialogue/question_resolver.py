@@ -385,52 +385,6 @@ class QuestionResolver:
         )
 
     @staticmethod
-    def _is_add_more_information_choice(normalized: str) -> bool:
-        return any(
-            phrase in normalized
-            for phrase in (
-                "nein, weitere angaben",
-                "nein weitere angaben",
-                "weitere angaben",
-                "mehr angaben",
-                "mehr informationen",
-                "mehr info",
-                "weiter",
-                "hinzufuegen",
-                "hinzufÃƒÂ¼gen",
-                "noch",
-                "angaben",
-            )
-        )
-
-    @staticmethod
-    def _is_recommendation_now_choice(normalized: str) -> bool:
-        return any(
-            phrase in normalized
-            for phrase in (
-                "ja, empfehlung",
-                "ja empfehlung",
-                "empfehlung",
-                "versorgungsempfehlung",
-                "ja",
-                "okay",
-                "ok",
-                "passt",
-                "reicht",
-                "wars",
-                "wÃƒÂ¤rs",
-                "waers",
-                "genug",
-                "mehr faellt mir gerade nicht ein",
-                "mehr fÃƒÂ¤llt mir gerade nicht ein",
-                "sonst nichts",
-                "das wars",
-                "das war's",
-                "nein",
-            )
-        )
-
-    @staticmethod
     def _looks_unclear(normalized: str) -> bool:
         return any(
             phrase in normalized

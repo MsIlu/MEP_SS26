@@ -113,7 +113,7 @@ class QuestionBuilder:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu Ihren Beschwerden moechten Sie noch hinzufuegen?",
+            prompt_text="Welche weiteren Angaben zu Ihren Beschwerden möchten Sie noch hinzufügen?",
             blocking=False,
             allows_additional_medical_info=True,
         )

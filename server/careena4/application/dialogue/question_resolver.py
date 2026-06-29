@@ -418,8 +418,21 @@ class QuestionResolver:
             )
         )
 
-    @staticmethod
-    def _patch_for_intent(*, question_intent: str | None, value: str) -> ObservationPatch:
+    _GERMAN_DIGITS = {
+        "eins": "1", "ein": "1", "eine": "1",
+        "zwei": "2",
+        "drei": "3",
+        "vier": "4",
+        "fünf": "5", "fuenf": "5",
+        "sechs": "6",
+        "sieben": "7",
+        "acht": "8",
+        "neun": "9",
+        "zehn": "10",
+    }
+
+    @classmethod
+    def _patch_for_intent(cls, *, question_intent: str | None, value: str) -> ObservationPatch:
         source = Source(source_span=value)
         if question_intent == "duration":
             return ObservationPatch(onset=value, onset_source=source)
@@ -428,7 +441,8 @@ class QuestionResolver:
         if question_intent == "localization":
             return ObservationPatch(body_site=value, body_site_source=source)
         if question_intent == "severity":
-            return ObservationPatch(severity=value, severity_source=source)
+            normalized = cls._GERMAN_DIGITS.get(value.strip().casefold(), value)
+            return ObservationPatch(severity=normalized, severity_source=source)
         return ObservationPatch(description=value, description_source=source)
 
     @staticmethod

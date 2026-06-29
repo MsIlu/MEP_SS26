@@ -50,8 +50,8 @@ class ResponseBuilder:
             return active_question.prompt_text
         if decision.response_mode == "guide_next_step":
             return (
-                "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. "
-                "Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button."
+                "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. "
+                "Wenn Sie eine Handlungsempfehlung möchten, nutzen Sie bitte den Empfehlungs-Button."
             )
         if decision.response_mode == "request_case_description":
             return self._render_case_description_request(

@@ -328,7 +328,7 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertEqual(
             text,
-            "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button.",
+            "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. Wenn Sie eine Handlungsempfehlung möchten, nutzen Sie bitte den Empfehlungs-Button.",
         )
 
 

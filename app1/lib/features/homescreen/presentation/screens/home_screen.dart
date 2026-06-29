@@ -369,12 +369,6 @@ class _HomeScreenState extends State<HomeScreen> {
         badgeCount: _documentRepository.unreadCountForProfile(activeProfileId),
         onTap: () => _navigateToDocuments(context),
       ),
-      HomeFeature(
-        icon: Icons.health_and_safety_outlined,
-        title: 'Präventive Angebote',
-        backgroundColor: featureColor,
-        onTap: () {},
-      ),
     ];
   }
 

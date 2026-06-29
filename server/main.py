@@ -109,6 +109,11 @@ class RecommendationRequest(BaseModel):
     session_id: str
 
 
+class SetObservationSeveritiesRequest(BaseModel):
+    session_id: str
+    severities: dict[str, int]  # symptom label -> severity (1-10)
+
+
 def require_careena4_session(session_id: str):
     careena4_session = careena4_session_store.get(session_id)
 
@@ -380,6 +385,38 @@ def chat(
     )
 
     return response
+
+
+@app.post("/chatscreen/set-severities")
+def set_observation_severities(req: SetObservationSeveritiesRequest):
+    """Update observation severities directly in the session.
+
+    Called when the user sets intensity via the in-chat symptom editor.
+    Also resolves any pending severity question for affected observations so
+    the backend will not ask again.
+    """
+    careena4_session = require_careena4_session(req.session_id)
+
+    if careena4_session.medical_case is None:
+        return {"ok": True}
+
+    label_map = {label.casefold(): severity for label, severity in req.severities.items()}
+
+    for obs in careena4_session.medical_case.observations:
+        if obs.is_active() and obs.label.casefold() in label_map:
+            obs.severity = str(label_map[obs.label.casefold()])
+
+    # Resolve the active severity question if it now has an answer.
+    active_q = careena4_session.conversation_state.active_question
+    if active_q is not None and active_q.question_intent == "severity":
+        target_id = active_q.target_observation_id
+        if target_id:
+            for obs in careena4_session.medical_case.observations:
+                if obs.observation_id == target_id and obs.severity is not None:
+                    careena4_session.conversation_state.active_question = None
+                    break
+
+    return {"ok": True}
 
 
 @app.post("/recommendation/request")

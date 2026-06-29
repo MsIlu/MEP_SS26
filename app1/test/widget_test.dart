@@ -9,6 +9,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/chatscreen/controllers/chat_controller.dart';
 import 'package:app1/features/chatscreen/data/chat_api.dart';
 import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
+import 'package:app1/features/chatscreen/data/models/careena_availability.dart';
 import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_screen.dart';
@@ -286,6 +287,11 @@ class _FakeChatApi extends ChatApi {
 
   @override
   Future<void> warmup() async {}
+
+  @override
+  Future<CareenaAvailability> getCareenaAvailability() async {
+    return CareenaAvailability.online;
+  }
 
   @override
   Future<ChatResponse> sendMessage(

@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import 'models/careena_availability.dart';
 import 'models/chat_response_model.dart';
 
 class ChatApi {
@@ -53,8 +54,24 @@ class ChatApi {
 
   Future<void> warmup() async {
     try {
-      await client.post("/warmup", {});
+      await client.post("/warmup", {}).timeout(const Duration(seconds: 5));
     } catch (_) {}
+  }
+
+  Future<CareenaAvailability> getCareenaAvailability() async {
+    try {
+      await client.get("/health/server", timeout: const Duration(seconds: 3));
+    } catch (_) {
+      return CareenaAvailability.offline;
+    }
+
+    try {
+      await client.get("/health/llm", timeout: const Duration(seconds: 8));
+    } catch (_) {
+      return CareenaAvailability.limited;
+    }
+
+    return CareenaAvailability.online;
   }
 
   Future<String> createSession([int? profileId]) async {

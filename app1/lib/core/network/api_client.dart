@@ -76,13 +76,16 @@ class ApiClient {
   }
 
   /// Sends a GET request to the given [path].
-  Future<Map<String, dynamic>> get(String path) async {
+  Future<Map<String, dynamic>> get(
+    String path, {
+    Duration timeout = const Duration(minutes: 3),
+  }) async {
     final uri = Uri.parse("${AppConfig.baseUrl}$path");
 
     try {
       final response = await _client
           .get(uri, headers: _buildHeaders())
-          .timeout(const Duration(minutes: 3));
+          .timeout(timeout);
 
       return _handleJsonObjectResponse(response);
     } on TimeoutException {

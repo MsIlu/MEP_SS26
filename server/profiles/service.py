@@ -263,6 +263,12 @@ def delete_profile(
     )
 
     profile = session.get(Profile, profile_id)
+    if profile.profile_type == "self":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The main profile can only be deleted with its account.",
+        )
+
     profile.deleted_at = datetime.utcnow()
     profile.updated_at = datetime.utcnow()
 

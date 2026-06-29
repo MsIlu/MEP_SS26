@@ -108,14 +108,12 @@ class WarningPage extends StatelessWidget {
 }
 
 bool _showEmergencyActions(ChatResponse response) {
-  final combined = '${response.text} ${response.action ?? ''}'
-      ' ${response.severity ?? ''} ${response.category ?? ''}'
-      .toLowerCase();
-  return response.redFlag ||
-      combined.contains('notruf') ||
-      combined.contains('112') ||
-      combined.contains('notaufnahme') ||
-      combined.contains('sofort');
+  if (response.redFlag) return true;
+  // Use the structured urgency field from the recommendation result — the
+  // backend classifier is the source of truth. Text keyword scanning is
+  // unreliable because routine advisory language includes words like "sofort"
+  // and "112" even for non-emergency recommendations.
+  return response.recommendationResult?.urgency == 'emergency';
 }
 
 String _recommendationTextFor(ChatResponse response) {

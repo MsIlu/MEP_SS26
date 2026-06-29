@@ -4,7 +4,14 @@ from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetect
 from careena4.application.orchestration.turn_engine import TurnEngine
 from careena4.models.domain import TopicEntry
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
-from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, ExtractedTopicEntryInput, TurnInput
+from careena4.models.turn import (
+    ExtractedCaseInput,
+    ExtractedObservationInput,
+    ExtractedPersonInput,
+    ExtractedTopicEntryInput,
+    RecommendationRequestInput,
+    TurnInput,
+)
 
 
 def _make_cache_with_signal() -> MagicMock:
@@ -43,6 +50,33 @@ class _StubMedicalExtractor:
                     onset="seit gestern" if "seit gestern" in message.casefold() else None,
                 )
             ]
+        )
+
+
+class _ReadyMedicalExtractor:
+    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+        return ExtractedCaseInput(
+            topic_entries_to_add=[
+                ExtractedTopicEntryInput(
+                    topic_part="Kopfschmerzen",
+                    source={"message_id": None, "source_span": "Kopfschmerzen"},
+                )
+            ],
+            person=ExtractedPersonInput(
+                relation="self",
+                relation_source={"message_id": None, "source_span": "ich"},
+            ),
+            observations=[
+                ExtractedObservationInput(
+                    type="symptom",
+                    label="Kopfschmerzen",
+                    status="active",
+                    person_ref="self",
+                    onset="seit gestern",
+                    severity="5/10",
+                    description="dumpf",
+                )
+            ],
         )
 
 
@@ -94,3 +128,38 @@ def test_safety_signal_opens_safety_question():
     assert result.response_mode == "ask_safety_question"
     assert result.conversation_state.active_question is not None
     assert result.conversation_state.active_question.kind == "safety_clarification"
+
+
+def test_chat_turn_with_sufficient_information_returns_guide_next_step_without_closing_choice():
+    engine = TurnEngine(medical_extractor=_ReadyMedicalExtractor())
+
+    result = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))
+
+    assert result.response_mode == "guide_next_step"
+    assert result.conversation_state.active_question is None
+    assert result.recommendation_state.recommendation_allowed is True
+
+
+def test_recommendation_request_builds_recommendation_when_case_is_ready():
+    engine = TurnEngine(medical_extractor=_ReadyMedicalExtractor())
+    first = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))
+
+    result = engine.request_recommendation(
+        RecommendationRequestInput(
+            persisted_medical_case=first.medical_case,
+            persisted_conversation_state=first.conversation_state,
+            persisted_recommendation_state=first.recommendation_state,
+        )
+    )
+
+    assert result.response_mode == "recommend"
+    assert result.recommendation_result is not None
+    assert result.recommendation_state.recommendation_allowed is True
+
+
+def test_free_text_recommendation_question_does_not_trigger_recommendation_path():
+    engine = TurnEngine()
+
+    result = engine.run_turn(TurnInput(message="Was soll ich tun?"))
+
+    assert result.response_mode == "request_case_description"

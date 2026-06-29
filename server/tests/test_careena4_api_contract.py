@@ -45,9 +45,10 @@ def _fake_turn_result(response_text: str = "Okay."):
         medical_case=None,
         conversation_state=SimpleNamespace(
             active_question=None,
-            recommendation_requested=False,
         ),
-        recommendation_state=None,
+        recommendation_state=SimpleNamespace(
+            recommendation_allowed=False,
+        ),
     )
 
 
@@ -76,7 +77,6 @@ def test_main_boundary_keeps_chat_contract_keys(
         "red_flag",
         "trace_notes",
         "pending_followup",
-        "recommendation_requested",
         "recommendation_ready",
         "recommendation_result",
         "action",

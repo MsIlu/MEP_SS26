@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
 import '../../../core/config/app_config.dart';
+import '../../authscreen/state/auth_session.dart';
 import '../data/chat_api.dart';
 import '../data/chat_history_repository.dart';
 import '../data/models/chat_history_entry.dart';
@@ -10,12 +12,10 @@ import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 import '../services/chat_session_service.dart';
 import '../services/symptom_draft_service.dart';
-import '../../authscreen/state/auth_session.dart';
 
 class ChatController {
   static const recommendationRequestDisplayText =
       'Ich möchte jetzt eine Handlungsempfehlung.';
-  static const _recommendationRequestBackendText = 'Ja, Empfehlung';
 
   final ChatApi chatApi;
   final ChatService chatService;
@@ -101,9 +101,9 @@ class ChatController {
   }
 
   Future<ChatResponse?> requestRecommendation() async {
-    return _sendMessage(
-      _recommendationRequestBackendText,
+    return _sendSessionRequest(
       visibleUserText: recommendationRequestDisplayText,
+      request: (sessionId) => chatApi.requestRecommendation(sessionId),
     );
   }
 
@@ -119,6 +119,20 @@ class ChatController {
       return null;
     }
 
+    return _sendSessionRequest(
+      visibleUserText: visibleUserText?.trim() ?? trimmed,
+      request: (sessionId) => chatApi.sendMessage(
+        trimmed,
+        sessionId,
+        authSession.activeProfileId,
+      ),
+    );
+  }
+
+  Future<ChatResponse?> _sendSessionRequest({
+    required String visibleUserText,
+    required Future<ChatResponse> Function(String sessionId) request,
+  }) async {
     if (_isCompleted) {
       return null;
     }
@@ -134,9 +148,8 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
-    // Keep backend trigger wording separate from the text shown in the chat.
     _addMessage(
-      message: Message(text: visibleUserText?.trim() ?? trimmed, isUser: true),
+      message: Message(text: visibleUserText, isUser: true),
     );
 
     lastReplyOptions.value = [];
@@ -150,11 +163,7 @@ class ChatController {
     );
 
     try {
-      final response = await chatApi.sendMessage(
-        trimmed,
-        sessionId,
-        authSession.activeProfileId,
-      );
+      final response = await request(sessionId);
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
       await loadSymptoms();

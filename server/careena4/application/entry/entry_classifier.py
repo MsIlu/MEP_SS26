@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 
-from careena4.domain.case import CaseManager
 from careena4.core.engine import ExtractionEngine
+from careena4.domain.case import CaseManager
 from careena4.llm.call_control import CallModelConfig, ENTRY_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, MedicalCase
@@ -133,7 +133,6 @@ class EntryClassifier:
         normalized = self._normalize(stripped)
         in_scope = not any(hint in normalized for hint in self._OUT_OF_SCOPE_HINTS)
         answers_active_question = active_question is not None
-        recommendation_requested = self._is_recommendation_request(normalized)
         medical_relevance = "medical" if self._looks_medical(normalized) or answers_active_question else "non_medical"
         contains_new_medical_information = self._looks_medical(normalized)
         if not in_scope:
@@ -143,7 +142,6 @@ class EntryClassifier:
                 answers_active_question=answers_active_question,
                 contains_new_medical_information=False,
                 message_kind="out_of_scope",
-                recommendation_requested=recommendation_requested,
             )
         if answers_active_question:
             return EntryAssessment(
@@ -152,7 +150,6 @@ class EntryClassifier:
                 answers_active_question=True,
                 contains_new_medical_information=contains_new_medical_information,
                 message_kind="question_answer",
-                recommendation_requested=recommendation_requested,
             )
         has_case_context = medical_case is not None and self.case_manager.has_observations(medical_case=medical_case)
         if contains_new_medical_information and not has_case_context:
@@ -167,7 +164,6 @@ class EntryClassifier:
             answers_active_question=False,
             contains_new_medical_information=contains_new_medical_information,
             message_kind=message_kind,
-            recommendation_requested=recommendation_requested,
         )
 
     def _build_user_prompt(
@@ -202,20 +198,6 @@ class EntryClassifier:
         if any(hint in normalized for hint in self._MEDICAL_HINTS):
             return True
         return bool(re.search(r"\b(krank|beschwer|symptom|weh)\b", normalized))
-
-    @staticmethod
-    def _is_recommendation_request(normalized: str) -> bool:
-        return any(
-            phrase in normalized
-            for phrase in (
-                "versorgungsempfehlung",
-                "empfehlung",
-                "was soll ich tun",
-                "wohin soll ich",
-                "naechster schritt",
-                "nÃ¤chster schritt",
-            )
-        )
 
     @staticmethod
     def _normalize(text: str) -> str:

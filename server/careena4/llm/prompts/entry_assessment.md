@@ -15,14 +15,12 @@ Rueckgabeformat:
   "medical_relevance": "<medical|non_medical|unclear>",
   "answers_active_question": <true|false>,
   "contains_new_medical_information": <true|false>,
-  "message_kind": "<new_case_report|same_case_update|question_answer|dialogue_only|out_of_scope>",
-  "recommendation_requested": <true|false>
+  "message_kind": "<new_case_report|same_case_update|question_answer|dialogue_only|out_of_scope>"
 }
 
 Fuellregeln:
 - Setzen Sie "answers_active_question" nur auf true, wenn die aktuelle Nachricht primaer die offene ActiveQuestion beantwortet.
 - Setzen Sie "contains_new_medical_information" nur auf true, wenn die aktuelle Nachricht neue medizinische Fakten enthaelt.
-- Setzen Sie "recommendation_requested" nur auf true, wenn die Person aktiv nach einer Empfehlung, Einordnung oder einem naechsten Schritt fragt.
 - Wenn "in_scope" false ist, dann:
   - "medical_relevance" muss "non_medical" sein
   - "contains_new_medical_information" muss false sein

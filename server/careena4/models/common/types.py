@@ -23,7 +23,6 @@ QuestionIntent = Literal[
 QuestionKind = Literal[
     "followup",
     "subject_clarification",
-    "closing_choice",
     "safety_clarification",
 ]
 

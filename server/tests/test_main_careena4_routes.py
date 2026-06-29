@@ -49,9 +49,10 @@ def _fake_turn_result(response_text: str = "Okay."):
         medical_case=None,
         conversation_state=SimpleNamespace(
             active_question=None,
-            recommendation_requested=False,
         ),
-        recommendation_state=None,
+        recommendation_state=SimpleNamespace(
+            recommendation_allowed=False,
+        ),
     )
 
 
@@ -152,6 +153,42 @@ def test_chat_simrun_uses_simulation_runner_shortcut(client, monkeypatch):
     assert response.status_code == 200
     assert response.json()["response"].startswith("Simulation abgeschlossen.")
     assert response.json()["red_flag"] is False
+
+
+def test_recommendation_request_unknown_session_returns_404(client: TestClient):
+    response = client.post(
+        "/recommendation/request",
+        json={"session_id": "unknown-session"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Chat session not found."
+
+
+def test_recommendation_request_uses_careena4_turn_engine(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    session_response = client.post("/session", json={})
+    session_id = session_response.json()["session_id"]
+
+    calls = []
+
+    def fake_request_recommendation(request_input):
+        calls.append(request_input)
+        return _fake_turn_result("Empfehlung angefragt.")
+
+    monkeypatch.setattr(
+        careena4_turn_engine,
+        "request_recommendation",
+        fake_request_recommendation,
+    )
+
+    response = client.post(
+        "/recommendation/request",
+        json={"session_id": session_id},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["response"] == "Empfehlung angefragt."
+    assert len(calls) == 1
 
 
 def test_profile_draft_requires_auth(client):

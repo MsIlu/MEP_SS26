@@ -76,4 +76,3 @@ class ConversationState(PipelineModel):
     phase: ConversationPhase = "intake"
     active_question: ActiveQuestion | None = None
     followup_needs: list[FollowupNeed] = Field(default_factory=list)
-    recommendation_requested: bool = False

@@ -109,18 +109,12 @@ class _ReviewRow extends StatelessWidget {
           width: 148,
           child: Text(
             item.label,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: labelColor,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w800, color: labelColor),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            item.value,
-            style: TextStyle(color: valueColor),
-          ),
+          child: Text(item.value, style: TextStyle(color: valueColor)),
         ),
       ],
     );

@@ -10,14 +10,19 @@ void main() {
         'id': 1,
         'profile_id': 42,
         'title': 'Atemnot',
+        'status': 'completed',
         'is_emergency': true,
         'created_at': '2026-06-14T16:55:00+00:00',
+        'updated_at': '2026-06-14T17:05:00+00:00',
         'recommendation': 'Notruf 112',
         'messages': const [],
       });
 
       expect(entry.createdAt.isUtc, isFalse);
       expect(entry.createdAt, DateTime.utc(2026, 6, 14, 16, 55).toLocal());
+
+      expect(entry.status, 'completed');
+      expect(entry.updatedAt, DateTime.utc(2026, 6, 14, 17, 5).toLocal());
     });
 
     test('treats timezone-less backend timestamps as UTC', () {
@@ -36,7 +41,9 @@ void main() {
     });
 
     test('uses a one-word title and falls back to Verlauf', () {
-      final titledEntry = _entry(symptomTitle: 'Starke Kopfschmerzen seit heute');
+      final titledEntry = _entry(
+        symptomTitle: 'Starke Kopfschmerzen seit heute',
+      );
       final blankEntry = _entry(symptomTitle: '   ');
 
       expect(titledEntry.title, 'Starke');

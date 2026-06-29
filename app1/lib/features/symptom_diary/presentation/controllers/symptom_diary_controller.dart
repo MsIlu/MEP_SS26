@@ -15,9 +15,9 @@ class SymptomDiaryController extends ChangeNotifier {
     SymptomRepository? repository,
     SymptomApiService? apiService,
     int? profileId,
-  })  : _repository = repository ?? SymptomRepository(),
-        _apiService = apiService,
-        _profileId = profileId;
+  }) : _repository = repository ?? SymptomRepository(),
+       _apiService = apiService,
+       _profileId = profileId;
 
   final List<SymptomEntry> _entries = [];
   bool _isLoading = true;
@@ -71,10 +71,7 @@ class SymptomDiaryController extends ChangeNotifier {
   /// Removes an entry without touching other days.
   Future<void> deleteEntry(SymptomEntry entry) async {
     if (entry.isSynced && _profileId != null && _apiService != null) {
-      await _apiService.deleteSymptom(
-        profileId: _profileId,
-        entryId: entry.id,
-      );
+      await _apiService.deleteSymptom(profileId: _profileId, entryId: entry.id);
     }
 
     _entries.removeWhere((item) => item.id == entry.id);

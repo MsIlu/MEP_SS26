@@ -53,7 +53,8 @@ void main() {
   testWidgets('shows custom destination copy', (tester) async {
     await pumpDialogLauncher(
       tester,
-      message: 'Wenn du fortfährst, gelangst du zurück zur Startseite. '
+      message:
+          'Wenn du fortfährst, gelangst du zurück zur Startseite. '
           'Der aktuelle Chat wird nicht gespeichert.',
       confirmLabel: 'Zur Startseite',
     );

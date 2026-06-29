@@ -1,4 +1,6 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'dart:async';
+
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
@@ -12,15 +14,19 @@ import '../../../../core/widgets/responsive_frame.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
 import '../widgets/chat_bubble.dart';
+import '../../controllers/chat_controller.dart';
+import 'chat_screen.dart';
 
 class ChatHistoryScreen extends StatefulWidget {
   final ThemeController themeController;
+  final ChatController? chatController;
   final ChatHistoryRepository repository;
   final int profileId;
 
   const ChatHistoryScreen({
     super.key,
     required this.themeController,
+    this.chatController,
     required this.profileId,
     required this.repository,
   });
@@ -30,7 +36,7 @@ class ChatHistoryScreen extends StatefulWidget {
 }
 
 class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
-  late final Future<List<ChatHistoryEntry>> _entriesFuture;
+  late Future<List<ChatHistoryEntry>> _entriesFuture;
   _HistorySortOrder _sortOrder = _HistorySortOrder.descending;
 
   @override
@@ -39,11 +45,62 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     _entriesFuture = widget.repository.loadEntries(profileId: widget.profileId);
   }
 
+  void _reloadEntries() {
+    setState(() {
+      _entriesFuture = widget.repository.loadEntries(
+        profileId: widget.profileId,
+      );
+    });
+  }
+
+  Future<void> _deleteEntry(ChatHistoryEntry entry) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verlauf löschen?'),
+        content: Text('Möchtest du „${entry.title}“ wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Löschen'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await widget.repository.deleteChat(entry.id);
+      if (!mounted) return;
+      final controller =
+          widget.chatController ??
+          AppDependenciesScope.maybeOf(context)?.chatController;
+      if (controller != null) controller.historyRevision.value += 1;
+      _reloadEntries();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Der Verlauf konnte nicht gelöscht werden.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CareenaPageHeader(
         title: 'Nachrichtenverlauf',
+        trailing: CareenaThemeHeaderAction(
+          onPressed: widget.themeController.toggleTheme,
+          isDarkMode: widget.themeController.isDarkMode,
+        ),
       ),
       body: SafeArea(
         child: ResponsivePageBody(
@@ -83,7 +140,14 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  for (final group in groups) _ChatHistoryGroup(group: group),
+                  for (final group in groups)
+                    _ChatHistoryGroup(
+                      group: group,
+                      themeController: widget.themeController,
+                      chatController: widget.chatController,
+                      onReturnedFromChat: _reloadEntries,
+                      onDelete: _deleteEntry,
+                    ),
                 ],
               );
             },
@@ -191,10 +255,24 @@ class _HistorySortControl extends StatelessWidget {
   }
 }
 
+bool _canResumeEntry(ChatHistoryEntry entry) {
+  return entry.status == 'active' || entry.status == 'waiting_for_assistant';
+}
+
 class _ChatHistoryGroup extends StatelessWidget {
   final _HistoryMonthGroup group;
+  final ThemeController themeController;
+  final ChatController? chatController;
+  final VoidCallback onReturnedFromChat;
+  final ValueChanged<ChatHistoryEntry> onDelete;
 
-  const _ChatHistoryGroup({required this.group});
+  const _ChatHistoryGroup({
+    required this.group,
+    required this.themeController,
+    required this.chatController,
+    required this.onReturnedFromChat,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +311,14 @@ class _ChatHistoryGroup extends StatelessWidget {
         ),
         subtitle: Text(_formatEntryCount(group.entries.length)),
         children: [
-          for (final entry in group.entries) _ChatHistoryTile(entry: entry),
+          for (final entry in group.entries)
+            _ChatHistoryTile(
+              entry: entry,
+              themeController: themeController,
+              chatController: chatController,
+              onReturnedFromChat: onReturnedFromChat,
+              onDelete: onDelete,
+            ),
         ],
       ),
     );
@@ -242,8 +327,18 @@ class _ChatHistoryGroup extends StatelessWidget {
 
 class _ChatHistoryTile extends StatelessWidget {
   final ChatHistoryEntry entry;
+  final ThemeController themeController;
+  final ChatController? chatController;
+  final VoidCallback onReturnedFromChat;
+  final ValueChanged<ChatHistoryEntry> onDelete;
 
-  const _ChatHistoryTile({required this.entry});
+  const _ChatHistoryTile({
+    required this.entry,
+    required this.themeController,
+    required this.chatController,
+    required this.onReturnedFromChat,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +361,45 @@ class _ChatHistoryTile extends StatelessWidget {
               : AppColors.careenaDark);
 
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        if (_canResumeEntry(entry) && chatController != null) {
+          final controller = chatController!;
+          if (!controller.tryBeginOpeningHistory(entry.id)) {
+            return;
+          }
+
+          try {
+            await controller.resumeHistoryEntry(
+              entry,
+              continuePendingResponse: false,
+            );
+
+            if (!context.mounted) return;
+
+            unawaited(controller.continuePendingAssistantResponseIfNeeded());
+
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  controller: controller,
+                  themeController: themeController,
+                  leaveDialogMessage:
+                      'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+                      'Der aktuelle Chat wurde gespeichert.',
+                ),
+              ),
+            );
+
+            if (context.mounted) {
+              onReturnedFromChat();
+            }
+          } finally {
+            controller.finishOpeningHistory(entry.id);
+          }
+          return;
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -297,14 +430,31 @@ class _ChatHistoryTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    entry.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          entry.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (_canResumeEntry(entry)) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 9,
+                          height: 9,
+                          decoration: const BoxDecoration(
+                            color: AppColors.careenaTeal,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (entry.isEmergency) ...[
                     const SizedBox(height: 4),
@@ -353,7 +503,27 @@ class _ChatHistoryTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+                PopupMenuButton<String>(
+                  tooltip: 'Verlauf verwalten',
+                  onSelected: (value) {
+                    if (value == 'delete') onDelete(entry);
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: AppColors.warningRed,
+                          ),
+                          SizedBox(width: 10),
+                          Text('Löschen'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],
@@ -414,7 +584,12 @@ class ChatHistoryDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final message in entry.messages)
-                ChatBubble(message: message, symptoms: const [], userMessages: const [], showLongProcessingHint: false),
+                ChatBubble(
+                  message: message,
+                  symptoms: const [],
+                  userMessages: const [],
+                  showLongProcessingHint: false,
+                ),
             ],
           ),
         ),

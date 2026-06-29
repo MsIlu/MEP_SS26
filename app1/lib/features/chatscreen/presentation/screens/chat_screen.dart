@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -73,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     widget.controller.messages.addListener(_onMessagesChanged);
 
-    widget.controller.init();
+    unawaited(_initializeChat());
     _scrollController.addListener(_handleScrollChanged);
     widget.controller.messages.addListener(_handleMessagesChanged);
 
@@ -92,6 +92,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _initializeChat() async {
+    await widget.controller.init();
+    if (!mounted) return;
+    _onMessagesChanged();
+  }
+  
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -205,7 +211,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _showLongProcessingHint = false;
     });
 
-    final showsRecommendation = response != null &&
+    final showsRecommendation =
+        response != null &&
         (widget.controller.chatService.isFinalRecommendation(response) ||
             widget.controller.chatService.isEmergencyRecommendation(response));
 
@@ -346,6 +353,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _handleLeaveChat() async {
+    if (widget.controller.authSession.isAuthenticated) {
+      await _speechService.stop();
+      if (!mounted) return;
+
+      _allowPopAfterConfirmation = true;
+      Navigator.of(context).pop();
+      return;
+    }
+
     final shouldLeave = await showLeaveChatDialog(
       context,
       message: widget.leaveDialogMessage,
@@ -517,12 +533,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               return const SizedBox.shrink();
                             }
 
-                            return Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                              child: _RecommendationRequestButton(
-                                isEnabled: !_isSending,
-                                onPressed: _handleRecommendationRequest,
-                              ),
+                            return ValueListenableBuilder<Set<String>>(
+                              valueListenable:
+                                  widget.controller.continuingHistoryIds,
+                              builder: (context, _, _) {
+                                return Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    12,
+                                    0,
+                                    12,
+                                    8,
+                                  ),
+                                  child: _RecommendationRequestButton(
+                                    isEnabled:
+                                        !_isSending &&
+                                        !widget
+                                            .controller
+                                            .isActiveChatContinuing,
+                                    onPressed: _handleRecommendationRequest,
+                                  ),
+                                );
+                              },
                             );
                           },
                         );
@@ -533,15 +564,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ValueListenableBuilder(
                   valueListenable: widget.controller.isCompleted,
                   builder: (context, bool isCompleted, _) {
-                    return ChatInputField(
-                      controller: _textController,
-                      focusNode: _inputFocusNode,
-                      isSending: _isSending,
-                      isEnabled: !isCompleted,
-                      onSend: _handleSend,
-                      smartReplies: isCompleted ? const [] : _smartReplies,
-                      onSmartReplySelected: _handleSmartReplySelected,
-                      speechService: _speechService,
+                    return ValueListenableBuilder<Set<String>>(
+                      valueListenable: widget.controller.continuingHistoryIds,
+                      builder: (context, _, _) {
+                        final isContinuing =
+                            widget.controller.isActiveChatContinuing;
+
+                        return ChatInputField(
+                          controller: _textController,
+                          focusNode: _inputFocusNode,
+                          isSending: _isSending || isContinuing,
+                          isEnabled: !isCompleted && !isContinuing,
+                          onSend: _handleSend,
+                          smartReplies: isCompleted || isContinuing
+                              ? const []
+                              : _smartReplies,
+                          onSmartReplySelected: _handleSmartReplySelected,
+                          speechService: _speechService,
+                        );
+                      },
                     );
                   },
                 ),
@@ -600,7 +641,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           symptoms: widget.controller.symptoms.value,
                           userMessages: userMessages,
                           showLongProcessingHint:
-                            message.isLoading && _showLongProcessingHint,
+                              message.isLoading && _showLongProcessingHint,
                         ),
                       ),
                     );
@@ -640,7 +681,9 @@ class _RecommendationRequestButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.careenaTeal,
           foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.35),
+          disabledBackgroundColor: AppColors.careenaTeal.withValues(
+            alpha: 0.35,
+          ),
           disabledForegroundColor: AppColors.white70,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(

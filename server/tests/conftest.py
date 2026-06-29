@@ -2,6 +2,8 @@
 # Created as part of the authentication and profile management test setup.
 # Provides an isolated FastAPI test app with an in-memory SQLite database.
 
+from types import SimpleNamespace
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -14,6 +16,65 @@ from medications.router import router as medications_router
 from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from symptoms.router import router as symptoms_router
+
+
+class _FakeCareenaSession:
+    def __init__(self, session_id: str):
+        self.session_id = session_id
+        self.messages: list[dict[str, str]] = []
+        self.case_topic = None
+        self.medical_case = None
+        self.conversation_state = None
+        self.recommendation_state = None
+        self.symptom_input_draft = None
+        self.last_turn_understanding = None
+
+
+class _FakeSessionStore:
+    def __init__(self):
+        self._sessions: dict[str, _FakeCareenaSession] = {}
+
+    def create_session(self) -> str:
+        session_id = f"test-session-{len(self._sessions) + 1}"
+        self._sessions[session_id] = _FakeCareenaSession(session_id)
+        return session_id
+
+    def get(self, session_id: str):
+        return self._sessions.get(session_id)
+
+
+class _FakeTurnEngine:
+    def run_turn(self, turn_input):
+        return SimpleNamespace(
+            response_text="Bitte trinken Sie ausreichend und beobachten Sie den Verlauf.",
+            response_mode="ask_followup",
+            trace_notes=[],
+            conversation_state=SimpleNamespace(
+                active_question=None,
+                recommendation_requested=False,
+            ),
+            recommendation_result=None,
+            case_topic=None,
+            medical_case=None,
+            recommendation_state=None,
+            current_turn_understanding=None,
+            symptom_input_draft=None,
+        )
+
+
+def _fake_response_builder(result):
+    return {
+        "response": result.response_text,
+        "response_mode": result.response_mode,
+        "red_flag": False,
+        "trace_notes": [],
+        "pending_followup": None,
+        "recommendation_requested": False,
+        "recommendation_ready": False,
+        "recommendation_result": None,
+        "action": None,
+        "severity": None,
+    }
 
 
 @pytest.fixture()
@@ -52,6 +113,11 @@ def client(db_session):
     app.include_router(medications_router)
     app.include_router(chat_history_router)
     app.include_router(symptoms_router)
+
+    app.state.careena4_session_store = _FakeSessionStore()
+    app.state.careena4_session_profiles = {}
+    app.state.careena4_turn_engine = _FakeTurnEngine()
+    app.state.careena4_response_builder = _fake_response_builder
 
     def get_test_session():
         yield db_session

@@ -15,7 +15,8 @@ class AppDependenciesScope extends InheritedWidget {
 
   /// Access point for dependencies from any widget
   static AppDependencies of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<AppDependenciesScope>();
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<AppDependenciesScope>();
 
     assert(scope != null, 'AppDependenciesScope not found in context');
 

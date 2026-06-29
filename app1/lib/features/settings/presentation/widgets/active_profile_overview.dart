@@ -113,10 +113,7 @@ class ActiveProfileOverview extends StatelessWidget {
     }
   }
 
-  Future<void> _refreshProfileData(
-    BuildContext context,
-    int profileId,
-  ) async {
+  Future<void> _refreshProfileData(BuildContext context, int profileId) async {
     final dependencies = AppDependenciesScope.maybeOf(context);
     if (dependencies == null) {
       return;

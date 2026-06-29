@@ -9,6 +9,7 @@ import '../data/chat_history_repository.dart';
 import '../data/models/careena_availability.dart';
 import '../data/models/chat_history_entry.dart';
 import '../data/models/chat_response_model.dart';
+import '../data/models/chat_run_state.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 import '../services/chat_session_service.dart';
@@ -26,6 +27,13 @@ class ChatController {
   final AuthSession authSession;
   int? _activeProfileId;
   bool _isCompleted = false;
+  final Map<String, ChatRunState> _chatRunStates = {};
+  final Map<String, Future<void>> _resumeOperations = {};
+  final Map<String, Future<void>> _continueOperations = {};
+  final Set<String> _openingHistoryEntries = {};
+  String? _activeHistoryEntryId;
+  DateTime? _activeHistoryCreatedAt;
+  int _profileChangeGeneration = 0;
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
@@ -56,6 +64,23 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
+  final ValueNotifier<int> historyRevision = ValueNotifier<int>(0);
+  final ValueNotifier<Set<String>> continuingHistoryIds =
+      ValueNotifier<Set<String>>(<String>{});
+
+  bool get isActiveChatContinuing {
+    final historyEntryId = _activeHistoryEntryId;
+    return historyEntryId != null &&
+        continuingHistoryIds.value.contains(historyEntryId);
+  }
+
+  bool tryBeginOpeningHistory(String historyEntryId) {
+    return _openingHistoryEntries.add(historyEntryId);
+  }
+
+  void finishOpeningHistory(String historyEntryId) {
+    _openingHistoryEntries.remove(historyEntryId);
+  }
   final ValueNotifier<CareenaAvailability> availability =
       ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
@@ -205,6 +230,8 @@ class ChatController {
       await _initFuture;
     }
 
+    final expectedProfileId = authSession.activeProfileId;
+    final expectedGeneration = _profileChangeGeneration;
     if (availability.value.status != CareenaAvailabilityStatus.online) {
       await refreshAvailability();
     }
@@ -216,11 +243,28 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
+    if (expectedGeneration != _profileChangeGeneration ||
+        expectedProfileId != authSession.activeProfileId) {
+      return null;
+    }
+
     _addMessage(
       message: Message(text: visibleUserText, isUser: true),
     );
 
     lastReplyOptions.value = [];
+
+    await _persistActiveChat(status: 'waiting_for_assistant');
+    final expectedHistoryEntryId = _activeHistoryEntryId;
+
+    if (!_isChatRequestActive(
+      generation: expectedGeneration,
+      profileId: expectedProfileId,
+      historyEntryId: expectedHistoryEntryId,
+      sessionId: sessionId,
+    )) {
+      return null;
+    }
     _addMessage(
       message: Message(
         text: '',
@@ -233,14 +277,42 @@ class ChatController {
     try {
       final response = await request(sessionId);
 
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      await loadSymptoms();
+      final loadedSymptoms = await symptomDraftService.loadSymptoms(sessionId);
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
+      symptoms.value = loadedSymptoms;
 
       lastReplyOptions.value = response.replyOptions;
 
       if (response.redFlag) {
         final botMessage = chatService.buildAssistantMessage(response);
         _addMessage(message: botMessage);
+        await _persistActiveChat();
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: sessionId,
+        )) {
+          return response;
+        }
         await _completeChat(
           recommendation: response.text,
           nextSteps: response.action,
@@ -249,27 +321,34 @@ class ChatController {
         return response;
       }
 
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation: response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
-        );
-        return response;
-      }
-
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
       await for (final partialText in chatService.streamText(response.text)) {
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: sessionId,
+        )) {
+          return response;
+        }
+
         _setMessages(
           chatService.replaceLastMessage(
             messages: messages.value,
             message: botMessage.copyWith(text: partialText, isStreaming: true),
           ),
         );
+      }
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
       }
 
       _setMessages(
@@ -279,11 +358,42 @@ class ChatController {
         ),
       );
 
+      await _persistActiveChat(status: 'active');
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return response;
+      }
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+      }
+
       return response;
     } catch (e) {
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return null;
+      }
+      
       await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
+      await _markActiveChatFailed();
       return null;
     }
   }
@@ -323,6 +433,299 @@ class ChatController {
     );
   }
 
+  Future<void> resumeHistoryEntry(
+    ChatHistoryEntry entry, {
+    bool continuePendingResponse = true,
+  }) {
+    final existingOperation = _resumeOperations[entry.id];
+    if (existingOperation != null) {
+      return existingOperation;
+    }
+
+    final operation = _resumeHistoryEntry(
+      entry,
+      continuePendingResponse: continuePendingResponse,
+    );
+    _resumeOperations[entry.id] = operation;
+
+    return operation.whenComplete(() {
+      if (identical(_resumeOperations[entry.id], operation)) {
+        _resumeOperations.remove(entry.id);
+      }
+    });
+  }
+
+  Future<void> _resumeHistoryEntry(
+    ChatHistoryEntry entry, {
+    required bool continuePendingResponse,
+  }) async {
+    final resumedMessages = _collapseStreamingSnapshots(entry.messages);
+    _activeHistoryEntryId = entry.id;
+    _activeHistoryCreatedAt = entry.createdAt;
+    _setCompleted(entry.status == 'completed');
+    messages.value = resumedMessages;
+    _setChatRunState(
+      ChatRunState(
+        historyId: entry.id,
+        sessionId: entry.sessionId,
+        profileId: entry.profileId,
+        messages: resumedMessages,
+        status: entry.status,
+      ),
+    );
+
+    if (_canResumeStatus(entry.status)) {
+      await chatSessionService.resumeHistorySession(
+        historyId: entry.id,
+        profileId: entry.profileId,
+      );
+      _updateChatRunState(
+        entry.id,
+        sessionId: chatSessionService.sessionId,
+        profileId: entry.profileId,
+      );
+      _initFuture = Future.value();
+
+      if (continuePendingResponse) {
+        await continuePendingAssistantResponseIfNeeded();
+      }
+    }
+  }
+
+  Future<void> continuePendingAssistantResponseIfNeeded() async {
+    final historyEntryId = _activeHistoryEntryId;
+
+    if (historyEntryId == null) {
+      return;
+    }
+
+    final existingOperation = _continueOperations[historyEntryId];
+    if (existingOperation != null) {
+      await existingOperation;
+      return;
+    }
+
+    if (!_currentMessagesWaitForAssistantResponse()) {
+      return;
+    }
+
+    _setHistoryContinuing(historyEntryId, true);
+    final operation = _continuePendingAssistantResponse(historyEntryId);
+    _continueOperations[historyEntryId] = operation;
+
+    try {
+      await operation;
+    } finally {
+      if (identical(_continueOperations[historyEntryId], operation)) {
+        _continueOperations.remove(historyEntryId);
+        _setHistoryContinuing(historyEntryId, false);
+      }
+    }
+  }
+
+  void _setHistoryContinuing(String historyEntryId, bool isContinuing) {
+    _updateChatRunState(historyEntryId, isContinuing: isContinuing);
+    final updatedIds = Set<String>.from(continuingHistoryIds.value);
+
+    if (isContinuing) {
+      updatedIds.add(historyEntryId);
+    } else {
+      updatedIds.remove(historyEntryId);
+    }
+
+    continuingHistoryIds.value = updatedIds;
+  }
+
+  Future<void> _continuePendingAssistantResponse(String historyEntryId) async {
+    final expectedHistoryEntryId = historyEntryId;
+    final expectedProfileId = authSession.activeProfileId;
+    final expectedGeneration = _profileChangeGeneration;
+    final expectedSessionId = chatSessionService.sessionId;
+
+    if (_isCompleted) {
+      return;
+    }
+
+    _addMessage(
+      message: Message(
+        text: '',
+        isUser: false,
+        isLoading: true,
+        isStreaming: true,
+      ),
+    );
+
+    try {
+      final response = await chatSessionService.continueHistorySession(
+        historyId: historyEntryId,
+      );
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+
+      _setMessages(chatService.removeLastBotMessage(messages.value));
+      final loadedSymptoms = await symptomDraftService.loadSymptoms(
+        expectedSessionId,
+      );
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+      symptoms.value = loadedSymptoms;
+
+      final botMessage = chatService.buildAssistantMessage(response);
+      _addMessage(message: botMessage.copyWith(text: ''));
+
+      await for (final partialText in chatService.streamText(response.text)) {
+        if (!_isChatRequestActive(
+          generation: expectedGeneration,
+          profileId: expectedProfileId,
+          historyEntryId: expectedHistoryEntryId,
+          sessionId: expectedSessionId,
+        )) {
+          _updateChatRunState(
+            historyEntryId,
+            status: _statusForResponse(response),
+            hasUnreadUpdate: true,
+          );
+          return;
+        }
+
+        _setMessages(
+          chatService.replaceLastMessage(
+            messages: messages.value,
+            message: botMessage.copyWith(text: partialText, isStreaming: true),
+          ),
+        );
+      }
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+
+      _setMessages(
+        chatService.replaceLastMessage(
+          messages: messages.value,
+          message: botMessage.copyWith(isStreaming: false),
+        ),
+      );
+
+      await _persistActiveChat(status: 'active');
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: _statusForResponse(response),
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+      }
+    } catch (e) {
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: expectedSessionId,
+      )) {
+        _updateChatRunState(
+          historyEntryId,
+          status: 'failed',
+          hasUnreadUpdate: true,
+        );
+        return;
+      }
+
+      _setMessages(chatService.removeLastBotMessage(messages.value));
+      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      await _markActiveChatFailed();
+    }
+  }
+
+  bool _currentMessagesWaitForAssistantResponse() {
+    if (messages.value.isEmpty) {
+      return false;
+    }
+
+    final lastMessage = messages.value.last;
+    return lastMessage.isUser && lastMessage.text.trim().isNotEmpty;
+  }
+
+  List<Message> _collapseStreamingSnapshots(List<Message> source) {
+    final collapsed = <Message>[];
+
+    for (final message in source) {
+      if (collapsed.isNotEmpty) {
+        final previous = collapsed.last;
+        final timestampDifference = message.timestamp!
+            .difference(previous.timestamp!)
+            .abs();
+        final isLikelyStreamingSnapshot =
+            !previous.isUser &&
+            !message.isUser &&
+            timestampDifference <= const Duration(seconds: 2) &&
+            (message.text.startsWith(previous.text) ||
+                previous.text.startsWith(message.text));
+
+        if (isLikelyStreamingSnapshot) {
+          if (message.text.length >= previous.text.length) {
+            collapsed[collapsed.length - 1] = message;
+          }
+          continue;
+        }
+      }
+
+      collapsed.add(message);
+    }
+
+    return collapsed;
+  }
+
   Future<void> resetChat() async {
     await _clearCurrentSession();
   }
@@ -332,6 +735,8 @@ class ChatController {
 
     messages.value = [];
     symptoms.value = [];
+    _activeHistoryEntryId = null;
+    _activeHistoryCreatedAt = null;
     _setCompleted(false);
     _initFuture = null;
 
@@ -345,6 +750,7 @@ class ChatController {
       return;
     }
 
+    _profileChangeGeneration++;
     _activeProfileId = nextProfileId;
     unawaited(_resetAfterProfileChange());
   }
@@ -357,6 +763,18 @@ class ChatController {
     if (wasInitialized) {
       await init();
     }
+  }
+
+  bool _isChatRequestActive({
+    required int generation,
+    required int? profileId,
+    required String? historyEntryId,
+    required String? sessionId,
+  }) {
+    return generation == _profileChangeGeneration &&
+        profileId == authSession.activeProfileId &&
+        historyEntryId == _activeHistoryEntryId &&
+        sessionId == chatSessionService.sessionId;
   }
 
   void _addMessage({required Message message}) {
@@ -378,25 +796,146 @@ class ChatController {
       return;
     }
 
-    final now = DateTime.now();
     final activeProfileId = authSession.activeProfileId;
 
     if (activeProfileId != null) {
-      await chatHistoryRepository.saveCompletedChat(
-        ChatHistoryEntry(
-          id: now.microsecondsSinceEpoch.toString(),
-          profileId: activeProfileId,
-          symptomTitle: _historyTitleFromSymptoms(),
-          isEmergency: isEmergency,
-          createdAt: now,
-          messages: messages.value,
-          recommendation: recommendation,
-          nextSteps: nextSteps,
-        ),
+      await _persistChatHistory(
+        status: 'completed',
+        recommendation: recommendation,
+        nextSteps: nextSteps,
+        isEmergency: isEmergency,
       );
     }
 
     _setCompleted(true);
+  }
+
+  Future<void> _persistActiveChat({String status = 'active'}) async {
+    if (_isCompleted) {
+      return;
+    }
+
+    if (authSession.activeProfileId == null) {
+      return;
+    }
+
+    final hasUserMessage = messages.value.any(
+      (message) => message.isUser && message.text.trim().isNotEmpty,
+    );
+
+    if (!hasUserMessage) {
+      return;
+    }
+
+    await _persistChatHistory(status: status);
+  }
+
+  Future<void> _persistChatHistory({
+    required String status,
+    String recommendation = '',
+    String? nextSteps,
+    bool isEmergency = false,
+  }) async {
+    final activeProfileId = authSession.activeProfileId;
+
+    if (activeProfileId == null) {
+      return;
+    }
+
+    final expectedGeneration = _profileChangeGeneration;
+    final expectedHistoryEntryId = _activeHistoryEntryId;
+    final now = DateTime.now();
+    final createdAt = _activeHistoryCreatedAt ?? now;
+
+    final entry = ChatHistoryEntry(
+      id: _activeHistoryEntryId ?? now.microsecondsSinceEpoch.toString(),
+      profileId: activeProfileId,
+      sessionId: chatSessionService.sessionId,
+      symptomTitle: _historyTitleFromSymptoms(),
+      status: status,
+      isEmergency: isEmergency,
+      createdAt: createdAt,
+      updatedAt: now,
+      messages: messages.value,
+      recommendation: recommendation,
+      nextSteps: nextSteps,
+    );
+
+    final savedEntry = _activeHistoryEntryId == null
+        ? await chatHistoryRepository.saveChat(entry)
+        : await chatHistoryRepository.updateChat(entry);
+
+    if (expectedGeneration != _profileChangeGeneration ||
+        activeProfileId != authSession.activeProfileId ||
+        expectedHistoryEntryId != _activeHistoryEntryId) {
+      return;
+    }
+
+    _activeHistoryEntryId = savedEntry.id;
+    _activeHistoryCreatedAt = savedEntry.createdAt;
+    _setChatRunState(
+      ChatRunState(
+        historyId: savedEntry.id,
+        sessionId: savedEntry.sessionId,
+        profileId: savedEntry.profileId,
+        messages: savedEntry.messages,
+        status: savedEntry.status,
+        isContinuing: _chatRunStates[savedEntry.id]?.isContinuing ?? false,
+        hasUnreadUpdate: false,
+      ),
+    );
+    historyRevision.value += 1;
+  }
+
+  Future<void> _markActiveChatFailed() async {
+    if (_activeHistoryEntryId == null || authSession.activeProfileId == null) {
+      return;
+    }
+
+    await _persistChatHistory(status: 'failed');
+  }
+
+  void _setChatRunState(ChatRunState state) {
+    _chatRunStates[state.historyId] = state;
+  }
+
+  void _updateChatRunState(
+    String historyId, {
+    String? sessionId,
+    int? profileId,
+    List<Message>? messages,
+    String? status,
+    bool? isContinuing,
+    bool? hasUnreadUpdate,
+  }) {
+    final current = _chatRunStates[historyId];
+
+    if (current == null) {
+      return;
+    }
+
+    _chatRunStates[historyId] = current.copyWith(
+      sessionId: sessionId,
+      profileId: profileId,
+      messages: messages,
+      status: status,
+      isContinuing: isContinuing,
+      hasUnreadUpdate: hasUnreadUpdate,
+    );
+  }
+
+  bool _canResumeStatus(String status) {
+    return status == 'active' || status == 'waiting_for_assistant';
+  }
+
+  String _statusForResponse(ChatResponse response) {
+    final isEmergency = chatService.isEmergencyRecommendation(response);
+
+    if (chatService.isFinalRecommendation(response) || isEmergency) {
+      return 'completed';
+    }
+
+    return 'active';
   }
 
   void _setCompleted(bool value) {
@@ -449,6 +988,8 @@ class ChatController {
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    continuingHistoryIds.dispose();
+    historyRevision.dispose();
     availability.dispose();
   }
 }

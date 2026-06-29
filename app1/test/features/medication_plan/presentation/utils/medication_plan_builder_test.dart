@@ -87,9 +87,7 @@ void main() {
     });
 
     test('keeps same-day and later daily medication visible', () {
-      final entries = [
-        _entry(createdAt: DateTime(2026, 6, 2)),
-      ];
+      final entries = [_entry(createdAt: DateTime(2026, 6, 2))];
 
       expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 2)), isTrue);
       expect(hasMedicationPlanForDate(entries, DateTime(2026, 6, 9)), isTrue);

@@ -7,4 +7,3 @@ class EntryAssessment(PipelineModel):
     answers_active_question: bool = False
     contains_new_medical_information: bool = False
     message_kind: EntryMessageKind
-    recommendation_requested: bool = False

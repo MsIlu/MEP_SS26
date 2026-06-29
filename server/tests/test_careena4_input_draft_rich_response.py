@@ -1,13 +1,38 @@
-from fastapi.testclient import TestClient
 import pytest
+from types import SimpleNamespace
+from fastapi.testclient import TestClient
 
-import careena4.api as careena4_api
-from careena4.api import app
+import main
 from careena4.application.orchestration.turn_engine import TurnEngine
 from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput
 
 
-client = TestClient(app)
+@pytest.fixture(autouse=True)
+def clear_sessions():
+    main.careena4_session_profiles.clear()
+    main.careena4_session_store._sessions.clear()
+
+    yield
+
+    main.careena4_session_profiles.clear()
+    main.careena4_session_store._sessions.clear()
+
+
+@pytest.fixture()
+def client(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(main, "create_db_and_tables", lambda: None)
+    monkeypatch.setattr(main, "_seed_catalog", lambda: None)
+    monkeypatch.setattr(main.careena4_services.safety_catalog_cache, "load", lambda: 0)
+
+    def override_get_session():
+        yield SimpleNamespace()
+
+    main.app.dependency_overrides[main.get_session] = override_get_session
+
+    with TestClient(main.app) as test_client:
+        yield test_client
+
+    main.app.dependency_overrides.clear()
 
 
 class _StubMedicalExtractor:
@@ -23,27 +48,23 @@ class _StubMedicalExtractor:
         )
 
 
-@pytest.fixture(autouse=True)
-def clear_sessions():
-    careena4_api.session_store._sessions.clear()
-    yield
-    careena4_api.session_store._sessions.clear()
-
-
-def _create_session() -> str:
-    response = client.post("/session")
+def _create_session(client: TestClient) -> str:
+    response = client.post("/session", json={})
     assert response.status_code == 200
     return response.json()["session_id"]
 
 
-def test_input_draft_response_exposes_legacy_symptoms_and_rich_chips(monkeypatch):
+def test_input_draft_response_exposes_legacy_symptoms_and_rich_chips(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
     monkeypatch.setattr(
-        careena4_api,
-        "turn_engine",
+        main,
+        "careena4_turn_engine",
         TurnEngine(medical_extractor=_StubMedicalExtractor()),
     )
 
-    session_id = _create_session()
+    session_id = _create_session(client)
 
     chat_response = client.post(
         "/chatscreen",
@@ -72,8 +93,8 @@ def test_input_draft_response_exposes_legacy_symptoms_and_rich_chips(monkeypatch
     assert chip["mapping"]["validation_status"] == "mapping_candidate"
 
 
-def test_input_draft_patch_still_accepts_legacy_symptom_list():
-    session_id = _create_session()
+def test_input_draft_patch_still_accepts_legacy_symptom_list(client: TestClient):
+    session_id = _create_session(client)
 
     patch_response = client.patch(
         f"/input-drafts/{session_id}",

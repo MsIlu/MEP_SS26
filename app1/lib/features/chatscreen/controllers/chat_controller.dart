@@ -1,21 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/config/app_config.dart';
+import '../../authscreen/state/auth_session.dart';
 import '../data/chat_api.dart';
 import '../data/chat_history_repository.dart';
+import '../data/models/careena_availability.dart';
 import '../data/models/chat_history_entry.dart';
 import '../data/models/chat_response_model.dart';
 import '../data/models/message_model.dart';
 import '../services/chat_service.dart';
 import '../services/chat_session_service.dart';
 import '../services/symptom_draft_service.dart';
-import '../../authscreen/state/auth_session.dart';
 
 class ChatController {
   static const recommendationRequestDisplayText =
       'Ich möchte jetzt eine Handlungsempfehlung.';
-  static const _recommendationRequestBackendText = 'Ja, Empfehlung';
 
   final ChatApi chatApi;
   final ChatService chatService;
@@ -25,6 +26,9 @@ class ChatController {
   final AuthSession authSession;
   int? _activeProfileId;
   bool _isCompleted = false;
+  Timer? _availabilityRetryTimer;
+  Future<void>? _availabilityRefreshFuture;
+  static const Duration _availabilityRetryDelay = Duration(seconds: 5);
 
   ChatController({
     required this.chatApi,
@@ -52,12 +56,19 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
+  final ValueNotifier<CareenaAvailability> availability =
+      ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
   Future<void>? _initFuture;
 
   Future<void> init() async {
+    final wasAlreadyInitialized = _initFuture != null;
     _initFuture ??= _initialize();
     await _initFuture;
+
+    if (wasAlreadyInitialized) {
+      await refreshAvailability(refreshLlmStatus: true);
+    }
   }
 
   Future<void> _initialize() async {
@@ -68,6 +79,7 @@ class ChatController {
     }
 
     final hasSession = await _ensureSession(showOfflineMessage: true);
+    await refreshAvailability();
 
     if (hasSession) {
       await loadSymptoms();
@@ -96,14 +108,66 @@ class ChatController {
     }
   }
 
+  Future<void> refreshAvailability({
+    bool showChecking = true,
+    bool refreshLlmStatus = false,
+  }) async {
+    final currentRefresh = _availabilityRefreshFuture;
+    if (currentRefresh != null) {
+      await currentRefresh;
+      if (!refreshLlmStatus) {
+        return;
+      }
+    }
+
+    final refreshFuture = _refreshAvailability(
+      showChecking: showChecking,
+      refreshLlmStatus: refreshLlmStatus,
+    );
+    _availabilityRefreshFuture = refreshFuture;
+
+    try {
+      await refreshFuture;
+    } finally {
+      if (identical(_availabilityRefreshFuture, refreshFuture)) {
+        _availabilityRefreshFuture = null;
+      }
+    }
+  }
+
+  Future<void> _refreshAvailability({
+    required bool showChecking,
+    required bool refreshLlmStatus,
+  }) async {
+    _availabilityRetryTimer?.cancel();
+    _availabilityRetryTimer = null;
+
+    if (showChecking) {
+      availability.value = CareenaAvailability.checking;
+    }
+
+    if (refreshLlmStatus) {
+      await chatApi.warmup();
+    }
+
+    final nextAvailability = await chatApi.getCareenaAvailability();
+    availability.value = nextAvailability;
+
+    if (nextAvailability.status != CareenaAvailabilityStatus.online) {
+      _availabilityRetryTimer = Timer(_availabilityRetryDelay, () {
+        unawaited(refreshAvailability(showChecking: false));
+      });
+    }
+  }
+
   Future<ChatResponse?> sendMessage(String text) async {
     return _sendMessage(text);
   }
 
   Future<ChatResponse?> requestRecommendation() async {
-    return _sendMessage(
-      _recommendationRequestBackendText,
+    return _sendSessionRequest(
       visibleUserText: recommendationRequestDisplayText,
+      request: (sessionId) => chatApi.requestRecommendation(sessionId),
     );
   }
 
@@ -119,12 +183,30 @@ class ChatController {
       return null;
     }
 
+    return _sendSessionRequest(
+      visibleUserText: visibleUserText?.trim() ?? trimmed,
+      request: (sessionId) => chatApi.sendMessage(
+        trimmed,
+        sessionId,
+        authSession.activeProfileId,
+      ),
+    );
+  }
+
+  Future<ChatResponse?> _sendSessionRequest({
+    required String visibleUserText,
+    required Future<ChatResponse> Function(String sessionId) request,
+  }) async {
     if (_isCompleted) {
       return null;
     }
 
     if (_initFuture != null) {
       await _initFuture;
+    }
+
+    if (availability.value.status != CareenaAvailabilityStatus.online) {
+      await refreshAvailability();
     }
 
     final hasSession = await _ensureSession();
@@ -134,9 +216,8 @@ class ChatController {
       throw Exception("Chat session not initialized.");
     }
 
-    // Keep backend trigger wording separate from the text shown in the chat.
     _addMessage(
-      message: Message(text: visibleUserText?.trim() ?? trimmed, isUser: true),
+      message: Message(text: visibleUserText, isUser: true),
     );
 
     lastReplyOptions.value = [];
@@ -150,11 +231,7 @@ class ChatController {
     );
 
     try {
-      final response = await chatApi.sendMessage(
-        trimmed,
-        sessionId,
-        authSession.activeProfileId,
-      );
+      final response = await request(sessionId);
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
       await loadSymptoms();
@@ -204,10 +281,33 @@ class ChatController {
 
       return response;
     } catch (e) {
+      await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       return null;
     }
+  }
+
+  String _chatErrorMessage(Object error) {
+    if (error is ApiException) {
+      if (error.type == ApiErrorType.timeout) {
+        return 'Careena braucht gerade zu lange für eine Antwort. Bitte versuchen Sie es gleich erneut.';
+      }
+
+      if (error.type == ApiErrorType.network) {
+        return 'Careena kann den Server gerade nicht erreichen. Bitte prüfen Sie Ihre Verbindung.';
+      }
+
+      if (error.statusCode == 401) {
+        return 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.';
+      }
+
+      if (error.statusCode == 403) {
+        return 'Careena kann diese Anfrage für das aktuelle Profil nicht ausführen.';
+      }
+    }
+
+    return 'Careena konnte gerade nicht antworten. Bitte versuchen Sie es erneut.';
   }
 
   Future<void> loadSymptoms() async {
@@ -344,9 +444,11 @@ class ChatController {
 
   void dispose() {
     authSession.removeListener(_handleAuthSessionChanged);
+    _availabilityRetryTimer?.cancel();
     messages.dispose();
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    availability.dispose();
   }
 }

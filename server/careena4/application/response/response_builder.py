@@ -43,11 +43,16 @@ class ResponseBuilder:
             )
         if decision.response_mode == "out_of_scope":
             return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreiben Sie eine gesundheitliche Beschwerde oder Frage."
-        if decision.response_mode in {"ask_safety_question", "ask_followup", "guide_next_step"} and active_question is not None:
+        if decision.response_mode in {"ask_safety_question", "ask_followup"} and active_question is not None:
             if active_question.guided_input is not None and active_question.guided_input.options:
                 options = ", ".join(option.label for option in active_question.guided_input.options)
                 return f"{active_question.prompt_text} Bitte antworten Sie mit: {options}."
             return active_question.prompt_text
+        if decision.response_mode == "guide_next_step":
+            return (
+                "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. "
+                "Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button."
+            )
         if decision.response_mode == "request_case_description":
             return self._render_case_description_request(
                 medical_case=medical_case,
@@ -123,6 +128,4 @@ class ResponseBuilder:
     ) -> str:
         if medical_case is not None and self.case_manager.has_active_observations(medical_case=medical_case):
             return "Bitte beschreiben Sie Ihre Beschwerden noch etwas genauer."
-        if conversation_state is not None and conversation_state.recommendation_requested:
-            return "Damit ich eine Versorgungsempfehlung geben kann, beschreiben Sie bitte Ihr gesundheitliches Anliegen oder Ihre Beschwerden genauer."
         return "Bitte beschreiben Sie Ihr gesundheitliches Anliegen oder Ihre Beschwerden genauer."

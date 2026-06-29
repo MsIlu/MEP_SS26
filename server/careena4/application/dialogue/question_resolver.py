@@ -52,48 +52,6 @@ class QuestionResolver:
                 stripped=stripped,
             )
 
-        if question.kind == "closing_choice":
-            additional_medical_information = self._contains_additional_medical_info(normalized)
-            extra_case_input = (
-                self._extra_case_input_if_needed(question=question, message=message)
-                if additional_medical_information
-                else None
-            )
-            if self._is_add_more_information_choice(normalized):
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="add_more_information",
-                    clear_active_question=True,
-                    recommendation_choice="add_more_information",
-                    additional_medical_information=additional_medical_information,
-                    extra_case_input=extra_case_input,
-                    trace_notes=["closing_choice:add_more_information"],
-                )
-            if additional_medical_information:
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="add_more_information",
-                    clear_active_question=True,
-                    recommendation_choice="add_more_information",
-                    additional_medical_information=True,
-                    extra_case_input=extra_case_input,
-                    trace_notes=["closing_choice:add_more_information_from_medical_input"],
-                )
-            if self._is_recommendation_now_choice(normalized):
-                return QuestionResolution(
-                    status="resolved",
-                    answer_kind="recommendation_now",
-                    clear_active_question=True,
-                    recommendation_choice="recommendation_now",
-                    trace_notes=["closing_choice:recommendation_now"],
-                )
-            return QuestionResolution(
-                status="unclear",
-                answer_kind="unclear",
-                clear_active_question=False,
-                trace_notes=["closing_choice:unclear"],
-            )
-
         llm_result = self._resolve_with_llm(
             question=question,
             message=message,
@@ -423,52 +381,6 @@ class QuestionResolver:
             re.search(
                 r"\b(schmerz|weh|zieht|stech|dumpf|druck|fieber|husten|atem|sturz|fahrradsturz|verletzt|arzt|uebel|erbrechen|durchfall|hueft|kopf|bauch|brust|hals|bein|arm|leiste)\b",
                 normalized,
-            )
-        )
-
-    @staticmethod
-    def _is_add_more_information_choice(normalized: str) -> bool:
-        return any(
-            phrase in normalized
-            for phrase in (
-                "nein, weitere angaben",
-                "nein weitere angaben",
-                "weitere angaben",
-                "mehr angaben",
-                "mehr informationen",
-                "mehr info",
-                "weiter",
-                "hinzufuegen",
-                "hinzufÃƒÂ¼gen",
-                "noch",
-                "angaben",
-            )
-        )
-
-    @staticmethod
-    def _is_recommendation_now_choice(normalized: str) -> bool:
-        return any(
-            phrase in normalized
-            for phrase in (
-                "ja, empfehlung",
-                "ja empfehlung",
-                "empfehlung",
-                "versorgungsempfehlung",
-                "ja",
-                "okay",
-                "ok",
-                "passt",
-                "reicht",
-                "wars",
-                "wÃƒÂ¤rs",
-                "waers",
-                "genug",
-                "mehr faellt mir gerade nicht ein",
-                "mehr fÃƒÂ¤llt mir gerade nicht ein",
-                "sonst nichts",
-                "das wars",
-                "das war's",
-                "nein",
             )
         )
 

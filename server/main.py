@@ -14,6 +14,8 @@
 # or
 # <bash> python -m uvicorn main:app --reload
 
+from datetime import datetime, timezone
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlmodel import Session
 from auth.security import get_optional_current_account, get_session
@@ -55,6 +57,11 @@ careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
 careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
+careena4_llm_health_status: dict[str, object] = {
+    "available": False,
+    "model": careena4_services.call_model_config.default_model,
+    "checked_at": None,
+}
 
 app.include_router(auth_router)
 app.include_router(profiles_router)
@@ -81,6 +88,19 @@ class ChatRequest(BaseModel):
 
 class SessionRequest(BaseModel):
     profile_id: int | None = None
+
+
+def _refresh_llm_health_status() -> bool:
+    checked_model = careena4_services.call_model_config.default_model
+    available = careena4_services.llm_client.is_model_available(checked_model)
+    careena4_llm_health_status.update(
+        {
+            "available": available,
+            "model": checked_model,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    return available
 
 
 class RecommendationRequest(BaseModel):
@@ -307,6 +327,14 @@ def chat(
         )
     )
 
+    careena4_llm_health_status.update(
+        {
+            "available": True,
+            "model": careena4_services.call_model_config.default_model,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+
     persist_careena4_turn_result(
         careena4_session=careena4_session,
         turn_result=turn_result,
@@ -371,9 +399,43 @@ def warmup():
     """
     Lightweight readiness endpoint for the chat backend.
 
-    Kept for frontend compatibility; Careena4 manages LLM calls internally.
+    Called when a new chat session starts, so it is the explicit refresh path
+    for the cached LLM status. Repeated health polling reads the cached value.
     """
-    return {"status": "ok"}
+    available = _refresh_llm_health_status()
+    return {
+        "status": "ok" if available else "unavailable",
+        "llm": available,
+        "model": careena4_llm_health_status["model"],
+        "checked_at": careena4_llm_health_status["checked_at"],
+    }
+
+
+@app.get("/health/server")
+def health_server():
+    return {"status": "ok", "server": True}
+
+
+@app.get("/health/llm")
+def health_llm():
+    checked_model = careena4_llm_health_status["model"]
+
+    if not careena4_llm_health_status["available"]:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "message": "LLM service is not reachable.",
+                "model": checked_model,
+                "checked_at": careena4_llm_health_status["checked_at"],
+            },
+        )
+
+    return {
+        "status": "ok",
+        "llm": True,
+        "model": checked_model,
+        "checked_at": careena4_llm_health_status["checked_at"],
+    }
 
 
 @app.get("/input-drafts/{session_id}", response_model=SymptomDraftResponse)
@@ -508,3 +570,4 @@ def on_startup():
     _seed_catalog()
     n = careena4_services.safety_catalog_cache.load()
     print(f"SafetyCatalogCache loaded: {n} entries")
+    _refresh_llm_health_status()

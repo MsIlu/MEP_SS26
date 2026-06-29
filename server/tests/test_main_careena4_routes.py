@@ -16,6 +16,13 @@ from main import (
 def clear_careena4_state():
     careena4_session_profiles.clear()
     careena4_session_store._sessions.clear()
+    main.careena4_llm_health_status.update(
+        {
+            "available": False,
+            "model": main.careena4_services.call_model_config.default_model,
+            "checked_at": None,
+        }
+    )
 
     yield
 
@@ -26,6 +33,11 @@ def clear_careena4_state():
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(main, "create_db_and_tables", lambda: None)
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        lambda model: True,
+    )
 
     def override_get_session():
         yield SimpleNamespace()
@@ -64,6 +76,75 @@ def test_guest_session_can_be_created(client: TestClient):
 
     assert session_id
     assert careena4_session_profiles[session_id] is None
+
+
+def test_server_health_endpoint_reports_ok(client):
+    response = client.get("/health/server")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "server": True}
+
+
+def test_llm_health_endpoint_reports_cached_ok(client):
+    response = client.get("/health/llm")
+
+    payload = response.json()
+    assert response.status_code == 200
+    assert payload["status"] == "ok"
+    assert payload["llm"] is True
+    assert payload["model"] == main.careena4_services.call_model_config.default_model
+    assert payload["checked_at"] is not None
+
+
+def test_llm_health_endpoint_reports_unavailable(client, monkeypatch):
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        lambda model: False,
+    )
+    client.post("/warmup")
+
+    response = client.get("/health/llm")
+
+    payload = response.json()
+    assert response.status_code == 503
+    assert payload["detail"]["message"] == "LLM service is not reachable."
+    assert payload["detail"]["model"] == main.careena4_services.call_model_config.default_model
+    assert payload["detail"]["checked_at"] is not None
+
+
+def test_llm_health_endpoint_does_not_call_llm(client, monkeypatch):
+    def fail_if_called(model):
+        raise AssertionError("health endpoint must only read the cached status")
+
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        fail_if_called,
+    )
+
+    response = client.get("/health/llm")
+
+    assert response.status_code == 200
+
+
+def test_warmup_refreshes_cached_llm_status(client, monkeypatch):
+    monkeypatch.setattr(
+        main.careena4_services.llm_client,
+        "is_model_available",
+        lambda model: False,
+    )
+
+    response = client.post("/warmup")
+
+    payload = response.json()
+    assert response.status_code == 200
+    assert payload["status"] == "unavailable"
+    assert payload["llm"] is False
+
+    response = client.get("/health/llm")
+
+    assert response.status_code == 503
 
 
 def test_guest_input_draft_can_be_read(client: TestClient):

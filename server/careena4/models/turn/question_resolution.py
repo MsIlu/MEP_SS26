@@ -57,6 +57,5 @@ class QuestionResolution(PipelineModel):
     observation_patch: ObservationPatch | None = None
     additional_medical_information: bool = False
     extra_case_input: ExtractedCaseInput | None = None
-    recommendation_choice: str | None = None
     next_question_text: str | None = None
     trace_notes: list[str] = Field(default_factory=list)

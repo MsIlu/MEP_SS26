@@ -29,11 +29,12 @@ from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
 from logging_config import configure_logging
+from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 
 from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
-from careena4.models.turn import TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
+from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.turn.input import DiaryEntry
 from careena4.models.input import (
     CancelDraftResponse,
@@ -82,6 +83,10 @@ class ChatRequest(BaseModel):
 
 class SessionRequest(BaseModel):
     profile_id: int | None = None
+
+
+class RecommendationRequest(BaseModel):
+    session_id: str
 
 
 def require_careena4_session(session_id: str):
@@ -141,10 +146,11 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             "blocking": active_question.blocking,
         }
 
-    recommendation_ready = result.response_mode in {
-        "guide_next_step",
-        "recommend",
-    }
+    recommendation_state = result.recommendation_state
+    recommendation_ready = bool(
+        recommendation_state is not None
+        and recommendation_state.recommendation_allowed
+    )
 
     reply_options: list[str] = []
     if (
@@ -160,7 +166,6 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "red_flag": result.response_mode == "emergency",
         "trace_notes": list(result.trace_notes),
         "pending_followup": pending_followup,
-        "recommendation_requested": result.conversation_state.recommendation_requested,
         "recommendation_ready": recommendation_ready,
         "reply_options": reply_options,
         "recommendation_result": (
@@ -180,6 +185,26 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         ),
     }
 
+@app.get("/fhir/export/{session_id}")
+def export_fhir_bundle(
+        session_id: str,
+        current_user: User | None = Depends(get_optional_current_account),
+        db_session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=session_id,
+        current_user=current_user,
+        db_session=db_session,
+    )
+
+    if careena4_session.medical_case is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No extracted medical case data available for this session.",
+        )
+
+    return build_fhir_bundle_from_careena4_session(careena4_session)
+
 
 def build_careena4_simrun_response(*, message: str) -> dict:
     selector = message.strip()[len("/simrun"):].strip()
@@ -193,6 +218,16 @@ def build_careena4_simrun_response(*, message: str) -> dict:
     }
 
 
+def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -> None:
+    careena4_session.medical_case = turn_result.medical_case
+    careena4_session.conversation_state = turn_result.conversation_state
+    careena4_session.recommendation_state = turn_result.recommendation_state
+    careena4_session.last_turn_understanding = turn_result.current_turn_understanding
+
+    if turn_result.symptom_input_draft is not None:
+        careena4_session.symptom_input_draft = turn_result.symptom_input_draft
+
+
 #1. checks if Careena4-Session exist
 #2. validate empty input
 #3. save profile_id
@@ -200,6 +235,7 @@ def build_careena4_simrun_response(*, message: str) -> dict:
 #5. Careena4 processes TurnInput
 #6. write new state in session
 #7. build API-Response for Flutter
+
 @app.post("/chatscreen")
 def chat(
         req: ChatRequest,
@@ -293,13 +329,10 @@ def chat(
         )
     )
 
-    careena4_session.medical_case = turn_result.medical_case
-    careena4_session.conversation_state = turn_result.conversation_state
-    careena4_session.recommendation_state = turn_result.recommendation_state
-    careena4_session.last_turn_understanding = turn_result.current_turn_understanding
-
-    if turn_result.symptom_input_draft is not None:
-        careena4_session.symptom_input_draft = turn_result.symptom_input_draft
+    persist_careena4_turn_result(
+        careena4_session=careena4_session,
+        turn_result=turn_result,
+    )
 
     careena4_session.messages.append({"role": "user", "content": req.message})
 
@@ -309,6 +342,44 @@ def chat(
         {"role": "assistant", "content": response["response"]}
     )
 
+    return response
+
+
+@app.post("/recommendation/request")
+def request_recommendation(
+        req: RecommendationRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=req.session_id,
+        current_user=current_user,
+        db_session=session,
+    )
+
+    turn_id = str(uuid4())
+
+    turn_result = careena4_turn_engine.request_recommendation(
+        RecommendationRequestInput.from_persisted_state(
+            session_id=req.session_id,
+            turn_id=turn_id,
+            conversation_messages=careena4_session.messages,
+            persisted_medical_case=careena4_session.medical_case,
+            persisted_conversation_state=careena4_session.conversation_state,
+            persisted_recommendation_state=careena4_session.recommendation_state,
+            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+        )
+    )
+
+    persist_careena4_turn_result(
+        careena4_session=careena4_session,
+        turn_result=turn_result,
+    )
+
+    response = build_careena4_chat_response(turn_result)
+    careena4_session.messages.append(
+        {"role": "assistant", "content": response["response"]}
+    )
     return response
 
 

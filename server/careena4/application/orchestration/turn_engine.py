@@ -19,7 +19,7 @@ from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBui
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
 from careena4.models.domain.observation import Observation
 from careena4.models.input import SymptomInputDraft
-from careena4.models.turn import TurnDecision, TurnInput, TurnResult
+from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
 from careena4.server_log import log_event
 
 
@@ -94,26 +94,17 @@ class TurnEngine:
             decision = TurnDecision(
                 kind="ask_safety_question",
                 response_mode="emergency",
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
                 trace_notes=["turn:emergency_shortcut"],
             )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
+            return self._build_result(
+                response_input=turn_input,
                 decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
+                trace_notes=trace_notes,
             )
 
         if self.turn_understanding_service is not None:
@@ -144,59 +135,16 @@ class TurnEngine:
                 safety_state=raw_safety
             )
             conversation_state.phase = "followup"
-
-            active_question = conversation_state.active_question
-            safety_context = active_question.safety_context if active_question is not None else None
-            trace_notes.extend(
-                [
-                    "safety_clarification:"
-                    f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
-                    *(
-                        [
-                            "safety_catalog_reason:"
-                            f"{safety_context.consultation_reason_source_id}"
-                        ]
-                        if safety_context is not None
-                        and safety_context.consultation_reason_source_id
-                        else []
-                    ),
-                    *(
-                        [
-                            "safety_catalog_criterion:"
-                            f"{safety_context.criterion_key}"
-                        ]
-                        if safety_context is not None
-                        and safety_context.criterion_key
-                        else []
-                    ),
-                ]
-            )
-
-            decision = TurnDecision(
-                kind="ask_safety_question",
-                response_mode="ask_safety_question",
-                active_question=active_question,
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
-                trace_notes=["turn:safety_clarification_opened"],
-            )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
-                decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                active_question=active_question,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
+            return self._ask_existing_question(
+                response_input=turn_input,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
+                trace_notes=trace_notes,
+                active_question=conversation_state.active_question,
+                extra_trace_notes=["turn:safety_clarification_opened"],
             )
 
         entry_assessment = self.entry_classifier.classify(
@@ -206,34 +154,22 @@ class TurnEngine:
             history_messages=turn_input.entry_history_messages,
         )
         trace_notes.append(f"entry:{entry_assessment.message_kind}")
-        if entry_assessment.recommendation_requested:
-            conversation_state.recommendation_requested = True
-        recommendation_state.request_present = conversation_state.recommendation_requested
 
         if not entry_assessment.in_scope:
             decision = TurnDecision(
                 kind="out_of_scope",
                 response_mode="out_of_scope",
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
                 trace_notes=["turn:out_of_scope"],
             )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
+            return self._build_result(
+                response_input=turn_input,
                 decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
+                trace_notes=trace_notes,
             )
 
         extra_case_input = None
@@ -250,26 +186,17 @@ class TurnEngine:
                 decision = TurnDecision(
                     kind="ask_safety_question",
                     response_mode="emergency",
-                    recommendation_requested=conversation_state.recommendation_requested,
-                    recommendation_ready=False,
                     trace_notes=["turn:safety_confirmation_emergency"],
                 )
-                response_text = self._build_response_text(
-                    turn_input=turn_input,
+                return self._build_result(
+                    response_input=turn_input,
                     decision=decision,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                )
-                return TurnResult(
-                    turn_id=turn_input.turn_id,
-                    response_mode=decision.response_mode,
-                    response_text=response_text,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
                     recommendation_state=recommendation_state,
                     symptom_input_draft=symptom_input_draft,
                     current_turn_understanding=current_turn_understanding,
-                    trace_notes=trace_notes + decision.trace_notes,
+                    trace_notes=trace_notes,
                 )
 
             if resolution.status in {"invalid", "unclear", "still_unclear", "invalid_answer"}:
@@ -277,72 +204,18 @@ class TurnEngine:
                     kind="ask_safety_question" if current_question.kind == "safety_clarification" else "ask_followup",
                     response_mode="ask_safety_question" if current_question.kind == "safety_clarification" else "ask_followup",
                     active_question=current_question,
-                    recommendation_requested=conversation_state.recommendation_requested,
-                    recommendation_ready=False,
                     trace_notes=["turn:repeat_active_question"],
                 )
-                response_text = self._build_response_text(
-                    turn_input=turn_input,
+                return self._build_result(
+                    response_input=turn_input,
                     decision=decision,
                     medical_case=medical_case,
                     conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes,
                     active_question=current_question,
-                )
-                return TurnResult(
-                    turn_id=turn_input.turn_id,
-                    response_mode=decision.response_mode,
-                    response_text=response_text,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                    recommendation_state=recommendation_state,
-                    symptom_input_draft=symptom_input_draft,
-                    current_turn_understanding=current_turn_understanding,
-                    trace_notes=trace_notes + decision.trace_notes,
-                )
-
-            if resolution.recommendation_choice == "recommendation_now":
-                medical_case, chip_trace = self._sync_chips_to_case(
-                    medical_case=medical_case,
-                    symptom_input_draft=symptom_input_draft,
-                )
-                trace_notes.extend(chip_trace)
-                recommendation_state = self.readiness_evaluator.evaluate(
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                )
-                recommendation_result = self.recommendation_builder.build(
-                    medical_case=medical_case,
-                    diary_history=turn_input.diary_history or [],
-                )
-                recommendation_state.recommendation_result = recommendation_result
-                recommendation_state.recommendation_allowed = True
-                conversation_state.active_question = None
-                conversation_state.phase = "recommendation"
-                decision = TurnDecision(
-                    kind="recommend",
-                    response_mode="recommend",
-                    recommendation_requested=conversation_state.recommendation_requested,
-                    recommendation_ready=True,
-                    trace_notes=["turn:recommendation_committed"],
-                )
-                response_text = self._build_response_text(
-                    turn_input=turn_input,
-                    decision=decision,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                    recommendation_result=recommendation_result,
-                )
-                return TurnResult(
-                    turn_id=turn_input.turn_id,
-                    response_mode=decision.response_mode,
-                    response_text=response_text,
-                    medical_case=medical_case,
-                    conversation_state=conversation_state,
-                    recommendation_state=recommendation_state,
-                    symptom_input_draft=symptom_input_draft,
-                    current_turn_understanding=current_turn_understanding,
-                    recommendation_result=recommendation_result,
-                    trace_notes=trace_notes + decision.trace_notes,
                 )
 
             if resolution.clear_active_question:
@@ -371,36 +244,6 @@ class TurnEngine:
                 extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
                 conversation_state.active_question = None
-                if current_question.kind == "closing_choice" and resolution.recommendation_choice == "add_more_information":
-                    conversation_state.phase = "exploration"
-                    if not resolution.additional_medical_information:
-                        conversation_state.active_question = self.question_builder.build_additional_information_request()
-                        decision = TurnDecision(
-                            kind="ask_followup",
-                            response_mode="ask_followup",
-                            active_question=conversation_state.active_question,
-                            recommendation_requested=conversation_state.recommendation_requested,
-                            recommendation_ready=recommendation_state.recommendation_allowed,
-                            trace_notes=["turn:additional_information_requested"],
-                        )
-                        response_text = self._build_response_text(
-                            turn_input=turn_input,
-                            decision=decision,
-                            medical_case=medical_case,
-                            conversation_state=conversation_state,
-                            active_question=conversation_state.active_question,
-                        )
-                        return TurnResult(
-                            turn_id=turn_input.turn_id,
-                            response_mode=decision.response_mode,
-                            response_text=response_text,
-                            medical_case=medical_case,
-                            conversation_state=conversation_state,
-                            recommendation_state=recommendation_state,
-                            symptom_input_draft=symptom_input_draft,
-                            current_turn_understanding=current_turn_understanding,
-                            trace_notes=trace_notes + decision.trace_notes,
-                        )
 
         case_input = None
         if entry_assessment.message_kind in {"new_case_report", "same_case_update"}:
@@ -453,8 +296,6 @@ class TurnEngine:
             )
             trace_notes.extend(chip_trace)
 
-            # Post-extraction case-level safety check on full accumulated MedicalCase.
-            # Catches safety-relevant symptom combinations that build up across turns.
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
             ):
@@ -468,40 +309,16 @@ class TurnEngine:
                         safety_state=case_safety
                     )
                     conversation_state.phase = "followup"
-                    active_question = conversation_state.active_question
-                    safety_context = active_question.safety_context if active_question is not None else None
-                    trace_notes.extend(
-                        [
-                            "safety_clarification:"
-                            f"{safety_context.catalog_mapping_status if safety_context is not None else 'unknown'}",
-                            "turn:case_safety_clarification_opened",
-                        ]
-                    )
-                    decision = TurnDecision(
-                        kind="ask_safety_question",
-                        response_mode="ask_safety_question",
-                        active_question=active_question,
-                        recommendation_requested=conversation_state.recommendation_requested,
-                        recommendation_ready=False,
-                        trace_notes=["turn:case_safety_clarification_selected"],
-                    )
-                    response_text = self._build_response_text(
-                        turn_input=turn_input,
-                        decision=decision,
-                        medical_case=medical_case,
-                        conversation_state=conversation_state,
-                        active_question=active_question,
-                    )
-                    return TurnResult(
-                        turn_id=turn_input.turn_id,
-                        response_mode=decision.response_mode,
-                        response_text=response_text,
+                    return self._ask_existing_question(
+                        response_input=turn_input,
                         medical_case=medical_case,
                         conversation_state=conversation_state,
                         recommendation_state=recommendation_state,
                         symptom_input_draft=symptom_input_draft,
                         current_turn_understanding=current_turn_understanding,
-                        trace_notes=trace_notes + decision.trace_notes,
+                        trace_notes=trace_notes,
+                        active_question=conversation_state.active_question,
+                        extra_trace_notes=["turn:case_safety_clarification_selected"],
                     )
 
         # Sync chips also for turns without case_input (e.g. followup answers after user edits chips via PATCH).
@@ -537,27 +354,18 @@ class TurnEngine:
                 kind="ask_followup",
                 response_mode="ask_followup",
                 active_question=conversation_state.active_question,
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=False,
                 trace_notes=["turn:followup_selected"],
             )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
+            return self._build_result(
+                response_input=turn_input,
                 decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                active_question=conversation_state.active_question,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
+                trace_notes=trace_notes,
+                active_question=conversation_state.active_question,
             )
 
         recommendation_state = self.readiness_evaluator.evaluate(
@@ -577,34 +385,21 @@ class TurnEngine:
         )
 
         if recommendation_state.recommendation_allowed and not safety_clarification_pending:
-            conversation_state.active_question = self.question_builder.build_closing_choice()
-            conversation_state.phase = "closing_check"
-            recommendation_state.closing_prompt_active = True
+            conversation_state.phase = "exploration"
             decision = TurnDecision(
                 kind="guide_next_step",
                 response_mode="guide_next_step",
-                active_question=conversation_state.active_question,
-                recommendation_requested=conversation_state.recommendation_requested,
-                recommendation_ready=True,
-                trace_notes=["turn:closing_choice_opened"],
+                trace_notes=["turn:recommendation_available"],
             )
-            response_text = self._build_response_text(
-                turn_input=turn_input,
+            return self._build_result(
+                response_input=turn_input,
                 decision=decision,
-                medical_case=medical_case,
-                conversation_state=conversation_state,
-                active_question=conversation_state.active_question,
-            )
-            return TurnResult(
-                turn_id=turn_input.turn_id,
-                response_mode=decision.response_mode,
-                response_text=response_text,
                 medical_case=medical_case,
                 conversation_state=conversation_state,
                 recommendation_state=recommendation_state,
                 symptom_input_draft=symptom_input_draft,
                 current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes + decision.trace_notes,
+                trace_notes=trace_notes,
             )
 
         conversation_state.phase = (
@@ -615,27 +410,18 @@ class TurnEngine:
         decision = TurnDecision(
             kind="request_case_description",
             response_mode="request_case_description",
-            recommendation_requested=conversation_state.recommendation_requested,
-            recommendation_ready=False,
             trace_notes=["turn:request_case_description"],
         )
-        response_text = self._build_response_text(
-            turn_input=turn_input,
+        return self._build_result(
+            response_input=turn_input,
             decision=decision,
-            medical_case=medical_case,
-            conversation_state=conversation_state,
-            resolved_question=resolved_question,
-        )
-        return TurnResult(
-            turn_id=turn_input.turn_id,
-            response_mode=decision.response_mode,
-            response_text=response_text,
             medical_case=medical_case,
             conversation_state=conversation_state,
             recommendation_state=recommendation_state,
             symptom_input_draft=symptom_input_draft,
             current_turn_understanding=current_turn_understanding,
-            trace_notes=trace_notes + decision.trace_notes,
+            trace_notes=trace_notes,
+            resolved_question=resolved_question,
         )
 
     def _sync_chips_to_case(
@@ -676,24 +462,230 @@ class TurnEngine:
 
         return medical_case, trace_notes
 
-    def _build_response_text(
+    def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
+        medical_case = request_input.persisted_medical_case or MedicalCase()
+        conversation_state = request_input.persisted_conversation_state or ConversationState()
+        recommendation_state = request_input.persisted_recommendation_state or RecommendationState()
+        symptom_input_draft = request_input.persisted_symptom_input_draft
+        trace_notes: list[str] = ["recommendation_request:received"]
+
+        log_event(
+            "recommendation.requested",
+            layer="application",
+            session_id=request_input.session_id,
+            turn_id=request_input.turn_id,
+            has_topic=self.case_manager.has_topic(medical_case=medical_case),
+            has_active_question=conversation_state.active_question is not None,
+        )
+
+        recommendation_state = self.readiness_evaluator.evaluate(
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+        )
+
+        if conversation_state.active_question is not None:
+            return self._ask_existing_question(
+                response_input=request_input,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=None,
+                trace_notes=trace_notes,
+                active_question=conversation_state.active_question,
+                extra_trace_notes=["recommendation_request:active_question_blocking"],
+            )
+
+        if medical_case is None or not self.case_manager.has_active_observations(medical_case=medical_case):
+            decision = TurnDecision(
+                kind="request_case_description",
+                response_mode="request_case_description",
+                trace_notes=["recommendation_request:missing_case_information"],
+            )
+            return self._build_result(
+                response_input=request_input,
+                decision=decision,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=None,
+                trace_notes=trace_notes,
+            )
+
+        conversation_state.followup_needs = self.followup_need_builder.build(
+            medical_case=medical_case,
+        )
+        followup_need = self.followup_selector.select(followup_needs=conversation_state.followup_needs)
+        if followup_need is not None:
+            focus_label = None
+            if followup_need.observation_id is not None:
+                focus_label = self.case_manager.observation_label(
+                    medical_case=medical_case,
+                    observation_id=followup_need.observation_id,
+                )
+            conversation_state.active_question = self.question_builder.build_for_need(
+                need=followup_need,
+                focus_label=focus_label,
+            )
+            conversation_state.phase = "followup"
+            recommendation_state = self.readiness_evaluator.evaluate(
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+            )
+            decision = TurnDecision(
+                kind="ask_followup",
+                response_mode="ask_followup",
+                active_question=conversation_state.active_question,
+                trace_notes=["recommendation_request:followup_required"],
+            )
+            return self._build_result(
+                response_input=request_input,
+                decision=decision,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=None,
+                trace_notes=trace_notes,
+                active_question=conversation_state.active_question,
+            )
+
+        recommendation_state = self.readiness_evaluator.evaluate(
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+        )
+        assessment_readiness = self.readiness_builder.build(
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+            recommendation_state=recommendation_state,
+        )
+        trace_notes.extend(assessment_readiness.reason_tags)
+
+        if recommendation_state.recommendation_allowed:
+            recommendation_result = recommendation_state.recommendation_result or self.recommendation_builder.build(
+                medical_case=medical_case,
+            )
+            recommendation_state.recommendation_result = recommendation_result
+            recommendation_state.recommendation_allowed = True
+            conversation_state.active_question = None
+            conversation_state.phase = "recommendation"
+            decision = TurnDecision(
+                kind="recommend",
+                response_mode="recommend",
+                trace_notes=["recommendation_request:delivered"],
+            )
+            return self._build_result(
+                response_input=request_input,
+                decision=decision,
+                medical_case=medical_case,
+                conversation_state=conversation_state,
+                recommendation_state=recommendation_state,
+                symptom_input_draft=symptom_input_draft,
+                current_turn_understanding=None,
+                trace_notes=trace_notes,
+                recommendation_result=recommendation_result,
+            )
+
+        decision = TurnDecision(
+            kind="request_case_description",
+            response_mode="request_case_description",
+            trace_notes=["recommendation_request:not_ready"],
+        )
+        return self._build_result(
+            response_input=request_input,
+            decision=decision,
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+            recommendation_state=recommendation_state,
+            symptom_input_draft=symptom_input_draft,
+            current_turn_understanding=None,
+            trace_notes=trace_notes,
+        )
+
+    def _ask_existing_question(
         self,
         *,
-        turn_input: TurnInput,
+        response_input,
+        medical_case: MedicalCase,
+        conversation_state: ConversationState,
+        recommendation_state: RecommendationState,
+        symptom_input_draft,
+        current_turn_understanding,
+        trace_notes: list[str],
+        active_question: ActiveQuestion | None,
+        extra_trace_notes: list[str],
+    ) -> TurnResult:
+        if active_question is not None and active_question.safety_context is not None:
+            safety_context = active_question.safety_context
+            trace_notes.extend(
+                [
+                    "safety_clarification:"
+                    f"{safety_context.catalog_mapping_status}",
+                    *(
+                        [f"safety_catalog_reason:{safety_context.consultation_reason_source_id}"]
+                        if safety_context.consultation_reason_source_id
+                        else []
+                    ),
+                    *(
+                        [f"safety_catalog_criterion:{safety_context.criterion_key}"]
+                        if safety_context.criterion_key
+                        else []
+                    ),
+                ]
+            )
+        decision = TurnDecision(
+            kind="ask_safety_question" if active_question is not None and active_question.kind == "safety_clarification" else "ask_followup",
+            response_mode="ask_safety_question" if active_question is not None and active_question.kind == "safety_clarification" else "ask_followup",
+            active_question=active_question,
+            trace_notes=extra_trace_notes,
+        )
+        return self._build_result(
+            response_input=response_input,
+            decision=decision,
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+            recommendation_state=recommendation_state,
+            symptom_input_draft=symptom_input_draft,
+            current_turn_understanding=current_turn_understanding,
+            trace_notes=trace_notes,
+            active_question=active_question,
+        )
+
+    def _build_result(
+        self,
+        *,
+        response_input,
         decision: TurnDecision,
         medical_case: MedicalCase,
         conversation_state: ConversationState,
+        recommendation_state: RecommendationState,
+        symptom_input_draft,
+        current_turn_understanding,
+        trace_notes: list[str],
         active_question: ActiveQuestion | None = None,
         recommendation_result=None,
         resolved_question: ActiveQuestion | None = None,
-    ) -> str:
-        return self.response_builder.build(
+    ) -> TurnResult:
+        response_text = self.response_builder.build(
             decision=decision,
             recommendation_result=recommendation_result,
             active_question=active_question,
             medical_case=medical_case,
             conversation_state=conversation_state,
-            response_history_messages=turn_input.response_history_messages,
-            latest_user_message=turn_input.message,
+            response_history_messages=getattr(response_input, "response_history_messages", []),
+            latest_user_message=getattr(response_input, "message", None),
             resolved_question=resolved_question,
+        )
+        return TurnResult(
+            turn_id=response_input.turn_id,
+            response_mode=decision.response_mode,
+            response_text=response_text,
+            medical_case=medical_case,
+            conversation_state=conversation_state,
+            recommendation_state=recommendation_state,
+            recommendation_result=recommendation_result,
+            symptom_input_draft=symptom_input_draft,
+            current_turn_understanding=current_turn_understanding,
+            trace_notes=trace_notes + decision.trace_notes,
         )

@@ -23,7 +23,6 @@ QuestionIntent = Literal[
 QuestionKind = Literal[
     "followup",
     "subject_clarification",
-    "closing_choice",
     "safety_clarification",
 ]
 
@@ -57,7 +56,6 @@ ConversationPhase = Literal[
     "intake",
     "exploration",
     "followup",
-    "closing_check",
     "recommendation",
 ]
 

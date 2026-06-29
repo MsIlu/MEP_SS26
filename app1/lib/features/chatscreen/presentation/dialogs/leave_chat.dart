@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 Future<bool> showLeaveChatDialog(
   BuildContext context, {
-  String message = 'Wenn du fortfährst, gelangst du zurück zur Startseite. '
+  String message =
+      'Wenn du fortfährst, gelangst du zurück zur Startseite. '
       'Der aktuelle Chat wird nicht gespeichert.',
   String confirmLabel = 'Zur Startseite',
 }) async {
@@ -14,9 +15,7 @@ Future<bool> showLeaveChatDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: isDarkMode
-            ? colorScheme.surface
-            : AppColors.white,
+        backgroundColor: isDarkMode ? colorScheme.surface : AppColors.white,
         surfaceTintColor: AppColors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -31,9 +30,7 @@ Future<bool> showLeaveChatDialog(
         title: Text(
           'Chat verlassen?',
           style: TextStyle(
-            color: isDarkMode
-                ? colorScheme.onSurface
-                : AppColors.careenaTitle,
+            color: isDarkMode ? colorScheme.onSurface : AppColors.careenaTitle,
             fontWeight: FontWeight.bold,
             fontSize: 28,
           ),
@@ -41,9 +38,7 @@ Future<bool> showLeaveChatDialog(
         content: Text(
           message,
           style: TextStyle(
-            color: isDarkMode
-                ? colorScheme.onSurface
-                : AppColors.careenaBody,
+            color: isDarkMode ? colorScheme.onSurface : AppColors.careenaBody,
             fontSize: 16,
             height: 1.4,
           ),
@@ -77,20 +72,14 @@ Future<bool> showLeaveChatDialog(
                   ? AppColors.toolbarButtonForegroundDark
                   : AppColors.toolbarButtonForeground,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
             child: Text(
               confirmLabel,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),
         ],

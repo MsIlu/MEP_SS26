@@ -1,4 +1,5 @@
 import '../data/chat_api.dart';
+import '../data/models/chat_response_model.dart';
 
 /// Owns the lifecycle of the backend chat session.
 ///
@@ -24,6 +25,24 @@ class ChatSessionService {
     _profileId = profileId;
     await chatApi.warmup();
     return _sessionId;
+  }
+
+  Future<String> resumeHistorySession({
+    required String historyId,
+    required int? profileId,
+  }) async {
+    _sessionId = await chatApi.resumeHistorySession(historyId);
+    _profileId = profileId;
+    await chatApi.warmup();
+    return _sessionId!;
+  }
+
+  Future<ChatResponse> continueHistorySession({
+    required String historyId,
+  }) async {
+    final response = await chatApi.continueHistorySession(historyId);
+    await chatApi.warmup();
+    return response;
   }
 
   String? clearSession() {

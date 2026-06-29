@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 
 class AppointmentDialog extends StatelessWidget {
@@ -63,65 +63,65 @@ class AppointmentDialog extends StatelessWidget {
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
 
-content: ConstrainedBox(
-  constraints: const BoxConstraints(maxWidth: 420),
-  child: SizedBox(
-    width: double.maxFinite,
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: doctorController,
-                onChanged: onDoctorChanged,
-                decoration: _inputDecoration(
-                  'Arzt',
-                  Icons.medical_services,
-                ).copyWith(errorText: doctorErrorText),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: dateController,
-                readOnly: true,
-                onTap: onPickDate,
-                decoration: _inputDecoration(
-                  'Datum',
-                  Icons.calendar_month,
-                ).copyWith(errorText: dateErrorText),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: timeController,
-                readOnly: true,
-                onTap: onPickTime,
-                decoration: _inputDecoration('Uhrzeit', Icons.access_time),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 140,
-                child: TextField(
-                  controller: noteController,
-                  expands: true,
-                  minLines: null,
-                  maxLines: null,
-                  maxLength: 300,
-                  textAlign: TextAlign.start,
-                  textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: doctorController,
+                  onChanged: onDoctorChanged,
                   decoration: _inputDecoration(
-                    'Notiz (optional)',
-                    Icons.note_alt_outlined,
+                    'Arzt',
+                    Icons.medical_services,
+                  ).copyWith(errorText: doctorErrorText),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: dateController,
+                  readOnly: true,
+                  onTap: onPickDate,
+                  decoration: _inputDecoration(
+                    'Datum',
+                    Icons.calendar_month,
+                  ).copyWith(errorText: dateErrorText),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: timeController,
+                  readOnly: true,
+                  onTap: onPickTime,
+                  decoration: _inputDecoration('Uhrzeit', Icons.access_time),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 140,
+                  child: TextField(
+                    controller: noteController,
+                    expands: true,
+                    minLines: null,
+                    maxLines: null,
+                    maxLength: 300,
+                    textAlign: TextAlign.start,
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    decoration: _inputDecoration(
+                      'Notiz (optional)',
+                      Icons.note_alt_outlined,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
         ),
       ),
+
       actions: [
         TextButton(
           style: TextButton.styleFrom(foregroundColor: AppColors.careenaTeal),

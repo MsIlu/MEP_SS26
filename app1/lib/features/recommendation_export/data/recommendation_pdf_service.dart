@@ -43,24 +43,16 @@ class RecommendationPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        theme: pw.ThemeData.withFont(
-          base: regularFont,
-          bold: boldFont,
-        ),
+        theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
         build: (context) {
           return [
-            _buildHeader(
-              title: title,
-              logo: logo,
-              createdAt: DateTime.now(),
-            ),
+            _buildHeader(title: title, logo: logo, createdAt: DateTime.now()),
             pw.Container(
               color: _pageBackground,
               padding: const pw.EdgeInsets.fromLTRB(32, 28, 32, 28),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
-
                   if (profile != null) ...[
                     _buildSectionCard(
                       title: 'Profilangaben',
@@ -82,7 +74,8 @@ class RecommendationPdfService {
                   pw.SizedBox(height: 14),
 
                   if (patientSummary.trim().isNotEmpty &&
-                      patientSummary.trim() != 'Zusammenfassung des Chatverlaufes') ...[
+                      patientSummary.trim() !=
+                          'Zusammenfassung des Chatverlaufes') ...[
                     _buildSectionCard(
                       title: 'Zusammenfassung der Situation',
                       text: patientSummary,
@@ -146,11 +139,7 @@ class RecommendationPdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
           if (logo != null)
-            pw.Container(
-              width: 34,
-              height: 34,
-              child: pw.Image(logo),
-            )
+            pw.Container(width: 34, height: 34, child: pw.Image(logo))
           else
             pw.Container(
               width: 34,
@@ -186,10 +175,7 @@ class RecommendationPdfService {
                 pw.SizedBox(height: 4),
                 pw.Text(
                   'KI-generierte Orientierung auf Basis der angegebenen Informationen',
-                  style: pw.TextStyle(
-                    color: _mutedTextColor,
-                    fontSize: 10,
-                  ),
+                  style: pw.TextStyle(color: _mutedTextColor, fontSize: 10),
                 ),
               ],
             ),
@@ -199,10 +185,7 @@ class RecommendationPdfService {
             children: [
               pw.Text(
                 'Erstellt am',
-                style: pw.TextStyle(
-                  color: _mutedTextColor,
-                  fontSize: 8,
-                ),
+                style: pw.TextStyle(color: _mutedTextColor, fontSize: 8),
               ),
               pw.SizedBox(height: 2),
               pw.Text(
@@ -216,10 +199,7 @@ class RecommendationPdfService {
               pw.SizedBox(height: 6),
               pw.Text(
                 'Quelle',
-                style: pw.TextStyle(
-                  color: _mutedTextColor,
-                  fontSize: 8,
-                ),
+                style: pw.TextStyle(color: _mutedTextColor, fontSize: 8),
               ),
               pw.SizedBox(height: 2),
               pw.Text(
@@ -299,8 +279,8 @@ class RecommendationPdfService {
           pw.SizedBox(height: 8),
           pw.Text(
             'Bei akuter Gefahr, Selbstgefährdung oder einem medizinischen Notfall '
-                'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
-                'aufgesucht werden.',
+            'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
+            'aufgesucht werden.',
             style: pw.TextStyle(
               color: _textColor,
               fontSize: _noticeBodySize,
@@ -321,7 +301,6 @@ class RecommendationPdfService {
     );
   }
 
-
   pw.Widget _buildDisclaimer() {
     return pw.Container(
       padding: const pw.EdgeInsets.all(14),
@@ -331,9 +310,9 @@ class RecommendationPdfService {
       ),
       child: pw.Text(
         'Dieses Dokument wurde mithilfe künstlicher Intelligenz erstellt. Es stellt keine Diagnose dar '
-            'und ersetzt keine ärztliche Untersuchung, Beratung oder Behandlung. Die Angaben beruhen '
-            'auf den im Chat genannten Informationen und gegebenenfalls auf vom Nutzer gespeicherten '
-            'Profilangaben.',
+        'und ersetzt keine ärztliche Untersuchung, Beratung oder Behandlung. Die Angaben beruhen '
+        'auf den im Chat genannten Informationen und gegebenenfalls auf vom Nutzer gespeicherten '
+        'Profilangaben.',
         style: pw.TextStyle(
           color: _mutedTextColor,
           fontSize: 9,
@@ -352,17 +331,11 @@ class RecommendationPdfService {
         children: [
           pw.Text(
             'Careena · MEP26',
-            style: pw.TextStyle(
-              color: _mutedTextColor,
-              fontSize: 9,
-            ),
+            style: pw.TextStyle(color: _mutedTextColor, fontSize: 9),
           ),
           pw.Text(
             'Seite ${context.pageNumber} von ${context.pagesCount}',
-            style: pw.TextStyle(
-              color: _mutedTextColor,
-              fontSize: 9,
-            ),
+            style: pw.TextStyle(color: _mutedTextColor, fontSize: 9),
           ),
         ],
       ),

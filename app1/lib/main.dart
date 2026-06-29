@@ -20,11 +20,7 @@ class MyApp extends StatelessWidget {
   final ChatController? chatController;
   final AuthApiService? authApiService;
 
-  const MyApp({
-    super.key,
-    this.chatController,
-    this.authApiService,
-  });
+  const MyApp({super.key, this.chatController, this.authApiService});
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +31,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class _AppBoot extends StatefulWidget {
   final ChatController? externalChatController;
   final AuthApiService? externalAuthApiService;
 
-  const _AppBoot({
-    this.externalChatController,
-    this.externalAuthApiService,
-  });
+  const _AppBoot({this.externalChatController, this.externalAuthApiService});
 
   @override
   State<_AppBoot> createState() => _AppBootState();
@@ -66,13 +58,13 @@ class _AppBootState extends State<_AppBoot> {
     _symptomRepository = SymptomRepository();
 
     _ownedDependencies =
-      widget.externalChatController == null &&
-              widget.externalAuthApiService == null
-          ? AppDependencies(
-              authSession: _authSession,
-              symptomRepository: _symptomRepository,
-            )
-          : null;
+        widget.externalChatController == null &&
+            widget.externalAuthApiService == null
+        ? AppDependencies(
+            authSession: _authSession,
+            symptomRepository: _symptomRepository,
+          )
+        : null;
 
     _chatController =
         widget.externalChatController ?? _ownedDependencies!.chatController;
@@ -92,7 +84,7 @@ class _AppBootState extends State<_AppBoot> {
   @override
   Widget build(BuildContext context) {
     return AppDependenciesScope(
-      dependencies: _ownedDependencies!, 
+      dependencies: _ownedDependencies!,
       child: AnimatedBuilder(
         animation: _themeController,
         builder: (context, _) {

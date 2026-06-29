@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../theme/auth_theme.dart';
 
@@ -85,13 +85,7 @@ class AuthDivider extends StatelessWidget {
         Expanded(child: Divider(color: dividerColor, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: textColor,
-              ),
-          ),
+          child: Text(text, style: TextStyle(fontSize: 14, color: textColor)),
         ),
         Expanded(child: Divider(color: dividerColor, thickness: 1)),
       ],
@@ -135,11 +129,7 @@ class AuthTextLink extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const AuthTextLink({
-    super.key,
-    required this.text,
-    required this.onPressed,
-  });
+  const AuthTextLink({super.key, required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

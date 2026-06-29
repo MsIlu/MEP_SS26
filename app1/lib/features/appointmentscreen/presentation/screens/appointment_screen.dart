@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
@@ -347,7 +347,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 if (doctorController.text.trim().isEmpty) {
                   setDialogState(() {
                     doctorErrorText =
-                    'Bitte gib einen Arzt oder eine Praxis ein.';
+                        'Bitte gib einen Arzt oder eine Praxis ein.';
                   });
                   return;
                 }

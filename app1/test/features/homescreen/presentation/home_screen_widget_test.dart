@@ -87,7 +87,7 @@ void main() {
       expect(find.text('Keine Einträge'), findsOneWidget);
     });
 
-    testWidgets('opens saved chat history from Nachrichten navigation', (
+    testWidgets('opens saved chat history from Verlauf navigation', (
       WidgetTester tester,
     ) async {
       final firstProfileEntry = ChatHistoryEntry(
@@ -256,5 +256,17 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
   }
 
   @override
-  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {}
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) async {
+    return saveChat(entry);
+  }
 }

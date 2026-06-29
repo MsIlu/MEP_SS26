@@ -136,7 +136,9 @@ class ApiClient {
             message = 'Die angefragten Daten wurden nicht gefunden.';
             break;
           case 409:
-            message = 'Diese E-Mail-Adresse wurde schon registriert.';
+            message =
+                _mappedErrorDetailFromResponse(response) ??
+                'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
             break;
           default:
             message =
@@ -272,7 +274,9 @@ class ApiClient {
           message = 'Die angefragten Daten wurden nicht gefunden.';
           break;
         case 409:
-          message = 'Diese E-Mail-Adresse wurde schon registriert.';
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
           break;
         default:
           message =
@@ -296,6 +300,32 @@ class ApiClient {
       ApiErrorType.invalidResponse,
       'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
     );
+  }
+
+  String? _errorDetailFromResponse(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is Map<String, dynamic>) {
+        final detail = decoded['detail'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String? _mappedErrorDetailFromResponse(http.Response response) {
+    final detail = _errorDetailFromResponse(response);
+
+    switch (detail) {
+      case 'Email is already registered.':
+        return 'Diese E-Mail-Adresse wurde schon registriert.';
+      default:
+        return detail;
+    }
   }
 
   /*

@@ -62,7 +62,7 @@ class CreateManagedProfileButton extends StatelessWidget {
 
       session.setProfiles([...session.profiles, authProfile]);
       session.setActiveProfileById(authProfile.id);
-      
+
       if (!context.mounted) return;
 
       await _refreshProfileData(context, authProfile.id);
@@ -81,10 +81,7 @@ class CreateManagedProfileButton extends StatelessWidget {
     }
   }
 
-  Future<void> _refreshProfileData(
-    BuildContext context,
-    int profileId,
-  ) async {
+  Future<void> _refreshProfileData(BuildContext context, int profileId) async {
     final dependencies = AppDependenciesScope.maybeOf(context);
     if (dependencies == null) {
       return;

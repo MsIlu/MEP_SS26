@@ -7,10 +7,8 @@ class SymptomSyncService {
   final SymptomApiService _apiService;
   final SymptomRepository _repository;
 
-  SymptomSyncService(
-    this._apiService, {
-    SymptomRepository? repository,
-  }) : _repository = repository ?? SymptomRepository();
+  SymptomSyncService(this._apiService, {SymptomRepository? repository})
+    : _repository = repository ?? SymptomRepository();
 
   /// Fetches all symptom entries for [profileId] and replaces the local cache.
   Future<void> syncActiveProfile(int profileId) async {

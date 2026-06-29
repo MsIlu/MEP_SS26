@@ -31,9 +31,8 @@ class ChatWarningController {
     // Uses the local timestamp only as a fallback. The database timestamp is
     // refreshed on every confirmation and is the source of truth after login.
     final accepted = prefs.getBool(_key) ?? false;
-    
-    return !accepted;
 
+    return !accepted;
   }
 
   // Persists that the user has accepted the warning
@@ -54,7 +53,7 @@ class ChatWarningController {
     if (profileId != null) {
       await prefs.setString(_profileKey(profileId), acceptedAt);
     } else {
-      await prefs.setBool(_key,true);
+      await prefs.setBool(_key, true);
     }
 
     return acceptedAt;

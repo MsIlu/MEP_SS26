@@ -63,6 +63,9 @@ careena4_llm_health_status: dict[str, object] = {
     "checked_at": None,
 }
 
+app.state.careena4_session_store = careena4_session_store
+app.state.careena4_session_profiles = careena4_session_profiles
+
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)
@@ -235,6 +238,9 @@ def build_careena4_simrun_response(*, message: str) -> dict:
         "red_flag": "Stop-Grund: emergency" in response_text,
     }
 
+
+app.state.careena4_turn_engine = careena4_turn_engine
+app.state.careena4_response_builder = build_careena4_chat_response
 
 def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -> None:
     careena4_session.medical_case = turn_result.medical_case

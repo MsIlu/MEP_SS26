@@ -41,7 +41,9 @@ void main() {
           MockClient((request) async {
             capturedRequest = request;
             return http.Response(
-              jsonEncode({'message': 'saved'}),
+              jsonEncode(
+                _historyJson(id: 99, createdAt: '2026-06-03T12:00:00+00:00'),
+              ),
               200,
               headers: {'content-type': 'application/json'},
             );
@@ -49,7 +51,7 @@ void main() {
         ),
       );
 
-      await repository.saveCompletedChat(
+      final savedEntry = await repository.saveCompletedChat(
         ChatHistoryEntry(
           id: 'local-1',
           profileId: 42,
@@ -67,8 +69,75 @@ void main() {
       expect(capturedRequest.url.path, '/chat-history');
       expect(body['profile_id'], 42);
       expect(body['title'], 'Husten');
+      expect(body['status'], 'completed');
       expect(body['recommendation'], 'Hausarztpraxis regulaer');
       expect(body['next_steps'], 'Termin vereinbaren');
+      expect(savedEntry.id, '99');
+      expect(savedEntry.status, 'completed');
+    });
+
+    test('updates existing chat history through the API', () async {
+      late http.Request capturedRequest;
+      final repository = ApiChatHistoryRepository(
+        ApiClient(
+          MockClient((request) async {
+            capturedRequest = request;
+            return http.Response(
+              jsonEncode(
+                _historyJson(
+                  id: 99,
+                  createdAt: '2026-06-03T12:00:00+00:00',
+                  status: 'active',
+                ),
+              ),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        ),
+      );
+
+      final updatedEntry = await repository.updateChat(
+        ChatHistoryEntry(
+          id: '99',
+          profileId: 42,
+          symptomTitle: 'Husten',
+          status: 'active',
+          isEmergency: false,
+          createdAt: DateTime(2026, 6, 3, 12),
+          messages: const [],
+          recommendation: '',
+        ),
+      );
+
+      final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
+      expect(capturedRequest.method, 'PATCH');
+      expect(capturedRequest.url.path, '/chat-history/99');
+      expect(body['status'], 'active');
+      expect(body['recommendation'], '');
+      expect(updatedEntry.id, '99');
+      expect(updatedEntry.status, 'active');
+    });
+
+    test('deletes chat history through the API', () async {
+      late http.Request capturedRequest;
+      final repository = ApiChatHistoryRepository(
+        ApiClient(
+          MockClient((request) async {
+            capturedRequest = request;
+            return http.Response(
+              jsonEncode({'deleted': true}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        ),
+      );
+
+      await repository.deleteChat('99');
+
+      expect(capturedRequest.method, 'DELETE');
+      expect(capturedRequest.url.path, '/chat-history/99');
     });
   });
 }
@@ -76,13 +145,16 @@ void main() {
 Map<String, dynamic> _historyJson({
   required int id,
   required String createdAt,
+  String status = 'completed',
 }) {
   return {
     'id': id,
     'profile_id': 42,
     'title': 'Husten',
+    'status': status,
     'is_emergency': false,
     'created_at': createdAt,
+    'updated_at': createdAt,
     'recommendation': 'Hausarztpraxis regulaer',
     'messages': const [],
   };

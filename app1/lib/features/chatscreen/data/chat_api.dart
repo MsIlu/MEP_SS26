@@ -52,6 +52,16 @@ class ChatApi {
     await client.delete("/input-drafts/$sessionId");
   }
 
+  Future<void> setObservationSeverities(
+    String sessionId,
+    Map<String, int> severities,
+  ) async {
+    await client.post("/chatscreen/set-severities", {
+      "session_id": sessionId,
+      "severities": severities,
+    });
+  }
+
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {}).timeout(const Duration(seconds: 5));

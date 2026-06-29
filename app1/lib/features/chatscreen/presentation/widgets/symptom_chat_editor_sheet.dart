@@ -12,12 +12,15 @@ class SymptomChatEditorSheet extends StatefulWidget {
   final List<SymptomImport> symptoms;
   final String? biologicalSex;
   final void Function(List<SymptomImport> updated) onChanged;
+  /// Called after each save so severity changes reach the backend immediately.
+  final Future<void> Function(Map<String, int> severities)? onSeveritiesChanged;
 
   const SymptomChatEditorSheet({
     super.key,
     required this.symptoms,
     required this.onChanged,
     this.biologicalSex,
+    this.onSeveritiesChanged,
   });
 
   @override
@@ -36,6 +39,17 @@ class _SymptomChatEditorSheetState extends State<SymptomChatEditorSheet> {
   void _delete(int index) {
     setState(() => _symptoms.removeAt(index));
     widget.onChanged(_symptoms);
+    _pushSeveritiesToBackend();
+  }
+
+  void _pushSeveritiesToBackend() {
+    final severities = <String, int>{};
+    for (final s in _symptoms) {
+      if (s.severity != null) severities[s.name] = s.severity!;
+    }
+    if (severities.isNotEmpty) {
+      widget.onSeveritiesChanged?.call(severities);
+    }
   }
 
   Future<void> _editOrAdd({int? editIndex}) async {
@@ -74,6 +88,7 @@ class _SymptomChatEditorSheetState extends State<SymptomChatEditorSheet> {
                     }
                   });
                   widget.onChanged(_symptoms);
+                  _pushSeveritiesToBackend();
                 },
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),

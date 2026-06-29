@@ -386,6 +386,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               updated.map((s) => s.name).toList(),
             );
           },
+          onSeveritiesChanged: (severities) async {
+            final sessionId = widget.controller.chatSessionService.sessionId;
+            if (sessionId == null) return;
+            await widget.controller.chatApi.setObservationSeverities(
+              sessionId,
+              severities,
+            );
+          },
         );
       },
     );

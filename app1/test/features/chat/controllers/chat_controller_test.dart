@@ -125,7 +125,7 @@ void main() {
       expect(chatApi.lastProfileId, 42);
     });
 
-    test('requests recommendation through backend trigger text', () async {
+    test('requests recommendation through dedicated backend endpoint', () async {
       final authSession = AuthSession();
       final chatApi = _FakeChatApi();
       final controller = ChatController(
@@ -141,7 +141,8 @@ void main() {
       await controller.init();
       await controller.requestRecommendation();
 
-      expect(chatApi.lastText, 'Ja, Empfehlung');
+      expect(chatApi.requestRecommendationSessionIds, ['fake-session-1']);
+      expect(chatApi.sentTexts, isEmpty);
       expect(
         controller.messages.value.where((message) => message.isUser).last.text,
         ChatController.recommendationRequestDisplayText,
@@ -535,6 +536,7 @@ class _FakeChatApi extends ChatApi {
   final List<String> cancelledSessionIds = [];
   final List<String> sentTexts = [];
   final List<String> operationLog = [];
+  final List<String> requestRecommendationSessionIds = [];
   List<String> symptoms = [];
   CareenaAvailability nextAvailability = CareenaAvailability.online;
   int availabilityRequests = 0;
@@ -581,6 +583,12 @@ class _FakeChatApi extends ChatApi {
     lastProfileId = profileId;
     sentTexts.add(text);
 
+    return nextResponse;
+  }
+
+  @override
+  Future<ChatResponse> requestRecommendation(String sessionId) async {
+    requestRecommendationSessionIds.add(sessionId);
     return nextResponse;
   }
 

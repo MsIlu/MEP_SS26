@@ -8,6 +8,4 @@ class TurnDecision(PipelineModel):
     kind: TurnDecisionKind
     response_mode: ResponseMode
     active_question: ActiveQuestion | None = None
-    recommendation_requested: bool = False
-    recommendation_ready: bool = False
     trace_notes: list[str] = Field(default_factory=list)

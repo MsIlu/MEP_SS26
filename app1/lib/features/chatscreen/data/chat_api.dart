@@ -23,6 +23,14 @@ class ChatApi {
     return ChatResponse.fromJson(data);
   }
 
+  Future<ChatResponse> requestRecommendation(String sessionId) async {
+    final data = await client.post("/recommendation/request", {
+      "session_id": sessionId,
+    });
+
+    return ChatResponse.fromJson(data);
+  }
+
   Future<List<String>> getInputDraftSymptoms(String sessionId) async {
     final data = await client.get("/input-drafts/$sessionId");
 

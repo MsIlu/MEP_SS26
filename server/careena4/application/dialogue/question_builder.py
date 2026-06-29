@@ -6,13 +6,7 @@ from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena4.llm.call_control import CallModelConfig, QUESTION_RENDERING_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import (
-    ActiveQuestion,
-    FollowupNeed,
-    GuidedInputContract,
-    GuidedInputMode,
-    GuidedInputOption,
-)
+from careena4.models.domain import ActiveQuestion, FollowupNeed
 from careena4.server_log import log_event
 
 
@@ -113,25 +107,6 @@ class QuestionBuilder:
             allows_additional_medical_info=True,
         )
         question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
-        return question
-
-    def build_closing_choice(self) -> ActiveQuestion:
-        question = ActiveQuestion(
-            kind="closing_choice",
-            question_intent="free_description",
-            prompt_text="Moechten Sie jetzt eine Versorgungsempfehlung erhalten?",
-            blocking=False,
-            allows_additional_medical_info=True,
-            guided_input=GuidedInputContract(
-                mode=GuidedInputMode.STRUCTURED_PREFERRED,
-                free_text_allowed=True,
-                options=[
-                    GuidedInputOption(code="recommendation_now", label="Ja, Empfehlung", effect_code="recommendation_now"),
-                    GuidedInputOption(code="add_more_information", label="Nein, weitere Angaben", effect_code="add_more_information"),
-                ],
-            ),
-        )
-        question.prompt_text = self._render_prompt(question=question, focus_label=None)
         return question
 
     def build_additional_information_request(self) -> ActiveQuestion:

@@ -8,6 +8,7 @@ from careena4.models.turn.extraction_claims import (
 )
 from careena4.models.turn.input import TurnInput
 from careena4.models.turn.question_resolution import ObservationPatch, PersonUpdate, QuestionResolution
+from careena4.models.turn.recommendation_request import RecommendationRequestInput
 from careena4.models.turn.result import TurnResult
 from careena4.models.turn.safety_state import (
     SafetyAction,
@@ -29,6 +30,7 @@ __all__ = [
     "ObservationPatch",
     "PersonUpdate",
     "QuestionResolution",
+    "RecommendationRequestInput",
     "SafetyAction",
     "SafetyClarificationOutcome",
     "SafetyClarificationResolution",

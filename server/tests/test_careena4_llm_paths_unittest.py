@@ -54,7 +54,6 @@ class Careena4LlmPathTests(unittest.TestCase):
                     "answers_active_question": False,
                     "contains_new_medical_information": True,
                     "message_kind": "new_case_report",
-                    "recommendation_requested": True,
                 }
             ),
             call_model_config=CallModelConfig(default_model="default", overrides={}),
@@ -64,7 +63,6 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertIsInstance(result, EntryAssessment)
         self.assertEqual(result.message_kind, "new_case_report")
-        self.assertTrue(result.recommendation_requested)
         self.assertEqual(classifier.extraction_engine.calls[0]["call_name"], ENTRY_CALL)
         self.assertEqual(classifier.extraction_engine.calls[0]["prompt_name"], ENTRY_CALL)
         self.assertEqual(classifier.extraction_engine.calls[0]["prompt_version"], load_prompt(ENTRY_CALL).version)
@@ -220,64 +218,6 @@ class Careena4LlmPathTests(unittest.TestCase):
         assert result.observation_patch is not None
         self.assertEqual(result.observation_patch.severity, "8/10")
 
-    def test_question_resolver_maps_closing_choice_no_to_more_information(self):
-        resolver = QuestionResolver()
-        question = ActiveQuestion(
-            kind="closing_choice",
-            question_intent="free_description",
-            prompt_text="Moechten Sie jetzt eine Versorgungsempfehlung erhalten?",
-        )
-
-        result = resolver.resolve(question=question, message="Nein, weitere Angaben.")
-
-        self.assertEqual(result.status, "resolved")
-        self.assertEqual(result.recommendation_choice, "add_more_information")
-
-    def test_question_resolver_maps_closing_choice_no_more_input_to_recommendation(self):
-        resolver = QuestionResolver()
-        question = ActiveQuestion(
-            kind="closing_choice",
-            question_intent="free_description",
-            prompt_text="Moechten Sie jetzt eine Versorgungsempfehlung erhalten?",
-        )
-
-        result = resolver.resolve(question=question, message="Nein, mehr faellt mir gerade nicht ein.")
-
-        self.assertEqual(result.status, "resolved")
-        self.assertEqual(result.recommendation_choice, "recommendation_now")
-
-    def test_question_resolver_keeps_topic_only_extra_case_input_for_closing_choice(self):
-        resolver = QuestionResolver(
-            medical_extractor=_FakeMedicalExtractor(
-                ExtractedCaseInput(
-                    topic_entries_to_add=[
-                        {
-                            "topic_part": "Fahrradsturz mit Arztfrage",
-                            "source": {"message_id": None, "source_span": "Fahrradsturz, zu welchem Arzt"},
-                        }
-                    ]
-                )
-            )
-        )
-        question = ActiveQuestion(
-            kind="closing_choice",
-            question_intent="free_description",
-            prompt_text="Moechten Sie jetzt eine Versorgungsempfehlung erhalten?",
-            allows_additional_medical_info=True,
-        )
-
-        result = resolver.resolve(
-            question=question,
-            message="Nein, ich hatte ausserdem einen Fahrradsturz und will wissen zu welchem Arzt ich soll.",
-        )
-
-        self.assertEqual(result.status, "resolved")
-        self.assertTrue(result.additional_medical_information)
-        self.assertEqual(result.recommendation_choice, "add_more_information")
-        assert result.extra_case_input is not None
-        self.assertEqual(result.extra_case_input.observations, [])
-        self.assertEqual(result.extra_case_input.topic_entries_to_add[0].topic_part, "Fahrradsturz mit Arztfrage")
-
     def test_medical_extractor_prefers_llm_schema_result(self):
         extractor = MedicalExtractor(
             extraction_engine=_FakeExtractionEngine(
@@ -378,31 +318,17 @@ class Careena4LlmPathTests(unittest.TestCase):
             load_prompt(TOPIC_LABELING_CALL).version,
         )
 
-    def test_response_builder_renders_explicit_closing_choice_options(self):
+    def test_response_builder_renders_recommendation_button_hint_for_guide_next_step(self):
         builder = ResponseBuilder()
-        question = ActiveQuestion(
-            kind="closing_choice",
-            question_intent="free_description",
-            prompt_text="Moechten Sie jetzt eine Versorgungsempfehlung erhalten?",
-            guided_input={
-                "mode": "structured_preferred",
-                "free_text_allowed": True,
-                "options": [
-                    {"code": "recommendation_now", "label": "Ja, Empfehlung", "effect_code": "recommendation_now"},
-                    {"code": "add_more_information", "label": "Nein, weitere Angaben", "effect_code": "add_more_information"},
-                ],
-            },
-        )
         decision = TurnDecision(kind="guide_next_step", response_mode="guide_next_step")
 
         text = builder.build(
             decision=decision,
-            active_question=question,
         )
 
         self.assertEqual(
             text,
-            "Moechten Sie jetzt eine Versorgungsempfehlung erhalten? Bitte antworten Sie mit: Ja, Empfehlung, Nein, weitere Angaben.",
+            "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button.",
         )
 
 

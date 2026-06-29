@@ -15,11 +15,9 @@ class ReadinessEvaluator:
     ) -> RecommendationState:
         if medical_case is None or not self.case_manager.has_active_observations(medical_case=medical_case):
             return RecommendationState(
-                request_present=conversation_state.recommendation_requested,
                 readiness="not_ready",
                 blocking_followup_ids=[],
                 recommendation_allowed=False,
-                closing_prompt_active=False,
             )
         blocking_followup_ids = [
             need.followup_id
@@ -38,14 +36,9 @@ class ReadinessEvaluator:
             )
         )
         return RecommendationState(
-            request_present=conversation_state.recommendation_requested,
             readiness="ready" if ready else ("tentative" if central_observations else "not_ready"),
             blocking_followup_ids=blocking_followup_ids,
             recommendation_allowed=ready,
-            closing_prompt_active=(
-                conversation_state.active_question is not None
-                and conversation_state.active_question.kind == "closing_choice"
-            ),
         )
 
 

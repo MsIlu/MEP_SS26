@@ -95,6 +95,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       unawaited(widget.controller.refreshAvailability(refreshLlmStatus: true));
     }
   }
+
   Future<void> _initializeChat() async {
     await widget.controller.init();
     if (!mounted) return;
@@ -608,7 +609,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           symptoms: widget.controller.symptoms.value,
                           userMessages: userMessages,
                           showLongProcessingHint:
-                            message.isLoading && _showLongProcessingHint,
+                              message.isLoading && _showLongProcessingHint,
                         ),
                       ),
                     );

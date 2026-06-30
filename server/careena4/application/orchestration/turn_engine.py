@@ -114,6 +114,10 @@ class TurnEngine:
             )
 
         is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
+        if is_fast_path and self._should_route_guided_safety_answer_via_turn_interpreter(
+            active_question=conversation_state.active_question
+        ):
+            is_fast_path = False
         if is_fast_path:
             trace_notes.append("turn:guided_input_fast_path")
         elif self.turn_interpreter is not None:
@@ -925,6 +929,17 @@ class TurnEngine:
         if interpretation.question_resolution is None:
             return True
         return not interpretation.entry_assessment.answers_active_question
+
+    def _should_route_guided_safety_answer_via_turn_interpreter(
+        self,
+        *,
+        active_question: ActiveQuestion | None,
+    ) -> bool:
+        return (
+            self.turn_interpreter is not None
+            and active_question is not None
+            and active_question.kind == "safety_clarification"
+        )
 
     def _normalize_interpreter_question_resolution(
         self,

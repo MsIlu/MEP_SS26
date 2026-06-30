@@ -79,6 +79,8 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 - `T02.3.7`: Notruf-Text in Empfehlungen wird als Notfall-History erkannt.
 - `T02.3.8`: Dringende Red-Flag-Metadaten werden als Notfall-History erkannt.
 - `T02.3.9`: Ein Konflikt beim Fortsetzen eines Chats wird ausführlich und vollständig auf Deutsch angezeigt.
+- `T02.3.10`: Ein Continue-Konflikt synchronisiert den aktuellen Serverstand, ohne den Chat auf `failed` zu setzen.
+- `T02.3.11`: Ein Profilkonflikt der Chat-Session wird verständlich auf Deutsch erklärt.
 
 ## T03 Symptome Erkennen / Input-Drafts
 

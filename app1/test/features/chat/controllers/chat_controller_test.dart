@@ -761,11 +761,12 @@ void main() {
           'Only waiting chat history entries can be continued.',
           statusCode: 409,
         );
+      final historyRepository = _FakeChatHistoryRepository();
       final controller = ChatController(
         chatApi: chatApi,
         chatService: ChatService(),
         authSession: authSession,
-        chatHistoryRepository: _FakeChatHistoryRepository(),
+        chatHistoryRepository: historyRepository,
       );
       addTearDown(controller.dispose);
       addTearDown(authSession.dispose);
@@ -786,11 +787,117 @@ void main() {
 
       expect(
         controller.messages.value.last.text,
-        contains('Dieser Chat kann nicht fortgesetzt werden'),
+        contains('Der Chat wurde bereits'),
       );
       expect(
         controller.messages.value.last.text,
         isNot(contains('Only waiting')),
+      );
+      expect(
+        historyRepository.updatedEntries.where(
+          (entry) => entry.status == 'failed',
+        ),
+        isEmpty,
+      );
+    });
+
+    test(
+      'synchronizes history instead of failing after a continue conflict',
+      () async {
+        final authSession = AuthSession();
+        authSession.setAuthResponse(
+          const AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: Account(id: 1, email: 'test@example.com'),
+            profiles: [
+              AuthProfile(
+                id: 42,
+                displayName: 'Anna',
+                profileType: 'self',
+                role: 'owner',
+              ),
+            ],
+          ),
+        );
+        final chatApi = _FakeChatApi()
+          ..continueError = const ApiException(
+            ApiErrorType.http,
+            'Only waiting chat history entries can be continued.',
+            statusCode: 409,
+          );
+        final historyRepository = _FakeChatHistoryRepository();
+        final createdAt = DateTime(2026, 6, 29);
+        historyRepository.savedEntries.add(
+          ChatHistoryEntry(
+            id: 'history-1',
+            profileId: 42,
+            sessionId: 'server-session',
+            status: 'active',
+            createdAt: createdAt,
+            messages: [
+              Message(text: 'Was sind meine Beschwerden?', isUser: true),
+              Message(text: 'Die Antwort vom Server', isUser: false),
+            ],
+            recommendation: '',
+          ),
+        );
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: historyRepository,
+        );
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        await controller.resumeHistoryEntry(
+          ChatHistoryEntry(
+            id: 'history-1',
+            profileId: 42,
+            sessionId: 'old-session',
+            status: 'waiting_for_assistant',
+            createdAt: createdAt,
+            messages: [
+              Message(text: 'Was sind meine Beschwerden?', isUser: true),
+            ],
+            recommendation: '',
+          ),
+        );
+
+        expect(controller.messages.value.last.text, 'Die Antwort vom Server');
+        expect(historyRepository.updatedEntries, isEmpty);
+      },
+    );
+
+    test('explains a chat session profile conflict in German', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()
+        ..sendError = const ApiException(
+          ApiErrorType.http,
+          'Chat session belongs to a different profile.',
+          statusCode: 409,
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.sendMessage('Hallo');
+
+      expect(
+        controller.messages.value.last.text,
+        contains('Dieser Chat gehört zu einem anderen Profil.'),
+      );
+      expect(
+        controller.messages.value.last.text,
+        isNot(contains('different profile')),
       );
     });
   });

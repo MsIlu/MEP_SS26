@@ -58,6 +58,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _speechService = SpeechService();
 
   List<String> _smartReplies = [];
+  bool _smartRepliesAreFromBackend = false;
   List<String>? _preRecommendationSymptoms;
   List<SymptomImport> _enrichedChatSymptoms = [];
   Timer? _longProcessingTimer;
@@ -274,9 +275,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // clarification question), otherwise fall back to text-based generation.
     final backendOptions = widget.controller.lastReplyOptions.value;
     setState(() {
-      _smartReplies = backendOptions.isNotEmpty
-          ? backendOptions
-          : SmartReplies.generate(lastMessage.text);
+      if (backendOptions.isNotEmpty) {
+        _smartReplies = backendOptions;
+        _smartRepliesAreFromBackend = true;
+      } else {
+        _smartReplies = SmartReplies.generate(lastMessage.text);
+        _smartRepliesAreFromBackend = false;
+      }
     });
   }
 
@@ -334,10 +339,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _handleSmartReplySelected(String reply) {
     if (widget.controller.isCompleted.value) return;
 
-    final currentText = _textController.text.trim();
-    final newText = currentText.isEmpty ? reply : '$currentText $reply';
+    _textController.text = reply;
 
-    _textController.text = newText;
+    if (_smartRepliesAreFromBackend) {
+      _handleSend();
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -575,6 +582,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           focusNode: _inputFocusNode,
                           isSending: _isSending || isContinuing,
                           isEnabled: !isCompleted && !isContinuing,
+                          lockedToReplies: _smartRepliesAreFromBackend,
                           onSend: _handleSend,
                           smartReplies: isCompleted || isContinuing
                               ? const []

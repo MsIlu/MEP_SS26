@@ -106,7 +106,7 @@ class _AppBootState extends State<_AppBoot> {
     return AppDependenciesScope(
       dependencies: _ownedDependencies!,
       child: AnimatedBuilder(
-        animation: _themeController,
+        animation: Listenable.merge([_themeController, _authSession]),
         builder: (context, _) {
           return FocusTraversalGroup(
             policy: ReadingOrderTraversalPolicy(),
@@ -140,7 +140,7 @@ class _AppBootState extends State<_AppBoot> {
                     }
 
                     final initialState = snapshot.data!;
-                    if (!initialState.isAuthenticated) {
+                    if (!_authSession.isAuthenticated) {
                       return _buildUnauthenticatedPage(
                         initialState.currentPage ?? AppPage.onboarding,
                       );

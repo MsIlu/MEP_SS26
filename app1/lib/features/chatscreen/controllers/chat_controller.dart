@@ -37,6 +37,7 @@ class ChatController {
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
+  static const Duration _availabilityOnlineRecheckDelay = Duration(seconds: 10);
 
   ChatController({
     required this.chatApi,
@@ -179,11 +180,13 @@ class ChatController {
     final nextAvailability = await chatApi.getCareenaAvailability();
     availability.value = nextAvailability;
 
-    if (nextAvailability.status != CareenaAvailabilityStatus.online) {
-      _availabilityRetryTimer = Timer(_availabilityRetryDelay, () {
-        unawaited(refreshAvailability(showChecking: false));
-      });
-    }
+    final nextDelay =
+        nextAvailability.status == CareenaAvailabilityStatus.online
+        ? _availabilityOnlineRecheckDelay
+        : _availabilityRetryDelay;
+    _availabilityRetryTimer = Timer(nextDelay, () {
+      unawaited(refreshAvailability(showChecking: false));
+    });
   }
 
   Future<ChatResponse?> sendMessage(String text) async {

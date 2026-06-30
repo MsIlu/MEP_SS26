@@ -61,8 +61,8 @@ class _EmptySymptomState extends StatelessWidget {
   Widget build(BuildContext context) {
     return const CareenaEmptyState(
       icon: Icons.check_circle_outline,
-      title: 'Noch keine Symptome vorhanden',
-      message: 'Trage Symptome für diesen Tag ein, sobald etwas auffällt.',
+      title: 'Noch keine Einträge vorhanden',
+      message: 'Trage deinen ersten Eintrag über das Plus "+" hinzu.',
     );
   }
 }

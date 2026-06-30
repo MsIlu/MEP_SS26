@@ -53,8 +53,10 @@ class SymptomDiaryContent extends StatelessWidget {
                   onDateSelected: onDateSelected,
                 ),
                 const SizedBox(height: 14),
-                SymptomSummaryCard(entries: entries),
-                const SizedBox(height: 16),
+                if (entries.isNotEmpty) ...[
+                  SymptomSummaryCard(entries: entries),
+                  const SizedBox(height: 16),
+                ],
                 SymptomEntryList(
                   isLoading: isLoading,
                   entries: entries,

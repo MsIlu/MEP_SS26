@@ -9,8 +9,8 @@ class EmptyPlanPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return const CareenaEmptyState(
       icon: Icons.event_busy_outlined,
-      title: 'Keine Medikamente geplant',
-      message: 'Für diesen Tag sind keine Einnahmen geplant.',
+      title: 'Noch keine Einträge vorhanden',
+      message: 'Trage deinen ersten Eintrag über das Plus "+" hinzu.',
     );
   }
 }

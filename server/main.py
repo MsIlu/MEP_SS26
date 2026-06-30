@@ -29,6 +29,7 @@ from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
+from symptoms.service import list_symptom_entries
 from logging_config import configure_logging
 from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 
@@ -36,6 +37,7 @@ from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
+from careena4.models.turn.input import DiaryEntry
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
@@ -110,6 +112,11 @@ class RecommendationRequest(BaseModel):
     session_id: str
 
 
+class SetObservationSeveritiesRequest(BaseModel):
+    session_id: str
+    severities: dict[str, int]  # symptom label -> severity (1-10)
+
+
 def require_careena4_session(session_id: str):
     careena4_session = careena4_session_store.get(session_id)
 
@@ -181,6 +188,14 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     ):
         reply_options = [opt.label for opt in active_question.guided_input.options]
 
+    case_observations = []
+    if result.medical_case is not None:
+        case_observations = [
+            {"label": obs.label, "severity": obs.severity}
+            for obs in result.medical_case.observations
+            if obs.is_active() and obs.label
+        ]
+
     return {
         "response": result.response_text,
         "response_mode": result.response_mode,
@@ -204,6 +219,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
             if result.recommendation_result is not None
             else None
         ),
+        "case_observations": case_observations,
     }
 
 @app.get("/fhir/export/{session_id}")
@@ -324,11 +340,31 @@ def chat(
 
     turn_id = str(uuid4())
 
+    diary_history: list[DiaryEntry] = []
+    if session_profile_id is not None:
+        raw_entries = list_symptom_entries(
+            profile_id=session_profile_id,
+            current_user=current_user,
+            session=session,
+        )
+        diary_history = [
+            DiaryEntry(
+                date=e.date.isoformat() if hasattr(e.date, "isoformat") else str(e.date),
+                symptom=e.symptom,
+                body_area=e.body_area or "",
+                intensity=e.intensity,
+                note=e.note or "",
+            )
+            for e in raw_entries
+        ]
+
     turn_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
             message=req.message,
             session_id=req.session_id,
             turn_id=turn_id,
+            profile_id=session_profile_id,
+            diary_history=diary_history,
             conversation_messages=careena4_session.messages,
             persisted_medical_case=careena4_session.medical_case,
             persisted_conversation_state=careena4_session.conversation_state,
@@ -359,6 +395,38 @@ def chat(
     )
 
     return response
+
+
+@app.post("/chatscreen/set-severities")
+def set_observation_severities(req: SetObservationSeveritiesRequest):
+    """Update observation severities directly in the session.
+
+    Called when the user sets intensity via the in-chat symptom editor.
+    Also resolves any pending severity question for affected observations so
+    the backend will not ask again.
+    """
+    careena4_session = require_careena4_session(req.session_id)
+
+    if careena4_session.medical_case is None:
+        return {"ok": True}
+
+    label_map = {label.casefold(): severity for label, severity in req.severities.items()}
+
+    for obs in careena4_session.medical_case.observations:
+        if obs.is_active() and obs.label.casefold() in label_map:
+            obs.severity = str(label_map[obs.label.casefold()])
+
+    # Resolve the active severity question if it now has an answer.
+    active_q = careena4_session.conversation_state.active_question
+    if active_q is not None and active_q.question_intent == "severity":
+        target_id = active_q.target_observation_id
+        if target_id:
+            for obs in careena4_session.medical_case.observations:
+                if obs.observation_id == target_id and obs.severity is not None:
+                    careena4_session.conversation_state.active_question = None
+                    break
+
+    return {"ok": True}
 
 
 @app.post("/recommendation/request")

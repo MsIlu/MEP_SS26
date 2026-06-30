@@ -49,6 +49,10 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onSaved;
   final String? biologicalSex;
+  final String? initialSymptom;
+  /// When true and [initialSymptom] is set, skips straight to the details
+  /// (intensity) step instead of stopping at body area first.
+  final bool skipToDetails;
 
   const SymptomEntryForm({
     super.key,
@@ -56,6 +60,8 @@ class SymptomEntryForm extends StatefulWidget {
     this.onCancel,
     this.onSaved,
     this.biologicalSex,
+    this.initialSymptom,
+    this.skipToDetails = false,
   });
 
   @override
@@ -77,6 +83,13 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   void initState() {
     super.initState();
     _loadCustomSymptomSuggestions();
+    final pre = widget.initialSymptom;
+    if (pre != null && pre.isNotEmpty) {
+      _symptomController.text = pre;
+      // skipToDetails: jump to the last step (intensity); the index is clamped
+      // to _lastStepIndex at render time so using a large value is safe.
+      _currentStepIndex = widget.skipToDetails ? 999 : 1;
+    }
   }
 
   @override
@@ -311,7 +324,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   bool get _needsBodyArea => symptomNeedsBodyArea(_symptom);
   bool get _usesTemperature => symptomUsesTemperature(_symptom);
   bool get _isFirstStep => _currentStepIndex == 0;
-  bool get _isLastStep => _currentStepIndex == _lastStepIndex;
+  bool get _isLastStep => _currentStepIndex >= _lastStepIndex;
   int get _lastStepIndex => _activeSteps.length - 1;
 
   List<String> get _stepLabels {

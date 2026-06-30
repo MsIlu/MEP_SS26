@@ -53,6 +53,13 @@ class _CaseWriter:
         person_update: Person | None,
     ) -> MedicalCase:
         self._merge_person(target=medical_case.person, update=person_update)
+        # Propagate to observations that still have "unclear" person_ref so the
+        # observation-level person_ref_missing rule doesn't re-fire after the
+        # case-level subject clarification has been answered.
+        if person_update is not None and person_update.relation not in (None, "", "unclear"):
+            for obs in medical_case.observations:
+                if obs.person_ref == "unclear":
+                    obs.person_ref = person_update.relation
         return medical_case
 
     def write_followup_enrichment(
@@ -140,6 +147,9 @@ class _CaseWriter:
                 else None
             )
             changed_keys.append(f"sex:{update.sex}")
+        if update.pregnancy_status is not None:
+            target.pregnancy_status = update.pregnancy_status
+            changed_keys.append(f"pregnancy_status:{update.pregnancy_status}")
         return changed_keys
 
     @staticmethod

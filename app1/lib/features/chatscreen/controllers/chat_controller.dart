@@ -71,6 +71,11 @@ class ChatController {
   /// Cleared when the user sends the next message.
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
+
+  /// Soft suggestions for followup questions (duration, severity, etc.).
+  /// Unlike lastReplyOptions these do not lock the input field.
+  final ValueNotifier<List<String>> lastReplySuggestions =
+      ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
   final ValueNotifier<int> historyRevision = ValueNotifier<int>(0);
   final ValueNotifier<Set<String>> continuingHistoryIds =
@@ -257,6 +262,7 @@ class ChatController {
     _addMessage(message: Message(text: visibleUserText, isUser: true));
 
     lastReplyOptions.value = [];
+    lastReplySuggestions.value = [];
 
     await _persistActiveChat(status: 'waiting_for_assistant');
     final expectedHistoryEntryId = _activeHistoryEntryId;
@@ -304,6 +310,7 @@ class ChatController {
       symptoms.value = loadedSymptoms;
 
       lastReplyOptions.value = response.replyOptions;
+      lastReplySuggestions.value = response.replySuggestions;
 
       if (response.redFlag) {
         final botMessage = chatService.buildAssistantMessage(response);
@@ -836,6 +843,8 @@ class ChatController {
 
     messages.value = [];
     symptoms.value = [];
+    lastReplyOptions.value = [];
+    lastReplySuggestions.value = [];
     _activeHistoryEntryId = null;
     _activeHistoryCreatedAt = null;
     _activeHistorySessionId = null;
@@ -1203,6 +1212,7 @@ class ChatController {
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    lastReplySuggestions.dispose();
     continuingHistoryIds.dispose();
     historyRevision.dispose();
     availability.dispose();

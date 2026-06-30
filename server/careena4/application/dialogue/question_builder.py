@@ -7,6 +7,7 @@ from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
 from careena4.llm.call_control import CallModelConfig, QUESTION_RENDERING_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, FollowupNeed
+from careena4.models.domain.guided_input import GuidedInputContract, GuidedInputMode, GuidedInputOption
 from careena4.server_log import log_event
 
 
@@ -29,6 +30,7 @@ class QuestionBuilder:
                 prompt_text="Geht es um dich selbst, um dein Kind oder um eine andere Person?",
                 blocking=True,
                 allows_additional_medical_info=True,
+                guided_input=self._person_clarification_input(),
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
@@ -40,6 +42,7 @@ class QuestionBuilder:
                 prompt_text=self._person_age_prompt(person_relation=need.person_relation),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
+                reply_suggestions=self._age_suggestions(person_relation=need.person_relation),
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
@@ -51,9 +54,29 @@ class QuestionBuilder:
                 prompt_text=self._person_sex_prompt(person_relation=need.person_relation),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
+                guided_input=self._person_sex_input(),
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
+        if need.reason == "pregnancy_status_missing":
+            prompt = self._pregnancy_prompt(person_relation=need.person_relation)
+            return ActiveQuestion(
+                kind="person_clarification",
+                question_intent="person_pregnancy",
+                target_followup_id=need.followup_id,
+                prompt_text=prompt,
+                blocking=need.blocking,
+                allows_additional_medical_info=True,
+                guided_input=GuidedInputContract(
+                    mode=GuidedInputMode.STRUCTURED_REQUIRED,
+                    free_text_allowed=False,
+                    options=[
+                        GuidedInputOption(code="possible", label="Ja, möglicherweise"),
+                        GuidedInputOption(code="excluded", label="Nein"),
+                        GuidedInputOption(code="not_applicable", label="Nicht zutreffend"),
+                    ],
+                ),
+            )
         if need.reason == "person_ref_missing":
             label = focus_label or "die Beschwerden"
             question = ActiveQuestion(
@@ -66,6 +89,7 @@ class QuestionBuilder:
                 ),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
+                guided_input=self._person_clarification_input(),
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
@@ -78,6 +102,7 @@ class QuestionBuilder:
                 prompt_text=self._duration_prompt(focus_label=focus_label),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
+                reply_suggestions=["Seit heute", "Seit gestern", "Seit ein paar Tagen", "Seit ca. einer Woche", "Schon länger", "Weiß nicht"],
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
@@ -100,9 +125,10 @@ class QuestionBuilder:
                 question_intent="severity",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text=f"Wie stark sind {self._accusative_label(label)} aktuell?",
+                prompt_text=f"Wie stark sind {self._accusative_label(label)} aktuell auf einer Skala von 1 bis 10?",
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
+                guided_input=self._severity_input(),
             )
             question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
@@ -118,6 +144,46 @@ class QuestionBuilder:
         question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
         return question
 
+    @staticmethod
+    def _severity_input() -> GuidedInputContract:
+        options = [GuidedInputOption(code=str(i), label=str(i)) for i in range(1, 11)]
+        options.append(GuidedInputOption(code="unknown", label="Weiß nicht"))
+        return GuidedInputContract(
+            mode=GuidedInputMode.STRUCTURED_REQUIRED,
+            free_text_allowed=False,
+            options=options,
+        )
+
+    @staticmethod
+    def _person_clarification_input() -> GuidedInputContract:
+        return GuidedInputContract(
+            mode=GuidedInputMode.STRUCTURED_REQUIRED,
+            free_text_allowed=False,
+            options=[
+                GuidedInputOption(code="self", label="Ich selbst"),
+                GuidedInputOption(code="child", label="Mein Kind"),
+                GuidedInputOption(code="other", label="Jemand anderes"),
+            ],
+        )
+
+    @staticmethod
+    def _person_sex_input() -> GuidedInputContract:
+        return GuidedInputContract(
+            mode=GuidedInputMode.STRUCTURED_REQUIRED,
+            free_text_allowed=False,
+            options=[
+                GuidedInputOption(code="female", label="Weiblich"),
+                GuidedInputOption(code="male", label="Männlich"),
+                GuidedInputOption(code="diverse", label="Divers"),
+            ],
+        )
+
+    @staticmethod
+    def _age_suggestions(*, person_relation: str | None) -> list[str]:
+        if person_relation == "child":
+            return ["Säugling (0–1)", "Kleinkind (2–5)", "Kind (6–12)", "Jugendliche/r (13–17)"]
+        return ["Unter 18", "18–30", "31–50", "51–70", "Über 70"]
+
     def build_additional_information_request(self) -> ActiveQuestion:
         return ActiveQuestion(
             kind="followup",
@@ -128,6 +194,10 @@ class QuestionBuilder:
         )
 
     def _render_prompt(self, *, question: ActiveQuestion, focus_label: str | None) -> str:
+        # Skip LLM rendering for click-only questions — the fallback text is concise
+        # and the LLM would otherwise add unnecessary "Bitte antworte mit: ..." instructions.
+        if question.guided_input is not None and question.guided_input.mode == GuidedInputMode.STRUCTURED_REQUIRED:
+            return question.prompt_text
         if self.llm_client is None or getattr(self.llm_client, "client", None) is None:
             return question.prompt_text
         prompt = load_prompt(QUESTION_RENDERING_CALL)
@@ -197,6 +267,14 @@ class QuestionBuilder:
         if person_relation == "other":
             return "Welches Geschlecht hat die betroffene Person?"
         return "Welches Geschlecht hat die betroffene Person?"
+
+    @staticmethod
+    def _pregnancy_prompt(*, person_relation: str | None) -> str:
+        if person_relation == "self":
+            return "Könnte es sein, dass du derzeit schwanger bist?"
+        if person_relation == "child":
+            return "Könnte es sein, dass dein Kind derzeit schwanger ist?"
+        return "Könnte es sein, dass die Person derzeit schwanger ist?"
 
     @staticmethod
     def _accusative_label(label: str) -> str:

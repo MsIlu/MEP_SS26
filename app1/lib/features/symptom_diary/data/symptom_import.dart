@@ -7,6 +7,8 @@ class SymptomImport {
   final int? severity;
   /// Body area (e.g. "Kopf"), or null if not specified.
   final String? bodyArea;
+  /// Date the symptom was reported for, or null (defaults to today).
+  final DateTime? date;
 
-  const SymptomImport({required this.name, this.severity, this.bodyArea});
+  const SymptomImport({required this.name, this.severity, this.bodyArea, this.date});
 }

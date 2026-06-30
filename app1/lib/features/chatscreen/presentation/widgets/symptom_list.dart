@@ -112,6 +112,9 @@ class SymptomList extends StatelessWidget {
                         children: [
                           _SymptomChip(
                             label: actionLabel,
+                            semanticLabel: symptoms.isEmpty
+                                ? 'Symptom hinzufügen'
+                                : 'Erkannte Symptome bearbeiten',
                             icon: actionIcon,
                             labelMaxWidth: _editChipWidth,
                             foregroundColor: actionColor,
@@ -126,6 +129,9 @@ class SymptomList extends StatelessWidget {
                               message: symptom,
                               child: _SymptomChip(
                                 label: symptom,
+                                semanticLabel: 'Erkanntes Symptom: $symptom',
+                                semanticHint:
+                                    'Doppeltippen, um Details zu diesem Symptom zu öffnen.',
                                 labelMaxWidth: symptomLabelWidth,
                                 foregroundColor: symptomColor,
                                 backgroundColor: chipBackground,
@@ -139,6 +145,10 @@ class SymptomList extends StatelessWidget {
                             const SizedBox(width: _spacing),
                             _SymptomChip(
                               label: '+$hiddenCount',
+                              semanticLabel:
+                                  '$hiddenCount weitere erkannte Symptome',
+                              semanticHint:
+                                  'Doppeltippen, um alle Symptome zu bearbeiten.',
                               labelMaxWidth: 52,
                               foregroundColor: actionColor,
                               backgroundColor: chipBackground,
@@ -223,6 +233,8 @@ class SymptomList extends StatelessWidget {
 
 class _SymptomChip extends StatelessWidget {
   final String label;
+  final String? semanticLabel;
+  final String? semanticHint;
   final IconData? icon;
   final double labelMaxWidth;
   final Color foregroundColor;
@@ -233,6 +245,8 @@ class _SymptomChip extends StatelessWidget {
 
   const _SymptomChip({
     required this.label,
+    this.semanticLabel,
+    this.semanticHint,
     this.icon,
     required this.labelMaxWidth,
     required this.foregroundColor,
@@ -246,39 +260,47 @@ class _SymptomChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = this.icon;
 
-    return Material(
-      color: AppColors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(9),
-        onTap: onPressed,
-        child: Container(
-          height: SymptomList._chipHeight,
-          padding: const EdgeInsets.symmetric(
-            horizontal: SymptomList._chipHorizontalPadding,
-          ),
-          decoration: BoxDecoration(
-            color: backgroundColor,
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? label,
+      hint: semanticHint,
+      onTap: onPressed,
+      child: ExcludeSemantics(
+        child: Material(
+          color: AppColors.transparent,
+          child: InkWell(
             borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: borderColor, width: 1.2),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 18, color: foregroundColor),
-                const SizedBox(width: 8),
-              ],
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: labelMaxWidth),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: textStyle,
-                ),
+            onTap: onPressed,
+            child: Container(
+              height: SymptomList._chipHeight,
+              padding: const EdgeInsets.symmetric(
+                horizontal: SymptomList._chipHorizontalPadding,
               ),
-            ],
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: borderColor, width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: foregroundColor),
+                    const SizedBox(width: 8),
+                  ],
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: labelMaxWidth),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: textStyle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

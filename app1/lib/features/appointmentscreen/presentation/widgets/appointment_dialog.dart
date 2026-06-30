@@ -82,32 +82,72 @@ class AppointmentDialog extends StatelessWidget {
                 TextField(
                   controller: doctorController,
                   onChanged: onDoctorChanged,
-                  decoration: _inputDecoration(
-                    context,
-                    'Arzt',
-                    Icons.medical_services,
-                  ).copyWith(errorText: doctorErrorText),
+                  textInputAction: TextInputAction.next,
+                  autofocus: true,
+                  decoration:
+                      _inputDecoration(
+                        context,
+                        'Arzt oder Praxis',
+                        Icons.medical_services,
+                      ).copyWith(
+                        hintText: 'z. B. Hausarztpraxis',
+                        errorText: doctorErrorText,
+                      ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: dateController,
-                  readOnly: true,
-                  onTap: onPickDate,
-                  decoration: _inputDecoration(
-                    context,
-                    'Datum',
-                    Icons.calendar_month,
-                  ).copyWith(errorText: dateErrorText),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: dateController,
+                  builder: (context, value, child) {
+                    return Semantics(
+                      button: true,
+                      label: 'Termindatum auswählen',
+                      value: value.text.isEmpty
+                          ? 'Kein Datum ausgewählt'
+                          : value.text,
+                      hint: 'Öffnet die Datumsauswahl.',
+                      onTap: onPickDate,
+                      child: child,
+                    );
+                  },
+                  child: ExcludeSemantics(
+                    child: TextField(
+                      controller: dateController,
+                      readOnly: true,
+                      onTap: onPickDate,
+                      decoration: _inputDecoration(
+                        context,
+                        'Datum',
+                        Icons.calendar_month,
+                      ).copyWith(errorText: dateErrorText),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: timeController,
-                  readOnly: true,
-                  onTap: onPickTime,
-                  decoration: _inputDecoration(
-                    context,
-                    'Uhrzeit',
-                    Icons.access_time,
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: timeController,
+                  builder: (context, value, child) {
+                    return Semantics(
+                      button: true,
+                      label: 'Uhrzeit auswählen',
+                      value: value.text.isEmpty
+                          ? 'Keine Uhrzeit ausgewählt'
+                          : '${value.text} Uhr',
+                      hint: 'Öffnet die Uhrzeitauswahl.',
+                      onTap: onPickTime,
+                      child: child,
+                    );
+                  },
+                  child: ExcludeSemantics(
+                    child: TextField(
+                      controller: timeController,
+                      readOnly: true,
+                      onTap: onPickTime,
+                      decoration: _inputDecoration(
+                        context,
+                        'Uhrzeit',
+                        Icons.access_time,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

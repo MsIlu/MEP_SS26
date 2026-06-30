@@ -4,6 +4,9 @@ import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'floating_avatar.dart';
 
+const _homeHeroTitle = 'Ich bin Careena! Wie kann ich dir helfen?';
+const _homeHeroCtaLabel = 'Jetzt mit Careena sprechen';
+
 /// Home-screen card that invites the user into a Careena chat.
 class CareenaHeroCard extends StatelessWidget {
   /// Called when the user taps the hero action.
@@ -37,55 +40,59 @@ class CareenaHeroCard extends StatelessWidget {
             horizontal: isCompact ? 14 : 20,
             vertical: 10,
           ),
-          child: Container(
-            key: guideTargetKey,
-            padding: EdgeInsets.all(isCompact ? 16 : 20),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: AppColors.careenaGlow, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.careenaGlow.withValues(
-                    alpha: isDarkMode ? 0.15 : 0.08,
+          child: Semantics(
+            container: true,
+            explicitChildNodes: true,
+            child: Container(
+              key: guideTargetKey,
+              padding: EdgeInsets.all(isCompact ? 16 : 20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: AppColors.careenaGlow, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.careenaGlow.withValues(
+                      alpha: isDarkMode ? 0.15 : 0.08,
+                    ),
+                    blurRadius: isDarkMode ? 12 : 8,
+                    spreadRadius: 1,
                   ),
-                  blurRadius: isDarkMode ? 12 : 8,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: isCompact
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: FloatingAvatar(
-                          imagePath: AppAssets.careenaDoctor,
-                          size: avatarSize,
+                ],
+              ),
+              child: isCompact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: FloatingAvatar(
+                            imagePath: AppAssets.careenaDoctor,
+                            size: avatarSize,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      _HeroTextAndAction(
-                        onTap: onTap,
-                        isSimpleView: isSimpleView,
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      FloatingAvatar(
-                        imagePath: AppAssets.careenaDoctor,
-                        size: avatarSize,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _HeroTextAndAction(
+                        const SizedBox(height: 14),
+                        _HeroTextAndAction(
                           onTap: onTap,
                           isSimpleView: isSimpleView,
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        FloatingAvatar(
+                          imagePath: AppAssets.careenaDoctor,
+                          size: avatarSize,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _HeroTextAndAction(
+                            onTap: onTap,
+                            isSimpleView: isSimpleView,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         );
       },
@@ -117,27 +124,40 @@ class _HeroTextAndAction extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Ich bin Careena!\nWie kann ich dir helfen?",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: isSimpleView ? 20 : 16,
-            color: titleColor,
+        Semantics(
+          header: true,
+          label: _homeHeroTitle,
+          child: ExcludeSemantics(
+            child: Text(
+              "Ich bin Careena!\nWie kann ich dir helfen?",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isSimpleView ? 20 : 16,
+                color: titleColor,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 11),
-        CareenaButton(
-          text: 'Jetzt mit Careena sprechen',
-          onPressed: onTap,
-          backgroundColor: buttonColor,
-          foregroundColor: isDarkMode
-              ? AppColors.toolbarButtonForegroundDark
-              : AppColors.toolbarButtonForeground,
-          borderRadius: isSimpleView ? 26 : 20,
-          height: isSimpleView ? 64 : 44,
-          fontSize: isSimpleView ? 17 : 13,
+        Semantics(
+          button: true,
+          label: _homeHeroCtaLabel,
+          onTap: onTap,
+          child: ExcludeSemantics(
+            child: CareenaButton(
+              text: _homeHeroCtaLabel,
+              onPressed: onTap,
+              backgroundColor: buttonColor,
+              foregroundColor: isDarkMode
+                  ? AppColors.toolbarButtonForegroundDark
+                  : AppColors.toolbarButtonForeground,
+              borderRadius: isSimpleView ? 26 : 20,
+              height: isSimpleView ? 64 : 44,
+              fontSize: isSimpleView ? 17 : 13,
 
-          side: BorderSide(color: AppColors.careenaGlow, width: 4),
+              side: BorderSide(color: AppColors.careenaGlow, width: 4),
+            ),
+          ),
         ),
       ],
     );

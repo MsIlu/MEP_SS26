@@ -12,8 +12,10 @@ ResponseMode = Literal[
 
 QuestionIntent = Literal[
     "person_clarification",
+    "person_profile_selection",
     "person_age",
     "person_sex",
+    "person_pregnancy",
     "duration",
     "description",
     "free_description",
@@ -65,6 +67,7 @@ FollowupReason = Literal[
     "person_missing",
     "age_missing",
     "sex_missing",
+    "pregnancy_status_missing",
     "person_ref_missing",
     "duration_missing",
     "description_missing",

@@ -623,9 +623,10 @@ class TurnEngine:
             if already_present:
                 continue
 
-            medical_case.observations.append(
-                Observation(type="symptom", label=chip.normalized_label_de)
-            )
+            new_obs = Observation(type="symptom", label=chip.normalized_label_de)
+            if medical_case.person.relation not in ("unclear",):
+                new_obs.person_ref = medical_case.person.relation
+            medical_case.observations.append(new_obs)
             trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
 
         return medical_case, trace_notes
@@ -636,6 +637,12 @@ class TurnEngine:
         recommendation_state = request_input.persisted_recommendation_state or RecommendationState()
         symptom_input_draft = request_input.persisted_symptom_input_draft
         trace_notes: list[str] = ["recommendation_request:received"]
+
+        medical_case, chip_trace = self._sync_chips_to_case(
+            medical_case=medical_case,
+            symptom_input_draft=symptom_input_draft,
+        )
+        trace_notes.extend(chip_trace)
 
         log_event(
             "recommendation.requested",

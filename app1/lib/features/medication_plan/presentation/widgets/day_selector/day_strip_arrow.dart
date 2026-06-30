@@ -18,22 +18,26 @@ class DayStripArrow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return SizedBox(
-      width: 32,
-      child: IconButton(
-        tooltip: tooltip,
-        visualDensity: VisualDensity.compact,
-        padding: EdgeInsets.zero,
-        style: IconButton.styleFrom(
-          backgroundColor: isDarkMode
-              ? AppColors.darkElevatedSurface
-              : AppColors.lightBackground,
-          foregroundColor: isDarkMode
-              ? AppColors.toolbarButtonBackgroundDark
-              : AppColors.careenaDark,
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: SizedBox(
+        width: 32,
+        child: IconButton(
+          tooltip: tooltip,
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          style: IconButton.styleFrom(
+            backgroundColor: isDarkMode
+                ? AppColors.darkElevatedSurface
+                : AppColors.lightBackground,
+            foregroundColor: isDarkMode
+                ? AppColors.toolbarButtonBackgroundDark
+                : AppColors.careenaDark,
+          ),
+          onPressed: onPressed,
+          icon: Icon(icon, size: 22),
         ),
-        onPressed: onPressed,
-        icon: Icon(icon, size: 22),
       ),
     );
   }

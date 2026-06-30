@@ -14,6 +14,9 @@ class HomeFeature {
   /// Callback executed when the user taps the feature.
   final VoidCallback onTap;
 
+  /// Short accessibility-only description of what the feature opens.
+  final String semanticDescription;
+
   /// Number of unseen items shown as a badge on the feature tile.
   final int badgeCount;
 
@@ -22,6 +25,7 @@ class HomeFeature {
     required this.title,
     required this.backgroundColor,
     required this.onTap,
+    required this.semanticDescription,
     this.badgeCount = 0,
   });
 }

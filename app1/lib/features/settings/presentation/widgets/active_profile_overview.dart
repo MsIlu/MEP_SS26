@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/app_dependencies_scope.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
@@ -80,9 +80,9 @@ class ActiveProfileOverview extends StatelessWidget {
               children: [
                 Text(
                   'Aktives Profil wechseln',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
                 Flexible(
@@ -120,7 +120,6 @@ class ActiveProfileOverview extends StatelessWidget {
     }
 
     try {
-      await dependencies.symptomRepository.clearEntries();
       await dependencies.symptomSyncService.syncActiveProfile(profileId);
     } catch (_) {
       // Profile switch should still work even if symptom reload fails.

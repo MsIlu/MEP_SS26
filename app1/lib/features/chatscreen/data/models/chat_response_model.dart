@@ -1,8 +1,9 @@
 class CaseObservation {
   final String label;
   final int? severity;
+  final DateTime? date;
 
-  const CaseObservation({required this.label, this.severity});
+  const CaseObservation({required this.label, this.severity, this.date});
 
   factory CaseObservation.fromJson(Map<String, dynamic> json) {
     final rawSeverity = json['severity'];
@@ -12,9 +13,12 @@ class CaseObservation {
     } else if (rawSeverity is String) {
       parsedSeverity = int.tryParse(rawSeverity);
     }
+    final rawDate = json['onset_date'];
+    final parsedDate = rawDate is String ? DateTime.tryParse(rawDate) : null;
     return CaseObservation(
       label: json['label']?.toString() ?? '',
       severity: parsedSeverity,
+      date: parsedDate,
     );
   }
 }
@@ -102,6 +106,10 @@ class ChatResponse {
   /// ask_safety_question responses). Used to populate smart reply chips.
   final List<String> replyOptions;
 
+  /// Soft reply suggestions for followup questions (duration, severity, etc.).
+  /// Unlike replyOptions, these do not lock the input field.
+  final List<String> replySuggestions;
+
   /// Active observations from the medical case, including their severity when known.
   final List<CaseObservation> caseObservations;
 
@@ -119,6 +127,7 @@ class ChatResponse {
     this.recommendationReady = false,
     this.recommendationResult,
     this.replyOptions = const [],
+    this.replySuggestions = const [],
     this.caseObservations = const [],
   });
 
@@ -148,6 +157,11 @@ class ChatResponse {
           : null,
       replyOptions:
           (json['reply_options'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      replySuggestions:
+          (json['reply_suggestions'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
           const [],

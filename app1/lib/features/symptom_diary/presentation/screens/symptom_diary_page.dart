@@ -1,17 +1,20 @@
-import 'package:app1/core/themes/app_colors.dart';
-import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/app/app_page_store.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
-import 'package:flutter/material.dart';
-import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
+import '../../data/symptom_entry.dart';
 import '../../data/symptom_import.dart';
 import '../controllers/symptom_diary_controller.dart';
+import '../utils/symptom_date_format.dart';
 import '../widgets/symptom_diary_content.dart';
 import '../widgets/symptom_entry_form.dart';
 
@@ -22,6 +25,7 @@ class SymptomDiaryPage extends StatefulWidget {
   final SymptomApiService? symptomApiService;
   final ProfileApiService? profileApiService;
   final DateTime? initialDate;
+
   /// When set, shows an import dialog on open so the user can transfer
   /// chat-confirmed symptoms into the diary without re-typing them.
   /// Each entry can carry the symptom name, severity (1-10), and body area.
@@ -51,17 +55,22 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   void initState() {
     super.initState();
     AppPageStore.saveCurrentPage(AppPage.symptomDiary);
+
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
+
     final initialDate = widget.initialDate;
     _selectedDate = initialDate == null
         ? _today
         : DateTime(initialDate.year, initialDate.month, initialDate.day);
+
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
       profileId: widget.authSession?.activeProfileId,
     );
+
     _controller.loadEntries();
+
     final toImport = widget.initialSymptoms;
     if (toImport != null && toImport.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,10 +93,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: CareenaPageHeader(
-        title: 'Symptomtagebuch',
-        onBack: _handleBack,
-      ),
+      appBar: CareenaPageHeader(title: 'Symptomtagebuch', onBack: _handleBack),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -109,7 +115,8 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 allEntries: _controller.entries,
                 onDateSelected: _selectDate,
                 onAddSymptom: _openSymptomForm,
-                onDelete: _controller.deleteEntry,
+                onDelete: _confirmDelete,
+                onEdit: _openEditForm,
               ),
             );
           },
@@ -157,12 +164,15 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                     CheckboxListTile(
                       value: selected[i],
                       title: Text(imports[i].name),
-                      subtitle: imports[i].severity != null
-                          ? Text(
-                              'Intensität: ${imports[i].severity}/10 (aus Chat)',
-                              style: const TextStyle(fontSize: 12),
-                            )
-                          : null,
+                      subtitle: Text(
+                        [
+                          if (imports[i].severity != null)
+                            'Intensität: ${imports[i].severity}/10 (aus Chat)',
+                          if (imports[i].date != null)
+                            formatSymptomDateTitle(imports[i].date!, _today),
+                        ].join(' · '),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) =>
                           setDialogState(() => selected[i] = v ?? false),
@@ -192,25 +202,30 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     for (var i = 0; i < imports.length; i++) {
       if (!selected[i]) continue;
+
       final imp = imports[i];
+
       if (imp.severity != null) {
         await _addEntry(
           symptom: imp.name,
           bodyArea: imp.bodyArea ?? '',
           intensity: imp.severity!,
           note: '',
+          source: 'careena',
+          date: imp.date,
         );
       } else {
         await _openSymptomFormForImport(imp.name, biologicalSex);
       }
+
       if (!mounted) return;
     }
   }
 
   Future<void> _openSymptomFormForImport(
-      String symptom,
-      String? biologicalSex
-      ) async {
+    String symptom,
+    String? biologicalSex,
+  ) async {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -222,7 +237,21 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
             child: SingleChildScrollView(
               child: SymptomEntryForm(
                 initialSymptom: symptom,
-                onSave: _addEntry,
+                onSave:
+                    ({
+                      required String symptom,
+                      required String bodyArea,
+                      required int intensity,
+                      double? temperatureC,
+                      required String note,
+                    }) => _addEntry(
+                      symptom: symptom,
+                      bodyArea: bodyArea,
+                      intensity: intensity,
+                      temperatureC: temperatureC,
+                      note: note,
+                      source: 'careena',
+                    ),
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
                 biologicalSex: biologicalSex,
@@ -261,6 +290,77 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     );
   }
 
+  Future<void> _openEditForm(SymptomEntry entry) async {
+    final biologicalSex = await _activeProfileBiologicalSex();
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(18),
+          backgroundColor: AppColors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: SingleChildScrollView(
+              child: SymptomEntryForm(
+                initialEntry: entry,
+                onSave:
+                    ({
+                      required String symptom,
+                      required String bodyArea,
+                      required int intensity,
+                      double? temperatureC,
+                      required String note,
+                    }) => _updateEntry(
+                      entry: entry,
+                      symptom: symptom,
+                      bodyArea: bodyArea,
+                      intensity: intensity,
+                      temperatureC: temperatureC,
+                      note: note,
+                    ),
+                onCancel: () => Navigator.pop(dialogContext),
+                onSaved: () => Navigator.pop(dialogContext),
+                biologicalSex: biologicalSex,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmDelete(SymptomEntry entry) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Symptom löschen?'),
+        content: Text('„${entry.symptom}“ wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Löschen'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final symptom = entry.symptom;
+      await _controller.deleteEntry(entry);
+
+      if (!mounted) return;
+
+      showCareenaSnackBar(context, 'Symptom gelöscht');
+      _announce('$symptom gelöscht');
+    }
+  }
+
   Future<String?> _activeProfileBiologicalSex() async {
     final session = widget.authSession;
     final profileId = session?.activeProfileId;
@@ -287,48 +387,80 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required int intensity,
     double? temperatureC,
     required String note,
+    String source = 'manual',
+    DateTime? date,
   }) async {
-    final entryDate = _selectedDate;
-    final savedNote = temperatureC == null
-        ? note
-        : 'Temperatur: ${temperatureC.toStringAsFixed(1)} °C'
-              '${note.trim().isEmpty ? '' : '\n$note'}';
-
-    final localEntry = await _controller.addEntry(
+    final entryDate = date ?? _selectedDate;
+    final entry = await _controller.addEntry(
       date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
-      note: savedNote,
+      temperatureC: temperatureC,
+      note: note,
+      source: source,
     );
-
-    final activeProfileId = widget.authSession?.activeProfileId;
-
-    if (activeProfileId != null && widget.symptomApiService != null) {
-      try {
-        final remoteEntry = await widget.symptomApiService!.createSymptom(
-          profileId: activeProfileId,
-          date: entryDate,
-          symptom: symptom,
-          bodyArea: bodyArea,
-          intensity: intensity,
-          note: savedNote,
-        );
-        await _controller.markEntrySynced(localEntry, remoteEntry.id);
-      } catch (_) {
-        if (!mounted) {
-          return;
-        }
-
-        showCareenaSnackBar(context, 'Symptom lokal gespeichert');
-        return;
-      }
-    }
 
     if (!mounted) {
       return;
     }
 
-    showCareenaSnackBar(context, 'Symptom gespeichert');
+    final message = entry.isSynced
+        ? 'Symptom gespeichert'
+        : 'Symptom offline gespeichert – Synchronisierung folgt';
+
+    showCareenaSnackBar(context, message);
+    _announce(message);
+  }
+
+  Future<void> _updateEntry({
+    required SymptomEntry entry,
+    required String symptom,
+    required String bodyArea,
+    required int intensity,
+    double? temperatureC,
+    required String note,
+  }) async {
+    try {
+      await _controller.updateEntry(
+        entry: entry,
+        date: entry.date,
+        symptom: symptom,
+        bodyArea: bodyArea,
+        intensity: intensity,
+        temperatureC: temperatureC,
+        note: note,
+      );
+
+      if (!mounted) return;
+
+      final updated = _controller.entries.firstWhere(
+        (item) => item.id == entry.id,
+        orElse: () => entry,
+      );
+
+      final message = updated.pendingUpdate
+          ? 'Änderung offline gespeichert – Synchronisierung folgt'
+          : 'Symptom aktualisiert';
+
+      showCareenaSnackBar(context, message);
+      _announce(message);
+    } catch (_) {
+      if (mounted) {
+        const message = 'Symptom konnte nicht aktualisiert werden';
+        showCareenaSnackBar(context, message);
+        _announce(message);
+      }
+
+      rethrow;
+    }
+  }
+
+  void _announce(String message) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 }

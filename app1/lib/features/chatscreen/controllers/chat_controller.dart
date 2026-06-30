@@ -36,6 +36,7 @@ class ChatController {
   int _profileChangeGeneration = 0;
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
+  bool _isDisposed = false;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
   static const Duration _availabilityOnlineRecheckDelay = Duration(seconds: 10);
 
@@ -139,9 +140,16 @@ class ChatController {
     bool showChecking = true,
     bool refreshLlmStatus = false,
   }) async {
+    if (_isDisposed) {
+      return;
+    }
+
     final currentRefresh = _availabilityRefreshFuture;
     if (currentRefresh != null) {
       await currentRefresh;
+      if (_isDisposed) {
+        return;
+      }
       if (!refreshLlmStatus) {
         return;
       }
@@ -170,14 +178,23 @@ class ChatController {
     _availabilityRetryTimer = null;
 
     if (showChecking) {
+      if (_isDisposed) {
+        return;
+      }
       availability.value = CareenaAvailability.checking;
     }
 
     if (refreshLlmStatus) {
       await chatApi.warmup();
+      if (_isDisposed) {
+        return;
+      }
     }
 
     final nextAvailability = await chatApi.getCareenaAvailability();
+    if (_isDisposed) {
+      return;
+    }
     availability.value = nextAvailability;
 
     final nextDelay =
@@ -1060,6 +1077,10 @@ class ChatController {
   }
 
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
     authSession.removeListener(_handleAuthSessionChanged);
     _availabilityRetryTimer?.cancel();
     messages.dispose();

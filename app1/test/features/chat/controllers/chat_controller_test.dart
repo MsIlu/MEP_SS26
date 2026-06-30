@@ -931,10 +931,6 @@ class _FakeChatApi extends ChatApi {
   int resumeHistorySessionCalls = 0;
   int continueHistorySessionCalls = 0;
 
-  CareenaAvailability nextAvailability = CareenaAvailability.online;
-  int availabilityRequests = 0;
-  bool throwOnSend = false;
-  Object? sendError;
   Object? continueError;
 
   @override

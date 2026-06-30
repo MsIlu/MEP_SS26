@@ -120,6 +120,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);
+    await tester.ensureVisible(find.text('Datenschutz und Sicherheit'));
     await tester.tap(find.text('Datenschutz und Sicherheit'));
     await tester.pumpAndSettle();
     expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);

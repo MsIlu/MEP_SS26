@@ -411,6 +411,23 @@ class QuestionResolver:
                 )
             return resolution
 
+        if question.question_intent == "person_pregnancy":
+            if resolution.answer_kind != "person_pregnancy_provided":
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
+                )
+            if resolution.person_update is None or resolution.person_update.pregnancy_status is None:
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=["followup:missing_expected_attribute:person_pregnancy"],
+                )
+            return resolution
+
         expected_relation = {
             "person_self": "self",
             "person_child": "child",

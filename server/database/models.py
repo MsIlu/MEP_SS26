@@ -138,6 +138,36 @@ class MedicationEntry(SQLModel, table=True):
     deleted_at: Optional[datetime] = Field(default=None)
 
 
+class RecommendedAppointment(SQLModel, table=True):
+    """
+    Persisted appointment candidate selected from the local HAPI FHIR adapter.
+
+    Entries are scoped to profiles and keep the FHIR Appointment identifier so
+    selecting the same HAPI appointment twice stays idempotent.
+    """
+    __tablename__ = "recommended_appointments"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    profile_id: int = Field(foreign_key="profiles.id", index=True)
+    booked_by_account_id: int = Field(foreign_key="users.id", index=True)
+
+    session_id: Optional[str] = Field(default=None, max_length=100, index=True)
+    fhir_appointment_id: str = Field(max_length=120, index=True)
+
+    provider_name: str = Field(max_length=255)
+    specialty: str = Field(default="", max_length=120)
+    address: str = Field(default="", max_length=255)
+    distance_km: float = Field(default=0)
+    starts_at: datetime = Field(index=True)
+    care_type: str = Field(default="", max_length=120)
+    note: Optional[str] = Field(default=None, max_length=1000)
+    status: str = Field(default="planned", max_length=40, index=True)
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = Field(default=None)
+
+
 class ChatHistory(SQLModel, table=True):
     """
     Persisted chat history for one medical profile.

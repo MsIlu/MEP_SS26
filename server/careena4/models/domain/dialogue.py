@@ -19,7 +19,7 @@ class FollowupNeed(PipelineModel):
     followup_id: str = Field(default_factory=lambda: str(uuid4()))
     observation_id: str | None = None
     reason: FollowupReason
-    case_focus_label: str | None = None
+    person_relation: SubjectScope | None = None
     priority: FollowupPriority = "medium"
     blocking: bool = False
     resolved: bool = False

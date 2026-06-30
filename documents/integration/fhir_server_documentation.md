@@ -86,7 +86,7 @@ Der lokale FHIR-Server dient nur dazu, die technische Übergabe von FHIR-Ressour
 Nicht Bestandteil dieses Schritts sind:
 
 * produktive 116117-Anbindung
-* echte Terminbuchung
+* produktive externe Terminbuchung bei der 116117
 * Authentifizierung gegenüber externen Systemen
 * TI-/KIM-Anbindung
 * vollständige KBV-spezifische Profile
@@ -97,19 +97,41 @@ Nicht Bestandteil dieses Schritts sind:
 
 Der FHIR-Mapper erzeugt FHIR-Ressourcen aus internen Careena-Test- und Analyse-Daten.
 
-Der lokale FHIR-Server kann später genutzt werden, um diese erzeugten FHIR-Ressourcen testweise entgegenzunehmen. Dadurch kann geprüft werden, ob die technische Übertragung und Verarbeitung grundsätzlich funktioniert.
+Der lokale FHIR-Server nimmt diese erzeugten FHIR-Ressourcen testweise entgegen. Dadurch kann geprüft werden, ob die technische Übertragung und Verarbeitung grundsätzlich funktioniert.
 
-## Nächster möglicher Schritt
+## Aktueller Careena-Ablauf
 
-In einem späteren Schritt kann ein Backend-Adapter ergänzt werden, der ein erzeugtes FHIR-Bundle an den lokalen HAPI-FHIR-Server sendet.
+Der Backend-Endpunkt `POST /appointments/search` erzeugt für die aktuelle
+Careena-Session ein FHIR-Bundle und überträgt es an HAPI. Danach fragt das
+Backend FHIR-Appointment-Ressourcen aus HAPI ab und gibt diese an das Frontend
+zurück.
+
+Wenn für die konkrete Session/Profil/PLZ-Kombination noch keine passenden
+Appointment-Ressourcen in HAPI liegen, legt der lokale Adapter passende
+Appointment-Kandidaten in HAPI an und liest sie anschließend wieder über die
+FHIR-Suche aus HAPI zurück. Dadurch läuft der technische Weg über HAPI, ohne
+eine produktive 116117-Schnittstelle vorzutäuschen.
+
+Ein ausgewählter Termin wird über
+`POST /profiles/{profile_id}/appointments/recommended` zusätzlich profilbezogen
+in der Careena-Datenbank gespeichert. Vor dem Speichern setzt das Backend die
+zugehörige HAPI-FHIR-Appointment-Resource lokal auf `booked`, markiert die
+Teilnehmer als angenommen und schreibt den buchenden Careena-Account als
+FHIR-Extension. Die gespeicherte Zeile enthält die HAPI-FHIR-Appointment-ID,
+den buchenden Account und den Status, damit dieselbe Empfehlung nicht doppelt
+angelegt wird.
 
 Damit entsteht folgender Ablauf:
 
 ```text
-Careena-interne Daten
+Careena-Session
 → FHIR-Mapper
 → FHIR-Bundle
 → lokaler HAPI-FHIR-Server
+→ FHIR Appointment Ressourcen
+→ Backend-Antwort an Flutter
+→ lokale HAPI-FHIR-Buchung des ausgewählten Termins
+→ profilbezogene Speicherung des gebuchten Termins in PostgreSQL
 ```
 
 

@@ -25,10 +25,8 @@ class ReadinessEvaluator:
             if need.blocking and not need.resolved
         ]
         central_observations = self.case_manager.central_observations(medical_case=medical_case)
-        has_topic = self.case_manager.has_topic(medical_case=medical_case)
         ready = bool(
-            has_topic
-            and central_observations
+            central_observations
             and not blocking_followup_ids
             and (
                 conversation_state.active_question is None
@@ -69,9 +67,8 @@ class AssessmentReadinessBuilder:
                 blocking_requirements=list(recommendation_state.blocking_followup_ids),
                 reason_tags=["blocking_followup_present"],
             )
-        has_topic = self.case_manager.has_topic(medical_case=medical_case)
         return AssessmentReadiness(
-            ready=recommendation_state.recommendation_allowed and has_topic,
+            ready=recommendation_state.recommendation_allowed,
             has_medical_problem=True,
-            reason_tags=["minimum_information_present"] if has_topic else ["missing_topic"],
+            reason_tags=["minimum_information_present"],
         )

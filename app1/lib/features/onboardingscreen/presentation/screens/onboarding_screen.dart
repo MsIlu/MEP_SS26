@@ -7,7 +7,6 @@ import '../../../authscreen/presentation/screens/registration_screen.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../chatscreen/presentation/screens/chat_screen.dart';
-import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_hero_card.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/careena_page_header.dart';
@@ -39,7 +38,7 @@ const _privacyNoticeText =
     'ersetzen keine vollständige rechtliche Datenschutzerklärung. '
     'Die aktive Zustimmung erfolgt im Registrierungsprozess.';
 
-/// Entry screen that introduces Careena and routes users into chat or home.
+/// Entry screen that introduces Careena and routes users into chat or auth flows.
 class OnboardingScreen extends StatelessWidget {
   /// Shared chat controller passed forward so later screens keep one session.
   final ChatController chatController;
@@ -130,10 +129,8 @@ class OnboardingScreen extends StatelessWidget {
                     isCompactWide:
                         isShortWideScreen ||
                         (useDesktopLayout && !isFullDesktop),
-                    isDarkMode: isDarkMode,
                     onLogin: () => _navigateToLogin(context),
                     onRegister: () => _navigateToRegistration(context),
-                    onOpenHome: () => _navigateToHome(context),
                   );
                   final privacyButton = Semantics(
                     button: true,
@@ -364,18 +361,6 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToHome(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: chatController,
-          themeController: themeController,
-          authSession: authSession,
-        ),
-      ),
-    );
-  }
-
   void _showPrivacyInfo(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -406,20 +391,16 @@ class _AuthActions extends StatelessWidget {
   final bool isDense;
   final bool isWide;
   final bool isCompactWide;
-  final bool isDarkMode;
   final VoidCallback onLogin;
   final VoidCallback onRegister;
-  final VoidCallback onOpenHome;
 
   const _AuthActions({
     required this.horizontalPadding,
     required this.isDense,
     required this.isWide,
     this.isCompactWide = false,
-    required this.isDarkMode,
     required this.onLogin,
     required this.onRegister,
-    required this.onOpenHome,
   });
 
   @override
@@ -428,28 +409,6 @@ class _AuthActions extends StatelessWidget {
     final buttonHeight = isDense ? 50.0 : 56.0;
     final fontSize = isDense ? 16.0 : 18.0;
     final gap = isDense ? 12.0 : 16.0;
-    final testLinkFontSize = isWide ? 11.0 : (isDense ? 10.5 : 14.0);
-    final testLinkIconSize = isWide ? 14.0 : (isDense ? 13.0 : 18.0);
-    final testLinkHeight = isWide ? 22.0 : (isDense ? 24.0 : 40.0);
-    final testLink = TextButton.icon(
-      onPressed: onOpenHome,
-      style: TextButton.styleFrom(
-        minimumSize: Size(0, testLinkHeight),
-        padding: EdgeInsets.symmetric(
-          horizontal: isWide || isDense ? 6 : 8,
-          vertical: isWide || isDense ? 0 : 4,
-        ),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        foregroundColor: isDarkMode
-            ? AppColors.toolbarButtonBackgroundDark
-            : AppColors.careenaTeal,
-      ),
-      icon: Icon(Icons.home_outlined, size: testLinkIconSize),
-      label: Text(
-        'Test: direkt zur Startseite',
-        style: TextStyle(fontSize: testLinkFontSize),
-      ),
-    );
 
     if (isWide) {
       return Padding(
@@ -480,8 +439,6 @@ class _AuthActions extends StatelessWidget {
               height: isCompactWide ? 60 : 42,
               fontSize: isCompactWide ? 15 : 17,
             ),
-            SizedBox(height: isCompactWide ? 2 : 6),
-            testLink,
           ],
         ),
       );
@@ -515,8 +472,6 @@ class _AuthActions extends StatelessWidget {
             height: buttonHeight,
             fontSize: fontSize,
           ),
-          SizedBox(height: isDense ? 4 : 10),
-          testLink,
         ],
       ),
     );

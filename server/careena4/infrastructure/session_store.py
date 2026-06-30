@@ -13,6 +13,7 @@ class Careena4Session:
         self.recommendation_state: RecommendationState = RecommendationState()
         self.symptom_input_draft: SymptomInputDraft = SymptomInputDraft(session_id=session_id)
         self.messages: list[dict[str, str]] = []
+        self.last_turn_interpretation = None
         self.last_turn_understanding = None
 
 

@@ -1,3 +1,4 @@
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,7 @@ import '../widgets/registration/registration_personal_step.dart';
 import '../widgets/registration/registration_review_step.dart';
 import '../widgets/registration/registration_step_indicator.dart';
 import 'login_screen.dart';
+import '../../../onboardingscreen/presentation/screens/onboarding_screen.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../state/auth_session.dart';
 import '../../data/auth_api_service.dart';
@@ -43,6 +45,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   int _step = 0;
   bool _isSubmitting = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    AppPageStore.saveCurrentPage(AppPage.registration);
+  }
 
   @override
   void dispose() {
@@ -200,9 +208,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     };
   }
 
-  void _goBack() {
+  Future<void> _goBack() async {
     if (_step == 0) {
-      Navigator.of(context).pop();
+      await AppPageStore.saveCurrentPage(AppPage.onboarding);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => OnboardingScreen(
+            chatController: widget.chatController,
+            themeController: widget.themeController,
+            authSession: widget.authSession,
+            authApiService: widget.authApiService,
+            symptomRepository: widget.symptomRepository,
+          ),
+        ),
+        (route) => false,
+      );
       return;
     }
     setState(() => _step -= 1);

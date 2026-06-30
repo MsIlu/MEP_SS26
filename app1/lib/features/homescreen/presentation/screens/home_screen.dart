@@ -1,4 +1,5 @@
 import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
@@ -81,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.home);
 
     _documentRepository.unreadCounts.addListener(_onDocumentBadgeChanged);
     widget.controller.historyRevision.addListener(_refreshOpenChatCount);
@@ -264,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    await AppPageStore.saveCurrentPage(AppPage.home);
     await _refreshOpenChatCount();
   }
 
@@ -451,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => DocumentsScreen(
+          themeController: widget.themeController,
           authSession:
               widget.authSession ?? dependencies?.dependencies.authSession,
         ),

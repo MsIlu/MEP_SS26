@@ -1,4 +1,6 @@
-import 'package:app1/app/app_dependencies_scope.dart';
+﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_page_store.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_info_card.dart';
@@ -14,7 +16,6 @@ import 'package:app1/features/calendar_overview/presentation/widgets/calendar_da
 import 'package:app1/features/calendar_overview/presentation/widgets/calendar_month_grid.dart';
 import 'package:app1/features/calendar_overview/presentation/widgets/calendar_month_header.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
-import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:app1/features/medication_plan/data/medication_api_service.dart';
 import 'package:app1/features/medication_plan/data/medication_entry.dart';
@@ -64,6 +65,7 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.calendar);
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     _focusedMonth = DateTime(_today.year, _today.month);
@@ -107,6 +109,7 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     return Scaffold(
       appBar: CareenaPageHeader(
         title: 'Kalender',
+        onBack: _openHome,
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -244,27 +247,7 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   }
 
   void _openHome() {
-    final dependencies = AppDependenciesScope.maybeOf(context);
-    final themeController = widget.themeController;
-    if (dependencies == null || themeController == null) {
-      // Isolated widget tests already have the home route below the calendar.
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: dependencies.chatController,
-          themeController: themeController,
-          apiClient: dependencies.apiClient,
-          authSession: dependencies.authSession,
-          authApiService: dependencies.authApiService,
-          symptomApiService: dependencies.symptomApiService,
-        ),
-      ),
-      (route) => false,
-    );
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 
   void _openAppointment(Appointment appointment) {

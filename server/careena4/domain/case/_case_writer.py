@@ -1,13 +1,13 @@
-from careena4.models.domain import MedicalCase, Person, Topic, TopicEntry
-from careena4.models.turn import CaseWritePlan, ExtractedTopicEntryInput, ObservationPatch
+from careena4.models.domain import MedicalCase, Person, Topic
+from careena4.models.turn import CaseWritePlan, ObservationPatch
 
 
 class _CaseWriter:
     def write_plan(self, *, medical_case: MedicalCase, plan: CaseWritePlan) -> tuple[MedicalCase, list[str]]:
         trace_notes = list(plan.trace_notes)
-        if plan.person_update is not None and plan.person_update.relation != "unclear":
-            medical_case.person = plan.person_update
-            trace_notes.append(f"case_write:person:{plan.person_update.relation}")
+        person_update_keys = self._merge_person(target=medical_case.person, update=plan.person_update)
+        if person_update_keys:
+            trace_notes.append(f"case_write:person:{','.join(person_update_keys)}")
         for step in plan.steps:
             target = None
             if step.target_observation_id is not None:
@@ -52,10 +52,7 @@ class _CaseWriter:
         medical_case: MedicalCase,
         person_update: Person | None,
     ) -> MedicalCase:
-        if person_update is None:
-            return medical_case
-        medical_case.person.relation = person_update.relation
-        medical_case.person.relation_source = person_update.relation_source
+        self._merge_person(target=medical_case.person, update=person_update)
         return medical_case
 
     def write_followup_enrichment(
@@ -99,36 +96,51 @@ class _CaseWriter:
                 target.description_sources = [patch.description_source.model_copy(deep=True)]
         return medical_case
 
-    @staticmethod
-    def write_topic_entries(
+    def write_topic(
+        self,
         *,
         medical_case: MedicalCase,
-        entries: list[ExtractedTopicEntryInput],
+        label: str | None = None,
+        description: str | None = None,
     ) -> MedicalCase:
-        if not entries:
-            return medical_case
         if medical_case.topic is None:
-            medical_case.topic = Topic(label="")
-        for entry in entries:
-            medical_case.topic.entries.append(
-                TopicEntry(
-                    topic_part=entry.topic_part,
-                    source=entry.source.model_copy(deep=True),
-                )
-            )
+            medical_case.topic = Topic()
+        if label not in (None, ""):
+            medical_case.topic.label = label
+        if description not in (None, ""):
+            medical_case.topic.description = description
         return medical_case
 
     @staticmethod
-    def write_topic_label(
-        *,
-        medical_case: MedicalCase,
-        label: str,
-    ) -> MedicalCase:
-        if medical_case.topic is None:
-            medical_case.topic = Topic(label=label)
-            return medical_case
-        medical_case.topic.label = label
-        return medical_case
+    def _merge_person(*, target: Person, update: Person | None) -> list[str]:
+        if update is None:
+            return []
+        changed_keys: list[str] = []
+        if update.relation not in (None, "", "unclear"):
+            target.relation = update.relation
+            target.relation_source = (
+                update.relation_source.model_copy(deep=True)
+                if update.relation_source is not None
+                else None
+            )
+            changed_keys.append(f"relation:{update.relation}")
+        if update.age is not None:
+            target.age = update.age
+            target.age_source = (
+                update.age_source.model_copy(deep=True)
+                if update.age_source is not None
+                else None
+            )
+            changed_keys.append("age")
+        if update.sex not in (None, ""):
+            target.sex = update.sex
+            target.sex_source = (
+                update.sex_source.model_copy(deep=True)
+                if update.sex_source is not None
+                else None
+            )
+            changed_keys.append(f"sex:{update.sex}")
+        return changed_keys
 
     @staticmethod
     def _find_target_observation(

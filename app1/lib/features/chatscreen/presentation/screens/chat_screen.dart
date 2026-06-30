@@ -10,7 +10,6 @@ import '../../controllers/chat_controller.dart';
 import '../../controllers/chat_warning_controller.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_response_model.dart';
-import '../../utils/smart_replies.dart';
 import '../../../warningscreen/presentation/screens/warning_page.dart';
 import '../dialogs/leave_chat.dart';
 import '../widgets/chat_app_bar.dart';
@@ -270,7 +269,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _onMessagesChanged() {
     final messages = widget.controller.messages.value;
 
-    if (messages.isEmpty) return;
+    if (messages.isEmpty) {
+      setState(() {
+        _smartReplies = [];
+        _smartRepliesAreFromBackend = false;
+      });
+      return;
+    }
 
     final lastMessage = messages.last;
     if (lastMessage.isLoading) return;
@@ -278,15 +283,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (lastMessage.isStreaming) return;
     if (lastMessage.text.isEmpty) return;
 
-    // Use structured reply options from the backend when available (e.g. safety
-    // clarification question), otherwise fall back to text-based generation.
+    // Don't show smart replies before the user has sent their first message.
+    final userMessages = messages.where((m) => m.isUser).toList();
+    if (userMessages.isEmpty) {
+      setState(() {
+        _smartReplies = [];
+        _smartRepliesAreFromBackend = false;
+      });
+      return;
+    }
+
+    // Priority: structured options (locked) > backend suggestions (soft) > generated fallback.
     final backendOptions = widget.controller.lastReplyOptions.value;
+    final backendSuggestions = widget.controller.lastReplySuggestions.value;
     setState(() {
       if (backendOptions.isNotEmpty) {
         _smartReplies = backendOptions;
         _smartRepliesAreFromBackend = true;
+      } else if (backendSuggestions.isNotEmpty) {
+        _smartReplies = backendSuggestions;
+        _smartRepliesAreFromBackend = false;
       } else {
-        _smartReplies = SmartReplies.generate(lastMessage.text);
+        // No backend-provided options/suggestions — don't show generic
+        // generated fallback bubbles, hide the row instead.
+        _smartReplies = [];
         _smartRepliesAreFromBackend = false;
       }
     });

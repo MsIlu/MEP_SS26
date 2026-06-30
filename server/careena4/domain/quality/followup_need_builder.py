@@ -22,6 +22,7 @@ class FollowupNeedBuilder:
     ) -> list[FollowupNeed]:
         needs: list[FollowupNeed] = []
         active_observations = self.case_manager.active_observations(medical_case=medical_case)
+
         if self.case_manager.has_observations(medical_case=medical_case):
             for rule in self.requirement_policy.case_rules():
                 if self.requirement_policy.is_case_rule_satisfied(medical_case=medical_case, rule=rule):

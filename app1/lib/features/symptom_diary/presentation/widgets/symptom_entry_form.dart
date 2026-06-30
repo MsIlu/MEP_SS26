@@ -83,6 +83,9 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   int _currentStepIndex = 0;
   int _intensity = 5;
   double _temperatureC = 37.0;
+  // True when the original entry had a temperature or the user moved the slider.
+  // Prevents persisting the 37.0 slider default for entries that never had a temperature.
+  bool _temperatureExplicitlySet = true;
   List<String> _customSymptomSuggestions = [];
   bool _isSaving = false;
 
@@ -107,6 +110,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       _bodyArea = initialEntry.bodyArea;
       _intensity = initialEntry.intensity;
       _temperatureC = initialEntry.temperatureC ?? 37.0;
+      _temperatureExplicitlySet = initialEntry.temperatureC != null;
       _noteController.text = initialEntry.note;
       _currentStepIndex = 0;
     }
@@ -199,7 +203,10 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
         useTemperature: _usesTemperature,
         noteController: _noteController,
         onIntensityChanged: (value) => setState(() => _intensity = value),
-        onTemperatureChanged: (value) => setState(() => _temperatureC = value),
+        onTemperatureChanged: (value) => setState(() {
+          _temperatureC = value;
+          _temperatureExplicitlySet = true;
+        }),
       ),
     };
   }
@@ -237,7 +244,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
         symptom: _symptom,
         bodyArea: _needsBodyArea ? _bodyArea : '',
         intensity: _intensity,
-        temperatureC: _usesTemperature ? _temperatureC : null,
+        temperatureC: _usesTemperature && _temperatureExplicitlySet ? _temperatureC : null,
         note: _noteController.text,
       );
     } catch (_) {

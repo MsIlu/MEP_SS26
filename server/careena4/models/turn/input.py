@@ -19,6 +19,18 @@ class DiaryEntry(PipelineModel):
     note: str = ""
 
 
+class ProfileSnapshot(PipelineModel):
+    """Minimal profile data passed from the server layer into the chat pipeline.
+
+    Intentionally contains no database types — only plain values so the
+    careena4 application layer stays independent of the profiles service.
+    """
+    display_name: str
+    profile_type: str  # "self" | "child" | "other"
+    age: int | None = None
+    sex: str | None = None  # "female" | "male" | "diverse" | None
+
+
 class TurnInput(PipelineModel):
     message: str
     session_id: str | None = None

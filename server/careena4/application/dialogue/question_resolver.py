@@ -92,6 +92,17 @@ class QuestionResolver:
             def _observation_person_patch(relation: str, source: Source | None) -> ObservationPatch:
                 return ObservationPatch(person_ref=relation, person_ref_source=source)
 
+            if question.question_intent == "person_profile_selection":
+                # PersonInitialiser.post_turn() handles the profile matching.
+                # The resolver only needs to accept any answer and clear the question.
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_profile_selected",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                )
+
             if question.question_intent == "person_age":
                 age_match = re.search(r"\b(\d{1,3})\b", normalized)
                 if age_match is None:
@@ -130,6 +141,26 @@ class QuestionResolver:
                     person_update=PersonUpdate(
                         sex=sex_value,
                         sex_source=Source(source_span=stripped),
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=None,
+                )
+
+            if question.question_intent == "person_pregnancy":
+                pregnancy_value = self._pregnancy_status_from_message(normalized)
+                if pregnancy_value is None:
+                    return QuestionResolution(
+                        status="unclear",
+                        answer_kind="unclear",
+                        trace_notes=["person_pregnancy:unclear"],
+                    )
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_pregnancy_provided",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=PersonUpdate(
+                        pregnancy_status=pregnancy_value,
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=None,
@@ -220,6 +251,15 @@ class QuestionResolver:
                 clear_active_question=True,
                 resolved_followup_id=question.target_followup_id,
                 trace_notes=["followup:resolved:negated"],
+            )
+
+        _SEVERITY_UNKNOWN_PHRASES = {"weiß nicht", "weiss nicht", "unknown", "keine ahnung"}
+        if question.question_intent == "severity" and stripped.strip().casefold() in _SEVERITY_UNKNOWN_PHRASES:
+            return QuestionResolution(
+                status="unclear",
+                answer_kind="unclear",
+                clear_active_question=False,
+                trace_notes=["followup:unclear:severity_unknown"],
             )
 
         answer_kind = {
@@ -342,6 +382,10 @@ class QuestionResolver:
             resolution.clear_active_question = False
             return resolution
 
+        if question.question_intent == "person_profile_selection":
+            # PersonInitialiser handles the actual matching — just pass through.
+            return resolution
+
         if question.question_intent == "person_age":
             if resolution.answer_kind != "person_age_provided":
                 return QuestionResolution(
@@ -373,6 +417,23 @@ class QuestionResolver:
                     answer_kind="invalid",
                     clear_active_question=False,
                     trace_notes=["followup:missing_expected_attribute:person_sex"],
+                )
+            return resolution
+
+        if question.question_intent == "person_pregnancy":
+            if resolution.answer_kind != "person_pregnancy_provided":
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=[f"followup:invalid_answer_kind:{resolution.answer_kind}"],
+                )
+            if resolution.person_update is None or resolution.person_update.pregnancy_status is None:
+                return QuestionResolution(
+                    status="invalid",
+                    answer_kind="invalid",
+                    clear_active_question=False,
+                    trace_notes=["followup:missing_expected_attribute:person_pregnancy"],
                 )
             return resolution
 
@@ -579,6 +640,16 @@ class QuestionResolver:
             return "male"
         if any(token in normalized for token in ("divers", "nonbinaer", "non-binaer", "nonbinär", "non-binär")):
             return "diverse"
+        return None
+
+    @staticmethod
+    def _pregnancy_status_from_message(normalized: str) -> str | None:
+        if any(t in normalized for t in ("nicht zutreffend", "zutreffend", "menopause", "wechseljahre")):
+            return "not_applicable"
+        if any(t in normalized for t in ("ja", "moeglich", "möglich", "schwanger", "vielleicht", "eventuell")):
+            return "possible"
+        if any(t in normalized for t in ("nein", "nicht", "keine")):
+            return "excluded"
         return None
 
     @staticmethod

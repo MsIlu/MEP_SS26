@@ -11,6 +11,8 @@ import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// Recommendation result page shown after a chat session is completed.
@@ -22,6 +24,8 @@ class WarningPage extends StatelessWidget {
   /// Symptom data enriched via the in-chat editor (body area + intensity).
   /// Takes priority over [response.caseObservations] when building the diary import list.
   final List<SymptomImport>? enrichedSymptoms;
+  final String? sessionId;
+  final AuthSession? authSession;
 
   const WarningPage({
     super.key,
@@ -30,6 +34,8 @@ class WarningPage extends StatelessWidget {
     this.userMessages = const [],
     this.themeController,
     this.enrichedSymptoms,
+    this.sessionId,
+    this.authSession,
   });
 
   @override
@@ -84,6 +90,19 @@ class WarningPage extends StatelessWidget {
                   label: const Text('Symptome ins Tagebuch'),
                 ),
               ],
+
+              if (!showEmergencyActions && sessionId != null) ...[
+                const SizedBox(height: 16),
+                CreateRecommendedAppointmentButton(
+                  title:
+                      response.recommendationResult?.nextStep ??
+                      response.action ??
+                      'Termin finden',
+                  authSession: authSession,
+                  sessionId: sessionId,
+                ),
+              ],
+
               const SizedBox(height: 16),
               const NoDiagnosisInfoBox(),
             ],

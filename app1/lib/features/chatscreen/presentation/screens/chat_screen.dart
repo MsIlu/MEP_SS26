@@ -223,6 +223,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final recommendationResponse = showsRecommendation ? response : null;
 
     if (recommendationResponse != null) {
+      final recommendationSessionId = widget.controller.currentSessionId;
+      final recommendationAuthSession = widget.controller.authSession;
       final recommendationSymptoms =
           _preRecommendationSymptoms ?? List<String>.from(widget.controller.symptoms.value);
       _preRecommendationSymptoms = null;
@@ -247,6 +249,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             enrichedSymptoms: _enrichedChatSymptoms.isNotEmpty
                 ? _enrichedChatSymptoms
                 : null,
+            sessionId: recommendationSessionId,
+            authSession: recommendationAuthSession,
           ),
         ),
       );

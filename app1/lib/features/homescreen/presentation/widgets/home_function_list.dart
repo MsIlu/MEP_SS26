@@ -18,8 +18,8 @@ class HomeFunctionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Match the page's compact padding so list rows align with the header and
-    // search field across narrow and regular phone widths.
+    // Match the page's compact padding so list rows align with the header
+    // across narrow and regular phone widths.
     final horizontalPadding = MediaQuery.sizeOf(context).width < 360
         ? 16.0
         : 20.0;

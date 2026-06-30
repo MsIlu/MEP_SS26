@@ -39,7 +39,6 @@ void main() {
     ) async {
       await pumpHomeScreen(tester, simpleView: true);
 
-      expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
       expect(find.text('Kalender'), findsOneWidget);
       expect(find.text('Chathistorie'), findsNothing);

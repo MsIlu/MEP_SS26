@@ -38,8 +38,8 @@ class ResponseBuilder:
         if decision.response_mode == "emergency":
             return (
                 "Wichtiger Hinweis:\n"
-                "Deine Angaben koennen auf eine akute Notfallsituation hindeuten.\n\n"
-                "Bitte waehle sofort den Notruf 112 oder hole umgehend medizinische Hilfe."
+                "Deine Angaben können auf eine akute Notfallsituation hindeuten.\n\n"
+                "Bitte wähle sofort den Notruf 112 oder hole umgehend medizinische Hilfe."
             )
         if decision.response_mode == "out_of_scope":
             return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreibe eine gesundheitliche Beschwerde oder Frage."
@@ -50,8 +50,8 @@ class ResponseBuilder:
             return active_question.prompt_text
         if decision.response_mode == "guide_next_step":
             return (
-                "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. "
-                "Wenn du eine Handlungsempfehlung moechtest, nutze bitte den Empfehlungs-Button."
+                "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. "
+                "Wenn du eine Handlungsempfehlung möchtest, nutze bitte den Empfehlungs-Button."
             )
         if decision.response_mode == "request_case_description":
             return self._render_case_description_request(
@@ -116,8 +116,8 @@ class ResponseBuilder:
     def _fallback_recommendation(*, recommendation_result: RecommendationResult) -> str:
         return (
             f"{recommendation_result.summary}\n\n"
-            f"Naechster Schritt: {recommendation_result.next_step}\n\n"
-            "Hinweis: Diese Orientierung ersetzt keine aerztliche Untersuchung oder Diagnose."
+            f"Nächster Schritt: {recommendation_result.next_step}\n\n"
+            "Hinweis: Diese Orientierung ersetzt keine ärztliche Untersuchung oder Diagnose."
         )
 
     def _render_case_description_request(

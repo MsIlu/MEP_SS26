@@ -100,7 +100,12 @@ class ProfileSettingsSection extends StatelessWidget {
         .where(
           (profile) =>
               profile.profileType != 'self' &&
-              (profile.role == 'owner' || profile.role == 'guardian'),
+              (profile.role == 'owner' ||
+                  profile.role == 'guardian' ||
+                  (profile.role == 'editor' &&
+                      const {'child', 'relative', 'family', 'other'}.contains(
+                        profile.profileType,
+                      ))),
         )
         .toList();
   }

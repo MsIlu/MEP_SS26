@@ -32,10 +32,13 @@ class AppConfig {
       return _configuredBaseUrl;
     }
 
-    return kIsWeb
-        ? "http://localhost:8000" // Web
-       // : "http://10.0.2.2:8000"; // Android Emulator
-        : "http://localhost:8000"; // IOS-Simulator
+    if (kIsWeb) {
+      return 'http://localhost:8000';
+    }
+
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:8000'
+        : 'http://localhost:8000';
     //"PC/FastAPIServerIP"             // Android device (physical) (no //)
   }
 }

@@ -29,17 +29,20 @@ _JSON_SCHEMA = """
 
 _FALLBACK_RESULT = RecommendationResult(
     allowed=True,
-    summary="Es liegen Angaben vor, die eine vorsichtige Orientierung erlauben.",
+    summary="Es liegen ausreichend Angaben für eine vorsichtige Orientierung vor.",
     urgency="routine",
     urgency_level="low",
     care_level="general_practice",
     specialty="general_practice",
     reasons=["Konservative Einschätzung aufgrund fehlender KI-Antwort."],
     next_step=(
-        "Wenn die Beschwerden anhalten, zunehmen oder Sie sich unsicher fühlen, "
-        "vereinbaren Sie einen Termin in einer Hausarztpraxis."
+        "Wenn die Beschwerden anhalten, zunehmen oder du dich unsicher fühlst, "
+        "vereinbare einen Termin in einer Hausarztpraxis."
     ),
-    limitations=["Die Empfehlung konnte nicht durch KI-Analyse erstellt werden."],
+    limitations=[
+        "Die Empfehlung konnte nicht durch KI-Analyse erstellt werden.",
+        "Sie ersetzt keine ärztliche Untersuchung oder Diagnose.",
+    ],
 )
 
 _VALID_URGENCY = {"unknown", "self_observation", "routine", "soon", "today", "emergency"}

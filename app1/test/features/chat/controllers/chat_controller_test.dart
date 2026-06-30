@@ -66,29 +66,29 @@ void main() {
       ]);
     });
 
-    test('refreshes LLM status when an initialized chat is opened again', () async {
-      final authSession = AuthSession();
-      final chatApi = _FakeChatApi();
-      final controller = ChatController(
-        chatApi: chatApi,
-        chatService: ChatService(),
-        authSession: authSession,
-        chatHistoryRepository: _FakeChatHistoryRepository(),
-      );
+    test(
+      'refreshes LLM status when an initialized chat is opened again',
+      () async {
+        final authSession = AuthSession();
+        final chatApi = _FakeChatApi();
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: _FakeChatHistoryRepository(),
+        );
 
-      addTearDown(controller.dispose);
-      addTearDown(authSession.dispose);
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
 
-      await controller.init();
-      chatApi.operationLog.clear();
+        await controller.init();
+        chatApi.operationLog.clear();
 
-      await controller.init();
+        await controller.init();
 
-      expect(chatApi.operationLog, [
-        'warmup',
-        'getCareenaAvailability',
-      ]);
-    });
+        expect(chatApi.operationLog, ['warmup', 'getCareenaAvailability']);
+      },
+    );
 
     test('sends active profile id from auth session to chat api', () async {
       final authSession = AuthSession();
@@ -128,29 +128,35 @@ void main() {
       expect(chatApi.lastProfileId, 42);
     });
 
-    test('requests recommendation through dedicated backend endpoint', () async {
-      final authSession = AuthSession();
-      final chatApi = _FakeChatApi();
-      final controller = ChatController(
-        chatApi: chatApi,
-        chatService: ChatService(),
-        authSession: authSession,
-        chatHistoryRepository: _FakeChatHistoryRepository(),
-      );
+    test(
+      'requests recommendation through dedicated backend endpoint',
+      () async {
+        final authSession = AuthSession();
+        final chatApi = _FakeChatApi();
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: _FakeChatHistoryRepository(),
+        );
 
-      addTearDown(controller.dispose);
-      addTearDown(authSession.dispose);
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
 
-      await controller.init();
-      await controller.requestRecommendation();
+        await controller.init();
+        await controller.requestRecommendation();
 
-      expect(chatApi.requestRecommendationSessionIds, ['fake-session-1']);
-      expect(chatApi.sentTexts, isEmpty);
-      expect(
-        controller.messages.value.where((message) => message.isUser).last.text,
-        ChatController.recommendationRequestDisplayText,
-      );
-    });
+        expect(chatApi.requestRecommendationSessionIds, ['fake-session-1']);
+        expect(chatApi.sentTexts, isEmpty);
+        expect(
+          controller.messages.value
+              .where((message) => message.isUser)
+              .last
+              .text,
+          ChatController.recommendationRequestDisplayText,
+        );
+      },
+    );
 
     test('resets chat session and draft when active profile changes', () async {
       final authSession = AuthSession();
@@ -731,6 +737,169 @@ void main() {
       );
       expect(controller.messages.value.last.text, isNot(contains('Exception')));
     });
+
+    test('shows a detailed German message for a history conflict', () async {
+      final authSession = AuthSession();
+      authSession.setAuthResponse(
+        const AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: Account(id: 1, email: 'test@example.com'),
+          profiles: [
+            AuthProfile(
+              id: 42,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
+      final chatApi = _FakeChatApi()
+        ..continueError = const ApiException(
+          ApiErrorType.http,
+          'Only waiting chat history entries can be continued.',
+          statusCode: 409,
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.resumeHistoryEntry(
+        ChatHistoryEntry(
+          id: 'history-1',
+          profileId: 42,
+          sessionId: 'old-session',
+          status: 'waiting_for_assistant',
+          createdAt: DateTime(2026, 6, 29),
+          messages: [
+            Message(text: 'Was sind meine Beschwerden?', isUser: true),
+          ],
+          recommendation: '',
+        ),
+      );
+
+      expect(
+        controller.messages.value.last.text,
+        contains('Der Chat wurde bereits'),
+      );
+      expect(
+        controller.messages.value.last.text,
+        isNot(contains('Only waiting')),
+      );
+      expect(
+        historyRepository.updatedEntries.where(
+          (entry) => entry.status == 'failed',
+        ),
+        isEmpty,
+      );
+    });
+
+    test(
+      'synchronizes history instead of failing after a continue conflict',
+      () async {
+        final authSession = AuthSession();
+        authSession.setAuthResponse(
+          const AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: Account(id: 1, email: 'test@example.com'),
+            profiles: [
+              AuthProfile(
+                id: 42,
+                displayName: 'Anna',
+                profileType: 'self',
+                role: 'owner',
+              ),
+            ],
+          ),
+        );
+        final chatApi = _FakeChatApi()
+          ..continueError = const ApiException(
+            ApiErrorType.http,
+            'Only waiting chat history entries can be continued.',
+            statusCode: 409,
+          );
+        final historyRepository = _FakeChatHistoryRepository();
+        final createdAt = DateTime(2026, 6, 29);
+        historyRepository.savedEntries.add(
+          ChatHistoryEntry(
+            id: 'history-1',
+            profileId: 42,
+            sessionId: 'server-session',
+            status: 'active',
+            createdAt: createdAt,
+            messages: [
+              Message(text: 'Was sind meine Beschwerden?', isUser: true),
+              Message(text: 'Die Antwort vom Server', isUser: false),
+            ],
+            recommendation: '',
+          ),
+        );
+        final controller = ChatController(
+          chatApi: chatApi,
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: historyRepository,
+        );
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        await controller.resumeHistoryEntry(
+          ChatHistoryEntry(
+            id: 'history-1',
+            profileId: 42,
+            sessionId: 'old-session',
+            status: 'waiting_for_assistant',
+            createdAt: createdAt,
+            messages: [
+              Message(text: 'Was sind meine Beschwerden?', isUser: true),
+            ],
+            recommendation: '',
+          ),
+        );
+
+        expect(controller.messages.value.last.text, 'Die Antwort vom Server');
+        expect(historyRepository.updatedEntries, isEmpty);
+      },
+    );
+
+    test('explains a chat session profile conflict in German', () async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi()
+        ..sendError = const ApiException(
+          ApiErrorType.http,
+          'Chat session belongs to a different profile.',
+          statusCode: 409,
+        );
+      final historyRepository = _FakeChatHistoryRepository();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: historyRepository,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      await controller.sendMessage('Hallo');
+
+      expect(
+        controller.messages.value.last.text,
+        contains('Dieser Chat gehört zu einem anderen Profil.'),
+      );
+      expect(
+        controller.messages.value.last.text,
+        isNot(contains('different profile')),
+      );
+    });
   });
 }
 
@@ -762,6 +931,8 @@ class _FakeChatApi extends ChatApi {
   int resumeHistorySessionCalls = 0;
   int continueHistorySessionCalls = 0;
 
+  Object? continueError;
+
   @override
   Future<String> createSession([int? profileId]) async {
     createSessionCalls += 1;
@@ -791,6 +962,10 @@ class _FakeChatApi extends ChatApi {
   @override
   Future<ChatResponse> continueHistorySession(String historyId) async {
     continueHistorySessionCalls += 1;
+    final error = continueError;
+    if (error != null) {
+      throw error;
+    }
     return continueCompleter?.future ?? nextResponse;
   }
 

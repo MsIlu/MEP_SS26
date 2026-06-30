@@ -92,6 +92,17 @@ class QuestionResolver:
             def _observation_person_patch(relation: str, source: Source | None) -> ObservationPatch:
                 return ObservationPatch(person_ref=relation, person_ref_source=source)
 
+            if question.question_intent == "person_profile_selection":
+                # PersonInitialiser.post_turn() handles the profile matching.
+                # The resolver only needs to accept any answer and clear the question.
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_profile_selected",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                )
+
             if question.question_intent == "person_age":
                 age_match = re.search(r"\b(\d{1,3})\b", normalized)
                 if age_match is None:
@@ -130,6 +141,26 @@ class QuestionResolver:
                     person_update=PersonUpdate(
                         sex=sex_value,
                         sex_source=Source(source_span=stripped),
+                    ),
+                    additional_medical_information=self._contains_additional_medical_info(normalized),
+                    extra_case_input=None,
+                )
+
+            if question.question_intent == "person_pregnancy":
+                pregnancy_value = self._pregnancy_status_from_message(normalized)
+                if pregnancy_value is None:
+                    return QuestionResolution(
+                        status="unclear",
+                        answer_kind="unclear",
+                        trace_notes=["person_pregnancy:unclear"],
+                    )
+                return QuestionResolution(
+                    status="resolved",
+                    answer_kind="person_pregnancy_provided",
+                    clear_active_question=True,
+                    resolved_followup_id=question.target_followup_id,
+                    person_update=PersonUpdate(
+                        pregnancy_status=pregnancy_value,
                     ),
                     additional_medical_information=self._contains_additional_medical_info(normalized),
                     extra_case_input=None,
@@ -340,6 +371,10 @@ class QuestionResolver:
         if resolution.answer_kind in {"unclear", "invalid"}:
             resolution.status = resolution.answer_kind
             resolution.clear_active_question = False
+            return resolution
+
+        if question.question_intent == "person_profile_selection":
+            # PersonInitialiser handles the actual matching — just pass through.
             return resolution
 
         if question.question_intent == "person_age":
@@ -567,6 +602,8 @@ class QuestionResolver:
         if question_intent in {"description", "free_description"}:
             return ObservationPatch(description=value, description_source=source)
         if question_intent == "severity":
+            if value.strip().casefold() in ("weiß nicht", "weiss nicht", "unknown", "keine ahnung"):
+                return ObservationPatch(severity=5, severity_source=source)
             normalized = cls._GERMAN_DIGITS.get(value.strip().casefold(), value)
             return ObservationPatch(severity=normalized, severity_source=source)
         return ObservationPatch(description=value, description_source=source)
@@ -579,6 +616,16 @@ class QuestionResolver:
             return "male"
         if any(token in normalized for token in ("divers", "nonbinaer", "non-binaer", "nonbinär", "non-binär")):
             return "diverse"
+        return None
+
+    @staticmethod
+    def _pregnancy_status_from_message(normalized: str) -> str | None:
+        if any(t in normalized for t in ("ja", "moeglich", "möglich", "schwanger", "vielleicht", "eventuell")):
+            return "possible"
+        if any(t in normalized for t in ("nein", "nicht", "keine")):
+            return "excluded"
+        if any(t in normalized for t in ("nicht zutreffend", "zutreffend", "menopause", "wechseljahre")):
+            return "not_applicable"
         return None
 
     @staticmethod

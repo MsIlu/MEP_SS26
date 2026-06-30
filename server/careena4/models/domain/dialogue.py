@@ -63,6 +63,7 @@ class ActiveQuestion(PipelineModel):
     blocking: bool = False
     allows_additional_medical_info: bool = True
     guided_input: GuidedInputContract | None = None
+    reply_suggestions: list[str] = Field(default_factory=list)
 
     # Compatibility bridge for existing resolver/response code.
     # New safety-specific metadata belongs in safety_context.

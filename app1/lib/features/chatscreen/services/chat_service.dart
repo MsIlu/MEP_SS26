@@ -125,7 +125,27 @@ class ChatService {
 
   bool isEmergencyRecommendation(ChatResponse response) {
     if (response.redFlag) return true;
-    return response.recommendationResult?.urgency == 'emergency';
+    if (response.recommendationResult?.urgency == 'emergency') return true;
+
+    final severity = response.severity?.toLowerCase() ?? '';
+    if (severity == 'sofort' ||
+        severity == 'hoch' ||
+        severity == 'high' ||
+        severity == 'emergency') {
+      return true;
+    }
+
+    final category = response.category?.toLowerCase() ?? '';
+    if (category == 'emergency' || category == 'notfall') {
+      return true;
+    }
+
+    final action = response.action?.toLowerCase() ?? '';
+    if (action.contains('notruf')) {
+      return true;
+    }
+
+    return false;
   }
 
   Stream<String> streamText(

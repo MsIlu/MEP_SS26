@@ -127,19 +127,25 @@ class _SaveRecommendationToDocumentsButtonState
       profile: profile,
     );
 
-    final wasAdded = _repository.addRecommendationIfMissing(
-      DocumentEntry(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        profileId: activeProfileId,
-        name: _documentName,
-        category: DocumentCategory.recommendations,
-        createdAt: DateTime.now(),
-        sizeInBytes: pdfBytes.lengthInBytes,
-        source: DocumentSource.careena,
-        fileBytes: pdfBytes,
-        mimeType: 'application/pdf',
-      ),
-    );
+    bool wasAdded;
+
+    try {
+      wasAdded = await _repository.addRecommendationIfMissing(
+        DocumentEntry(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          profileId: activeProfileId,
+          name: _documentName,
+          category: DocumentCategory.recommendations,
+          createdAt: DateTime.now(),
+          sizeInBytes: pdfBytes.lengthInBytes,
+          source: DocumentSource.careena,
+          fileBytes: pdfBytes,
+          mimeType: 'application/pdf',
+        ),
+      );
+    } catch (_) {
+      wasAdded = false;
+    }
 
     if (!mounted) return;
 
@@ -147,9 +153,7 @@ class _SaveRecommendationToDocumentsButtonState
       SnackBar(
         backgroundColor: AppColors.careenaTeal,
         content: Text(
-          wasAdded
-              ? 'Handlungsempfehlung gespeichert'
-              : 'Handlungsempfehlung bereits vorhanden',
+          wasAdded ? 'Handlungsempfehlung gespeichert' : _notSavedMessage,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -158,5 +162,11 @@ class _SaveRecommendationToDocumentsButtonState
         ),
       ),
     );
+  }
+
+  String get _notSavedMessage {
+    return _isSavedForCurrentProfile(context)
+        ? 'Handlungsempfehlung bereits vorhanden'
+        : 'Handlungsempfehlung konnte nicht gespeichert werden';
   }
 }

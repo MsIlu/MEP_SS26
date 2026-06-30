@@ -12,6 +12,7 @@ void main() {
 
   setUp(() {
     repository = DocumentRepository.instance;
+    repository.configure(apiService: null);
     repository.documents.value = [];
     repository.unreadCounts.value = {};
   });
@@ -121,7 +122,7 @@ void main() {
   testWidgets('all profiles shows documents from mother and child', (
     tester,
   ) async {
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
@@ -129,7 +130,7 @@ void main() {
       ),
     );
 
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 20,
@@ -167,7 +168,7 @@ void main() {
   });
 
   testWidgets('search filters visible documents', (tester) async {
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
@@ -175,7 +176,7 @@ void main() {
       ),
     );
 
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 10,

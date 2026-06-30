@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 enum DocumentCategory {
@@ -23,7 +24,6 @@ class DocumentEntry {
   final int sizeInBytes;
   final DocumentSource source;
 
-  /// In-memory file data until backend persistence is available.
   final Uint8List? fileBytes;
   final String mimeType;
 
@@ -40,6 +40,7 @@ class DocumentEntry {
   });
 
   DocumentEntry copyWith({
+    String? id,
     int? profileId,
     String? name,
     DocumentCategory? category,
@@ -50,7 +51,7 @@ class DocumentEntry {
     String? mimeType,
   }) {
     return DocumentEntry(
-      id: id,
+      id: id ?? this.id,
       profileId: profileId ?? this.profileId,
       name: name ?? this.name,
       category: category ?? this.category,
@@ -61,4 +62,87 @@ class DocumentEntry {
       mimeType: mimeType ?? this.mimeType,
     );
   }
+
+  factory DocumentEntry.fromApiJson(Map<String, dynamic> json) {
+    final fileDataBase64 = json['file_data_base64']?.toString() ?? '';
+
+    return DocumentEntry(
+      id: json['id']?.toString() ?? '',
+      profileId: _intFromJson(json['profile_id']),
+      name: json['name']?.toString() ?? '',
+      category: _categoryFromApi(json['category']?.toString()),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      sizeInBytes: _intFromJson(json['size_in_bytes']) ?? 0,
+      source: _sourceFromApi(json['source']?.toString()),
+      fileBytes: fileDataBase64.isEmpty ? null : base64Decode(fileDataBase64),
+      mimeType: json['mime_type']?.toString() ?? 'application/pdf',
+    );
+  }
+
+  Map<String, dynamic> toCreateApiJson() {
+    return {
+      'name': name,
+      'category': category.apiValue,
+      'source': source.apiValue,
+      'size_in_bytes': sizeInBytes,
+      'mime_type': mimeType,
+      'file_data_base64': fileBytes == null ? '' : base64Encode(fileBytes!),
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toUpdateApiJson() {
+    return {
+      'name': name,
+      'category': category.apiValue,
+    };
+  }
+}
+
+extension DocumentCategoryApiValue on DocumentCategory {
+  String get apiValue {
+    switch (this) {
+      case DocumentCategory.findings:
+        return 'findings';
+      case DocumentCategory.laboratory:
+        return 'laboratory';
+      case DocumentCategory.recommendations:
+        return 'recommendations';
+      case DocumentCategory.other:
+        return 'other';
+    }
+  }
+}
+
+extension DocumentSourceApiValue on DocumentSource {
+  String get apiValue {
+    switch (this) {
+      case DocumentSource.uploaded:
+        return 'uploaded';
+      case DocumentSource.careena:
+        return 'careena';
+    }
+  }
+}
+
+DocumentCategory _categoryFromApi(String? value) {
+  return DocumentCategory.values.firstWhere(
+    (category) => category.apiValue == value,
+    orElse: () => DocumentCategory.other,
+  );
+}
+
+DocumentSource _sourceFromApi(String? value) {
+  return DocumentSource.values.firstWhere(
+    (source) => source.apiValue == value,
+    orElse: () => DocumentSource.uploaded,
+  );
+}
+
+int? _intFromJson(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }

@@ -7,6 +7,7 @@ void main() {
 
   setUp(() {
     repository = DocumentRepository.instance;
+    repository.configure(apiService: null);
 
     // Gemeinsamen Speicher vor jedem Test zurücksetzen.
     repository.documents.value = [];
@@ -32,26 +33,26 @@ void main() {
     );
   }
 
-  test('adds a document', () {
+  test('adds a document', () async {
     final document = createDocument(id: '1', profileId: 10);
 
-    repository.addDocument(document);
+    await repository.addDocument(document);
 
     expect(repository.documents.value, hasLength(1));
     expect(repository.documents.value.first, same(document));
   });
 
-  test('deletes a document by id', () {
-    repository.addDocument(
+  test('deletes a document by id', () async {
+    await repository.addDocument(
       createDocument(id: '1', profileId: 10),
     );
 
-    repository.deleteDocument('1');
+    await repository.deleteDocument('1');
 
     expect(repository.documents.value, isEmpty);
   });
 
-  test('prevents duplicate recommendation for the same profile', () {
+  test('prevents duplicate recommendation for the same profile', () async {
     final first = createDocument(
       id: '1',
       profileId: 10,
@@ -66,12 +67,12 @@ void main() {
       source: DocumentSource.careena,
     );
 
-    expect(repository.addRecommendationIfMissing(first), isTrue);
-    expect(repository.addRecommendationIfMissing(duplicate), isFalse);
+    expect(await repository.addRecommendationIfMissing(first), isTrue);
+    expect(await repository.addRecommendationIfMissing(duplicate), isFalse);
     expect(repository.documents.value, hasLength(1));
   });
 
-  test('allows the same recommendation for different profiles', () {
+  test('allows the same recommendation for different profiles', () async {
     final firstProfileDocument = createDocument(
       id: '1',
       profileId: 10,
@@ -87,18 +88,18 @@ void main() {
     );
 
     expect(
-      repository.addRecommendationIfMissing(firstProfileDocument),
+      await repository.addRecommendationIfMissing(firstProfileDocument),
       isTrue,
     );
     expect(
-      repository.addRecommendationIfMissing(secondProfileDocument),
+      await repository.addRecommendationIfMissing(secondProfileDocument),
       isTrue,
     );
     expect(repository.documents.value, hasLength(2));
   });
 
-  test('tracks and clears unread count per profile', () {
-    repository.addRecommendationIfMissing(
+  test('tracks and clears unread count per profile', () async {
+    await repository.addRecommendationIfMissing(
       createDocument(
         id: '1',
         profileId: 10,

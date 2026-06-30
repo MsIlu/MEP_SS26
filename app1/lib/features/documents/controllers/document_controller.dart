@@ -20,6 +20,8 @@ class DocumentController extends ChangeNotifier {
   DocumentCategory? _selectedCategory;
   int? _selectedProfileId;
   bool _showAllProfiles = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   List<DocumentEntry> get documents {
     final allDocuments = repository.documents.value;
@@ -40,6 +42,8 @@ class DocumentController extends ChangeNotifier {
   DocumentCategory? get selectedCategory => _selectedCategory;
   int? get selectedProfileId => _selectedProfileId;
   bool get isShowingAllProfiles => _showAllProfiles;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   List<DocumentEntry> get visibleDocuments {
     final normalizedQuery = _searchQuery.trim().toLowerCase();
@@ -76,19 +80,35 @@ class DocumentController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectProfile(int profileId) {
+  Future<void> loadProfileDocuments(int profileId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.loadProfileDocuments(profileId);
+    } catch (_) {
+      _errorMessage = 'Dokumente konnten nicht geladen werden.';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectProfile(int profileId) async {
     _showAllProfiles = false;
     _selectedProfileId = profileId;
     notifyListeners();
+    await loadProfileDocuments(profileId);
   }
 
-  void addDocument({
+  Future<void> addDocument({
     required String name,
     required DocumentCategory category,
     required Uint8List fileBytes,
     required String mimeType,
-  }) {
-    repository.addDocument(
+  }) async {
+    await repository.addDocument(
       DocumentEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         profileId: _selectedProfileId,
@@ -103,15 +123,15 @@ class DocumentController extends ChangeNotifier {
     );
   }
 
-  void renameDocument(String id, String name) {
+  Future<void> renameDocument(String id, String name) async {
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) return;
 
-    repository.renameDocument(id, trimmedName);
+    await repository.renameDocument(id, trimmedName);
   }
 
-  void deleteDocument(String id) {
-    repository.deleteDocument(id);
+  Future<void> deleteDocument(String id) async {
+    await repository.deleteDocument(id);
   }
 
   void _notifyRepositoryChanged() {

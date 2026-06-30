@@ -8,6 +8,8 @@ import '../features/chatscreen/data/chat_history_repository.dart';
 import '../features/chatscreen/services/chat_service.dart';
 import '../features/chatscreen/services/chat_session_service.dart';
 import '../features/chatscreen/services/symptom_draft_service.dart';
+import '../features/documents/data/document_api_service.dart';
+import '../features/documents/data/document_repository.dart';
 import '../features/appointmentscreen/data/appointment_api_service.dart';
 import '../features/authscreen/data/auth_api_service.dart';
 import '../features/authscreen/state/auth_session.dart';
@@ -24,6 +26,7 @@ class AppDependencies {
   late final ChatController chatController;
   late final ChatWarningController chatWarningController;
   late final AppointmentApiService appointmentApiService;
+  late final DocumentApiService documentApiService;
   late final AuthApiService authApiService;
   late final SymptomApiService symptomApiService;
   late final SymptomRepository symptomRepository;
@@ -40,6 +43,8 @@ class AppDependencies {
     authSession.addListener(_syncAuthToken);
     _syncAuthToken();
     appointmentApiService = AppointmentApiService(apiClient);
+    documentApiService = DocumentApiService(apiClient);
+    DocumentRepository.instance.configure(apiService: documentApiService);
     authApiService = AuthApiService(apiClient);
     symptomApiService = SymptomApiService(apiClient);
     symptomSyncService = SymptomSyncService(

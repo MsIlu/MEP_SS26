@@ -4,6 +4,7 @@ import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
 
@@ -44,9 +45,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       DocumentRepository.instance.markAllAsSeen(
         widget.authSession?.activeProfileId,
       );
+      _loadDocumentsForCurrentView();
     });
   }
 
@@ -139,14 +143,33 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         ),
                       ],
                     ),
+                    if (_controller.isLoading) ...[
+                      const SizedBox(height: 10),
+                      const LinearProgressIndicator(minHeight: 3),
+                    ],
+                    if (_controller.errorMessage != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        _controller.errorMessage!,
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     if (canViewAllProfiles) ...[
                       DocumentProfileFilter(
                         profiles: widget.authSession?.profiles ?? const [],
                         selectedProfileId: _controller.selectedProfileId,
                         showAllProfiles: _controller.isShowingAllProfiles,
-                        onShowAll: _controller.showAllProfiles,
-                        onProfileSelected: _controller.selectProfile,
+                        onShowAll: () {
+                          _controller.showAllProfiles();
+                          _loadDocumentsForCurrentView();
+                        },
+                        onProfileSelected: (profileId) {
+                          _controller.selectProfile(profileId);
+                        },
                       ),
                       if ((widget.authSession?.profiles.length ?? 0) > 1)
                         const SizedBox(height: 14),
@@ -197,13 +220,19 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
     if (draft == null || !mounted) return;
 
-    _controller.addDocument(
-      name: draft.name,
-      category: draft.category,
-      fileBytes: draft.fileBytes,
-      mimeType: draft.mimeType,
-    );
-    _showMessage('Dokument hinzugefügt');
+    try {
+      await _controller.addDocument(
+        name: draft.name,
+        category: draft.category,
+        fileBytes: draft.fileBytes,
+        mimeType: draft.mimeType,
+      );
+      _showMessage('Dokument hinzugefügt');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht gespeichert werden.');
+      }
+    }
   }
 
   Future<void> _handleAction(
@@ -301,8 +330,14 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
 
     if (name == null || name.isEmpty) return;
-    _controller.renameDocument(document.id, name);
-    _showMessage('Dokument umbenannt');
+    try {
+      await _controller.renameDocument(document.id, name);
+      _showMessage('Dokument umbenannt');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht umbenannt werden.');
+      }
+    }
   }
 
   Future<void> _deleteDocument(DocumentEntry document) async {
@@ -331,26 +366,38 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
 
     if (confirmed != true) return;
-    _controller.deleteDocument(document.id);
-    _showMessage('Dokument gelöscht');
+    try {
+      await _controller.deleteDocument(document.id);
+      _showMessage('Dokument gelöscht');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht gelöscht werden.');
+      }
+    }
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.careenaTeal,
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
+    showCareenaSnackBar(context, message);
+  }
+
+  Future<void> _loadDocumentsForCurrentView() async {
+    if (_controller.isShowingAllProfiles) {
+      final profileIds = widget.authSession?.profiles
+          .map((profile) => profile.id)
+          .toSet();
+
+      if (profileIds == null) return;
+      await Future.wait(profileIds.map(_controller.loadProfileDocuments));
+      return;
+    }
+
+    final profileId = _controller.selectedProfileId;
+    if (profileId == null) return;
+
+    await _controller.loadProfileDocuments(profileId);
   }
 }
+
 
 class _DetailRow extends StatelessWidget {
   final String label;

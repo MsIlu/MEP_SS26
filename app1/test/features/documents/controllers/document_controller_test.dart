@@ -11,6 +11,7 @@ void main() {
 
   setUp(() {
     repository = DocumentRepository.instance;
+    repository.configure(apiService: null);
     repository.documents.value = [];
     repository.unreadCounts.value = {};
 
@@ -43,15 +44,15 @@ void main() {
     );
   }
 
-  test('shows only documents of the active profile by default', () {
-    repository.addDocument(
+  test('shows only documents of the active profile by default', () async {
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
         name: 'Mutter Befund.pdf',
       ),
     );
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 20,
@@ -63,15 +64,15 @@ void main() {
     expect(controller.documents.first.name, 'Mutter Befund.pdf');
   });
 
-  test('shows documents from all profiles', () {
-    repository.addDocument(
+  test('shows documents from all profiles', () async {
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
         name: 'Mutter Befund.pdf',
       ),
     );
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 20,
@@ -85,15 +86,15 @@ void main() {
     expect(controller.isShowingAllProfiles, isTrue);
   });
 
-  test('filters documents by selected profile', () {
-    repository.addDocument(
+  test('filters documents by selected profile', () async {
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
         name: 'Mutter Befund.pdf',
       ),
     );
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 20,
@@ -102,7 +103,7 @@ void main() {
     );
 
     controller.showAllProfiles();
-    controller.selectProfile(20);
+    await controller.selectProfile(20);
 
     expect(controller.documents, hasLength(1));
     expect(controller.documents.first.name, 'Kind Befund.pdf');
@@ -110,8 +111,8 @@ void main() {
     expect(controller.isShowingAllProfiles, isFalse);
   });
 
-  test('filters visible documents by search query and category', () {
-    repository.addDocument(
+  test('filters visible documents by search query and category', () async {
+    await repository.addDocument(
       createDocument(
         id: '1',
         profileId: 10,
@@ -119,7 +120,7 @@ void main() {
         category: DocumentCategory.laboratory,
       ),
     );
-    repository.addDocument(
+    await repository.addDocument(
       createDocument(
         id: '2',
         profileId: 10,
@@ -134,8 +135,8 @@ void main() {
     expect(controller.visibleDocuments.first.name, 'Blutwerte.pdf');
   });
 
-  test('assigns uploaded document to the active profile', () {
-    controller.addDocument(
+  test('assigns uploaded document to the active profile', () async {
+    await controller.addDocument(
       name: 'Neuer Befund.pdf',
       category: DocumentCategory.findings,
       fileBytes: Uint8List.fromList([1, 2, 3]),

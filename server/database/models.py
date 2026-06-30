@@ -6,7 +6,7 @@
 from datetime import datetime, date
 from typing import Optional
 
-from sqlalchemy import Column, JSON
+from sqlalchemy import Column, JSON, Text
 from sqlmodel import SQLModel, Field
 
 class User(SQLModel, table=True):
@@ -190,3 +190,27 @@ class ChatHistory(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class DocumentEntry(SQLModel, table=True):
+    """
+    Persisted document uploaded by the user or generated from Careena output.
+
+    Documents are scoped to medical profiles and use the same access model as
+    medications, symptoms, appointments, and chat history.
+    """
+    __tablename__ = "document_entries"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    profile_id: int = Field(foreign_key="profiles.id", index=True)
+
+    name: str = Field(max_length=255)
+    category: str = Field(default="other", max_length=40, index=True)
+    source: str = Field(default="uploaded", max_length=40, index=True)
+    size_in_bytes: int = Field(default=0)
+    mime_type: str = Field(default="application/pdf", max_length=120)
+    file_data_base64: str = Field(default="", sa_column=Column(Text, nullable=False))
+
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = Field(default=None)

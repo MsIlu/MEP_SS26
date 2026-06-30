@@ -22,6 +22,7 @@ import '../widgets/settings_components.dart';
 import '../widgets/settings_detail_scaffold.dart';
 import 'medical_glossary_page.dart';
 import 'settings_text_page.dart';
+import 'user_manual_page.dart';
 
 class SettingsPage extends StatefulWidget {
   final ThemeController themeController;
@@ -265,6 +266,13 @@ class _SettingsPageState extends State<SettingsPage> {
         description: 'Begriffe alphabetisch erklärt',
         keywords: const ['glossar', 'medizin', 'begriff', 'lexikon'],
         onTap: () => _open(context, const MedicalGlossaryPage()),
+      ),
+      _SettingsItem(
+        icon: SettingsIcons.userManual,
+        title: 'Benutzerhandbuch',
+        description: 'Careena-Benutzerhandbuch als PDF',
+        keywords: const ['benutzerhandbuch', 'handbuch', 'anleitung', 'pdf'],
+        onTap: () => _open(context, const UserManualPage()),
       ),
       _SettingsItem(
         icon: SettingsIcons.privacy,

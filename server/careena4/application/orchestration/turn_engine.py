@@ -20,6 +20,7 @@ from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCas
 from careena4.models.domain.observation import Observation
 from careena4.models.input import SymptomInputDraft
 from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
+from careena4.models.turn.entry_assessment import EntryAssessment
 from careena4.server_log import log_event
 
 
@@ -107,7 +108,11 @@ class TurnEngine:
                 trace_notes=trace_notes,
             )
 
-        if self.turn_understanding_service is not None:
+        # Guided-input answers ("Ja"/"Nein" bubble clicks) skip all LLM calls —
+        # the answer is deterministic, no extraction or understanding needed.
+        is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
+
+        if not is_fast_path and self.turn_understanding_service is not None:
             current_turn_understanding = self.turn_understanding_service.extract(
                 message=turn_input.message,
             )
@@ -147,13 +152,24 @@ class TurnEngine:
                 extra_trace_notes=["turn:safety_clarification_opened"],
             )
 
-        entry_assessment = self.entry_classifier.classify(
-            message=turn_input.message,
-            active_question=conversation_state.active_question,
-            medical_case=medical_case,
-            history_messages=turn_input.entry_history_messages,
-        )
-        trace_notes.append(f"entry:{entry_assessment.message_kind}")
+        if is_fast_path:
+            entry_assessment = EntryAssessment(
+                in_scope=True,
+                medical_relevance="medical",
+                answers_active_question=True,
+                contains_new_medical_information=False,
+                message_kind="question_answer",
+            )
+            trace_notes.append("entry:question_answer")
+            trace_notes.append("turn:guided_input_fast_path")
+        else:
+            entry_assessment = self.entry_classifier.classify(
+                message=turn_input.message,
+                active_question=conversation_state.active_question,
+                medical_case=medical_case,
+                history_messages=turn_input.entry_history_messages,
+            )
+            trace_notes.append(f"entry:{entry_assessment.message_kind}")
 
         if not entry_assessment.in_scope:
             decision = TurnDecision(
@@ -423,6 +439,13 @@ class TurnEngine:
             trace_notes=trace_notes,
             resolved_question=resolved_question,
         )
+
+    @staticmethod
+    def _is_guided_input_answer(message: str, active_question: ActiveQuestion | None) -> bool:
+        if active_question is None or active_question.guided_input is None:
+            return False
+        normalized = message.strip().lower()
+        return any(opt.label.strip().lower() == normalized for opt in active_question.guided_input.options)
 
     def _sync_chips_to_case(
         self,

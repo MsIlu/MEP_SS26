@@ -121,6 +121,12 @@ class ChatHistoryEntry {
       'export_title': message.exportTitle,
       'export_recommendation': message.exportRecommendation,
       'export_next_steps': message.exportNextSteps,
+      'can_create_appointment': message.canCreateAppointment,
+      'appointment_title': message.appointmentTitle,
+      'recommendation_symptoms': message.recommendationSymptoms,
+      'document_saved': message.documentSaved,
+      'symptoms_saved': message.symptomsSaved,
+      'appointment_searched': message.appointmentSearched,
     };
   }
 
@@ -133,6 +139,15 @@ class ChatHistoryEntry {
       exportTitle: json['export_title'] as String?,
       exportRecommendation: json['export_recommendation'] as String?,
       exportNextSteps: json['export_next_steps'] as String?,
+      canCreateAppointment: json['can_create_appointment'] == true,
+      appointmentTitle: json['appointment_title'] as String?,
+      recommendationSymptoms:
+          (json['recommendation_symptoms'] as List<dynamic>? ?? const [])
+              .map((item) => item.toString())
+              .toList(),
+      documentSaved: json['document_saved'] == true,
+      symptomsSaved: json['symptoms_saved'] == true,
+      appointmentSearched: json['appointment_searched'] == true,
     );
   }
 

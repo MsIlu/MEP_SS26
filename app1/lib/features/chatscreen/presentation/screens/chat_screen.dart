@@ -19,6 +19,7 @@ import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
 import '../widgets/symptom_chat_editor_sheet.dart';
 import '../../../symptom_diary/data/symptom_import.dart';
+import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../widgets/symptom_list.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
@@ -165,8 +166,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _handleRecommendationRequest() async {
     if (_isSending || widget.controller.isCompleted.value) return;
 
-    _preRecommendationSymptoms =
-        List<String>.from(widget.controller.symptoms.value);
+    _preRecommendationSymptoms = List<String>.from(
+      widget.controller.symptoms.value,
+    );
 
     await _speechService.stop();
     _textController.clear();
@@ -224,8 +226,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (recommendationResponse != null) {
       final recommendationSessionId = widget.controller.currentSessionId;
       final recommendationAuthSession = widget.controller.authSession;
+      final recommendationHistoryId = widget.controller.currentHistoryEntryId;
+      final recommendationMessages = widget.controller.messages.value
+          .where((message) => !message.isUser && message.canExportPdf)
+          .toList();
+      final recommendationMessage = recommendationMessages.isEmpty
+          ? null
+          : recommendationMessages.last;
       final recommendationSymptoms =
-          _preRecommendationSymptoms ?? List<String>.from(widget.controller.symptoms.value);
+          _preRecommendationSymptoms ??
+          List<String>.from(widget.controller.symptoms.value);
       _preRecommendationSymptoms = null;
       final recommendationUserMessages = widget.controller.messages.value
           .where((message) => message.isUser)
@@ -250,6 +260,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : null,
             sessionId: recommendationSessionId,
             authSession: recommendationAuthSession,
+            recommendationMessage: recommendationMessage,
+            onRecommendationAction:
+                recommendationHistoryId == null || recommendationMessage == null
+                ? null
+                : (action) =>
+                      widget.controller.markRecommendationActionForHistory(
+                        historyId: recommendationHistoryId,
+                        message: recommendationMessage,
+                        action: action,
+                      ),
           ),
         ),
       );
@@ -425,8 +445,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final initialSymptoms = _enrichedChatSymptoms.isNotEmpty
         ? _enrichedChatSymptoms
         : widget.controller.symptoms.value
-            .map((s) => SymptomImport(name: s))
-            .toList();
+              .map((s) => SymptomImport(name: s))
+              .toList();
     final biologicalSex =
         widget.controller.authSession.activeProfile?.biologicalSex;
 
@@ -454,6 +474,33 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           },
         );
       },
+    );
+  }
+
+  Future<void> _openRecommendationSymptoms(Message message) async {
+    final symptoms = message.recommendationSymptoms;
+    if (symptoms.isEmpty) return;
+
+    final dependencies = AppDependenciesScope.of(context);
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SymptomDiaryPage(
+          themeController: widget.themeController,
+          authSession: dependencies.authSession,
+          symptomApiService: dependencies.symptomApiService,
+          profileApiService: dependencies.profileApiService,
+          initialSymptoms: symptoms
+              .map((symptom) => SymptomImport(name: symptom))
+              .toList(),
+          onInitialSymptomsSaved: () async {
+            await widget.controller.markRecommendationAction(
+              message,
+              RecommendationAction.symptoms,
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -680,9 +727,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             : 'Antwort von Careena: $semanticText',
                         child: ChatBubble(
                           authSession: widget.controller.authSession,
+                          recommendationSessionId:
+                              widget.controller.recommendationSessionId,
                           message: message,
                           symptoms: widget.controller.symptoms.value,
                           userMessages: userMessages,
+                          onRecommendationAction:
+                              widget.controller.markRecommendationAction,
+                          onSaveSymptoms: () =>
+                              _openRecommendationSymptoms(message),
                           showLongProcessingHint:
                               message.isLoading && _showLongProcessingHint,
                         ),

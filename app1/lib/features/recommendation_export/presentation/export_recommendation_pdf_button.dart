@@ -26,20 +26,10 @@ class ExportRecommendationPdfButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    final buttonColor = isDarkMode
-        ? AppColors.toolbarButtonBackgroundDark
-        : AppColors.careenaTeal;
-
-    final textColor = isDarkMode
-        ? AppColors.toolbarButtonForegroundDark
-        : AppColors.white;
-
-    return FilledButton.icon(
-      style: FilledButton.styleFrom(
-        backgroundColor: buttonColor,
-        foregroundColor: textColor,
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.careenaTeal,
+        side: const BorderSide(color: AppColors.careenaTeal),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),

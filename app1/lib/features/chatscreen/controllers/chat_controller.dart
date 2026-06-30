@@ -40,6 +40,8 @@ class ChatController {
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
   static const Duration _availabilityOnlineRecheckDelay = Duration(seconds: 10);
 
+  String? get currentSessionId => chatSessionService.sessionId;
+
   ChatController({
     required this.chatApi,
     required this.chatService,

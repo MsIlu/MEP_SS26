@@ -66,7 +66,7 @@ Rules:
 - Set is_negated to true when the user explicitly denies a symptom:
   "kein Fieber", "keine Atemnot", "nicht schwindelig", "keine Schmerzen".
 - Set is_negated to false for all actively present symptoms.
-- Still extract negated symptoms — they are clinically relevant context — but mark them correctly.
+- Still extract negated symptoms - they are clinically relevant context - but mark them correctly.
 """.strip()
 
 
@@ -156,16 +156,7 @@ class MedGemmaTurnUnderstandingService:
             for symptom in output.symptoms
         ]
 
-        # STS matching is done deterministically after normalization so that the
-        # STS catalog cannot bias the normalized_label_de assigned by MedGemma.
-        candidate_labels = [
-            label
-            for s in symptoms
-            if s.is_medical and not s.is_negated
-            for label in (s.normalized_label_de, s.clinical_term_de)
-            if label
-        ]
-        sts_matches = self.sts_catalog.match_by_labels(candidate_labels)
+        sts_matches = self.sts_catalog.match_for_symptoms(symptoms)
 
         trace_notes = list(output.trace_notes)
         trace_notes.append(f"medgemma_turn_understanding:symptoms:{len(symptoms)}")

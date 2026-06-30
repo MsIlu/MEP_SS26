@@ -21,23 +21,44 @@ class QuestionBuilder:
         self.call_model_config = call_model_config
 
     def build_for_need(self, *, need: FollowupNeed, focus_label: str | None = None) -> ActiveQuestion:
-        case_focus_label = need.case_focus_label or focus_label
-        if need.reason == "subject_unclear":
+        if need.reason == "person_missing":
             question = ActiveQuestion(
-                kind="subject_clarification",
-                question_intent="subject_clarification",
+                kind="person_clarification",
+                question_intent="person_clarification",
                 target_followup_id=need.followup_id,
                 prompt_text="Geht es um dich selbst, um dein Kind oder um eine andere Person?",
                 blocking=True,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
+            return question
+        if need.reason == "age_missing":
+            question = ActiveQuestion(
+                kind="person_clarification",
+                question_intent="person_age",
+                target_followup_id=need.followup_id,
+                prompt_text=self._person_age_prompt(person_relation=need.person_relation),
+                blocking=need.blocking,
+                allows_additional_medical_info=True,
+            )
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
+            return question
+        if need.reason == "sex_missing":
+            question = ActiveQuestion(
+                kind="person_clarification",
+                question_intent="person_sex",
+                target_followup_id=need.followup_id,
+                prompt_text=self._person_sex_prompt(person_relation=need.person_relation),
+                blocking=need.blocking,
+                allows_additional_medical_info=True,
+            )
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
         if need.reason == "person_ref_missing":
-            label = focus_label or case_focus_label or "die Beschwerden"
+            label = focus_label or "die Beschwerden"
             question = ActiveQuestion(
-                kind="subject_clarification",
-                question_intent="subject_clarification",
+                kind="person_clarification",
+                question_intent="person_clarification",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
                 prompt_text=(
@@ -46,7 +67,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
         if need.reason == "duration_missing":
             question = ActiveQuestion(
@@ -54,11 +75,11 @@ class QuestionBuilder:
                 question_intent="duration",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text=self._duration_prompt(case_focus_label=case_focus_label, fallback_label=focus_label),
+                prompt_text=self._duration_prompt(focus_label=focus_label),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
         if need.reason == "description_missing":
             question = ActiveQuestion(
@@ -66,14 +87,14 @@ class QuestionBuilder:
                 question_intent="description",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text=self._description_prompt(case_focus_label=case_focus_label, fallback_label=focus_label),
+                prompt_text=self._description_prompt(focus_label=focus_label),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
         if need.reason == "severity_missing":
-            label = case_focus_label or focus_label or "die Beschwerde"
+            label = focus_label or "die Beschwerde"
             question = ActiveQuestion(
                 kind="followup",
                 question_intent="severity",
@@ -83,19 +104,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
-            return question
-        if need.reason == "location_unclear":
-            question = ActiveQuestion(
-                kind="followup",
-                question_intent="localization",
-                target_followup_id=need.followup_id,
-                target_observation_id=need.observation_id,
-                prompt_text="Wo genau spürst du das?",
-                blocking=need.blocking,
-                allows_additional_medical_info=True,
-            )
-            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
             return question
         question = ActiveQuestion(
             kind="followup",
@@ -106,14 +115,14 @@ class QuestionBuilder:
             blocking=need.blocking,
             allows_additional_medical_info=True,
         )
-        question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
+        question.prompt_text = self._render_prompt(question=question, focus_label=focus_label)
         return question
 
     def build_additional_information_request(self) -> ActiveQuestion:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu deinen Beschwerden möchtest du noch hinzufügen?",
+            prompt_text="Welche weiteren Angaben zu deinen Beschwerden moechtest du noch hinzufuegen?",
             blocking=False,
             allows_additional_medical_info=True,
         )
@@ -161,49 +170,33 @@ class QuestionBuilder:
         )
         return rendered
 
-    def _duration_prompt(self, *, case_focus_label: str | None, fallback_label: str | None) -> str:
-        label = case_focus_label or fallback_label or "die Beschwerden"
-        if fallback_label and fallback_label != case_focus_label:
-            return f"Seit wann bestehen {self._accusative_label(fallback_label)}?"
+    def _duration_prompt(self, *, focus_label: str | None) -> str:
+        label = focus_label or "die Beschwerden"
         return f"Seit wann bestehen {self._accusative_label(label)}?"
 
-    def _description_prompt(self, *, case_focus_label: str | None, fallback_label: str | None) -> str:
-        body_site = self._body_site_from_label(case_focus_label) or self._body_site_from_label(fallback_label)
-        if body_site is not None:
-            return f"Kannst du die Beschwerden {self._body_site_phrase(body_site)} noch etwas genauer beschreiben?"
-        label = fallback_label or case_focus_label or "die Beschwerden"
+    def _description_prompt(self, *, focus_label: str | None) -> str:
+        label = focus_label or "die Beschwerden"
         return f"Kannst du {self._accusative_label(label)} bitte etwas genauer beschreiben?"
 
     @staticmethod
-    def _body_site_from_label(label: str | None) -> str | None:
-        if not label:
-            return None
-        normalized = label.casefold()
-        for token, body_site in (
-            ("huefte", "Hüfte"),
-            ("hüfte", "Hüfte"),
-            ("bauch", "Bauch"),
-            ("brust", "Brust"),
-            ("kopf", "Kopf"),
-            ("hals", "Hals"),
-            ("bein", "Bein"),
-            ("arm", "Arm"),
-        ):
-            if token in normalized:
-                return body_site
-        return None
+    def _person_age_prompt(*, person_relation: str | None) -> str:
+        if person_relation == "self":
+            return "Wie alt bist du?"
+        if person_relation == "child":
+            return "Wie alt ist dein Kind?"
+        if person_relation == "other":
+            return "Wie alt ist die betroffene Person?"
+        return "Wie alt ist die betroffene Person?"
 
     @staticmethod
-    def _body_site_phrase(body_site: str) -> str:
-        return {
-            "Hüfte": "an der Hüfte",
-            "Brust": "in der Brust",
-            "Bauch": "im Bauch",
-            "Kopf": "am Kopf",
-            "Hals": "im Hals",
-            "Bein": "im Bein",
-            "Arm": "im Arm",
-        }.get(body_site, f"an der {body_site}")
+    def _person_sex_prompt(*, person_relation: str | None) -> str:
+        if person_relation == "self":
+            return "Welches Geschlecht hast du?"
+        if person_relation == "child":
+            return "Welches Geschlecht hat dein Kind?"
+        if person_relation == "other":
+            return "Welches Geschlecht hat die betroffene Person?"
+        return "Welches Geschlecht hat die betroffene Person?"
 
     @staticmethod
     def _accusative_label(label: str) -> str:

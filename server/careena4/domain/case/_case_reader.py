@@ -1,4 +1,4 @@
-from careena4.models.domain import MedicalCase, Observation, TopicEntry
+from careena4.models.domain import MedicalCase, Observation
 
 
 class _CaseReader:
@@ -36,13 +36,15 @@ class _CaseReader:
     def read_topic_label(*, medical_case: MedicalCase | None) -> str | None:
         if medical_case is None or medical_case.topic is None:
             return None
-        return medical_case.topic.label
+        label = medical_case.topic.label.strip()
+        return label or None
 
     @staticmethod
-    def read_topic_entries(*, medical_case: MedicalCase | None) -> list[TopicEntry]:
+    def read_topic_description(*, medical_case: MedicalCase | None) -> str | None:
         if medical_case is None or medical_case.topic is None:
-            return []
-        return list(medical_case.topic.entries)
+            return None
+        description = medical_case.topic.description.strip()
+        return description or None
 
     def read_observation_label(
         self,
@@ -73,7 +75,7 @@ class _CaseReader:
             and medical_case.topic is not None
             and (
                 medical_case.topic.label.strip()
-                or medical_case.topic.entries
+                or medical_case.topic.description.strip()
             )
         )
 

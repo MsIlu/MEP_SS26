@@ -9,14 +9,14 @@ from careena4.application.dialogue import QuestionBuilder, QuestionResolver, Saf
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
+from careena4.application.interpretation import TurnInterpreter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
-from careena4.application.safety import CaseSafetyEvaluator
-from careena4.application.topic import TopicLabelBuilder, TopicUpdater
-from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.response import ResponseBuilder
-from careena4.domain.case import CaseManager
+from careena4.application.safety import CaseSafetyEvaluator
+from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
+from careena4.domain.case import CaseManager
 from careena4.infrastructure import Careena4SessionStore, SafetyCatalogCache
 from careena4.llm.call_control import CallModelConfig, build_call_model_config
 from careena4.server_log import configure_debug_logging
@@ -107,7 +107,7 @@ def build_runtime(
     )
     extraction_engine = ExtractionEngine(llm_client)
     safety_catalog_cache = SafetyCatalogCache()
-    # Cache is NOT loaded here — main.py on_startup() loads it after catalog seeding.
+    # Cache is NOT loaded here - main.py on_startup() loads it after catalog seeding.
     safety_clarification_builder = SafetyClarificationBuilder(
         llm_client=llm_client,
     )
@@ -122,23 +122,18 @@ def build_runtime(
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
     )
+    turn_interpreter = TurnInterpreter(
+        extraction_engine=extraction_engine,
+        call_model_config=call_model_config,
+    )
     question_resolver = QuestionResolver(
         safety_clarification_resolver=safety_clarification_resolver,
-        medical_extractor=medical_extractor,
         extraction_engine=extraction_engine,
         call_model_config=call_model_config,
     )
     question_builder = QuestionBuilder(
         llm_client=llm_client,
         call_model_config=call_model_config,
-    )
-    topic_label_builder = TopicLabelBuilder(
-        extraction_engine=extraction_engine,
-        call_model_config=call_model_config,
-    )
-    topic_updater = TopicUpdater(
-        case_manager=case_manager,
-        topic_label_builder=topic_label_builder,
     )
     response_builder = ResponseBuilder(
         llm_client=llm_client,
@@ -163,11 +158,11 @@ def build_runtime(
         safety_clarification_builder=safety_clarification_builder,
         entry_classifier=entry_classifier,
         question_resolver=question_resolver,
-        topic_updater=topic_updater,
         medical_extractor=medical_extractor,
         case_manager=case_manager,
         question_builder=question_builder,
         response_builder=response_builder,
+        turn_interpreter=turn_interpreter,
         turn_understanding_service=turn_understanding_service,
         recommendation_builder=recommendation_builder,
     )

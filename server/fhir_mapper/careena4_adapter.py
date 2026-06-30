@@ -5,7 +5,10 @@ from typing import Any
 from fhir_mapper.mapper import map_to_fhir_bundle
 
 
-def build_fhir_bundle_from_careena4_session(careena4_session: Any) -> dict[str, Any]:
+def build_fhir_bundle_from_careena4_session(
+        careena4_session: Any,
+        profile_id: int | None = None,
+) -> dict[str, Any]:
     """
     Builds a FHIR Bundle from the extracted Careena4 backend session data.
 
@@ -37,6 +40,7 @@ def build_fhir_bundle_from_careena4_session(careena4_session: Any) -> dict[str, 
         {
             "patient": {
                 "id": patient_id,
+                **({"profileId": profile_id} if profile_id is not None else {}),
             },
             "input": {
                 "rawText": raw_text,

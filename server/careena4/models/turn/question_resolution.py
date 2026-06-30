@@ -6,8 +6,12 @@ from careena4.models.turn.extraction_claims import ExtractedCaseInput
 
 
 class PersonUpdate(PipelineModel):
-    relation: SubjectScope
+    relation: SubjectScope | None = None
     relation_source: Source | None = None
+    age: int | None = None
+    age_source: Source | None = None
+    sex: str | None = None
+    sex_source: Source | None = None
 
 
 class ObservationPatch(PipelineModel):

@@ -30,8 +30,11 @@ from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
+from appointments.router import router as appointments_router
 from logging_config import configure_logging
 from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
+from appointments.schemas import AppointmentSearchRequest, AppointmentSearchResponse
+from appointments.service import AppointmentProviderUnavailable, search_fhir_appointments
 
 from uuid import uuid4 #for turn_id
 
@@ -71,6 +74,7 @@ app.state.careena4_session_profiles = careena4_session_profiles
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)
+app.include_router(appointments_router)
 app.include_router(chat_history_router)
 app.include_router(symptoms_router)
 
@@ -162,7 +166,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
 
     if active_question is not None and active_question.kind in {
         "followup",
-        "subject_clarification",
+        "person_clarification",
     }:
         pending_followup = {
             "question_id": active_question.question_id,
@@ -254,6 +258,63 @@ def build_careena4_simrun_response(*, message: str) -> dict:
         "red_flag": "Stop-Grund: emergency" in response_text,
     }
 
+@app.post("/appointments/search", response_model=AppointmentSearchResponse)
+def search_appointments(
+        request: AppointmentSearchRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        db_session: Session = Depends(get_session),
+):
+    careena4_session = require_careena4_session_access(
+        session_id=request.session_id,
+        current_user=current_user,
+        db_session=db_session,
+    )
+
+    session_profile_id = careena4_session_profiles.get(request.session_id)
+
+    if session_profile_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Chat session is not linked to a profile.",
+        )
+
+    if session_profile_id != request.profile_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Requested profile does not match chat session profile.",
+        )
+
+    recommendation_state = getattr(careena4_session, "recommendation_state", None)
+    recommendation_result = getattr(
+        recommendation_state,
+        "recommendation_result",
+        None,
+    )
+
+    if recommendation_result is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No Careena recommendation available for this session.",
+        )
+
+    fhir_bundle = build_fhir_bundle_from_careena4_session(
+        careena4_session,
+        profile_id=request.profile_id,
+    )
+
+    try:
+        return search_fhir_appointments(
+            session_id=request.session_id,
+            profile_id=request.profile_id,
+            postal_code=request.postal_code,
+            recommendation_result=recommendation_result,
+            fhir_bundle=fhir_bundle,
+        )
+    except AppointmentProviderUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
 app.state.careena4_turn_engine = careena4_turn_engine
 app.state.careena4_response_builder = build_careena4_chat_response
@@ -262,6 +323,7 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state
+    careena4_session.last_turn_interpretation = getattr(turn_result, "turn_interpretation", None)
     careena4_session.last_turn_understanding = turn_result.current_turn_understanding
 
     if turn_result.symptom_input_draft is not None:

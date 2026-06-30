@@ -84,7 +84,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CalendarOverviewPage), findsOneWidget);
-      expect(find.text('Keine Einträge'), findsOneWidget);
+      expect(find.text('Keine Einträge vorhanden'), findsOneWidget);
     });
 
     testWidgets('opens saved chat history from Chathistorie navigation', (

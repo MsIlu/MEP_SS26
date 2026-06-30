@@ -13,6 +13,7 @@ import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../../../onboardingscreen/presentation/screens/onboarding_screen.dart';
 import '../../../profiles/data/profile_api_service.dart';
 import '../settings_icons.dart';
 import '../widgets/display_settings_section.dart';
@@ -294,10 +295,32 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _logout(BuildContext context) async {
-    widget.authApiService?.logout();
-    await widget.authSession?.clear();
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    final authApiService =
+        widget.authApiService ?? dependencies?.authApiService;
+    final authSession = widget.authSession ?? dependencies?.authSession;
+
+    authApiService?.logout();
+    await authSession?.clear();
     await AppPageStore.clearCurrentPage();
     if (!context.mounted) return;
+
+    if (dependencies != null && authSession != null && authApiService != null) {
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => OnboardingScreen(
+            chatController: dependencies.chatController,
+            themeController: widget.themeController,
+            authSession: authSession,
+            authApiService: authApiService,
+            symptomRepository: dependencies.symptomRepository,
+          ),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
     Navigator.of(
       context,
       rootNavigator: true,

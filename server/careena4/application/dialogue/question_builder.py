@@ -73,6 +73,7 @@ class QuestionBuilder:
                     options=[
                         GuidedInputOption(code="possible", label="Ja, möglicherweise"),
                         GuidedInputOption(code="excluded", label="Nein"),
+                        GuidedInputOption(code="not_applicable", label="Nicht zutreffend"),
                     ],
                 ),
             )

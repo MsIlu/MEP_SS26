@@ -644,12 +644,12 @@ class QuestionResolver:
 
     @staticmethod
     def _pregnancy_status_from_message(normalized: str) -> str | None:
+        if any(t in normalized for t in ("nicht zutreffend", "zutreffend", "menopause", "wechseljahre")):
+            return "not_applicable"
         if any(t in normalized for t in ("ja", "moeglich", "möglich", "schwanger", "vielleicht", "eventuell")):
             return "possible"
         if any(t in normalized for t in ("nein", "nicht", "keine")):
             return "excluded"
-        if any(t in normalized for t in ("nicht zutreffend", "zutreffend", "menopause", "wechseljahre")):
-            return "not_applicable"
         return None
 
     @staticmethod

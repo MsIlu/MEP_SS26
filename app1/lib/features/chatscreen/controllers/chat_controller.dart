@@ -81,6 +81,7 @@ class ChatController {
   void finishOpeningHistory(String historyEntryId) {
     _openingHistoryEntries.remove(historyEntryId);
   }
+
   final ValueNotifier<CareenaAvailability> availability =
       ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
@@ -245,9 +246,7 @@ class ChatController {
       return null;
     }
 
-    _addMessage(
-      message: Message(text: visibleUserText, isUser: true),
-    );
+    _addMessage(message: Message(text: visibleUserText, isUser: true));
 
     lastReplyOptions.value = [];
 
@@ -998,7 +997,5 @@ class ChatController {
     continuingHistoryIds.dispose();
     historyRevision.dispose();
     availability.dispose();
-    continuingHistoryIds.dispose();
-    historyRevision.dispose();
   }
 }

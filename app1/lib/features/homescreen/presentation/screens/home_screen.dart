@@ -65,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _navigationKey = GlobalKey();
   int? _guideStep;
   int _openChatCount = 0;
+  String _searchQuery = '';
   final DocumentRepository _documentRepository = DocumentRepository.instance;
 
   List<AppGuideStep> get _visibleGuideSteps =>
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (widget.authSession != null) widget.authSession!,
       ]),
       builder: (context, _) {
-        final features = _buildFeatures(context);
+        final features = _filteredFeatures(_buildFeatures(context));
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
         final isCompact = MediaQuery.sizeOf(context).width < 360;
 
@@ -184,6 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           HomeSearchBar(
                             guideTargetKey: _searchKey,
                             isCompact: isCompact,
+                            onChanged: (query) =>
+                                setState(() => _searchQuery = query),
                           ),
                         HomeFunctionList(
                           guideTargetKey: _featuresKey,
@@ -370,6 +373,17 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _navigateToDocuments(context),
       ),
     ];
+  }
+
+  List<HomeFeature> _filteredFeatures(List<HomeFeature> features) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) {
+      return features;
+    }
+
+    return features
+        .where((feature) => feature.title.toLowerCase().contains(query))
+        .toList();
   }
 
   void _navigateToMedicationPlan(BuildContext context) {

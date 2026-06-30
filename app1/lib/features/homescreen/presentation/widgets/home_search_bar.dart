@@ -6,10 +6,12 @@ class HomeSearchBar extends StatefulWidget {
   /// Whether the field should use the narrow phone spacing.
   final bool isCompact;
   final Key? guideTargetKey;
+  final ValueChanged<String> onChanged;
 
   const HomeSearchBar({
     super.key,
     required this.isCompact,
+    required this.onChanged,
     this.guideTargetKey,
   });
 
@@ -40,7 +42,10 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
         controller: _controller,
         hintText: 'Suchen...',
         fillColor: isDarkMode ? const Color(0xFF1B2733) : const Color(0xFFDDEFEF),
-        onChanged: (_) {},
+        onChanged: (value) {
+          setState(() {});
+          widget.onChanged(value);
+        },
       ),
     );
   }

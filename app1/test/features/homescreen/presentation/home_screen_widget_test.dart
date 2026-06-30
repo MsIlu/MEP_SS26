@@ -51,6 +51,28 @@ void main() {
       expect(tester.getSize(iconBackground), const Size.square(64));
     });
 
+    testWidgets('filters home functions through the search bar', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.enterText(find.byType(TextField), 'Sy');
+      await tester.pump();
+
+      expect(find.text('Symptomtagebuch'), findsOneWidget);
+      expect(find.text('Medikamententagebuch'), findsNothing);
+      expect(find.text('Terminplanung'), findsNothing);
+      expect(find.text('Dokumente'), findsNothing);
+
+      await tester.tap(find.byTooltip('Suche löschen'));
+      await tester.pump();
+
+      expect(find.text('Symptomtagebuch'), findsOneWidget);
+      expect(find.text('Medikamententagebuch'), findsOneWidget);
+      expect(find.text('Terminplanung'), findsOneWidget);
+      expect(find.text('Dokumente'), findsOneWidget);
+    });
+
     testWidgets('uses the Careena light home palette', (tester) async {
       await pumpHomeScreen(tester, themeMode: ThemeMode.light);
 

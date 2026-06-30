@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../homescreen/presentation/screens/home_screen.dart';
+import '../../../onboardingscreen/presentation/screens/onboarding_screen.dart';
 import '../theme/auth_theme.dart';
 import '../widgets/common/auth_buttons.dart';
 import '../widgets/common/auth_fields.dart';
@@ -42,6 +44,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    AppPageStore.saveCurrentPage(AppPage.login);
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -54,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       maxWidth: AuthTheme.loginMaxWidth,
       fixedHeader: CareenaPageHeader(
         title: 'Anmelden',
+        onBack: _goBack,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,6 +128,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _togglePasswordVisibility() {
     setState(() => _obscurePassword = !_obscurePassword);
+  }
+
+  Future<void> _goBack() async {
+    await AppPageStore.saveCurrentPage(AppPage.onboarding);
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => OnboardingScreen(
+          chatController: widget.chatController,
+          themeController: widget.themeController,
+          authSession: widget.authSession,
+          authApiService: widget.authApiService,
+          symptomRepository: widget.symptomRepository,
+        ),
+      ),
+      (route) => false,
+    );
   }
 
   void _openRegistration() {

@@ -2,6 +2,8 @@
 import 'dart:async';
 
 import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -47,6 +49,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.medicationPlan);
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     final initialDate = widget.initialDate;
@@ -91,7 +94,8 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
-        title: 'Medikamentenplan',
+        title: 'Medikamententagebuch',
+        onBack: _handleBack,
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -122,6 +126,10 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
         ),
       ),
     );
+  }
+
+  void _handleBack() {
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 
   /// Opens a centered form dialog and prepares clean input state first.

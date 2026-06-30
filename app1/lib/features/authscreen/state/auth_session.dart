@@ -1,5 +1,7 @@
-// Created as part of the authentication and profile management implementation.
+﻿// Created as part of the authentication and profile management implementation.
 // Holds the current frontend authentication and active-profile session state.
+
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,7 @@ import '../domain/models/auth_response.dart';
 
 class AuthSession extends ChangeNotifier {
   static const _lastProfileKeyPrefix = 'last_active_profile_';
+  static const _persistedSessionKey = 'auth_session';
   static final Map<int, int> _rememberedProfileIds = {};
 
   /// Access token returned by the backend after login or registration.
@@ -44,7 +47,31 @@ class AuthSession extends ChangeNotifier {
         (_profiles.isNotEmpty ? _profiles.first : null);
 
     _rememberActiveProfile();
+    _persistAuthResponse(response);
     notifyListeners();
+  }
+
+  /// Restores the previous login after a browser reload or app restart.
+  Future<bool> restorePersistedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawSession = prefs.getString(_persistedSessionKey);
+
+    if (rawSession == null || rawSession.isEmpty) {
+      return false;
+    }
+
+    try {
+      final json = jsonDecode(rawSession) as Map<String, dynamic>;
+      final response = AuthResponse.fromJson(json);
+      final rememberedProfileId = await loadRememberedProfileId(
+        response.account.id,
+      );
+      setAuthResponse(response, preferredProfileId: rememberedProfileId);
+      return true;
+    } catch (_) {
+      await prefs.remove(_persistedSessionKey);
+      return false;
+    }
   }
 
   /// Loads the last profile used for this account on this device.
@@ -152,12 +179,13 @@ class AuthSession extends ChangeNotifier {
   }
 
   /// Clears all frontend authentication and profile session data.
-  void clear() {
+  Future<void> clear() async {
     _accessToken = null;
     _account = null;
     _profiles = [];
     _activeProfile = null;
 
+    await _clearPersistedSession();
     notifyListeners();
   }
 
@@ -187,5 +215,15 @@ class AuthSession extends ChangeNotifier {
     _rememberedProfileIds[accountId] = profileId;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('$_lastProfileKeyPrefix$accountId', profileId);
+  }
+
+  Future<void> _persistAuthResponse(AuthResponse response) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_persistedSessionKey, jsonEncode(response.toJson()));
+  }
+
+  Future<void> _clearPersistedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_persistedSessionKey);
   }
 }

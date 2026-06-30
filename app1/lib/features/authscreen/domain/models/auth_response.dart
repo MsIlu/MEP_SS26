@@ -1,4 +1,4 @@
-// Created as part of the authentication and profile management implementation.
+﻿// Created as part of the authentication and profile management implementation.
 // Defines frontend models for authentication responses.
 
 import 'account.dart';
@@ -30,6 +30,17 @@ class AuthProfile {
       aiDisclaimerAcceptedAt: json['ai_disclaimer_accepted_at'] as String?,
       role: json['role'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'display_name': displayName,
+      'profile_type': profileType,
+      'biological_sex': biologicalSex,
+      'ai_disclaimer_accepted_at': aiDisclaimerAcceptedAt,
+      'role': role,
+    };
   }
 
   AuthProfile copyWith({
@@ -74,5 +85,14 @@ class AuthResponse {
           .map((item) => AuthProfile.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'access_token': accessToken,
+      'token_type': tokenType,
+      'account': account.toJson(),
+      'profiles': profiles.map((profile) => profile.toJson()).toList(),
+    };
   }
 }

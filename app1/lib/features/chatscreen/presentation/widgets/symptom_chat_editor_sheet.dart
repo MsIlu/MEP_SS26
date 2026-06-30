@@ -12,6 +12,7 @@ class SymptomChatEditorSheet extends StatefulWidget {
   final List<SymptomImport> symptoms;
   final String? biologicalSex;
   final void Function(List<SymptomImport> updated) onChanged;
+
   /// Called after each save so severity changes reach the backend immediately.
   final Future<void> Function(Map<String, int> severities)? onSeveritiesChanged;
 
@@ -68,28 +69,29 @@ class _SymptomChatEditorSheetState extends State<SymptomChatEditorSheet> {
                 initialSymptom: existing?.name,
                 skipToDetails: existing != null,
                 biologicalSex: widget.biologicalSex,
-                onSave: ({
-                  required String symptom,
-                  required String bodyArea,
-                  required int intensity,
-                  double? temperatureC,
-                  required String note,
-                }) async {
-                  final updated = SymptomImport(
-                    name: symptom,
-                    severity: intensity,
-                    bodyArea: bodyArea.isEmpty ? null : bodyArea,
-                  );
-                  setState(() {
-                    if (editIndex != null) {
-                      _symptoms[editIndex] = updated;
-                    } else {
-                      _symptoms.add(updated);
-                    }
-                  });
-                  widget.onChanged(_symptoms);
-                  _pushSeveritiesToBackend();
-                },
+                onSave:
+                    ({
+                      required String symptom,
+                      required String bodyArea,
+                      required int intensity,
+                      double? temperatureC,
+                      required String note,
+                    }) async {
+                      final updated = SymptomImport(
+                        name: symptom,
+                        severity: intensity,
+                        bodyArea: bodyArea.isEmpty ? null : bodyArea,
+                      );
+                      setState(() {
+                        if (editIndex != null) {
+                          _symptoms[editIndex] = updated;
+                        } else {
+                          _symptoms.add(updated);
+                        }
+                      });
+                      widget.onChanged(_symptoms);
+                      _pushSeveritiesToBackend();
+                    },
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
               ),
@@ -153,27 +155,48 @@ class _SymptomChatEditorSheetState extends State<SymptomChatEditorSheet> {
 
                     final imp = _symptoms[index];
                     final subtitle = _buildSubtitle(imp);
+                    final details = _buildSemanticDetails(imp);
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(imp.name),
+                      title: Semantics(
+                        label: details,
+                        child: ExcludeSemantics(child: Text(imp.name)),
+                      ),
                       subtitle: subtitle != null
-                          ? Text(subtitle, style: const TextStyle(fontSize: 12))
+                          ? ExcludeSemantics(
+                              child: Text(
+                                subtitle,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            )
                           : null,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            color: actionColor,
-                            tooltip: 'Bearbeiten',
-                            onPressed: () => _editOrAdd(editIndex: index),
+                          Semantics(
+                            button: true,
+                            label: '${imp.name} bearbeiten',
+                            child: ExcludeSemantics(
+                              child: IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                color: actionColor,
+                                tooltip: '${imp.name} bearbeiten',
+                                onPressed: () => _editOrAdd(editIndex: index),
+                              ),
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            color: actionColor,
-                            tooltip: 'Entfernen',
-                            onPressed: () => _delete(index),
+                          Semantics(
+                            button: true,
+                            label: '${imp.name} entfernen',
+                            child: ExcludeSemantics(
+                              child: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                color: actionColor,
+                                tooltip: '${imp.name} entfernen',
+                                onPressed: () => _delete(index),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -204,5 +227,16 @@ class _SymptomChatEditorSheetState extends State<SymptomChatEditorSheet> {
       parts.add('Intensität: ${imp.severity}/10');
     }
     return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  String _buildSemanticDetails(SymptomImport imp) {
+    final parts = <String>['Erkanntes Symptom: ${imp.name}'];
+    if (imp.bodyArea != null && imp.bodyArea!.isNotEmpty) {
+      parts.add('Körperbereich: ${imp.bodyArea}');
+    }
+    if (imp.severity != null) {
+      parts.add('Intensität ${imp.severity} von 10');
+    }
+    return parts.join('. ');
   }
 }

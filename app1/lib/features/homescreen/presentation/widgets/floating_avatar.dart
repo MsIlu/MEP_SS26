@@ -12,11 +12,18 @@ class FloatingAvatar extends StatefulWidget {
   /// Whether the image is displayed inside the circular avatar surface.
   final bool showFrame;
 
+  /// Whether this avatar should be ignored by assistive technologies.
+  ///
+  /// The avatar is decorative in the home card and app guide; the surrounding
+  /// copy and buttons provide the actionable information.
+  final bool excludeFromSemantics;
+
   const FloatingAvatar({
     super.key,
     required this.imagePath,
     this.size = 100,
     this.showFrame = true,
+    this.excludeFromSemantics = true,
   });
 
   @override
@@ -63,20 +70,25 @@ class _FloatingAvatarState extends State<FloatingAvatar>
   @override
   Widget build(BuildContext context) {
     final avatar = _buildAvatar();
+    final semanticAvatar = widget.excludeFromSemantics
+        ? ExcludeSemantics(child: avatar)
+        : avatar;
 
     if (MediaQuery.disableAnimationsOf(context)) {
-      return avatar;
+      return semanticAvatar;
     }
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _animation.value),
-          child: child,
-        );
-      },
-      child: avatar,
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _animation.value),
+            child: child,
+          );
+        },
+        child: semanticAvatar,
+      ),
     );
   }
 
@@ -84,7 +96,11 @@ class _FloatingAvatarState extends State<FloatingAvatar>
     if (!widget.showFrame) {
       return SizedBox.square(
         dimension: widget.size,
-        child: Image.asset(widget.imagePath, fit: BoxFit.contain),
+        child: Image.asset(
+          widget.imagePath,
+          fit: BoxFit.contain,
+          excludeFromSemantics: widget.excludeFromSemantics,
+        ),
       );
     }
 
@@ -102,7 +118,13 @@ class _FloatingAvatarState extends State<FloatingAvatar>
           ),
         ],
       ),
-      child: ClipOval(child: Image.asset(widget.imagePath, fit: BoxFit.cover)),
+      child: ClipOval(
+        child: Image.asset(
+          widget.imagePath,
+          fit: BoxFit.cover,
+          excludeFromSemantics: widget.excludeFromSemantics,
+        ),
+      ),
     );
   }
 }

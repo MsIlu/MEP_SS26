@@ -9,6 +9,9 @@ class FunctionMenuTile extends StatelessWidget {
   /// Feature label shown in the row.
   final String title;
 
+  /// Short accessibility-only description of the feature.
+  final String semanticDescription;
+
   /// Background color behind the leading icon.
   final Color bgColor;
 
@@ -23,6 +26,7 @@ class FunctionMenuTile extends StatelessWidget {
     super.key,
     required this.icon,
     required this.title,
+    required this.semanticDescription,
     required this.bgColor,
     required this.onTap,
     this.isSimpleView = false,
@@ -55,90 +59,103 @@ class FunctionMenuTile extends StatelessWidget {
         : AppColors.careenaTeal;
 
     final tileRadius = BorderRadius.circular(isSimpleView ? 28 : 20);
+    final semanticLabel = [
+      title,
+      semanticDescription,
+      if (badgeCount > 0) '$badgeCount neue Einträge',
+      'öffnen',
+    ].join('. ');
 
-    return Material(
-      key: ValueKey('home-feature-card-$title'),
-      color: isDarkMode ? colorScheme.surface : AppColors.lightCard,
-      elevation: 2,
-      shadowColor: isDarkMode
-          ? AppColors.darkBackground
-          : AppColors.careenaBorder,
-      shape: RoundedRectangleBorder(
-        borderRadius: tileRadius,
-        side: BorderSide(color: borderColor),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: tileRadius,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isSimpleView ? 18 : 15,
-            vertical: isSimpleView ? 16 : 10,
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: Material(
+          key: ValueKey('home-feature-card-$title'),
+          color: isDarkMode ? colorScheme.surface : AppColors.lightCard,
+          elevation: 2,
+          shadowColor: isDarkMode
+              ? AppColors.darkBackground
+              : AppColors.careenaBorder,
+          shape: RoundedRectangleBorder(
+            borderRadius: tileRadius,
+            side: BorderSide(color: borderColor),
           ),
-          child: Row(
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: tileRadius,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isSimpleView ? 18 : 15,
+                vertical: isSimpleView ? 16 : 10,
+              ),
+              child: Row(
                 children: [
-                  _FeatureIconBadge(
-                    key: ValueKey('feature-icon-background-$title'),
-                    icon: icon,
-                    backgroundColor: iconBackgroundColor,
-                    foregroundColor: iconColor,
-                    isSimpleView: isSimpleView,
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _FeatureIconBadge(
+                        key: ValueKey('feature-icon-background-$title'),
+                        icon: icon,
+                        backgroundColor: iconBackgroundColor,
+                        foregroundColor: iconColor,
+                        isSimpleView: isSimpleView,
+                      ),
+                      if (badgeCount > 0)
+                        Positioned(
+                          top: -5,
+                          right: -5,
+                          child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 20,
+                              minHeight: 20,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.careenaTeal,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.surface,
+                                width: 2,
+                              ),
+                            ),
+                            child: Text(
+                              badgeCount > 9 ? '9+' : '$badgeCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  if (badgeCount > 0)
-                    Positioned(
-                      top: -5,
-                      right: -5,
-                      child: Container(
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.careenaTeal,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.surface,
-                            width: 2,
-                          ),
-                        ),
-                        child: Text(
-                          badgeCount > 9 ? '9+' : '$badgeCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  SizedBox(width: isSimpleView ? 18 : 14),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: isSimpleView ? 19 : null,
+                        color: titleColor,
                       ),
                     ),
+                  ),
+                  SizedBox(width: isSimpleView ? 12 : 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: trailingColor,
+                    size: isSimpleView ? 34 : 24,
+                  ),
                 ],
               ),
-              SizedBox(width: isSimpleView ? 18 : 14),
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: isSimpleView ? 19 : null,
-                    color: titleColor,
-                  ),
-                ),
-              ),
-              SizedBox(width: isSimpleView ? 12 : 8),
-              Icon(
-                Icons.chevron_right,
-                color: trailingColor,
-                size: isSimpleView ? 34 : 24,
-              ),
-            ],
+            ),
           ),
         ),
       ),

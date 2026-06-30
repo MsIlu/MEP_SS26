@@ -69,33 +69,46 @@ class _SmartRepliesState extends State<SmartReplyList> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                Semantics(
+                  button: true,
+                  label: expanded
+                      ? 'Antwortvorschläge ausblenden'
+                      : 'Antwortvorschläge anzeigen',
                   onTap: () {
                     setState(() {
                       expanded = !expanded;
                     });
                   },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Vorschläge',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                        ),
+                  child: ExcludeSemantics(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        setState(() {
+                          expanded = !expanded;
+                        });
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Vorschläge',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.expand_more,
+                            size: 20,
+                            color: mutedIconColor.withValues(
+                              alpha: expanded ? 1 : 0.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.expand_more,
-                        size: 20,
-                        color: mutedIconColor.withValues(
-                          alpha: expanded ? 1 : 0.5,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -105,18 +118,28 @@ class _SmartRepliesState extends State<SmartReplyList> {
                   for (final reply in widget.replies) ...[
                     Align(
                       alignment: Alignment.centerRight,
-                      child: ActionChip(
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        label: Text(
-                          reply,
-                          style: TextStyle(fontSize: 13, color: textColor),
-                        ),
-                        onPressed: () => widget.onSelected(reply),
-                        backgroundColor: chipColor,
-                        side: BorderSide(color: borderColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      child: Semantics(
+                        button: true,
+                        label: 'Antwortvorschlag: $reply',
+                        hint:
+                            'Doppeltippen, um diesen Vorschlag als Antwort zu verwenden.',
+                        onTap: () => widget.onSelected(reply),
+                        child: ExcludeSemantics(
+                          child: ActionChip(
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            label: Text(
+                              reply,
+                              style: TextStyle(fontSize: 13, color: textColor),
+                            ),
+                            onPressed: () => widget.onSelected(reply),
+                            backgroundColor: chipColor,
+                            side: BorderSide(color: borderColor),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                     ),

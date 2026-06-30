@@ -31,15 +31,23 @@ class AppointmentFilterBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
+      child: Semantics(
+        button: true,
         selected: isSelected,
-        selectedColor: AppColors.careenaTeal,
-        checkmarkColor: AppColors.white,
-        labelStyle: TextStyle(color: isSelected ? AppColors.white : null),
-        onSelected: (_) {
-          onFilterChanged(label);
-        },
+        label: isSelected ? 'Filter $label ausgewählt' : 'Filter $label',
+        onTap: () => onFilterChanged(label),
+        child: ExcludeSemantics(
+          child: ChoiceChip(
+            label: Text(label),
+            selected: isSelected,
+            selectedColor: AppColors.careenaTeal,
+            checkmarkColor: AppColors.white,
+            labelStyle: TextStyle(color: isSelected ? AppColors.white : null),
+            onSelected: (_) {
+              onFilterChanged(label);
+            },
+          ),
+        ),
       ),
     );
   }

@@ -6,6 +6,7 @@ from careena4.domain.case import CaseManager
 from careena4.llm.call_control import CallModelConfig, RECOMMENDATION_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase
+from careena4.models.domain.guided_input import GuidedInputMode
 from careena4.models.turn import TurnDecision
 from careena4.models.workflow import RecommendationResult
 from careena4.server_log import log_event
@@ -44,7 +45,11 @@ class ResponseBuilder:
         if decision.response_mode == "out_of_scope":
             return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreibe eine gesundheitliche Beschwerde oder Frage."
         if decision.response_mode in {"ask_safety_question", "ask_followup"} and active_question is not None:
-            if active_question.guided_input is not None and active_question.guided_input.options:
+            if (
+                active_question.guided_input is not None
+                and active_question.guided_input.options
+                and active_question.guided_input.mode != GuidedInputMode.STRUCTURED_REQUIRED
+            ):
                 options = ", ".join(option.label for option in active_question.guided_input.options)
                 return f"{active_question.prompt_text} Bitte antworte mit: {options}."
             return active_question.prompt_text

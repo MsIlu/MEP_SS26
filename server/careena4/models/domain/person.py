@@ -9,3 +9,4 @@ class Person(PipelineModel):
     age_source: Source | None = None
     sex: str | None = None
     sex_source: Source | None = None
+    pregnancy_status: str | None = None  # "possible" | "excluded" | "not_applicable"

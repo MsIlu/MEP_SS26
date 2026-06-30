@@ -277,6 +277,36 @@ def create_db_and_tables():
         )
         session.exec(
             text(
+                "ALTER TABLE symptom_diary_entries "
+                "ADD COLUMN IF NOT EXISTS temperature_c DOUBLE PRECISION"
+            )
+        )
+        session.exec(
+            text(
+                "ALTER TABLE symptom_diary_entries "
+                "ADD COLUMN IF NOT EXISTS source VARCHAR(30) DEFAULT 'manual'"
+            )
+        )
+        session.exec(
+            text(
+                "ALTER TABLE symptom_diary_entries "
+                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW()"
+            )
+        )
+        session.exec(
+            text(
+                "UPDATE symptom_diary_entries SET source = 'manual' "
+                "WHERE source IS NULL"
+            )
+        )
+        session.exec(
+            text(
+                "UPDATE symptom_diary_entries SET updated_at = created_at "
+                "WHERE updated_at IS NULL"
+            )
+        )
+        session.exec(
+            text(
                 """
                 UPDATE recommended_appointments AS appointment
                 SET booked_by_account_id = access.account_id

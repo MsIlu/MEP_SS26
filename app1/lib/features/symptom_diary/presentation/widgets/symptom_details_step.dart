@@ -70,6 +70,11 @@ class SymptomDetailsStep extends StatelessWidget {
                     activeColor: intensityColor,
                     inactiveColor: intensityColor.withValues(alpha: 0.25),
                     label: '${temperatureC.toStringAsFixed(1)} °C',
+                    semanticFormatterCallback: (value) {
+                      final rounded = (value * 10).round() / 10;
+                      return '${rounded.toStringAsFixed(1)} Grad Celsius, '
+                          '${_temperatureLabel(rounded)}';
+                    },
                     onChanged: (value) =>
                         onTemperatureChanged((value * 10).round() / 10),
                   ),
@@ -82,6 +87,11 @@ class SymptomDetailsStep extends StatelessWidget {
                   divisions: 9,
                   activeColor: intensityColor,
                   label: intensity.toString(),
+                  semanticFormatterCallback: (value) {
+                    final rounded = value.round();
+                    return 'Intensität $rounded von 10, '
+                        '${SymptomIntensity.label(rounded)}';
+                  },
                   onChanged: (value) => onIntensityChanged(value.round()),
                 ),
               _ScaleLabels(useTemperature: useTemperature),

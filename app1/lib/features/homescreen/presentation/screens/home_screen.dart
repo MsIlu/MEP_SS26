@@ -22,7 +22,6 @@ import 'package:app1/features/homescreen/data/home_feature.dart';
 import 'package:app1/features/homescreen/presentation/widgets/careena_hero_card.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:app1/features/homescreen/presentation/widgets/home_function_list.dart';
-import 'package:app1/features/homescreen/presentation/widgets/home_search_bar.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
 import '../../../appointmentscreen/presentation/screens/appointment_screen.dart';
@@ -61,7 +60,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _careenaKey = GlobalKey();
-  final _searchKey = GlobalKey();
   final _featuresKey = GlobalKey();
   final _profileKey = GlobalKey();
   final _navigationKey = GlobalKey();
@@ -69,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _openChatCount = 0;
   final DocumentRepository _documentRepository = DocumentRepository.instance;
 
-  List<AppGuideStep> get _visibleGuideSteps =>
+   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
       ? appGuideSteps
             .where(
@@ -148,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         final features = _buildFeatures(context);
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-        final isCompact = MediaQuery.sizeOf(context).width < 360;
 
         return Stack(
           children: [
@@ -180,11 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () => _navigateToChat(context),
                           isSimpleView: widget.themeController.isSimpleView,
                         ),
-                        if (!widget.themeController.isSimpleView)
-                          HomeSearchBar(
-                            guideTargetKey: _searchKey,
-                            isCompact: isCompact,
-                          ),
                         HomeFunctionList(
                           guideTargetKey: _featuresKey,
                           features: features,
@@ -314,7 +306,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GlobalKey _targetKey(AppGuideTarget target) => switch (target) {
     AppGuideTarget.careena => _careenaKey,
-    AppGuideTarget.search => _searchKey,
     AppGuideTarget.features => _featuresKey,
     AppGuideTarget.profile => _profileKey,
     AppGuideTarget.navigation => _navigationKey,
@@ -348,24 +339,30 @@ class _HomeScreenState extends State<HomeScreen> {
       HomeFeature(
         icon: Icons.menu_book_outlined,
         title: 'Symptomtagebuch',
+        semanticDescription: 'Symptome, Intensität und Notizen dokumentieren',
         backgroundColor: featureColor,
         onTap: () => _navigateToSymptomDiary(context),
       ),
       HomeFeature(
         icon: Icons.medication,
         title: 'Medikamententagebuch',
+        semanticDescription:
+            'Medikamente, Einnahmezeiten und Erinnerungen verwalten',
         backgroundColor: featureColor,
         onTap: () => _navigateToMedicationPlan(context),
       ),
       HomeFeature(
         icon: Icons.access_time,
         title: 'Terminplanung',
+        semanticDescription: 'Arzttermine und Empfehlungen planen',
         backgroundColor: featureColor,
         onTap: () => _navigateToAppointments(context),
       ),
       HomeFeature(
         icon: Icons.description_outlined,
         title: 'Dokumente',
+        semanticDescription:
+            'Gesundheitsdokumente ansehen, speichern und verwalten',
         backgroundColor: featureColor,
         badgeCount: _documentRepository.unreadCountForProfile(activeProfileId),
         onTap: () => _navigateToDocuments(context),

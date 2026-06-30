@@ -18,8 +18,8 @@ class HomeFunctionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Match the page's compact padding so list rows align with the header and
-    // search field across narrow and regular phone widths.
+    // Match the page's compact padding so list rows align with the header
+    // across narrow and regular phone widths.
     final horizontalPadding = MediaQuery.sizeOf(context).width < 360
         ? 16.0
         : 20.0;
@@ -28,10 +28,20 @@ class HomeFunctionList extends StatelessWidget {
       key: guideTargetKey,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 12),
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        isSimpleView ? 10 : 18,
+        horizontalPadding,
+        12,
+      ),
       itemCount: features.length + 1,
-      separatorBuilder: (context, index) =>
-          SizedBox(height: isSimpleView ? 14 : 8),
+      separatorBuilder: (context, index) {
+        if (index == 0) {
+          return SizedBox(height: isSimpleView ? 18 : 12);
+        }
+
+        return SizedBox(height: isSimpleView ? 14 : 8);
+      },
       itemBuilder: (context, index) {
         if (index == 0) {
           return Text(
@@ -48,6 +58,7 @@ class HomeFunctionList extends StatelessWidget {
         return FunctionMenuTile(
           icon: feature.icon,
           title: feature.title,
+          semanticDescription: feature.semanticDescription,
           bgColor: feature.backgroundColor,
           onTap: feature.onTap,
           isSimpleView: isSimpleView,

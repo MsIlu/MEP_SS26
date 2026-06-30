@@ -16,6 +16,7 @@ class SymptomDiaryContent extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final VoidCallback onAddSymptom;
   final ValueChanged<SymptomEntry> onDelete;
+  final ValueChanged<SymptomEntry>? onEdit;
 
   const SymptomDiaryContent({
     super.key,
@@ -27,6 +28,7 @@ class SymptomDiaryContent extends StatelessWidget {
     required this.onDateSelected,
     required this.onAddSymptom,
     required this.onDelete,
+    this.onEdit,
   });
 
   @override
@@ -61,6 +63,7 @@ class SymptomDiaryContent extends StatelessWidget {
                   isLoading: isLoading,
                   entries: entries,
                   onDelete: onDelete,
+                  onEdit: onEdit,
                 ),
               ],
             ),

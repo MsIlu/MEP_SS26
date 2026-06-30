@@ -14,7 +14,8 @@
 # or
 # <bash> python -m uvicorn main:app --reload
 
-from datetime import datetime, timezone
+import re
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlmodel import Session
@@ -41,7 +42,8 @@ from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
-from careena4.models.turn.input import DiaryEntry
+from careena4.models.turn.input import DiaryEntry, ProfileSnapshot
+from careena4.application.dialogue.person_initialiser import PersonInitialiser
 from careena4.models.input import (
     CancelDraftResponse,
     SymptomDraftResponse,
@@ -62,7 +64,38 @@ careena4_services = build_default_services(llm_mode="env")
 careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
+careena4_person_initialiser = PersonInitialiser()
 careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
+
+
+def _snapshot_from_profile(p) -> ProfileSnapshot:
+    """Maps a server-layer Profile ORM object to a careena4 ProfileSnapshot."""
+    from datetime import date as _date
+
+    def _age(dob) -> int | None:
+        if dob is None:
+            return None
+        today = _date.today()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+    def _sex(bio: str | None) -> str | None:
+        if not bio:
+            return None
+        s = bio.strip().lower()
+        if s in ("female", "weiblich", "f", "w"):
+            return "female"
+        if s in ("male", "männlich", "maennlich", "m"):
+            return "male"
+        if s in ("diverse", "divers", "d"):
+            return "diverse"
+        return None
+
+    return ProfileSnapshot(
+        display_name=p.display_name,
+        profile_type=p.profile_type,
+        age=_age(p.date_of_birth),
+        sex=_sex(p.biological_sex),
+    )
 careena4_llm_health_status: dict[str, object] = {
     "available": False,
     "model": careena4_services.call_model_config.default_model,
@@ -161,6 +194,40 @@ def require_careena4_session_access(
 
     return careena4_session
 
+def _resolve_onset_date(onset: str | None) -> str | None:
+    """Resolve a German temporal onset string to an ISO date string (YYYY-MM-DD)."""
+    if not onset:
+        return None
+    today = datetime.now().date()
+    s = onset.lower().strip()
+
+    if s in ("heute", "today"):
+        return today.isoformat()
+    if s in ("gestern", "yesterday"):
+        return (today - timedelta(days=1)).isoformat()
+    if s == "vorgestern":
+        return (today - timedelta(days=2)).isoformat()
+    if re.search(r"seit\s+heute", s):
+        return today.isoformat()
+    if re.search(r"seit\s+gestern", s):
+        return (today - timedelta(days=1)).isoformat()
+    if re.search(r"seit\s+vorgestern", s):
+        return (today - timedelta(days=2)).isoformat()
+    m = re.search(r"seit\s+(\d+)\s+tag", s)
+    if m:
+        return (today - timedelta(days=int(m.group(1)))).isoformat()
+    m = re.search(r"seit\s+einer\s+woche?", s)
+    if m:
+        return (today - timedelta(weeks=1)).isoformat()
+    m = re.search(r"seit\s+(\d+)\s+woche?n?", s)
+    if m:
+        return (today - timedelta(weeks=int(m.group(1)))).isoformat()
+    # Future references — ignore
+    if any(w in s for w in ("übermorgen", "nächste woche", "morgen früh")):
+        return None
+    return None
+
+
 #Helper: convert Careena4 TurnResult into the Flutter chat response JSON.
 def build_careena4_chat_response(result: TurnResult) -> dict:
     active_question = result.conversation_state.active_question
@@ -187,17 +254,21 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     )
 
     reply_options: list[str] = []
-    if (
-        active_question is not None
-        and active_question.guided_input is not None
-        and active_question.guided_input.options
-    ):
-        reply_options = [opt.label for opt in active_question.guided_input.options]
+    reply_suggestions: list[str] = []
+    if active_question is not None:
+        if active_question.guided_input is not None and active_question.guided_input.options:
+            reply_options = [opt.label for opt in active_question.guided_input.options]
+        elif active_question.reply_suggestions:
+            reply_suggestions = active_question.reply_suggestions
 
     case_observations = []
     if result.medical_case is not None:
         case_observations = [
-            {"label": obs.label, "severity": obs.severity}
+            {
+                "label": obs.label,
+                "severity": obs.severity,
+                "onset_date": _resolve_onset_date(obs.onset),
+            }
             for obs in result.medical_case.observations
             if obs.is_active() and obs.label
         ]
@@ -210,6 +281,7 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
         "pending_followup": pending_followup,
         "recommendation_ready": recommendation_ready,
         "reply_options": reply_options,
+        "reply_suggestions": reply_suggestions,
         "recommendation_result": (
             result.recommendation_result.model_dump()
             if result.recommendation_result is not None
@@ -400,6 +472,59 @@ def chat(
 
     turn_id = str(uuid4())
 
+    needs_profile_pre_turn = (
+        careena4_session.medical_case is None
+        and current_user is not None
+        and (
+            careena4_session.conversation_state is None
+            or careena4_session.conversation_state.active_question is None
+        )
+    )
+    if needs_profile_pre_turn:
+        try:
+            from profiles.service import list_profiles
+            snapshots = [_snapshot_from_profile(p) for p in list_profiles(current_user=current_user, session=session)]
+            skip_turn = careena4_person_initialiser.pre_turn(
+                session_id=req.session_id,
+                careena4_session=careena4_session,
+                profiles=snapshots,
+                pending_message=req.message,
+            )
+        except Exception:
+            skip_turn = False
+
+        if skip_turn:
+            question = careena4_session.conversation_state.active_question
+            reply_options = (
+                [opt.label for opt in question.guided_input.options]
+                if question.guided_input is not None and question.guided_input.options
+                else []
+            )
+            careena4_session.messages.append({"role": "user", "content": req.message})
+            careena4_session.messages.append({"role": "assistant", "content": question.prompt_text})
+            return {
+                "response": question.prompt_text,
+                "response_mode": "ask_followup",
+                "red_flag": False,
+                "trace_notes": [],
+                "pending_followup": {
+                    "question_id": question.question_id,
+                    "kind": question.kind,
+                    "question_intent": question.question_intent,
+                    "target_observation_id": question.target_observation_id,
+                    "target_followup_id": question.target_followup_id,
+                    "prompt_text": question.prompt_text,
+                    "blocking": question.blocking,
+                },
+                "recommendation_ready": False,
+                "reply_options": reply_options,
+                "reply_suggestions": [],
+                "recommendation_result": None,
+                "action": None,
+                "severity": None,
+                "case_observations": [],
+            }
+
     diary_history: list[DiaryEntry] = []
     if session_profile_id is not None:
         raw_entries = list_symptom_entries(
@@ -450,6 +575,43 @@ def chat(
 
     response = build_careena4_chat_response(turn_result)
 
+    profile_warning, profile_reply_options, pending_message = careena4_person_initialiser.post_turn(
+        session_id=req.session_id,
+        careena4_session=careena4_session,
+        message=req.message,
+    )
+    if profile_warning:
+        response["response"] = profile_warning
+        response["reply_options"] = profile_reply_options
+    elif pending_message:
+        # Profile just got resolved — process the medical message that was
+        # deferred while we waited for the user to pick a profile. Drop any
+        # follow-up question the first turn queued while the person was
+        # still unresolved (e.g. person_missing); it's stale now that
+        # post_turn() has filled in relation/age/sex from the profile.
+        if careena4_session.conversation_state is not None:
+            careena4_session.conversation_state.active_question = None
+        second_turn_result = careena4_turn_engine.run_turn(
+            TurnInput.from_persisted_state(
+                message=pending_message,
+                session_id=req.session_id,
+                turn_id=str(uuid4()),
+                profile_id=session_profile_id,
+                diary_history=diary_history,
+                conversation_messages=careena4_session.messages,
+                persisted_medical_case=careena4_session.medical_case,
+                persisted_conversation_state=careena4_session.conversation_state,
+                persisted_recommendation_state=careena4_session.recommendation_state,
+                persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+            )
+        )
+        persist_careena4_turn_result(
+            careena4_session=careena4_session,
+            turn_result=second_turn_result,
+        )
+        careena4_session.messages.append({"role": "user", "content": pending_message})
+        response = build_careena4_chat_response(second_turn_result)
+
     careena4_session.messages.append(
         {"role": "assistant", "content": response["response"]}
     )
@@ -458,14 +620,22 @@ def chat(
 
 
 @app.post("/chatscreen/set-severities")
-def set_observation_severities(req: SetObservationSeveritiesRequest):
+def set_observation_severities(
+        req: SetObservationSeveritiesRequest,
+        current_user: User | None = Depends(get_optional_current_account),
+        session: Session = Depends(get_session),
+):
     """Update observation severities directly in the session.
 
     Called when the user sets intensity via the in-chat symptom editor.
     Also resolves any pending severity question for affected observations so
     the backend will not ask again.
     """
-    careena4_session = require_careena4_session(req.session_id)
+    careena4_session = require_careena4_session_access(
+        session_id=req.session_id,
+        current_user=current_user,
+        db_session=session,
+    )
 
     if careena4_session.medical_case is None:
         return {"ok": True}

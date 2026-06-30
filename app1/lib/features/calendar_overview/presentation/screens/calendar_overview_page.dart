@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/network/api_client.dart';
@@ -91,7 +91,10 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   }
 
   Future<void> _loadEntries() async {
-    final symptoms = await _symptomRepository.loadEntries();
+    final profileId = widget.authSession?.activeProfileId;
+    final symptoms = profileId == null
+        ? <SymptomEntry>[]
+        : await _symptomRepository.loadEntries(profileId: profileId);
     final medications = await _medicationRepository.loadEntries();
     if (!mounted) return;
 
@@ -107,10 +110,7 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     final simpleView = widget.themeController?.isSimpleView ?? false;
 
     return Scaffold(
-      appBar: CareenaPageHeader(
-        title: 'Kalender',
-        onBack: _openHome,
-      ),
+      appBar: CareenaPageHeader(title: 'Kalender', onBack: _openHome),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _appointmentController.appointments,
@@ -191,12 +191,15 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   List<Appointment> _appointmentsForDate(DateTime date) {
     return _appointmentController.appointments.value.where((appointment) {
       final appointmentDate = appointment.appointmentDate;
-      return appointmentDate != null && isSameCalendarDay(appointmentDate, date);
+      return appointmentDate != null &&
+          isSameCalendarDay(appointmentDate, date);
     }).toList();
   }
 
   List<SymptomEntry> _symptomsForDate(DateTime date) {
-    return _symptoms.where((entry) => isSameCalendarDay(entry.date, date)).toList();
+    return _symptoms
+        .where((entry) => isSameCalendarDay(entry.date, date))
+        .toList();
   }
 
   void _onBottomNavigationTap(int index) {

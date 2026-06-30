@@ -9,9 +9,16 @@ class AddMedicationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CareenaIconActionButton.add(
-      tooltip: 'Medikament hinzufügen',
-      onPressed: onPressed,
+    return Semantics(
+      button: true,
+      label: 'Medikament hinzufügen',
+      onTap: onPressed,
+      child: ExcludeSemantics(
+        child: CareenaIconActionButton.add(
+          tooltip: 'Medikament hinzufügen',
+          onPressed: onPressed,
+        ),
+      ),
     );
   }
 }

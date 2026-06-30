@@ -165,8 +165,6 @@ class _ChatInputFieldState extends State<ChatInputField>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Compact and short layouts hide the mic icon to keep the text field
-        // and send button usable.
         final isShortViewport = MediaQuery.sizeOf(context).height < 520;
         final isCompact = constraints.maxWidth < 420 || isShortViewport;
         final horizontalPadding = isCompact ? 10.0 : 16.0;
@@ -176,6 +174,11 @@ class _ChatInputFieldState extends State<ChatInputField>
         final buttonSize = isShortViewport ? 40.0 : (isCompact ? 44.0 : 48.0);
         final isInputEnabled =
             widget.isEnabled && !widget.isSending && !widget.lockedToReplies;
+        final canUseMic = widget.isEnabled && !widget.lockedToReplies;
+        final micButtonSize = isShortViewport ? 36.0 : 40.0;
+        final micIconColor = !canUseMic
+            ? colorScheme.onSurfaceVariant.withValues(alpha: 0.38)
+            : (_isListening ? accentForeground : colorScheme.onSurfaceVariant);
 
         return Container(
           padding: EdgeInsets.fromLTRB(
@@ -288,52 +291,55 @@ class _ChatInputFieldState extends State<ChatInputField>
                                   ),
                                 ),
 
-                                if (!isCompact) ...[
-                                  Semantics(
-                                    button: true,
-                                    label: _isListening
-                                        ? 'Sprachaufnahme stoppen'
-                                        : 'Spracheingabe starten',
-
-                                    child: GestureDetector(
-                                      onTap: widget.isEnabled &&
-                                              !widget.lockedToReplies
+                                Semantics(
+                                  button: true,
+                                  enabled: canUseMic,
+                                  label: _isListening
+                                      ? 'Sprachaufnahme stoppen'
+                                      : 'Spracheingabe starten',
+                                  child: SizedBox.square(
+                                    dimension: micButtonSize,
+                                    child: IconButton(
+                                      tooltip: _isListening
+                                          ? 'Sprachaufnahme stoppen'
+                                          : 'Spracheingabe starten',
+                                      onPressed: canUseMic
                                           ? _toggleListening
                                           : null,
-
-                                      child: AnimatedSwitcher(
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.compact,
+                                      style: IconButton.styleFrom(
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        minimumSize: Size.square(
+                                          micButtonSize,
+                                        ),
+                                      ),
+                                      icon: AnimatedSwitcher(
                                         duration: const Duration(
                                           milliseconds: 200,
                                         ),
-
                                         child: ScaleTransition(
                                           scale: _isListening
                                               ? _pulseAnimation
                                               : const AlwaysStoppedAnimation(
                                                   1.0,
                                                 ),
-
                                           child: Icon(
                                             _isListening
                                                 ? Icons.mic
                                                 : Icons.mic_none,
-
                                             key: ValueKey(_isListening),
-
-                                            color: _isListening
-                                                ? accentForeground
-                                                : colorScheme.onSurfaceVariant,
-
+                                            color: micIconColor,
                                             size: 22,
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
+                                ),
 
-                                  const SizedBox(width: 15),
-                                ] else
-                                  const SizedBox(width: 12),
+                                SizedBox(width: isCompact ? 4 : 10),
                               ],
                             ),
                           ],

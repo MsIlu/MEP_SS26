@@ -74,6 +74,12 @@ void main() {
             exportTitle: 'Kopfschmerzen',
             exportRecommendation: 'Hausarztpraxis regulaer',
             exportNextSteps: 'Termin vereinbaren',
+            canCreateAppointment: true,
+            appointmentTitle: 'Hausarzttermin vereinbaren',
+            recommendationSymptoms: const ['Kopfschmerzen', 'Uebelkeit'],
+            documentSaved: true,
+            symptomsSaved: true,
+            appointmentSearched: true,
           ),
         ],
       );
@@ -84,6 +90,18 @@ void main() {
       expect(decoded.messages.single.canExportPdf, isTrue);
       expect(decoded.messages.single.exportTitle, 'Kopfschmerzen');
       expect(decoded.messages.single.exportNextSteps, 'Termin vereinbaren');
+      expect(decoded.messages.single.canCreateAppointment, isTrue);
+      expect(
+        decoded.messages.single.appointmentTitle,
+        'Hausarzttermin vereinbaren',
+      );
+      expect(decoded.messages.single.recommendationSymptoms, [
+        'Kopfschmerzen',
+        'Uebelkeit',
+      ]);
+      expect(decoded.messages.single.documentSaved, isTrue);
+      expect(decoded.messages.single.symptomsSaved, isTrue);
+      expect(decoded.messages.single.appointmentSearched, isTrue);
     });
   });
 }

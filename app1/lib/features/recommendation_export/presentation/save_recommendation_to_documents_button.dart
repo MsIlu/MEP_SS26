@@ -13,6 +13,8 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
   final String nextSteps;
   final List<String> symptoms;
   final List<String> userMessages;
+  final bool alreadySaved;
+  final Future<void> Function()? onSaved;
 
   const SaveRecommendationToDocumentsButton({
     super.key,
@@ -22,6 +24,8 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
     required this.nextSteps,
     required this.symptoms,
     required this.userMessages,
+    this.alreadySaved = false,
+    this.onSaved,
   });
 
   @override
@@ -32,6 +36,7 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
 class _SaveRecommendationToDocumentsButtonState
     extends State<SaveRecommendationToDocumentsButton> {
   final DocumentRepository _repository = DocumentRepository.instance;
+  bool _isSaving = false;
 
   bool _isSavedForCurrentProfile(BuildContext context) {
     final activeProfileId = AppDependenciesScope.maybeOf(
@@ -78,59 +83,69 @@ class _SaveRecommendationToDocumentsButtonState
 
   @override
   Widget build(BuildContext context) {
-    final isSaved = _isSavedForCurrentProfile(context);
+    final isSaved = widget.alreadySaved || _isSavedForCurrentProfile(context);
 
-    return OutlinedButton.icon(
-      onPressed: isSaved ? null : _saveRecommendation,
-      icon: Icon(
-        isSaved ? Icons.check_circle_outline : Icons.folder_copy_outlined,
-      ),
-      label: Text(
-        isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
-      ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.careenaTeal,
-        side: BorderSide(
-          color: isSaved
-              ? AppColors.careenaTeal.withValues(alpha: 0.45)
-              : AppColors.careenaTeal,
+    return Tooltip(
+      message: isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
+      child: OutlinedButton.icon(
+        onPressed: isSaved || _isSaving ? null : _saveRecommendation,
+        icon: _isSaving
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                isSaved
+                    ? Icons.check_circle_outline
+                    : Icons.folder_copy_outlined,
+              ),
+        label: Text(isSaved ? 'Gespeichert' : 'Dokument speichern'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.careenaTeal,
+          side: BorderSide(
+            color: isSaved
+                ? AppColors.careenaTeal.withValues(alpha: 0.45)
+                : AppColors.careenaTeal,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
 
   Future<void> _saveRecommendation() async {
-    final dependencies = AppDependenciesScope.maybeOf(context);
-    final authSession = dependencies?.authSession;
-    final profileApiService = dependencies?.profileApiService;
-    final activeProfileId = authSession?.activeProfileId;
-
-    Profile? profile;
-
-    if (activeProfileId != null && profileApiService != null) {
-      try {
-        profile = await profileApiService.getProfile(activeProfileId);
-      } catch (_) {
-        profile = null;
-      }
-    }
-
-    final pdfBytes = await RecommendationPdfService().buildRecommendationPdf(
-      title: widget.title,
-      patientSummary: widget.patientSummary,
-      recommendation: widget.recommendation,
-      nextSteps: widget.nextSteps,
-      symptoms: widget.symptoms,
-      userMessages: widget.userMessages,
-      profile: profile,
-    );
-
-    bool wasAdded;
-
+    setState(() => _isSaving = true);
+    var documentStored = false;
     try {
-      wasAdded = await _repository.addRecommendationIfMissing(
+      final dependencies = AppDependenciesScope.maybeOf(context);
+      final authSession = dependencies?.authSession;
+      final profileApiService = dependencies?.profileApiService;
+      final activeProfileId = authSession?.activeProfileId;
+
+      Profile? profile;
+
+      if (activeProfileId != null && profileApiService != null) {
+        try {
+          profile = await profileApiService.getProfile(activeProfileId);
+        } catch (_) {
+          profile = null;
+        }
+      }
+
+      final pdfBytes = await RecommendationPdfService().buildRecommendationPdf(
+        title: widget.title,
+        patientSummary: widget.patientSummary,
+        recommendation: widget.recommendation,
+        nextSteps: widget.nextSteps,
+        symptoms: widget.symptoms,
+        userMessages: widget.userMessages,
+        profile: profile,
+      );
+
+      final wasAdded = _repository.addRecommendationIfMissing(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           profileId: activeProfileId,
@@ -143,25 +158,41 @@ class _SaveRecommendationToDocumentsButtonState
           mimeType: 'application/pdf',
         ),
       );
-    } catch (_) {
-      wasAdded = false;
-    }
+      documentStored = true;
 
-    if (!mounted) return;
+      await widget.onSaved?.call();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.careenaTeal,
-        content: Text(
-          wasAdded ? 'Handlungsempfehlung gespeichert' : _notSavedMessage,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.careenaTeal,
+          content: Text(
+            wasAdded
+                ? 'Handlungsempfehlung gespeichert'
+                : 'Handlungsempfehlung bereits vorhanden',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            documentStored
+                ? 'Dokument gespeichert, aber der Chatstatus konnte nicht aktualisiert werden'
+                : 'Dokument konnte nicht gespeichert werden',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   String get _notSavedMessage {

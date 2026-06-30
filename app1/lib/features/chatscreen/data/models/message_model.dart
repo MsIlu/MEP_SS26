@@ -1,4 +1,6 @@
 /// Represents a single chat message.
+enum RecommendationAction { document, symptoms, appointment }
+
 class Message {
   final String text;
 
@@ -27,6 +29,12 @@ class Message {
   /// Suggested appointment title shown in the appointment screen.
   final String? appointmentTitle;
 
+  /// Recommendation context and actions persisted with chat history.
+  final List<String> recommendationSymptoms;
+  final bool documentSaved;
+  final bool symptomsSaved;
+  final bool appointmentSearched;
+
   Message({
     required this.text,
     required this.isUser,
@@ -39,6 +47,10 @@ class Message {
     this.exportNextSteps,
     this.canCreateAppointment = false,
     this.appointmentTitle,
+    this.recommendationSymptoms = const [],
+    this.documentSaved = false,
+    this.symptomsSaved = false,
+    this.appointmentSearched = false,
   }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a new instance of [Message] with updated values.
@@ -55,6 +67,10 @@ class Message {
     String? exportNextSteps,
     bool? canCreateAppointment,
     String? appointmentTitle,
+    List<String>? recommendationSymptoms,
+    bool? documentSaved,
+    bool? symptomsSaved,
+    bool? appointmentSearched,
   }) {
     return Message(
       text: text ?? this.text,
@@ -68,6 +84,11 @@ class Message {
       exportNextSteps: exportNextSteps ?? this.exportNextSteps,
       canCreateAppointment: canCreateAppointment ?? this.canCreateAppointment,
       appointmentTitle: appointmentTitle ?? this.appointmentTitle,
+      recommendationSymptoms:
+          recommendationSymptoms ?? this.recommendationSymptoms,
+      documentSaved: documentSaved ?? this.documentSaved,
+      symptomsSaved: symptomsSaved ?? this.symptomsSaved,
+      appointmentSearched: appointmentSearched ?? this.appointmentSearched,
     );
   }
 

@@ -145,7 +145,7 @@ class _SaveRecommendationToDocumentsButtonState
         profile: profile,
       );
 
-      final wasAdded = _repository.addRecommendationIfMissing(
+      final wasAdded = await _repository.addRecommendationIfMissing(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           profileId: activeProfileId,
@@ -193,11 +193,5 @@ class _SaveRecommendationToDocumentsButtonState
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-
-  String get _notSavedMessage {
-    return _isSavedForCurrentProfile(context)
-        ? 'Handlungsempfehlung bereits vorhanden'
-        : 'Handlungsempfehlung konnte nicht gespeichert werden';
   }
 }

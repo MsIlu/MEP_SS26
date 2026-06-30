@@ -30,7 +30,10 @@ class SymptomDiaryController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final loadedEntries = await _repository.loadEntries();
+    final profileId = _profileId;
+    final loadedEntries = profileId == null
+        ? <SymptomEntry>[]
+        : await _repository.loadEntries(profileId: profileId);
     _entries
       ..clear()
       ..addAll(loadedEntries);
@@ -118,7 +121,10 @@ class SymptomDiaryController extends ChangeNotifier {
   }
 
   Future<void> _saveAndNotify() async {
-    await _repository.saveEntries(_entries);
+    final profileId = _profileId;
+    if (profileId != null) {
+      await _repository.saveEntries(profileId: profileId, entries: _entries);
+    }
     notifyListeners();
   }
 }

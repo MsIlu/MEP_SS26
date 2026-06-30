@@ -15,6 +15,6 @@ class SymptomSyncService {
     final remoteEntries = await _apiService.getSymptoms(profileId: profileId);
     final entries = remoteEntries.map(SymptomEntry.fromResponse).toList();
 
-    await _repository.saveEntries(entries);
+    await _repository.saveEntries(profileId: profileId, entries: entries);
   }
 }

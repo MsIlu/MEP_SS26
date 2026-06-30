@@ -21,16 +21,19 @@ void main() {
       'replaces stale cache with database entries for the selected profile',
       () async {
         final repository = SymptomRepository();
-        await repository.saveEntries([
-          SymptomEntry(
-            id: 10,
-            date: DateTime(2026, 6, 17),
-            symptom: 'Alter Profil-Cache',
-            intensity: 5,
-            note: 'Darf nach Profilwechsel nicht bleiben',
-            createdAt: DateTime(2026, 6, 17, 8),
-          ),
-        ]);
+        await repository.saveEntries(
+          profileId: 10,
+          entries: [
+            SymptomEntry(
+              id: 10,
+              date: DateTime(2026, 6, 17),
+              symptom: 'Alter Profil-Cache',
+              intensity: 5,
+              note: 'Darf nach Profilwechsel nicht bleiben',
+              createdAt: DateTime(2026, 6, 17, 8),
+            ),
+          ],
+        );
 
         final requestedPaths = <String>[];
         final apiClient = ApiClient(
@@ -63,7 +66,7 @@ void main() {
 
         await service.syncActiveProfile(11);
 
-        final entries = await repository.loadEntries();
+        final entries = await repository.loadEntries(profileId: 11);
         expect(requestedPaths, ['/profiles/11/symptoms']);
         expect(entries, hasLength(1));
         expect(entries.single.id, 42);
@@ -73,6 +76,10 @@ void main() {
           entries.map((entry) => entry.symptom),
           isNot(contains('Alter Profil-Cache')),
         );
+        final previousProfileEntries = await repository.loadEntries(
+          profileId: 10,
+        );
+        expect(previousProfileEntries.single.symptom, 'Alter Profil-Cache');
       },
     );
   });

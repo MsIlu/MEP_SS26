@@ -1,4 +1,5 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/symptom_entry.dart';
@@ -30,8 +31,8 @@ class SymptomEntryList extends StatelessWidget {
           entries.isEmpty
               ? 'Einträge für diesen Tag'
               : entries.length == 1
-                  ? '1 Eintrag für diesen Tag'
-                  : '${entries.length} Einträge für diesen Tag',
+              ? '1 Eintrag für diesen Tag'
+              : '${entries.length} Einträge für diesen Tag',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
@@ -58,28 +59,10 @@ class _EmptySymptomState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.careenaBorder),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, color: AppColors.careenaTeal),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Noch keine Symptome für diesen Tag eingetragen.',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return const CareenaEmptyState(
+      icon: Icons.check_circle_outline,
+      title: 'Noch keine Symptome vorhanden',
+      message: 'Trage Symptome für diesen Tag ein, sobald etwas auffällt.',
     );
   }
 }

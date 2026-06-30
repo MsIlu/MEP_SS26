@@ -1,4 +1,5 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -38,8 +39,10 @@ class AppointmentList extends StatelessWidget {
         final visibleAppointments = showAllProfiles
             ? appointments
             : appointments
-                .where((appointment) => appointment.profileId == selectedProfileId)
-                .toList();
+                  .where(
+                    (appointment) => appointment.profileId == selectedProfileId,
+                  )
+                  .toList();
 
         if (visibleAppointments.isEmpty) {
           return shrinkWrap
@@ -131,12 +134,14 @@ class _EmptyFilterState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const emptyFilter = Center(child: Text('Keine Termine in diesem Filter.'));
+    const emptyFilter = CareenaEmptyState(
+      icon: Icons.filter_alt_off_outlined,
+      title: 'Keine Termine in diesem Filter',
+      message: 'Passe den Filter an, um weitere Termine zu sehen.',
+    );
+
     return shrinkWrap
-        ? const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: emptyFilter,
-          )
+        ? const SizedBox(height: 180, child: emptyFilter)
         : emptyFilter;
   }
 }

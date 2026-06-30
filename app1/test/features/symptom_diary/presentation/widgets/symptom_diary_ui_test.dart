@@ -179,6 +179,7 @@ void main() {
                 allEntries: const [],
                 onDateSelected: (_) {},
                 onAddSymptom: () => addPressed = true,
+                onEdit: (_) {},
                 onDelete: (_) {},
               ),
             ),
@@ -254,6 +255,7 @@ void main() {
         createdAt: DateTime(2026, 6, 22, 9),
       );
       SymptomEntry? deletedEntry;
+      SymptomEntry? editedEntry;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -268,6 +270,7 @@ void main() {
                 allEntries: [entry],
                 onDateSelected: (_) {},
                 onAddSymptom: () {},
+                onEdit: (entry) => editedEntry = entry,
                 onDelete: (entry) => deletedEntry = entry,
               ),
             ),
@@ -278,6 +281,11 @@ void main() {
       expect(find.text('1 Eintrag für diesen Tag'), findsOneWidget);
       expect(find.text('Husten'), findsWidgets);
       expect(find.text('Nach dem Sport'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pump();
+
+      expect(editedEntry, same(entry));
 
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pump();

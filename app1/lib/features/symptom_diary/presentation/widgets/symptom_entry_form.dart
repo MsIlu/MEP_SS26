@@ -50,9 +50,14 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onSaved;
   final String? biologicalSex;
   final String? initialSymptom;
+  final String? initialBodyArea;
+  final int? initialIntensity;
+  final String? initialNote;
+  final String title;
   /// When true and [initialSymptom] is set, skips straight to the details
   /// (intensity) step instead of stopping at body area first.
   final bool skipToDetails;
+  final bool startAtSymptom;
 
   const SymptomEntryForm({
     super.key,
@@ -61,7 +66,12 @@ class SymptomEntryForm extends StatefulWidget {
     this.onSaved,
     this.biologicalSex,
     this.initialSymptom,
+    this.initialBodyArea,
+    this.initialIntensity,
+    this.initialNote,
+    this.title = 'Symptom eintragen',
     this.skipToDetails = false,
+    this.startAtSymptom = false,
   });
 
   @override
@@ -86,9 +96,16 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     final pre = widget.initialSymptom;
     if (pre != null && pre.isNotEmpty) {
       _symptomController.text = pre;
+      _bodyArea = widget.initialBodyArea?.trim() ?? '';
+      _intensity = (widget.initialIntensity ?? _intensity).clamp(1, 10);
+      _noteController.text = widget.initialNote ?? '';
       // skipToDetails: jump to the last step (intensity); the index is clamped
       // to _lastStepIndex at render time so using a large value is safe.
-      _currentStepIndex = widget.skipToDetails ? 999 : 1;
+      _currentStepIndex = widget.startAtSymptom
+          ? 0
+          : widget.skipToDetails
+              ? 999
+              : 1;
     }
   }
 
@@ -118,7 +135,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _FormHeader(onCancel: widget.onCancel),
+          _FormHeader(title: widget.title, onCancel: widget.onCancel),
           const SizedBox(height: 12),
           RegistrationStepIndicator(
             currentStep: _currentStepIndex,
@@ -362,9 +379,10 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
 }
 
 class _FormHeader extends StatelessWidget {
+  final String title;
   final VoidCallback? onCancel;
 
-  const _FormHeader({required this.onCancel});
+  const _FormHeader({required this.title, required this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +392,7 @@ class _FormHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Symptom eintragen',
+            title,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontSize: 18,

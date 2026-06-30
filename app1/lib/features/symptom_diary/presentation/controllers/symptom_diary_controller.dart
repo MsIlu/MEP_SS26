@@ -68,6 +68,40 @@ class SymptomDiaryController extends ChangeNotifier {
     return entry;
   }
 
+  /// Replaces the editable fields of an existing symptom entry.
+  Future<SymptomEntry?> updateEntry({
+    required SymptomEntry entry,
+    required String symptom,
+    String bodyArea = '',
+    required int intensity,
+    required String note,
+  }) async {
+    final normalizedSymptom = symptom.trim();
+    if (normalizedSymptom.isEmpty) {
+      throw ArgumentError('Symptom darf nicht leer sein.');
+    }
+
+    final index = _entries.indexWhere((item) => item.id == entry.id);
+    if (index == -1) {
+      return null;
+    }
+
+    final updatedEntry = SymptomEntry(
+      id: entry.id,
+      date: entry.date,
+      symptom: normalizedSymptom,
+      bodyArea: bodyArea.trim(),
+      intensity: intensity.clamp(1, 10),
+      note: note.trim(),
+      createdAt: entry.createdAt,
+      isSynced: false,
+    );
+    _entries[index] = updatedEntry;
+    _sortEntries();
+    await _saveAndNotify();
+    return updatedEntry;
+  }
+
   /// Removes an entry without touching other days.
   Future<void> deleteEntry(SymptomEntry entry) async {
     if (entry.isSynced && _profileId != null && _apiService != null) {

@@ -45,4 +45,28 @@ class SymptomApiService {
   }) async {
     await _apiClient.delete('/profiles/$profileId/symptoms/$entryId');
   }
+
+  /// Updates one symptom diary entry for a profile.
+  Future<SymptomResponse> updateSymptom({
+    required int profileId,
+    required int entryId,
+    required DateTime date,
+    required String symptom,
+    String bodyArea = '',
+    required int intensity,
+    required String note,
+  }) async {
+    final response = await _apiClient.patch(
+      '/profiles/$profileId/symptoms/$entryId',
+      {
+        'date': date.toIso8601String(),
+        'symptom': symptom,
+        'bodyArea': bodyArea,
+        'intensity': intensity,
+        'note': note,
+      },
+    );
+
+    return SymptomResponse.fromJson(response);
+  }
 }

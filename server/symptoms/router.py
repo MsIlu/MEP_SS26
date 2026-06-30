@@ -3,11 +3,17 @@ from sqlmodel import Session
 
 from auth.security import get_current_account, get_session
 from database.models import User
-from symptoms.schemas import SymptomCreateRequest, SymptomDeleteResponse, SymptomResponse
+from symptoms.schemas import (
+    SymptomCreateRequest,
+    SymptomDeleteResponse,
+    SymptomResponse,
+    SymptomUpdateRequest,
+)
 from symptoms.service import (
     create_symptom_entry,
     delete_symptom_entry,
     list_symptom_entries,
+    update_symptom_entry,
 )
 
 
@@ -42,6 +48,26 @@ def post_symptom(
     """
     return create_symptom_entry(
         profile_id=profile_id,
+        request=request,
+        current_user=current_user,
+        session=session,
+    )
+
+
+@router.patch("/{entry_id}", response_model=SymptomResponse)
+def patch_symptom(
+        profile_id: int,
+        entry_id: int,
+        request: SymptomUpdateRequest,
+        current_user: User = Depends(get_current_account),
+        session: Session = Depends(get_session),
+):
+    """
+    Update one symptom diary entry for a profile.
+    """
+    return update_symptom_entry(
+        profile_id=profile_id,
+        entry_id=entry_id,
         request=request,
         current_user=current_user,
         session=session,

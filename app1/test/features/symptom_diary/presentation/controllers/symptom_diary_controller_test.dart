@@ -40,5 +40,36 @@ void main() {
         expect(controller.entriesForDate(DateTime(2026, 6, 3)), isEmpty);
       },
     );
+
+    test('updates an existing entry', () async {
+      final controller = SymptomDiaryController();
+      addTearDown(controller.dispose);
+
+      await controller.loadEntries();
+      final entry = await controller.addEntry(
+        date: DateTime(2026, 6, 2),
+        symptom: 'Kopfschmerzen',
+        bodyArea: 'Kopf',
+        intensity: 4,
+        note: 'Morgens',
+      );
+
+      await controller.updateEntry(
+        entry: entry,
+        symptom: 'Bauchschmerzen',
+        bodyArea: 'Bauch',
+        intensity: 7,
+        note: 'Nach dem Essen',
+      );
+
+      final updated = controller.entriesForDate(DateTime(2026, 6, 2)).single;
+
+      expect(updated.id, entry.id);
+      expect(updated.symptom, 'Bauchschmerzen');
+      expect(updated.bodyArea, 'Bauch');
+      expect(updated.intensity, 7);
+      expect(updated.note, 'Nach dem Essen');
+      expect(updated.createdAt, entry.createdAt);
+    });
   });
 }

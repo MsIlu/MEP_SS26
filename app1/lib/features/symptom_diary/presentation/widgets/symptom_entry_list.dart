@@ -8,12 +8,14 @@ import '../utils/symptom_intensity.dart';
 class SymptomEntryList extends StatelessWidget {
   final bool isLoading;
   final List<SymptomEntry> entries;
+  final ValueChanged<SymptomEntry> onEdit;
   final ValueChanged<SymptomEntry> onDelete;
 
   const SymptomEntryList({
     super.key,
     required this.isLoading,
     required this.entries,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -45,7 +47,11 @@ class SymptomEntryList extends StatelessWidget {
           ...entries.map(
             (entry) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _SymptomEntryTile(entry: entry, onDelete: onDelete),
+              child: _SymptomEntryTile(
+                entry: entry,
+                onEdit: onEdit,
+                onDelete: onDelete,
+              ),
             ),
           ),
       ],
@@ -86,9 +92,14 @@ class _EmptySymptomState extends StatelessWidget {
 
 class _SymptomEntryTile extends StatelessWidget {
   final SymptomEntry entry;
+  final ValueChanged<SymptomEntry> onEdit;
   final ValueChanged<SymptomEntry> onDelete;
 
-  const _SymptomEntryTile({required this.entry, required this.onDelete});
+  const _SymptomEntryTile({
+    required this.entry,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +186,11 @@ class _SymptomEntryTile extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+          IconButton(
+            tooltip: 'Eintrag bearbeiten',
+            onPressed: () => onEdit(entry),
+            icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
             tooltip: 'Eintrag löschen',

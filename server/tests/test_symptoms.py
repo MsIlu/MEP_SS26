@@ -92,6 +92,50 @@ def test_delete_symptom_removes_entry_from_database(client, db_session):
     assert remaining_entries == []
 
 
+def test_update_symptom_changes_entry_in_database(client, db_session):
+    auth = register_user(client)
+
+    create_response = client.post(
+        f"/profiles/{auth['profile_id']}/symptoms",
+        headers=auth["headers"],
+        json={
+            "date": "2026-06-12T00:00:00",
+            "symptom": "Kopfschmerzen",
+            "bodyArea": "Kopf",
+            "intensity": 4,
+            "note": "Morgens",
+        },
+    )
+
+    entry_id = create_response.json()["id"]
+    response = client.patch(
+        f"/profiles/{auth['profile_id']}/symptoms/{entry_id}",
+        headers=auth["headers"],
+        json={
+            "date": "2026-06-13T00:00:00",
+            "symptom": "Bauchschmerzen",
+            "bodyArea": "Bauch",
+            "intensity": 7,
+            "note": "Nach dem Essen",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["id"] == entry_id
+    assert data["symptom"] == "Bauchschmerzen"
+    assert data["bodyArea"] == "Bauch"
+    assert data["intensity"] == 7
+    assert data["note"] == "Nach dem Essen"
+
+    entry = db_session.get(SymptomDiaryEntry, entry_id)
+    assert entry is not None
+    assert entry.symptom == "Bauchschmerzen"
+    assert entry.body_area == "Bauch"
+    assert entry.intensity == 7
+
+
 def test_create_symptom_requires_profile_access(client):
     first_user = register_user(client, email="symptom-first@example.com")
     second_user = register_user(client, email="symptom-second@example.com")

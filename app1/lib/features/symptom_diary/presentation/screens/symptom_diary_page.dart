@@ -10,6 +10,7 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
+import '../../data/symptom_entry.dart';
 import '../../data/symptom_import.dart';
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
@@ -109,6 +110,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 allEntries: _controller.entries,
                 onDateSelected: _selectDate,
                 onAddSymptom: _openSymptomForm,
+                onEdit: _openEditSymptomForm,
                 onDelete: _controller.deleteEntry,
               ),
             );
@@ -261,6 +263,53 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     );
   }
 
+  Future<void> _openEditSymptomForm(SymptomEntry entry) async {
+    final biologicalSex = await _activeProfileBiologicalSex();
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(18),
+          backgroundColor: AppColors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: SingleChildScrollView(
+              child: SymptomEntryForm(
+                title: 'Symptom bearbeiten',
+                initialSymptom: entry.symptom,
+                initialBodyArea: entry.bodyArea,
+                initialIntensity: entry.intensity,
+                initialNote: entry.note,
+                startAtSymptom: true,
+                onSave: ({
+                  required symptom,
+                  required bodyArea,
+                  required intensity,
+                  double? temperatureC,
+                  required note,
+                }) {
+                  return _updateEntry(
+                    entry: entry,
+                    symptom: symptom,
+                    bodyArea: bodyArea,
+                    intensity: intensity,
+                    temperatureC: temperatureC,
+                    note: note,
+                  );
+                },
+                onCancel: () => Navigator.pop(dialogContext),
+                onSaved: () => Navigator.pop(dialogContext),
+                biologicalSex: biologicalSex,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<String?> _activeProfileBiologicalSex() async {
     final session = widget.authSession;
     final profileId = session?.activeProfileId;
@@ -330,5 +379,59 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
 
     showCareenaSnackBar(context, 'Symptom gespeichert');
+  }
+
+  Future<void> _updateEntry({
+    required SymptomEntry entry,
+    required String symptom,
+    required String bodyArea,
+    required int intensity,
+    double? temperatureC,
+    required String note,
+  }) async {
+    final savedNote = temperatureC == null
+        ? note
+        : 'Temperatur: ${temperatureC.toStringAsFixed(1)} Â°C'
+              '${note.trim().isEmpty ? '' : '\n$note'}';
+
+    final localEntry = await _controller.updateEntry(
+      entry: entry,
+      symptom: symptom,
+      bodyArea: bodyArea,
+      intensity: intensity,
+      note: savedNote,
+    );
+
+    final activeProfileId = widget.authSession?.activeProfileId;
+
+    if (localEntry != null &&
+        activeProfileId != null &&
+        widget.symptomApiService != null) {
+      try {
+        final remoteEntry = await widget.symptomApiService!.updateSymptom(
+          profileId: activeProfileId,
+          entryId: entry.id,
+          date: entry.date,
+          symptom: symptom,
+          bodyArea: bodyArea,
+          intensity: intensity,
+          note: savedNote,
+        );
+        await _controller.markEntrySynced(localEntry, remoteEntry.id);
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+
+        showCareenaSnackBar(context, 'Symptom lokal aktualisiert');
+        return;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    showCareenaSnackBar(context, 'Symptom aktualisiert');
   }
 }

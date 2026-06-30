@@ -5,7 +5,12 @@ from sqlmodel import Session, select
 
 from database.models import SymptomDiaryEntry, User
 from profiles.service import EDIT_ROLES, get_profile_access_role, require_profile_role
-from symptoms.schemas import SymptomCreateRequest, SymptomDeleteResponse, SymptomResponse
+from symptoms.schemas import (
+    SymptomCreateRequest,
+    SymptomDeleteResponse,
+    SymptomResponse,
+    SymptomUpdateRequest,
+)
 
 
 def create_symptom_entry(
@@ -65,6 +70,40 @@ def delete_symptom_entry(
     session.commit()
 
     return SymptomDeleteResponse(message="Symptom entry deleted successfully.")
+
+
+def update_symptom_entry(
+        profile_id: int,
+        entry_id: int,
+        request: SymptomUpdateRequest,
+        current_user: User,
+        session: Session,
+) -> SymptomResponse:
+    """
+    Update one symptom diary entry for a profile the account can edit.
+    """
+    require_profile_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        allowed_roles=EDIT_ROLES,
+        session=session,
+    )
+
+    entry = session.get(SymptomDiaryEntry, entry_id)
+    if entry is None or entry.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Symptom entry not found.")
+
+    entry.date = request.date
+    entry.symptom = request.symptom.strip()
+    entry.body_area = request.body_area.strip()
+    entry.intensity = request.intensity
+    entry.note = request.note.strip()
+
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+
+    return SymptomResponse.model_validate(entry)
 
 
 def list_symptom_entries(

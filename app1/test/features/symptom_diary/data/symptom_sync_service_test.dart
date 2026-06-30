@@ -76,4 +76,52 @@ void main() {
       },
     );
   });
+
+  group('SymptomApiService', () {
+    test('updates a symptom entry through the profile endpoint', () async {
+      final requestedPaths = <String>[];
+      final requestBodies = <Map<String, dynamic>>[];
+      final apiClient = ApiClient(
+        MockClient((request) async {
+          requestedPaths.add(request.url.path);
+          requestBodies.add(
+            jsonDecode(request.body) as Map<String, dynamic>,
+          );
+
+          return http.Response(
+            jsonEncode({
+              'id': 42,
+              'profile_id': 11,
+              'date': '2026-06-18T00:00:00.000',
+              'symptom': 'Bauchschmerzen',
+              'bodyArea': 'Bauch',
+              'intensity': 7,
+              'note': 'Nach dem Essen',
+              'createdAt': '2026-06-18T09:00:00.000',
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+
+      final service = SymptomApiService(apiClient);
+      final response = await service.updateSymptom(
+        profileId: 11,
+        entryId: 42,
+        date: DateTime(2026, 6, 18),
+        symptom: 'Bauchschmerzen',
+        bodyArea: 'Bauch',
+        intensity: 7,
+        note: 'Nach dem Essen',
+      );
+
+      expect(requestedPaths, ['/profiles/11/symptoms/42']);
+      expect(requestBodies.single['symptom'], 'Bauchschmerzen');
+      expect(requestBodies.single['bodyArea'], 'Bauch');
+      expect(requestBodies.single['intensity'], 7);
+      expect(response.id, 42);
+      expect(response.symptom, 'Bauchschmerzen');
+    });
+  });
 }

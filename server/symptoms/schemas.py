@@ -19,6 +19,21 @@ class SymptomCreateRequest(BaseModel):
         populate_by_name = True
 
 
+class SymptomUpdateRequest(BaseModel):
+    """
+    Request body for updating one symptom diary entry.
+    """
+
+    date: datetime
+    symptom: str = Field(min_length=1, max_length=255)
+    body_area: str = Field(default="", alias="bodyArea", max_length=100)
+    intensity: int = Field(ge=1, le=10)
+    note: str = ""
+
+    class Config:
+        populate_by_name = True
+
+
 class SymptomDeleteResponse(BaseModel):
     """
     Response body returned after a symptom entry has been deleted.

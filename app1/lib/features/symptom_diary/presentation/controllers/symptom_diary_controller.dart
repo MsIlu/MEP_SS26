@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/network/api_exception.dart';
 import '../../data/symptom_api_service.dart';
 import '../../data/symptom_entry.dart';
 import '../../data/symptom_repository.dart';
@@ -58,7 +59,7 @@ class SymptomDiaryController extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    final entry = SymptomEntry(
+    var entry = SymptomEntry(
       id: now.microsecondsSinceEpoch,
       date: DateTime(date.year, date.month, date.day),
       symptom: normalizedSymptom,
@@ -69,6 +70,26 @@ class SymptomDiaryController extends ChangeNotifier {
       source: source,
       createdAt: now,
     );
+
+    if (_profileId != null && _apiService != null) {
+      try {
+        final response = await _apiService.createSymptom(
+          profileId: _profileId,
+          date: entry.date,
+          symptom: entry.symptom,
+          bodyArea: entry.bodyArea,
+          intensity: entry.intensity,
+          temperatureC: entry.temperatureC,
+          note: entry.note,
+          source: entry.source,
+          createdAt: entry.createdAt,
+        );
+        entry = SymptomEntry.fromResponse(response);
+      } catch (error) {
+        if (!_isOfflineError(error)) rethrow;
+        // Keep the unsynced local entry for the next synchronization attempt.
+      }
+    }
     _entries.add(entry);
     _sortEntries();
     await _saveAndNotify();
@@ -101,18 +122,27 @@ class SymptomDiaryController extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    if (entry.isSynced && _profileId != null && _apiService != null) {
-      final response = await _apiService.updateSymptom(
-        profileId: _profileId,
-        entryId: entry.id,
-        date: updatedEntry.date,
-        symptom: updatedEntry.symptom,
-        bodyArea: updatedEntry.bodyArea,
-        intensity: updatedEntry.intensity,
-        temperatureC: updatedEntry.temperatureC,
-        note: updatedEntry.note,
-      );
-      updatedEntry = SymptomEntry.fromResponse(response);
+    if (entry.isSynced && _profileId != null) {
+      if (_apiService == null) {
+        updatedEntry.pendingUpdate = true;
+      } else {
+        try {
+          final response = await _apiService.updateSymptom(
+            profileId: _profileId,
+            entryId: entry.id,
+            date: updatedEntry.date,
+            symptom: updatedEntry.symptom,
+            bodyArea: updatedEntry.bodyArea,
+            intensity: updatedEntry.intensity,
+            temperatureC: updatedEntry.temperatureC,
+            note: updatedEntry.note,
+          );
+          updatedEntry = SymptomEntry.fromResponse(response);
+        } catch (error) {
+          if (!_isOfflineError(error)) rethrow;
+          updatedEntry.pendingUpdate = true;
+        }
+      }
     }
 
     _entries
@@ -125,18 +155,23 @@ class SymptomDiaryController extends ChangeNotifier {
 
   /// Removes an entry without touching other days.
   Future<void> deleteEntry(SymptomEntry entry) async {
-    if (entry.isSynced && _profileId != null && _apiService != null) {
-      await _apiService.deleteSymptom(profileId: _profileId, entryId: entry.id);
+    if (entry.isSynced && _profileId != null) {
+      try {
+        if (_apiService == null) throw StateError('API unavailable');
+        await _apiService.deleteSymptom(
+          profileId: _profileId,
+          entryId: entry.id,
+        );
+      } catch (error) {
+        if (!_isOfflineError(error) && error is! StateError) rethrow;
+        await _repository.addPendingDelete(
+          profileId: _profileId,
+          entryId: entry.id,
+        );
+      }
     }
 
     _entries.removeWhere((item) => item.id == entry.id);
-    await _saveAndNotify();
-  }
-
-  /// Updates a newly created local entry to the backend-assigned id.
-  Future<void> markEntrySynced(SymptomEntry entry, int remoteId) async {
-    entry.id = remoteId;
-    entry.isSynced = true;
     await _saveAndNotify();
   }
 
@@ -178,5 +213,11 @@ class SymptomDiaryController extends ChangeNotifier {
       await _repository.saveEntries(profileId: profileId, entries: _entries);
     }
     notifyListeners();
+  }
+
+  bool _isOfflineError(Object error) {
+    return error is ApiException &&
+        (error.type == ApiErrorType.network ||
+            error.type == ApiErrorType.timeout);
   }
 }

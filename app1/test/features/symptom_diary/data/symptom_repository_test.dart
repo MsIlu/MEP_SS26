@@ -41,6 +41,17 @@ void main() {
       expect(await repository.loadEntries(profileId: 11), isEmpty);
       expect(await repository.loadEntries(profileId: 12), hasLength(1));
     });
+
+    test('keeps pending deletions separated by profile id', () async {
+      final repository = SymptomRepository();
+
+      await repository.addPendingDelete(profileId: 11, entryId: 101);
+      await repository.addPendingDelete(profileId: 12, entryId: 202);
+      await repository.removePendingDelete(profileId: 11, entryId: 101);
+
+      expect(await repository.loadPendingDeleteIds(profileId: 11), isEmpty);
+      expect(await repository.loadPendingDeleteIds(profileId: 12), {202});
+    });
   });
 }
 

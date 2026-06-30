@@ -199,6 +199,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           bodyArea: imp.bodyArea ?? '',
           intensity: imp.severity!,
           note: '',
+          source: 'careena',
         );
       } else {
         await _openSymptomFormForImport(imp.name, biologicalSex);
@@ -222,7 +223,21 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
             child: SingleChildScrollView(
               child: SymptomEntryForm(
                 initialSymptom: symptom,
-                onSave: _addEntry,
+                onSave:
+                    ({
+                      required String symptom,
+                      required String bodyArea,
+                      required int intensity,
+                      double? temperatureC,
+                      required String note,
+                    }) => _addEntry(
+                      symptom: symptom,
+                      bodyArea: bodyArea,
+                      intensity: intensity,
+                      temperatureC: temperatureC,
+                      note: note,
+                      source: 'careena',
+                    ),
                 onCancel: () => Navigator.pop(dialogContext),
                 onSaved: () => Navigator.pop(dialogContext),
                 biologicalSex: biologicalSex,
@@ -352,46 +367,29 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required int intensity,
     double? temperatureC,
     required String note,
+    String source = 'manual',
   }) async {
     final entryDate = _selectedDate;
-    final localEntry = await _controller.addEntry(
+    final entry = await _controller.addEntry(
       date: entryDate,
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
       temperatureC: temperatureC,
       note: note,
+      source: source,
     );
-
-    final activeProfileId = widget.authSession?.activeProfileId;
-
-    if (activeProfileId != null && widget.symptomApiService != null) {
-      try {
-        final remoteEntry = await widget.symptomApiService!.createSymptom(
-          profileId: activeProfileId,
-          date: entryDate,
-          symptom: symptom,
-          bodyArea: bodyArea,
-          intensity: intensity,
-          temperatureC: temperatureC,
-          note: note,
-        );
-        await _controller.markEntrySynced(localEntry, remoteEntry.id);
-      } catch (_) {
-        if (!mounted) {
-          return;
-        }
-
-        showCareenaSnackBar(context, 'Symptom lokal gespeichert');
-        return;
-      }
-    }
 
     if (!mounted) {
       return;
     }
 
-    showCareenaSnackBar(context, 'Symptom gespeichert');
+    showCareenaSnackBar(
+      context,
+      entry.isSynced
+          ? 'Symptom gespeichert'
+          : 'Symptom offline gespeichert – Synchronisierung folgt',
+    );
   }
 
   Future<void> _updateEntry({
@@ -412,7 +410,18 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         temperatureC: temperatureC,
         note: note,
       );
-      if (mounted) showCareenaSnackBar(context, 'Symptom aktualisiert');
+      if (mounted) {
+        final updated = _controller.entries.firstWhere(
+          (item) => item.id == entry.id,
+          orElse: () => entry,
+        );
+        showCareenaSnackBar(
+          context,
+          updated.pendingUpdate
+              ? 'Änderung offline gespeichert – Synchronisierung folgt'
+              : 'Symptom aktualisiert',
+        );
+      }
     } catch (_) {
       if (mounted) {
         showCareenaSnackBar(

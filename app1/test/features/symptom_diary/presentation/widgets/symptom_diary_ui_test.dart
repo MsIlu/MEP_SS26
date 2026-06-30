@@ -252,6 +252,7 @@ void main() {
         symptom: 'Husten',
         intensity: 6,
         note: 'Nach dem Sport',
+        source: 'careena',
         createdAt: DateTime(2026, 6, 22, 9),
       );
       SymptomEntry? deletedEntry;
@@ -281,6 +282,7 @@ void main() {
       expect(find.text('1 Eintrag für diesen Tag'), findsOneWidget);
       expect(find.text('Husten'), findsWidgets);
       expect(find.text('Nach dem Sport'), findsOneWidget);
+      expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.edit_outlined));
       await tester.pump();

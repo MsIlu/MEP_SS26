@@ -136,13 +136,38 @@ class _SymptomEntryTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  entry.symptom,
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        entry.symptom,
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    if (entry.source == 'careena') ...[
+                      const SizedBox(width: 6),
+                      const Tooltip(
+                        message: 'Von Careena empfohlen',
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 17,
+                          color: AppColors.careenaTeal,
+                        ),
+                      ),
+                    ],
+                    if (!entry.isSynced || entry.pendingUpdate) ...[
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.cloud_upload_outlined,
+                        size: 17,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ],
                 ),
                 if (entry.bodyArea.isNotEmpty) ...[
                   const SizedBox(height: 3),

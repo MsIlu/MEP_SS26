@@ -15,6 +15,7 @@ class SymptomEntry {
   final DateTime createdAt;
   final DateTime updatedAt;
   bool isSynced;
+  bool pendingUpdate;
 
   SymptomEntry({
     required this.id,
@@ -28,6 +29,7 @@ class SymptomEntry {
     required this.createdAt,
     DateTime? updatedAt,
     this.isSynced = false,
+    this.pendingUpdate = false,
   }) : updatedAt = updatedAt ?? createdAt;
 
   /// Converts this entry into a SharedPreferences-friendly JSON map.
@@ -44,6 +46,7 @@ class SymptomEntry {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'isSynced': isSynced,
+      'pendingUpdate': pendingUpdate,
     };
   }
 
@@ -65,6 +68,7 @@ class SymptomEntry {
       createdAt: response.createdAt,
       updatedAt: response.updatedAt,
       isSynced: true,
+      pendingUpdate: false,
     );
   }
 
@@ -82,6 +86,7 @@ class SymptomEntry {
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? ''),
       isSynced: json['isSynced'] as bool? ?? false,
+      pendingUpdate: json['pendingUpdate'] as bool? ?? false,
     );
   }
 
@@ -98,6 +103,7 @@ class SymptomEntry {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isSynced,
+    bool? pendingUpdate,
   }) {
     return SymptomEntry(
       id: id ?? this.id,
@@ -111,6 +117,7 @@ class SymptomEntry {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isSynced: isSynced ?? this.isSynced,
+      pendingUpdate: pendingUpdate ?? this.pendingUpdate,
     );
   }
 

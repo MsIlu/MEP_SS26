@@ -23,7 +23,9 @@ class SymptomApiService {
     required String symptom,
     String bodyArea = '',
     required int intensity,
+    double? temperatureC,
     required String note,
+    String source = 'manual',
     DateTime? createdAt,
   }) async {
     final response = await _apiClient.post('/profiles/$profileId/symptoms', {
@@ -31,9 +33,35 @@ class SymptomApiService {
       'symptom': symptom,
       'bodyArea': bodyArea,
       'intensity': intensity,
+      'temperatureC': temperatureC,
       'note': note,
+      'source': source,
       'createdAt': (createdAt ?? DateTime.now()).toIso8601String(),
     });
+
+    return SymptomResponse.fromJson(response);
+  }
+
+  /// Updates one symptom diary entry for a profile.
+  Future<SymptomResponse> updateSymptom({
+    required int profileId,
+    required int entryId,
+    required DateTime date,
+    required String symptom,
+    required String bodyArea,
+    required int intensity,
+    double? temperatureC,
+    required String note,
+  }) async {
+    final response = await _apiClient
+        .patch('/profiles/$profileId/symptoms/$entryId', {
+          'date': date.toIso8601String(),
+          'symptom': symptom,
+          'bodyArea': bodyArea,
+          'intensity': intensity,
+          'temperatureC': temperatureC,
+          'note': note,
+        });
 
     return SymptomResponse.fromJson(response);
   }

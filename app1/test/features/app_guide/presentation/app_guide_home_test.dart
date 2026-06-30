@@ -42,7 +42,7 @@ void main() {
 
       expect(find.textContaining('Careena ist'), findsOneWidget);
       await _nextStep(tester);
-      expect(find.text('Schnell finden'), findsOneWidget);
+      expect(find.text('Hell oder dunkel'), findsOneWidget);
 
       final backButton = tester.widget<IconButton>(
         find.byKey(const ValueKey('app-guide-back-button')).last,
@@ -55,8 +55,6 @@ void main() {
       await tester.pump();
       expect(find.textContaining('Careena ist'), findsOneWidget);
 
-      await _nextStep(tester);
-      expect(find.text('Schnell finden'), findsOneWidget);
       await _nextStep(tester);
       expect(find.text('Hell oder dunkel'), findsOneWidget);
       await _nextStep(tester);
@@ -79,7 +77,6 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('Careena ist'), findsOneWidget);
-      expect(find.text('Schnell finden'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 

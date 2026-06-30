@@ -6,8 +6,11 @@ class SymptomResponse {
   final String symptom;
   final String bodyArea;
   final int intensity;
+  final double? temperatureC;
   final String note;
+  final String source;
   final DateTime createdAt;
+  final DateTime updatedAt;
 
   const SymptomResponse({
     required this.id,
@@ -16,8 +19,11 @@ class SymptomResponse {
     required this.symptom,
     this.bodyArea = '',
     required this.intensity,
+    this.temperatureC,
     required this.note,
+    required this.source,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   factory SymptomResponse.fromJson(Map<String, dynamic> json) {
@@ -28,8 +34,13 @@ class SymptomResponse {
       symptom: json['symptom'] as String,
       bodyArea: json['bodyArea'] as String? ?? '',
       intensity: json['intensity'] as int,
+      temperatureC: (json['temperatureC'] as num?)?.toDouble(),
       note: json['note'] as String? ?? '',
+      source: json['source'] as String? ?? 'manual',
       createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] as String? ?? json['createdAt'] as String,
+      ),
     );
   }
 }

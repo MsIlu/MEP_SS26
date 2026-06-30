@@ -91,7 +91,7 @@ class QuestionBuilder:
                 question_intent="localization",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text="Wo genau spuerst du das?",
+                prompt_text="Wo genau spürst du das?",
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
@@ -113,7 +113,7 @@ class QuestionBuilder:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu deinen Beschwerden moechtest du noch hinzufuegen?",
+            prompt_text="Welche weiteren Angaben zu deinen Beschwerden möchtest du noch hinzufügen?",
             blocking=False,
             allows_additional_medical_info=True,
         )
@@ -180,8 +180,8 @@ class QuestionBuilder:
             return None
         normalized = label.casefold()
         for token, body_site in (
-            ("huefte", "Huefte"),
-            ("hüfte", "Huefte"),
+            ("huefte", "Hüfte"),
+            ("hüfte", "Hüfte"),
             ("bauch", "Bauch"),
             ("brust", "Brust"),
             ("kopf", "Kopf"),
@@ -196,7 +196,7 @@ class QuestionBuilder:
     @staticmethod
     def _body_site_phrase(body_site: str) -> str:
         return {
-            "Huefte": "an der Huefte",
+            "Hüfte": "an der Hüfte",
             "Brust": "in der Brust",
             "Bauch": "im Bauch",
             "Kopf": "am Kopf",

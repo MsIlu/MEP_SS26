@@ -17,16 +17,16 @@ class RecommendationBuilder:
         reasons = [f"Es liegen ausreichend Angaben zu {focus_label} vor."]
         limitations = [
             "Die Empfehlung basiert auf einer konservativen V1-Regellogik.",
-            "Sie ersetzt keine aerztliche Untersuchung oder Diagnose.",
+            "Sie ersetzt keine ärztliche Untersuchung oder Diagnose.",
         ]
         return RecommendationResult(
             allowed=True,
-            summary=f"Es liegen ausreichend Angaben zu {focus_label} fuer eine vorsichtige Orientierung vor.",
+            summary=f"Es liegen ausreichend Angaben zu {focus_label} für eine vorsichtige Orientierung vor.",
             urgency="routine",
             urgency_level="low",
             care_level="general_practice",
             specialty="general_practice",
             reasons=reasons,
-            next_step="Wenn die Beschwerden anhalten, zunehmen oder du dich unsicher fuehlst, vereinbare einen Termin in einer Hausarztpraxis.",
+            next_step="Wenn die Beschwerden anhalten, zunehmen oder du dich unsicher fühlst, vereinbare einen Termin in einer Hausarztpraxis.",
             limitations=limitations,
         )

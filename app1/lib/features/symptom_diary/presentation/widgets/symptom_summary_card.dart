@@ -23,8 +23,13 @@ class SymptomSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkMutedSurface : AppColors.careenaBrand,
+        color: isDarkMode
+            ? AppColors.darkMutedSurface
+            : AppColors.careenaNoteBackground,
         borderRadius: BorderRadius.circular(20),
+        border: isDarkMode
+            ? null
+            : Border.all(color: AppColors.careenaInfoBorder),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +46,11 @@ class SymptomSummaryCard extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: Icon(copy.icon, color: AppColors.white, size: 25),
+            child: Icon(
+              copy.icon,
+              color: isDarkMode ? AppColors.white : intensityColor,
+              size: 25,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -50,8 +59,10 @@ class SymptomSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   copy.eyebrow,
-                  style: const TextStyle(
-                    color: AppColors.white70,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? AppColors.white70
+                        : AppColors.careenaTeal,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
@@ -59,8 +70,10 @@ class SymptomSummaryCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   copy.title,
-                  style: const TextStyle(
-                    color: AppColors.white,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? AppColors.white
+                        : AppColors.careenaTitle,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                   ),
@@ -71,7 +84,7 @@ class SymptomSummaryCard extends StatelessWidget {
                   style: TextStyle(
                     color: colorScheme.brightness == Brightness.dark
                         ? AppColors.white.withValues(alpha: 0.78)
-                        : AppColors.white.withValues(alpha: 0.84),
+                        : AppColors.careenaBody,
                     height: 1.35,
                     fontWeight: FontWeight.w600,
                   ),
@@ -157,7 +170,10 @@ class _IntensityBadge extends StatelessWidget {
   final int intensity;
   final Color color;
 
-  const _IntensityBadge({required this.intensity, required this.color});
+  const _IntensityBadge({
+    required this.intensity,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +182,9 @@ class _IntensityBadge extends StatelessWidget {
       height: 44,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color, width: 1.5),
       ),
       child: Text(
         '$intensity/10',

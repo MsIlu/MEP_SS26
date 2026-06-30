@@ -115,7 +115,7 @@ class AppColors {
   // Symptom intensity
   static const Color symptomIntensityNone = Color(0xFF546E7A);
   static const Color symptomIntensityLow = Color(0xFF1F7A4D);
-  static const Color symptomIntensityMedium = Color(0xFFA65F00);
+  static const Color symptomIntensityMedium = Color(0xFF9A5A00);
   static const Color symptomIntensityHigh = Color(0xFFB84545);
 
   // Shared toolbar/action button colors

@@ -1,4 +1,7 @@
+﻿import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
@@ -20,8 +23,9 @@ import '../widgets/document_profile_filter.dart';
 
 class DocumentsScreen extends StatefulWidget {
   final AuthSession? authSession;
+  final ThemeController? themeController;
 
-  const DocumentsScreen({super.key, this.authSession});
+  const DocumentsScreen({super.key, this.authSession, this.themeController});
 
   @override
   State<DocumentsScreen> createState() => _DocumentsScreenState();
@@ -34,6 +38,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.documents);
     _controller = DocumentController(
       profileId: widget.authSession?.activeProfileId,
     );
@@ -60,7 +65,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const CareenaPageHeader(title: 'Dokumente'),
+      appBar: CareenaPageHeader(
+        title: 'Dokumente',
+        onBack: () => navigateToHomeFallback(
+          context,
+          themeController: widget.themeController,
+        ),
+      ),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 900,

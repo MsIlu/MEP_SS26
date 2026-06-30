@@ -29,10 +29,7 @@ void main() {
       const AuthResponse(
         accessToken: 'test-token',
         tokenType: 'bearer',
-        account: Account(
-          id: 1,
-          email: 'mutter@example.com',
-        ),
+        account: Account(id: 1, email: 'mutter@example.com'),
         profiles: [
           AuthProfile(
             id: 10,
@@ -82,9 +79,7 @@ void main() {
     });
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: DocumentsScreen(authSession: session),
-      ),
+      MaterialApp(home: DocumentsScreen(authSession: session)),
     );
 
     await tester.pumpAndSettle();
@@ -119,23 +114,15 @@ void main() {
     expect(find.text('Kind'), findsNothing);
   });
 
-  testWidgets('all profiles shows documents from mother and child', (
+  testWidgets('all profiles groups documents by collapsible profile sections', (
     tester,
   ) async {
     await repository.addDocument(
-      createDocument(
-        id: '1',
-        profileId: 10,
-        name: 'Mutter Befund.pdf',
-      ),
+      createDocument(id: '1', profileId: 10, name: 'Mutter Befund.pdf'),
     );
 
     await repository.addDocument(
-      createDocument(
-        id: '2',
-        profileId: 20,
-        name: 'Kind Befund.pdf',
-      ),
+      createDocument(id: '2', profileId: 20, name: 'Kind Befund.pdf'),
     );
 
     final session = createSession(activeProfileId: 10);
@@ -148,7 +135,15 @@ void main() {
     await tester.tap(find.text('Alle Profile'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Hauptprofil'), findsOneWidget);
+    expect(find.text('Kind'), findsWidgets);
     expect(find.text('Mutter Befund.pdf'), findsOneWidget);
+    expect(find.text('Kind Befund.pdf'), findsOneWidget);
+
+    await tester.tap(find.text('Hauptprofil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter Befund.pdf'), findsNothing);
     expect(find.text('Kind Befund.pdf'), findsOneWidget);
   });
 
@@ -169,19 +164,11 @@ void main() {
 
   testWidgets('search filters visible documents', (tester) async {
     await repository.addDocument(
-      createDocument(
-        id: '1',
-        profileId: 10,
-        name: 'Blutwerte.pdf',
-      ),
+      createDocument(id: '1', profileId: 10, name: 'Blutwerte.pdf'),
     );
 
     await repository.addDocument(
-      createDocument(
-        id: '2',
-        profileId: 10,
-        name: 'Hausarzt Befund.pdf',
-      ),
+      createDocument(id: '2', profileId: 10, name: 'Hausarzt Befund.pdf'),
     );
 
     final session = createSession();

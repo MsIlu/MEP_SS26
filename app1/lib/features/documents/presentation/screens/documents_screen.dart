@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_page_store.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
@@ -6,6 +6,7 @@ import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:flutter/material.dart';
 
 import '../../controllers/document_controller.dart';
@@ -96,6 +97,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               final hasActiveFilter =
                   _controller.searchQuery.trim().isNotEmpty ||
                   _controller.selectedCategory != null;
+              final profiles = widget.authSession?.profiles ?? const [];
 
               return SingleChildScrollView(
                 child: Column(
@@ -160,7 +162,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     const SizedBox(height: 12),
                     if (canViewAllProfiles) ...[
                       DocumentProfileFilter(
-                        profiles: widget.authSession?.profiles ?? const [],
+                        profiles: profiles,
                         selectedProfileId: _controller.selectedProfileId,
                         showAllProfiles: _controller.isShowingAllProfiles,
                         onShowAll: () {
@@ -171,8 +173,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                           _controller.selectProfile(profileId);
                         },
                       ),
-                      if ((widget.authSession?.profiles.length ?? 0) > 1)
-                        const SizedBox(height: 14),
+                      if (profiles.length > 1) const SizedBox(height: 14),
                     ],
                     CareenaSearchField(
                       controller: _searchController,
@@ -187,6 +188,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     const SizedBox(height: 18),
                     if (documents.isEmpty)
                       DocumentEmptyState(hasActiveFilter: hasActiveFilter)
+                    else if (_controller.isShowingAllProfiles)
+                      _GroupedDocumentList(
+                        profiles: profiles,
+                        documents: documents,
+                        onAction: _handleAction,
+                      )
                     else
                       ListView.separated(
                         shrinkWrap: true,
@@ -398,6 +405,120 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 }
 
+class _GroupedDocumentList extends StatelessWidget {
+  final List<AuthProfile> profiles;
+  final List<DocumentEntry> documents;
+  final Future<void> Function(DocumentEntry, DocumentAction) onAction;
+
+  const _GroupedDocumentList({
+    required this.profiles,
+    required this.documents,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedDocuments = _documentsByProfileId;
+    final sections = profiles
+        .where((profile) => groupedDocuments[profile.id]?.isNotEmpty == true)
+        .toList();
+
+    return Column(
+      children: [
+        for (var index = 0; index < sections.length; index++) ...[
+          _ProfileDocumentSection(
+            profile: sections[index],
+            documents: groupedDocuments[sections[index].id] ?? const [],
+            onAction: onAction,
+          ),
+          if (index < sections.length - 1) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Map<int, List<DocumentEntry>> get _documentsByProfileId {
+    final groupedDocuments = <int, List<DocumentEntry>>{};
+
+    for (final document in documents) {
+      final profileId = document.profileId;
+      if (profileId == null) continue;
+
+      groupedDocuments.putIfAbsent(profileId, () => []).add(document);
+    }
+
+    return groupedDocuments;
+  }
+}
+
+class _ProfileDocumentSection extends StatelessWidget {
+  final AuthProfile profile;
+  final List<DocumentEntry> documents;
+  final Future<void> Function(DocumentEntry, DocumentAction) onAction;
+
+  const _ProfileDocumentSection({
+    required this.profile,
+    required this.documents,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+        childrenPadding: const EdgeInsets.only(bottom: 12),
+        initiallyExpanded: true,
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        collapsedBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        backgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        title: Text(
+          _profileSectionTitle(profile),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          '${documents.length} ${documents.length == 1 ? 'Dokument' : 'Dokumente'}',
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: documents.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final document = documents[index];
+
+                return DocumentListItem(
+                  document: document,
+                  onAction: (action) => onAction(document, action),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _profileSectionTitle(AuthProfile profile) {
+    if (profile.profileType == 'self') {
+      return 'Hauptprofil';
+    }
+
+    return profile.displayName;
+  }
+}
 
 class _DetailRow extends StatelessWidget {
   final String label;

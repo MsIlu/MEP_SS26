@@ -13,6 +13,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from auth.router import router as auth_router
 from auth.security import get_session
 from medications.router import router as medications_router
+from appointments.router import router as appointments_router
 from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from symptoms.router import router as symptoms_router
@@ -111,6 +112,7 @@ def client(db_session):
     app.include_router(auth_router)
     app.include_router(profiles_router)
     app.include_router(medications_router)
+    app.include_router(appointments_router)
     app.include_router(chat_history_router)
     app.include_router(symptoms_router)
 

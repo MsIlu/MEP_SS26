@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
+from appointments.schemas import AppointmentSearchResponse, FhirAppointment
 import main
 from main import (
     app,
@@ -364,6 +365,91 @@ def test_fhir_export_profile_session_without_auth_returns_401(client):
     response = client.get(f"/fhir/export/{session_id}")
 
     assert response.status_code == 401
+
+
+def test_appointment_search_uses_fhir_bundle_and_hapi_layer(
+        client,
+        monkeypatch,
+):
+    session_response = client.post("/session", json={})
+    session_id = session_response.json()["session_id"]
+
+    _attach_exportable_medical_case(session_id)
+    careena4_session_profiles[session_id] = 1
+
+    app.dependency_overrides[main.get_optional_current_account] = (
+        lambda: SimpleNamespace(id=7)
+    )
+
+    calls = []
+
+    def fake_get_profile_access_role(*, account_id, profile_id, session):
+        assert account_id == 7
+        assert profile_id == 1
+        return "owner"
+
+    def fake_search_fhir_appointments(**kwargs):
+        calls.append(kwargs)
+        return AppointmentSearchResponse(
+            session_id=kwargs["session_id"],
+            profile_id=kwargs["profile_id"],
+            postal_code=kwargs["postal_code"],
+            message="HAPI-FHIR Testtermine",
+            recommendation_summary={
+                "specialty": "general_practice",
+                "care_level": "general_practice",
+                "urgency": "low",
+                "next_step": "Hausarztlich abklaren lassen.",
+            },
+            appointments=[
+                FhirAppointment(
+                    id="hapi-appointment-1",
+                    provider_name="Hausarztpraxis Dr. Schneider",
+                    specialty="Allgemeinmedizin",
+                    address="Musterstrasse 12, 68159 Mannheim",
+                    distance_km=2.4,
+                    date="2026-07-02",
+                    time="09:30",
+                    care_type="Vor-Ort-Termin",
+                    urgency_match=True,
+                )
+            ],
+        )
+
+    monkeypatch.setattr(
+        main,
+        "get_profile_access_role",
+        fake_get_profile_access_role,
+    )
+    monkeypatch.setattr(
+        main,
+        "search_fhir_appointments",
+        fake_search_fhir_appointments,
+    )
+
+    response = client.post(
+        "/appointments/search",
+        json={
+            "session_id": session_id,
+            "profile_id": 1,
+            "postal_code": "68159",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["appointments"][0]["source"] == "hapi-fhir"
+
+    assert calls[0]["session_id"] == session_id
+    assert calls[0]["profile_id"] == 1
+    assert calls[0]["fhir_bundle"]["resourceType"] == "Bundle"
+    assert calls[0]["fhir_bundle"]["type"] == "collection"
+
+    patient = next(
+        entry["resource"]
+        for entry in calls[0]["fhir_bundle"]["entry"]
+        if entry["resource"]["resourceType"] == "Patient"
+    )
+    assert patient["identifier"][0]["value"] == "1"
 
 
 def test_fhir_export_valid_session_returns_bundle(client):

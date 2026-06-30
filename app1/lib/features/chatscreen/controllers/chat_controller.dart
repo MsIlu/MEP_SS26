@@ -38,6 +38,8 @@ class ChatController {
   Future<void>? _availabilityRefreshFuture;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
 
+  String? get currentSessionId => chatSessionService.sessionId;
+
   ChatController({
     required this.chatApi,
     required this.chatService,

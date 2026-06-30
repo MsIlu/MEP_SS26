@@ -7,6 +7,8 @@ import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
+import '../../../authscreen/state/auth_session.dart';
+import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
 /// Safety page shown when the backend detects a red-flag response.
@@ -15,12 +17,16 @@ class WarningPage extends StatelessWidget {
   final ChatResponse response;
   final List<String> symptoms;
   final List<String> userMessages;
+  final String? sessionId;
+  final AuthSession? authSession;
 
   const WarningPage({
     super.key,
     required this.response,
     this.symptoms = const [],
     this.userMessages = const [],
+    this.sessionId,
+    this.authSession,
   });
 
   @override
@@ -54,7 +60,7 @@ class WarningPage extends StatelessWidget {
                 ),
               const SizedBox(height: 16),
 
-              ExportRecommendationPdfButton(
+                            ExportRecommendationPdfButton(
                 title: WarningCopy.pageTitle,
                 patientSummary:
                     'Aus dem Chatverlauf generierte Handlungsempfehlung.',
@@ -66,6 +72,18 @@ class WarningPage extends StatelessWidget {
                 symptoms: symptoms,
                 userMessages: userMessages,
               ),
+
+              if (!showEmergencyActions && sessionId != null) ...[
+                const SizedBox(height: 16),
+                CreateRecommendedAppointmentButton(
+                  title:
+                      response.recommendationResult?.nextStep ??
+                      response.action ??
+                      'Termin finden',
+                  authSession: authSession,
+                  sessionId: sessionId,
+                ),
+              ],
 
               const SizedBox(height: 16),
               const NoDiagnosisInfoBox(),

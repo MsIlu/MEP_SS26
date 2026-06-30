@@ -212,10 +212,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final recommendationResponse = showsRecommendation ? response : null;
 
-    if (recommendationResponse != null) {
-      final recommendationSymptoms = List<String>.from(
-        widget.controller.symptoms.value,
-      );
+if (recommendationResponse != null) {
+  final recommendationSessionId = widget.controller.currentSessionId;
+  final recommendationAuthSession = widget.controller.authSession;
+
+  final recommendationSymptoms = List<String>.from(
+    widget.controller.symptoms.value,
+  );
       final recommendationUserMessages = widget.controller.messages.value
           .where((message) => message.isUser)
           .map((message) => message.text.trim())
@@ -233,6 +236,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             response: recommendationResponse,
             symptoms: recommendationSymptoms,
             userMessages: recommendationUserMessages,
+            sessionId: recommendationSessionId,
+            authSession: recommendationAuthSession,
           ),
         ),
       );

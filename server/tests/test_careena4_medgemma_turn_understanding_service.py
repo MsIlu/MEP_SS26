@@ -52,6 +52,13 @@ class FakeCatalog:
                 ]
         return []
 
+    def match_for_symptoms(self, symptoms, *, max_results: int = 3) -> list[StsConsultationReasonCandidate]:
+        labels = [
+            symptom.normalized_label_de or symptom.clinical_term_de or symptom.source_label
+            for symptom in symptoms
+        ]
+        return self.match_by_labels(labels, max_results=max_results)
+
 
 def test_understanding_service_keeps_symptoms_even_without_sts_match():
     engine = FakeExtractionEngine(

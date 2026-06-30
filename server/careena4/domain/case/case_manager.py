@@ -1,12 +1,11 @@
 from careena4.domain.case._case_reader import _CaseReader
 from careena4.domain.case._case_write_planner import _CaseWritePlanner
 from careena4.domain.case._case_writer import _CaseWriter
-from careena4.models.domain import MedicalCase, Observation, Person, Source, TopicEntry
+from careena4.models.domain import MedicalCase, Observation, Person, Source
 from careena4.models.turn import (
     CaseWritePlan,
     ExtractedCaseInput,
     ExtractedObservationInput,
-    ExtractedTopicEntryInput,
     ObservationPatch,
     PersonUpdate,
 )
@@ -44,7 +43,15 @@ class CaseManager:
             observations=[self._observation_from_input(observation_input=observation) for observation in claims.observations],
             person_update=self._person_from_case_input(case_input=claims),
         )
-        return self.apply_write_plan(medical_case=medical_case, plan=plan)
+        medical_case, trace_notes = self.apply_write_plan(medical_case=medical_case, plan=plan)
+        if claims.has_topic_update():
+            medical_case = self.case_writer.write_topic(
+                medical_case=medical_case,
+                label=claims.topic_label,
+                description=claims.topic_description,
+            )
+            trace_notes.append("case_write:topic")
+        return medical_case, trace_notes
 
     def apply_write_plan(
         self,
@@ -57,32 +64,23 @@ class CaseManager:
     def topic_label(self, *, medical_case: MedicalCase | None) -> str | None:
         return self.case_reader.read_topic_label(medical_case=medical_case)
 
-    def topic_entries(self, *, medical_case: MedicalCase | None) -> list[TopicEntry]:
-        return self.case_reader.read_topic_entries(medical_case=medical_case)
+    def topic_description(self, *, medical_case: MedicalCase | None) -> str | None:
+        return self.case_reader.read_topic_description(medical_case=medical_case)
 
     def has_topic(self, *, medical_case: MedicalCase | None) -> bool:
         return self.case_reader.read_has_topic(medical_case=medical_case)
 
-    def append_topic_entries(
+    def set_topic(
         self,
         *,
         medical_case: MedicalCase,
-        entries: list[ExtractedTopicEntryInput],
+        label: str | None = None,
+        description: str | None = None,
     ) -> MedicalCase:
-        return self.case_writer.write_topic_entries(
-            medical_case=medical_case,
-            entries=entries,
-        )
-
-    def set_topic_label(
-        self,
-        *,
-        medical_case: MedicalCase,
-        label: str,
-    ) -> MedicalCase:
-        return self.case_writer.write_topic_label(
+        return self.case_writer.write_topic(
             medical_case=medical_case,
             label=label,
+            description=description,
         )
 
     def observation_label(
@@ -158,18 +156,34 @@ class CaseManager:
             return None
         if case_input.person.relation not in {"self", "child", "other", "unclear"}:
             return None
+        if not case_input.has_meaningful_person_update():
+            return None
         return Person(
             relation=case_input.person.relation,
             relation_source=CaseManager._copy_source(case_input.person.relation_source),
+            age=case_input.person.age,
+            age_source=CaseManager._copy_source(case_input.person.age_source),
+            sex=case_input.person.sex,
+            sex_source=CaseManager._copy_source(case_input.person.sex_source),
         )
 
     @staticmethod
     def _person_from_update(*, person_update: PersonUpdate) -> Person | None:
-        if person_update.relation not in {"self", "child", "other", "unclear"}:
+        if person_update.relation not in {None, "self", "child", "other", "unclear"}:
+            return None
+        if (
+            person_update.relation in (None, "unclear")
+            and person_update.age is None
+            and person_update.sex in (None, "")
+        ):
             return None
         return Person(
-            relation=person_update.relation,
+            relation=person_update.relation or "unclear",
             relation_source=CaseManager._copy_source(person_update.relation_source),
+            age=person_update.age,
+            age_source=CaseManager._copy_source(person_update.age_source),
+            sex=person_update.sex,
+            sex_source=CaseManager._copy_source(person_update.sex_source),
         )
 
     @staticmethod

@@ -22,7 +22,6 @@ class FollowupNeedBuilder:
     ) -> list[FollowupNeed]:
         needs: list[FollowupNeed] = []
         active_observations = self.case_manager.active_observations(medical_case=medical_case)
-        topic_label = self.case_manager.topic_label(medical_case=medical_case)
         if self.case_manager.has_observations(medical_case=medical_case):
             for rule in self.requirement_policy.case_rules():
                 if self.requirement_policy.is_case_rule_satisfied(medical_case=medical_case, rule=rule):
@@ -30,6 +29,7 @@ class FollowupNeedBuilder:
                 needs.append(
                     FollowupNeed(
                         reason=rule.reason,
+                        person_relation=medical_case.person.relation,
                         priority=rule.priority,
                         blocking=rule.blocking,
                     )
@@ -39,7 +39,6 @@ class FollowupNeedBuilder:
             needs.extend(
                 self._observation_needs(
                     observation=observation,
-                    case_focus_label=topic_label or observation.label,
                 )
             )
         return needs
@@ -48,7 +47,6 @@ class FollowupNeedBuilder:
         self,
         *,
         observation: Observation,
-        case_focus_label: str,
     ) -> list[FollowupNeed]:
         needs: list[FollowupNeed] = []
         for rule in self.requirement_policy.observation_rules(observation=observation):
@@ -58,7 +56,6 @@ class FollowupNeedBuilder:
                 FollowupNeed(
                     observation_id=observation.observation_id,
                     reason=rule.reason,
-                    case_focus_label=case_focus_label,
                     priority=rule.priority,
                     blocking=rule.blocking,
                 )

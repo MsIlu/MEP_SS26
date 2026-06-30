@@ -54,33 +54,54 @@ class _SharedDaySelectorStripState extends State<SharedDaySelectorStrip> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 102,
-      child: Row(
-        children: [
-          _DayStripArrow(
-            tooltip: 'Frühere Tage',
-            icon: Icons.chevron_left,
-            onPressed: () => _scrollByDirection(-1),
-          ),
-          Expanded(
-            child: _FadedDayStrip(
-              child: ListView.separated(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                itemCount: _dates.length,
-                separatorBuilder: _buildSeparator,
-                itemBuilder: _buildDayChip,
+    final selectedIndex = _selectedIndex;
+    final previousDate = _enabledNeighbor(from: selectedIndex, direction: -1);
+    final nextDate = _enabledNeighbor(from: selectedIndex, direction: 1);
+
+    return Semantics(
+      container: true,
+      label: 'Tagesauswahl',
+      value: formatSharedFullDate(widget.selectedDate, widget.today),
+      hint:
+          'Mit den Pfeiltasten nach links und rechts frühere oder spätere Tage anzeigen.',
+      increasedValue: nextDate == null
+          ? null
+          : formatSharedFullDate(nextDate, widget.today),
+      decreasedValue: previousDate == null
+          ? null
+          : formatSharedFullDate(previousDate, widget.today),
+      onIncrease: nextDate == null ? null : () => _selectDate(nextDate),
+      onDecrease: previousDate == null ? null : () => _selectDate(previousDate),
+      child: ExcludeSemantics(
+        child: SizedBox(
+          height: 102,
+          child: Row(
+            children: [
+              _DayStripArrow(
+                tooltip: 'Frühere Tage',
+                icon: Icons.chevron_left,
+                onPressed: () => _scrollByDirection(-1),
               ),
-            ),
+              Expanded(
+                child: _FadedDayStrip(
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    itemCount: _dates.length,
+                    separatorBuilder: _buildSeparator,
+                    itemBuilder: _buildDayChip,
+                  ),
+                ),
+              ),
+              _DayStripArrow(
+                tooltip: 'Spätere Tage',
+                icon: Icons.chevron_right,
+                onPressed: () => _scrollByDirection(1),
+              ),
+            ],
           ),
-          _DayStripArrow(
-            tooltip: 'Spätere Tage',
-            icon: Icons.chevron_right,
-            onPressed: () => _scrollByDirection(1),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -117,6 +138,35 @@ class _SharedDaySelectorStripState extends State<SharedDaySelectorStrip> {
     }
 
     return const SizedBox(width: SharedDaySelectorMetrics.dayGap);
+  }
+
+  int get _selectedIndex =>
+      _dates.indexWhere((date) => isSameCalendarDay(date, widget.selectedDate));
+
+  DateTime? _enabledNeighbor({required int from, required int direction}) {
+    if (from == -1) return null;
+
+    for (
+      var index = from + direction;
+      index >= 0 && index < _dates.length;
+      index += direction
+    ) {
+      final date = _dates[index];
+      if (widget.isDateEnabled?.call(date) ?? true) {
+        return date;
+      }
+    }
+    return null;
+  }
+
+  void _selectDate(DateTime date) {
+    final index = _dates.indexWhere(
+      (candidate) => isSameCalendarDay(candidate, date),
+    );
+    if (index == -1) return;
+
+    widget.onDateSelected(date);
+    _scrollToIndex(index);
   }
 
   void _scrollToSelectedDate(DateTime oldSelectedDate) {
@@ -254,9 +304,7 @@ class _SharedDayChip extends StatelessWidget {
     final unselectedDayColor = isDarkMode
         ? colorScheme.onSurfaceVariant
         : AppColors.careenaDark;
-    final dayColor = isSelected || isToday
-        ? accentColor
-        : unselectedDayColor;
+    final dayColor = isSelected || isToday ? accentColor : unselectedDayColor;
     final dateColor = isSelected ? AppColors.white : colorScheme.onSurface;
 
     return InkWell(

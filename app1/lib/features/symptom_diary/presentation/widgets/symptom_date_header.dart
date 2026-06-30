@@ -34,10 +34,16 @@ class SymptomDateHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            tooltip: 'Vorheriger Tag',
-            onPressed: onPreviousDay,
-            icon: const Icon(Icons.chevron_left),
+          Semantics(
+            button: true,
+            label: 'Vorherigen Tag anzeigen',
+            child: ExcludeSemantics(
+              child: IconButton(
+                tooltip: 'Vorherigen Tag anzeigen',
+                onPressed: onPreviousDay,
+                icon: const Icon(Icons.chevron_left),
+              ),
+            ),
           ),
           Expanded(
             child: Column(
@@ -53,31 +59,45 @@ class SymptomDateHeader extends StatelessWidget {
                 ),
                 if (onToday != null) ...[
                   const SizedBox(height: 2),
-                  TextButton(
-                    onPressed: onToday,
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
+                  Semantics(
+                    button: true,
+                    label: 'Heute anzeigen',
+                    onTap: onToday,
+                    child: ExcludeSemantics(
+                      child: TextButton(
+                        onPressed: onToday,
+                        style: TextButton.styleFrom(
+                          minimumSize: Size.zero,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text('Heute'),
                       ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Heute'),
                   ),
                 ],
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Nächster Tag',
-            onPressed: onNextDay,
-            style: IconButton.styleFrom(
-              foregroundColor: onNextDay == null
-                  ? colorScheme.onSurfaceVariant.withValues(alpha: 0.45)
-                  : null,
+          Semantics(
+            button: true,
+            enabled: onNextDay != null,
+            label: 'Nächsten Tag anzeigen',
+            child: ExcludeSemantics(
+              child: IconButton(
+                tooltip: 'Nächsten Tag anzeigen',
+                onPressed: onNextDay,
+                style: IconButton.styleFrom(
+                  foregroundColor: onNextDay == null
+                      ? colorScheme.onSurfaceVariant.withValues(alpha: 0.45)
+                      : null,
+                ),
+                icon: const Icon(Icons.chevron_right),
+              ),
             ),
-            icon: const Icon(Icons.chevron_right),
           ),
         ],
       ),

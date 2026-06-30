@@ -58,6 +58,7 @@ class HomeFunctionList extends StatelessWidget {
         return FunctionMenuTile(
           icon: feature.icon,
           title: feature.title,
+          semanticDescription: feature.semanticDescription,
           bgColor: feature.backgroundColor,
           onTap: feature.onTap,
           isSimpleView: isSimpleView,

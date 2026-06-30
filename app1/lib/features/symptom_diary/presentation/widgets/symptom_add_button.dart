@@ -9,9 +9,16 @@ class SymptomAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CareenaIconActionButton.add(
-      tooltip: 'Symptom eintragen',
-      onPressed: onPressed,
+    return Semantics(
+      button: true,
+      label: 'Symptom eintragen',
+      onTap: onPressed,
+      child: ExcludeSemantics(
+        child: CareenaIconActionButton.add(
+          tooltip: 'Symptom eintragen',
+          onPressed: onPressed,
+        ),
+      ),
     );
   }
 }

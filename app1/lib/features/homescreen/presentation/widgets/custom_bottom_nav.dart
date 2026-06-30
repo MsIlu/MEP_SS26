@@ -136,10 +136,15 @@ class _HistoryBadgeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Badge(
-      isLabelVisible: count > 0,
-      label: Text(count > 9 ? '9+' : '$count'),
-      child: const Icon(Icons.chat_bubble_outline),
+    return Semantics(
+      label: count > 0 ? 'Chathistorie, $count aktive Chats' : 'Chathistorie',
+      child: ExcludeSemantics(
+        child: Badge(
+          isLabelVisible: count > 0,
+          label: Text(count > 9 ? '9+' : '$count'),
+          child: const Icon(Icons.chat_bubble_outline),
+        ),
+      ),
     );
   }
 }

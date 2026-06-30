@@ -52,17 +52,20 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 64),
-            child: Tooltip(
-              message: title,
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
+            child: Semantics(
+              header: true,
+              label: title,
+              child: ExcludeSemantics(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),

@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/config/app_assets.dart';
+import 'package:app1/core/config/app_assets.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -45,63 +45,166 @@ Rect _areaRect(double left, double top, double right, double bottom) {
 }
 
 final _bodyAreas = [
-  _BodyArea('Kopf', BodyView.front, _areaRect(0.425, 0.045, 0.575, 0.175),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Hals', BodyView.front, _areaRect(0.455, 0.158, 0.545, 0.222),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Nacken', BodyView.back, _areaRect(0.44, 0.16, 0.56, 0.235),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Brust', BodyView.front, _areaRect(0.38, 0.215, 0.62, 0.335),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Bauch', BodyView.front, _areaRect(0.405, 0.335, 0.595, 0.475),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Hüfte', BodyView.front, _areaRect(0.36, 0.435, 0.64, 0.515),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Geschlechtsorgan', BodyView.front,
-      _areaRect(0.455, 0.49, 0.545, 0.565),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Linker Arm', BodyView.front, _areaRect(0.25, 0.235, 0.32, 0.555),
-      shape: _BodyAreaShape.capsule, angle: 10),
-  _BodyArea('Rechter Arm', BodyView.front, _areaRect(0.68, 0.235, 0.75, 0.555),
-      shape: _BodyAreaShape.capsule, angle: -10),
-  _BodyArea('Linker Oberschenkel', BodyView.front,
-      _areaRect(0.375, 0.515, 0.475, 0.665),
-      shape: _BodyAreaShape.capsule),
-  _BodyArea('Rechter Oberschenkel', BodyView.front,
-      _areaRect(0.525, 0.515, 0.625, 0.665),
-      shape: _BodyAreaShape.capsule),
-  _BodyArea('Linkes Knie', BodyView.front, _areaRect(0.365, 0.66, 0.47, 0.725),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Rechtes Knie', BodyView.front, _areaRect(0.53, 0.66, 0.635, 0.725),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Linker Fuß', BodyView.front, _areaRect(0.365, 0.86, 0.465, 0.935),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Rechter Fuß', BodyView.front, _areaRect(0.535, 0.86, 0.635, 0.935),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Kopf', BodyView.back, _areaRect(0.425, 0.045, 0.575, 0.175),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Rücken', BodyView.back, _areaRect(0.37, 0.215, 0.63, 0.475),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Hüfte', BodyView.back, _areaRect(0.36, 0.435, 0.64, 0.515),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Linker Arm', BodyView.back, _areaRect(0.25, 0.235, 0.32, 0.555),
-      shape: _BodyAreaShape.capsule, angle: 10),
-  _BodyArea('Rechter Arm', BodyView.back, _areaRect(0.68, 0.235, 0.75, 0.555),
-      shape: _BodyAreaShape.capsule, angle: -10),
-  _BodyArea('Linker Oberschenkel', BodyView.back,
-      _areaRect(0.375, 0.515, 0.475, 0.665),
-      shape: _BodyAreaShape.capsule),
-  _BodyArea('Rechter Oberschenkel', BodyView.back,
-      _areaRect(0.525, 0.515, 0.625, 0.665),
-      shape: _BodyAreaShape.capsule),
-  _BodyArea('Linkes Knie', BodyView.back, _areaRect(0.365, 0.66, 0.47, 0.725),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Rechtes Knie', BodyView.back, _areaRect(0.53, 0.66, 0.635, 0.725),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Linker Fuß', BodyView.back, _areaRect(0.365, 0.86, 0.465, 0.935),
-      shape: _BodyAreaShape.oval),
-  _BodyArea('Rechter Fuß', BodyView.back, _areaRect(0.535, 0.86, 0.635, 0.935),
-      shape: _BodyAreaShape.oval),
+  _BodyArea(
+    'Kopf',
+    BodyView.front,
+    _areaRect(0.425, 0.045, 0.575, 0.175),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Hals',
+    BodyView.front,
+    _areaRect(0.455, 0.158, 0.545, 0.222),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Nacken',
+    BodyView.back,
+    _areaRect(0.44, 0.16, 0.56, 0.235),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Brust',
+    BodyView.front,
+    _areaRect(0.38, 0.215, 0.62, 0.335),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Bauch',
+    BodyView.front,
+    _areaRect(0.405, 0.335, 0.595, 0.475),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Hüfte',
+    BodyView.front,
+    _areaRect(0.36, 0.435, 0.64, 0.515),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Geschlechtsorgan',
+    BodyView.front,
+    _areaRect(0.455, 0.49, 0.545, 0.565),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Linker Arm',
+    BodyView.front,
+    _areaRect(0.25, 0.235, 0.32, 0.555),
+    shape: _BodyAreaShape.capsule,
+    angle: 10,
+  ),
+  _BodyArea(
+    'Rechter Arm',
+    BodyView.front,
+    _areaRect(0.68, 0.235, 0.75, 0.555),
+    shape: _BodyAreaShape.capsule,
+    angle: -10,
+  ),
+  _BodyArea(
+    'Linker Oberschenkel',
+    BodyView.front,
+    _areaRect(0.375, 0.515, 0.475, 0.665),
+    shape: _BodyAreaShape.capsule,
+  ),
+  _BodyArea(
+    'Rechter Oberschenkel',
+    BodyView.front,
+    _areaRect(0.525, 0.515, 0.625, 0.665),
+    shape: _BodyAreaShape.capsule,
+  ),
+  _BodyArea(
+    'Linkes Knie',
+    BodyView.front,
+    _areaRect(0.365, 0.66, 0.47, 0.725),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Rechtes Knie',
+    BodyView.front,
+    _areaRect(0.53, 0.66, 0.635, 0.725),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Linker Fuß',
+    BodyView.front,
+    _areaRect(0.365, 0.86, 0.465, 0.935),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Rechter Fuß',
+    BodyView.front,
+    _areaRect(0.535, 0.86, 0.635, 0.935),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Kopf',
+    BodyView.back,
+    _areaRect(0.425, 0.045, 0.575, 0.175),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Rücken',
+    BodyView.back,
+    _areaRect(0.37, 0.215, 0.63, 0.475),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Hüfte',
+    BodyView.back,
+    _areaRect(0.36, 0.435, 0.64, 0.515),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Linker Arm',
+    BodyView.back,
+    _areaRect(0.25, 0.235, 0.32, 0.555),
+    shape: _BodyAreaShape.capsule,
+    angle: 10,
+  ),
+  _BodyArea(
+    'Rechter Arm',
+    BodyView.back,
+    _areaRect(0.68, 0.235, 0.75, 0.555),
+    shape: _BodyAreaShape.capsule,
+    angle: -10,
+  ),
+  _BodyArea(
+    'Linker Oberschenkel',
+    BodyView.back,
+    _areaRect(0.375, 0.515, 0.475, 0.665),
+    shape: _BodyAreaShape.capsule,
+  ),
+  _BodyArea(
+    'Rechter Oberschenkel',
+    BodyView.back,
+    _areaRect(0.525, 0.515, 0.625, 0.665),
+    shape: _BodyAreaShape.capsule,
+  ),
+  _BodyArea(
+    'Linkes Knie',
+    BodyView.back,
+    _areaRect(0.365, 0.66, 0.47, 0.725),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Rechtes Knie',
+    BodyView.back,
+    _areaRect(0.53, 0.66, 0.635, 0.725),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Linker Fuß',
+    BodyView.back,
+    _areaRect(0.365, 0.86, 0.465, 0.935),
+    shape: _BodyAreaShape.oval,
+  ),
+  _BodyArea(
+    'Rechter Fuß',
+    BodyView.back,
+    _areaRect(0.535, 0.86, 0.635, 0.935),
+    shape: _BodyAreaShape.oval,
+  ),
 ];
 
 /// Lets users pick the body area connected to the symptom entry.
@@ -194,9 +297,9 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
               selected: {_view},
               onSelectionChanged: (selection) {
                 setState(() => _view = selection.first);
-                if (!_areasForView(selection.first).any(
-                  (area) => area.label == widget.selectedArea,
-                )) {
+                if (!_areasForView(
+                  selection.first,
+                ).any((area) => area.label == widget.selectedArea)) {
                   widget.onChanged('');
                 }
               },
@@ -207,26 +310,28 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
                 final height = constraints.maxWidth < 360 ? 280.0 : 320.0;
                 final size = Size(constraints.maxWidth, height);
 
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) =>
-                      _selectAt(details.localPosition, size),
-                  child: SizedBox(
-                    height: size.height,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          _assetFor(widget.sex, _view),
-                          fit: BoxFit.contain,
-                        ),
-                        CustomPaint(
-                          painter: _BodyAreaHighlightPainter(
-                            selectedArea: widget.selectedArea,
-                            view: _view,
+                return ExcludeSemantics(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (details) =>
+                        _selectAt(details.localPosition, size),
+                    child: SizedBox(
+                      height: size.height,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            _assetFor(widget.sex, _view),
+                            fit: BoxFit.contain,
                           ),
-                        ),
-                      ],
+                          CustomPaint(
+                            painter: _BodyAreaHighlightPainter(
+                              selectedArea: widget.selectedArea,
+                              view: _view,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -239,17 +344,31 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
               children: areas.map((area) {
                 final isSelected = widget.selectedArea == area.label;
 
-                return ChoiceChip(
-                  label: Text(area.label),
+                return Semantics(
+                  button: true,
                   selected: isSelected,
-                  selectedColor: AppColors.primary,
-                  checkmarkColor: AppColors.white,
-                  labelStyle: TextStyle(
-                    color: isSelected ? AppColors.white : colorScheme.onSurface,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  label: isSelected
+                      ? '${area.label} ausgewählt'
+                      : '${area.label} als Körperstelle auswählen',
+                  onTap: () => widget.onChanged(isSelected ? '' : area.label),
+                  child: ExcludeSemantics(
+                    child: ChoiceChip(
+                      label: Text(area.label),
+                      selected: isSelected,
+                      selectedColor: AppColors.primary,
+                      checkmarkColor: AppColors.white,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? AppColors.white
+                            : colorScheme.onSurface,
+                        fontWeight: isSelected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
+                      onSelected: (_) =>
+                          widget.onChanged(isSelected ? '' : area.label),
+                    ),
                   ),
-                  onSelected: (_) =>
-                      widget.onChanged(isSelected ? '' : area.label),
                 );
               }).toList(),
             ),
@@ -268,9 +387,9 @@ class _BodyAreaSelectorState extends State<BodyAreaSelector> {
       (position.dy - imageRect.top) / imageRect.height,
     );
     final area = _areasForView(_view).cast<_BodyArea?>().firstWhere(
-          (area) => area!._contains(normalized),
-          orElse: () => null,
-        );
+      (area) => area!._contains(normalized),
+      orElse: () => null,
+    );
 
     if (area != null) {
       widget.onChanged(widget.selectedArea == area.label ? '' : area.label);
@@ -348,9 +467,10 @@ class _BodyAreaHighlightPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (selectedArea.isEmpty) return;
 
-    final area = _areasForView(view)
-        .cast<_BodyArea?>()
-        .firstWhere((area) => area!.label == selectedArea, orElse: () => null);
+    final area = _areasForView(view).cast<_BodyArea?>().firstWhere(
+      (area) => area!.label == selectedArea,
+      orElse: () => null,
+    );
     if (area == null) return;
 
     final imageRect = _imageRectFor(size);

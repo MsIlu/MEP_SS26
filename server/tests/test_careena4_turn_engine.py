@@ -139,7 +139,7 @@ class _StubTurnInterpreter:
             raw_message=raw_message,
             symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
             sts_matches=[],
-            no_match_reason=interpretation.current_turn_understanding.sts_no_match_reason,
+            no_match_reason=None,
             trace_notes=list(interpretation.current_turn_understanding.trace_notes),
         )
 
@@ -370,8 +370,6 @@ def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpre
                     "case_input": None,
                     "current_turn_understanding": {
                         "symptoms": [],
-                        "sts_matches": [],
-                        "no_match_reason": None,
                         "trace_notes": [],
                     },
                     "trace_notes": [],

@@ -277,8 +277,6 @@ def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text()
                                 "reasoning_note": "falsch als neues Symptom verstanden",
                             }
                         ],
-                        "sts_matches": [],
-                        "no_match_reason": None,
                         "trace_notes": [],
                     },
                     "trace_notes": [],

@@ -111,17 +111,6 @@ Rueckgabeformat:
         "reasoning_note": "<string|null>"
       }
     ],
-    "sts_matches": [
-      {
-        "sts_id": "<string>",
-        "sts_label_de": "<string|null>",
-        "source_category_de": "<string|null>",
-        "source_sts_levels_present": [1, 2, 3],
-        "match_confidence": <0.0-1.0>,
-        "match_reason": "<string|null>"
-      }
-    ],
-    "sts_no_match_reason": "<string|null>",
     "trace_notes": ["<kurze_notiz>"]
   } | null,
   "trace_notes": ["<kurze_notiz>"]
@@ -156,7 +145,6 @@ Regeln:
 - Felder in `question_resolution` und `case_input` duerfen nur gesetzt werden, wenn die aktuelle `raw_user_message` selbst sprachliche Evidenz dafuer liefert.
 - Information darf nicht allein aus `active_question`, `current_case_topic`, `recent_history` oder bekanntem Fallkontext in neue Felder uebernommen werden.
 - Extrahieren Sie Symptome immer symptom-first in `current_turn_understanding`, auch wenn keine STS-Zuordnung passt.
-- STS-Matches sind optional. Nutzen Sie nur IDs aus der mitgegebenen `allowed_sts_consultation_reasons`-Liste im Format `sts_id: label` und hoechstens 3 Matches.
 - Negierte Symptome duerfen in `current_turn_understanding.symptoms` vorkommen, muessen aber `is_negated=true` tragen.
 - Kein STS-Match darf Symptomextraktion unterdruecken.
 - Eine reine Ja/Nein-Antwort auf eine offene Safety-Klaerung ist kein neues Symptom und keine neue Fallbeobachtung.

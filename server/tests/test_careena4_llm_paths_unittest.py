@@ -15,6 +15,7 @@ from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase
 from careena4.models.turn import SafetyState
 from careena4.models.interpretation import TurnInterpretation
+from careena4.models.understanding import StsConsultationReasonCandidate
 from careena4.models.turn import EntryAssessment, ExtractedCaseInput, QuestionResolution, TurnDecision
 
 
@@ -334,15 +335,19 @@ class Careena4LlmPathTests(unittest.TestCase):
 
     def test_turn_interpreter_prefers_single_call_schema_result(self):
         class _StubCatalog(StsConsultationReasonCatalog):
-            def reasons_for_prompt(self):
-                return "1001: Kopfschmerzen"
-
-            def hydrate_match(self, match):
-                hydrated = dict(match)
-                hydrated["sts_label_de"] = hydrated.get("sts_label_de") or "Kopfschmerzen"
-                hydrated["source_category_de"] = hydrated.get("source_category_de") or "Allgemein"
-                hydrated["source_sts_levels_present"] = hydrated.get("source_sts_levels_present") or [3]
-                return hydrated
+            def match_by_labels(self, labels: list[str], *, max_results: int = 3):
+                if "Kopfschmerzen" in labels or "Kopfschmerz" in labels:
+                    return [
+                        StsConsultationReasonCandidate(
+                            sts_id="1001",
+                            sts_label_de="Kopfschmerzen",
+                            source_category_de="Allgemein",
+                            source_sts_levels_present=[3],
+                            match_confidence=1.0,
+                            match_reason="keyword_match",
+                        )
+                    ]
+                return []
 
         interpreter = TurnInterpreter(
             extraction_engine=_FakeExtractionEngine(
@@ -391,14 +396,6 @@ class Careena4LlmPathTests(unittest.TestCase):
                                 "reasoning_note": "direkt genannt",
                             }
                         ],
-                        "sts_matches": [
-                            {
-                                "sts_id": "1001",
-                                "match_confidence": 0.73,
-                                "match_reason": "Symptom passt direkt",
-                            }
-                        ],
-                        "no_match_reason": None,
                         "trace_notes": ["turn_interpreter:v1"],
                     },
                     "trace_notes": ["turn_interpretation:ok"],
@@ -415,7 +412,12 @@ class Careena4LlmPathTests(unittest.TestCase):
         assert result.case_input is not None
         self.assertEqual(result.case_input.topic_label, "Kopfschmerzen")
         assert result.current_turn_understanding is not None
-        self.assertEqual(result.current_turn_understanding.sts_matches[0].sts_label_de, "Kopfschmerzen")
+        current_turn_understanding = interpreter.to_current_turn_understanding(
+            raw_message="Ich habe seit gestern dumpfe Kopfschmerzen.",
+            interpretation=result,
+        )
+        assert current_turn_understanding is not None
+        self.assertEqual(current_turn_understanding.sts_matches[0].sts_label_de, "Kopfschmerzen")
         self.assertEqual(interpreter.extraction_engine.calls[0]["call_name"], TURN_INTERPRETATION_CALL)
         self.assertEqual(interpreter.extraction_engine.calls[0]["prompt_name"], TURN_INTERPRETATION_CALL)
         self.assertEqual(
@@ -423,7 +425,7 @@ class Careena4LlmPathTests(unittest.TestCase):
             load_prompt(TURN_INTERPRETATION_CALL).version,
         )
         payload = json.loads(interpreter.extraction_engine.calls[0]["text"])
-        self.assertEqual(payload["allowed_sts_consultation_reasons"], "1001: Kopfschmerzen")
+        self.assertNotIn("allowed_sts_consultation_reasons", payload)
         self.assertNotIn("sts_reasons", payload)
 
     def test_turn_interpreter_bridges_guided_safety_answer_without_legacy_followup_llm(self):
@@ -441,8 +443,6 @@ class Careena4LlmPathTests(unittest.TestCase):
                     "case_input": None,
                     "current_turn_understanding": {
                         "symptoms": [],
-                        "sts_matches": [],
-                        "no_match_reason": None,
                         "trace_notes": [],
                     },
                     "trace_notes": [],
@@ -510,8 +510,6 @@ class Careena4LlmPathTests(unittest.TestCase):
                                 "reasoning_note": "direkt genannt",
                             }
                         ],
-                        "sts_matches": [],
-                        "no_match_reason": None,
                         "trace_notes": ["understanding:preserved"],
                     },
                     "trace_notes": ["turn_interpretation:partial_ok"],

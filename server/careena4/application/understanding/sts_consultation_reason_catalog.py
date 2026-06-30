@@ -149,6 +149,29 @@ class StsConsultationReasonCatalog:
 
         return matches
 
+    def match_for_symptoms(
+        self,
+        symptoms: list[Any],
+        *,
+        max_results: int = 3,
+    ) -> list[StsConsultationReasonCandidate]:
+        """Match STS entries for already extracted symptom candidates.
+
+        The caller provides normalized symptom objects. This method keeps the
+        post-LLM STS derivation logic in one place for both understanding paths.
+        """
+        candidate_labels = [
+            label
+            for symptom in symptoms
+            if getattr(symptom, "is_medical", False) and not getattr(symptom, "is_negated", False)
+            for label in (
+                getattr(symptom, "normalized_label_de", None),
+                getattr(symptom, "clinical_term_de", None),
+            )
+            if label
+        ]
+        return self.match_by_labels(candidate_labels, max_results=max_results)
+
     @staticmethod
     def _default_seed_path() -> Path:
         """Resolve the STS seed path from the server package location."""

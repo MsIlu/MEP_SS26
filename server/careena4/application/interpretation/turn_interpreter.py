@@ -18,7 +18,6 @@ from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, MedicalCase
 from careena4.models.turn import EntryAssessment, ExtractedCaseInput, QuestionResolution
 from careena4.models.interpretation import TurnInterpretation, TurnUnderstandingSignal
-from careena4.models.understanding import StsConsultationReasonCandidate
 from careena4.server_log import log_event, log_json
 
 
@@ -73,13 +72,6 @@ class TurnInterpreter:
             active_question=active_question,
             interpretation=result,
         )
-
-        if result.current_turn_understanding is not None:
-            hydrated_matches: list[StsConsultationReasonCandidate] = []
-            for match in result.current_turn_understanding.sts_matches:
-                hydrated = self.sts_catalog.hydrate_match(match.model_dump())
-                hydrated_matches.append(StsConsultationReasonCandidate.model_validate(hydrated))
-            result.current_turn_understanding.sts_matches = hydrated_matches
 
         log_event(
             "turn_interpretation.completed",
@@ -324,9 +316,17 @@ class TurnInterpreter:
         raw_message: str,
         interpretation: TurnInterpretation,
     ):
+        signal = interpretation.current_turn_understanding
+        sts_matches = (
+            self.sts_catalog.match_for_symptoms(signal.symptoms)
+            if signal is not None
+            else []
+        )
         return adapt_to_current_turn_understanding(
             raw_message=raw_message,
             interpretation=interpretation,
+            sts_matches=sts_matches,
+            no_match_reason=None,
         )
 
     def _build_user_prompt(
@@ -408,7 +408,6 @@ class TurnInterpreter:
             ),
             "recent_history": history_lines[-4:] if history_lines else [],
             "raw_user_message": message,
-            "allowed_sts_consultation_reasons": self.sts_catalog.reasons_for_prompt(),
         }
         return json.dumps(payload, ensure_ascii=False)
 

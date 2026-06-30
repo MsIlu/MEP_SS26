@@ -156,14 +156,7 @@ class MedGemmaTurnUnderstandingService:
             for symptom in output.symptoms
         ]
 
-        candidate_labels = [
-            label
-            for symptom in symptoms
-            if symptom.is_medical and not symptom.is_negated
-            for label in (symptom.normalized_label_de, symptom.clinical_term_de)
-            if label
-        ]
-        sts_matches = self.sts_catalog.match_by_labels(candidate_labels)
+        sts_matches = self.sts_catalog.match_for_symptoms(symptoms)
 
         trace_notes = list(output.trace_notes)
         trace_notes.append(f"medgemma_turn_understanding:symptoms:{len(symptoms)}")

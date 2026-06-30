@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Shared icon button for compact Careena actions such as add and close.

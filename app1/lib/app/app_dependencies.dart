@@ -32,8 +32,8 @@ class AppDependencies {
     http.Client? httpClient,
     required this.authSession,
     SymptomRepository? symptomRepository,
-  })  : _httpClient = httpClient ?? http.Client(),
-        symptomRepository = symptomRepository ?? SymptomRepository() {
+  }) : _httpClient = httpClient ?? http.Client(),
+       symptomRepository = symptomRepository ?? SymptomRepository() {
     apiClient = ApiClient(_httpClient);
     authApiService = AuthApiService(apiClient);
     symptomApiService = SymptomApiService(apiClient);

@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,17 +89,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _initializeChat() async {
+    await widget.controller.init();
+    if (!mounted) return;
+    _onMessagesChanged();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(widget.controller.refreshAvailability(refreshLlmStatus: true));
     }
-  }
-
-  Future<void> _initializeChat() async {
-    await widget.controller.init();
-    if (!mounted) return;
-    _onMessagesChanged();
   }
 
   Future<void> _runWarningFlow() async {

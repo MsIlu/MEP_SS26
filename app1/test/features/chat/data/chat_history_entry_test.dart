@@ -41,7 +41,9 @@ void main() {
     });
 
     test('uses a one-word title and falls back to Verlauf', () {
-      final titledEntry = _entry(symptomTitle: 'Starke Kopfschmerzen seit heute');
+      final titledEntry = _entry(
+        symptomTitle: 'Starke Kopfschmerzen seit heute',
+      );
       final blankEntry = _entry(symptomTitle: '   ');
 
       expect(titledEntry.title, 'Starke');

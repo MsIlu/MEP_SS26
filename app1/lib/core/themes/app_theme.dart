@@ -20,9 +20,7 @@ class AppTheme {
       foregroundColor: AppColors.white,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.lightCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.lightCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.lightTextPrimary),
       bodySmall: TextStyle(color: AppColors.lightTextSecondary),
@@ -69,9 +67,7 @@ class AppTheme {
       foregroundColor: AppColors.darkTextPrimary,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.darkCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.darkCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.darkTextPrimary),
       bodySmall: TextStyle(color: AppColors.darkTextSecondary),

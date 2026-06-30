@@ -67,7 +67,7 @@ class AuthTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(fieldRadius),
-        borderSide: BorderSide(color: AppColors.greyShade400, width: 2),
+        borderSide: const BorderSide(color: AppColors.careenaPrimary, width: 2),
       ),
     );
   }

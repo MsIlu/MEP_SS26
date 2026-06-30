@@ -239,6 +239,9 @@ def build_careena4_simrun_response(*, message: str) -> dict:
     }
 
 
+app.state.careena4_turn_engine = careena4_turn_engine
+app.state.careena4_response_builder = build_careena4_chat_response
+
 def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -> None:
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state

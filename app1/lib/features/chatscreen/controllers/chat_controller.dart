@@ -27,9 +27,6 @@ class ChatController {
   final AuthSession authSession;
   int? _activeProfileId;
   bool _isCompleted = false;
-  Timer? _availabilityRetryTimer;
-  Future<void>? _availabilityRefreshFuture;
-  static const Duration _availabilityRetryDelay = Duration(seconds: 5);
   final Map<String, ChatRunState> _chatRunStates = {};
   final Map<String, Future<void>> _resumeOperations = {};
   final Map<String, Future<void>> _continueOperations = {};
@@ -37,6 +34,9 @@ class ChatController {
   String? _activeHistoryEntryId;
   DateTime? _activeHistoryCreatedAt;
   int _profileChangeGeneration = 0;
+  Timer? _availabilityRetryTimer;
+  Future<void>? _availabilityRefreshFuture;
+  static const Duration _availabilityRetryDelay = Duration(seconds: 5);
 
   ChatController({
     required this.chatApi,
@@ -64,8 +64,6 @@ class ChatController {
   final ValueNotifier<List<String>> lastReplyOptions =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<bool> isCompleted = ValueNotifier<bool>(false);
-  final ValueNotifier<CareenaAvailability> availability =
-      ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
   final ValueNotifier<int> historyRevision = ValueNotifier<int>(0);
   final ValueNotifier<Set<String>> continuingHistoryIds =
       ValueNotifier<Set<String>>(<String>{});
@@ -83,6 +81,8 @@ class ChatController {
   void finishOpeningHistory(String historyEntryId) {
     _openingHistoryEntries.remove(historyEntryId);
   }
+  final ValueNotifier<CareenaAvailability> availability =
+      ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
   Future<void>? _initFuture;
 
@@ -227,12 +227,12 @@ class ChatController {
       await _initFuture;
     }
 
+    final expectedProfileId = authSession.activeProfileId;
+    final expectedGeneration = _profileChangeGeneration;
     if (availability.value.status != CareenaAvailabilityStatus.online) {
       await refreshAvailability();
     }
 
-    final expectedProfileId = authSession.activeProfileId;
-    final expectedGeneration = _profileChangeGeneration;
     final hasSession = await _ensureSession();
     final sessionId = chatSessionService.sessionId;
 
@@ -245,7 +245,9 @@ class ChatController {
       return null;
     }
 
-    _addMessage(message: Message(text: visibleUserText, isUser: true));
+    _addMessage(
+      message: Message(text: visibleUserText, isUser: true),
+    );
 
     lastReplyOptions.value = [];
 
@@ -260,9 +262,6 @@ class ChatController {
     )) {
       return null;
     }
-
-    lastReplyOptions.value = [];
-
     _addMessage(
       message: Message(
         text: '',
@@ -379,6 +378,15 @@ class ChatController {
       }
       return response;
     } catch (e) {
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return null;
+      }
+
       await refreshAvailability();
 
       if (!_isChatRequestActive(
@@ -987,6 +995,8 @@ class ChatController {
     symptoms.dispose();
     isCompleted.dispose();
     lastReplyOptions.dispose();
+    continuingHistoryIds.dispose();
+    historyRevision.dispose();
     availability.dispose();
     continuingHistoryIds.dispose();
     historyRevision.dispose();

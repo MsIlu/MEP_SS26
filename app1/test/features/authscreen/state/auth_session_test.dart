@@ -14,42 +14,42 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    test('stores auth response and selects first profile as active profile', () {
-      final session = AuthSession();
+    test(
+      'stores auth response and selects first profile as active profile',
+      () {
+        final session = AuthSession();
 
-      final response = AuthResponse(
-        accessToken: 'test-token',
-        tokenType: 'bearer',
-        account: const Account(
-          id: 1,
-          email: 'test@example.com',
-        ),
-        profiles: const [
-          AuthProfile(
-            id: 10,
-            displayName: 'Anna',
-            profileType: 'self',
-            role: 'owner',
-          ),
-          AuthProfile(
-            id: 11,
-            displayName: 'Ben',
-            profileType: 'child',
-            role: 'guardian',
-          ),
-        ],
-      );
+        final response = AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 10,
+              displayName: 'Anna',
+              profileType: 'self',
+              role: 'owner',
+            ),
+            AuthProfile(
+              id: 11,
+              displayName: 'Ben',
+              profileType: 'child',
+              role: 'guardian',
+            ),
+          ],
+        );
 
-      session.setAuthResponse(response);
+        session.setAuthResponse(response);
 
-      expect(session.accessToken, 'test-token');
-      expect(session.account?.email, 'test@example.com');
-      expect(session.profiles.length, 2);
-      expect(session.activeProfileId, 10);
-      expect(session.activeProfile?.displayName, 'Anna');
-      expect(session.isAuthenticated, true);
-      expect(session.hasActiveProfile, true);
-    });
+        expect(session.accessToken, 'test-token');
+        expect(session.account?.email, 'test@example.com');
+        expect(session.profiles.length, 2);
+        expect(session.activeProfileId, 10);
+        expect(session.activeProfile?.displayName, 'Anna');
+        expect(session.isAuthenticated, true);
+        expect(session.hasActiveProfile, true);
+      },
+    );
 
     test('changes active profile by id', () {
       final session = AuthSession();
@@ -58,10 +58,7 @@ void main() {
         AuthResponse(
           accessToken: 'test-token',
           tokenType: 'bearer',
-          account: const Account(
-            id: 1,
-            email: 'test@example.com',
-          ),
+          account: const Account(id: 1, email: 'test@example.com'),
           profiles: const [
             AuthProfile(
               id: 10,
@@ -95,7 +92,10 @@ void main() {
       final rememberedProfileId = await session.loadRememberedProfileId(1);
 
       session.clear();
-      session.setAuthResponse(response, preferredProfileId: rememberedProfileId);
+      session.setAuthResponse(
+        response,
+        preferredProfileId: rememberedProfileId,
+      );
 
       expect(session.activeProfileId, 11);
       expect(session.activeProfile?.displayName, 'Ben');
@@ -108,10 +108,7 @@ void main() {
         AuthResponse(
           accessToken: 'test-token',
           tokenType: 'bearer',
-          account: const Account(
-            id: 1,
-            email: 'test@example.com',
-          ),
+          account: const Account(id: 1, email: 'test@example.com'),
           profiles: const [
             AuthProfile(
               id: 10,
@@ -124,7 +121,7 @@ void main() {
       );
 
       expect(
-            () => session.setActiveProfileById(999),
+        () => session.setActiveProfileById(999),
         throwsA(isA<StateError>()),
       );
     });
@@ -136,10 +133,7 @@ void main() {
         AuthResponse(
           accessToken: 'test-token',
           tokenType: 'bearer',
-          account: const Account(
-            id: 1,
-            email: 'test@example.com',
-          ),
+          account: const Account(id: 1, email: 'test@example.com'),
           profiles: const [
             AuthProfile(
               id: 10,
@@ -168,10 +162,7 @@ AuthResponse _authResponse() {
   return AuthResponse(
     accessToken: 'test-token',
     tokenType: 'bearer',
-    account: const Account(
-      id: 1,
-      email: 'test@example.com',
-    ),
+    account: const Account(id: 1, email: 'test@example.com'),
     profiles: const [
       AuthProfile(
         id: 10,

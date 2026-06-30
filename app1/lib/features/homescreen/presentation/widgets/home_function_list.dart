@@ -28,10 +28,20 @@ class HomeFunctionList extends StatelessWidget {
       key: guideTargetKey,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 12),
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        isSimpleView ? 10 : 18,
+        horizontalPadding,
+        12,
+      ),
       itemCount: features.length + 1,
-      separatorBuilder: (context, index) =>
-          SizedBox(height: isSimpleView ? 14 : 8),
+      separatorBuilder: (context, index) {
+        if (index == 0) {
+          return SizedBox(height: isSimpleView ? 18 : 12);
+        }
+
+        return SizedBox(height: isSimpleView ? 14 : 8);
+      },
       itemBuilder: (context, index) {
         if (index == 0) {
           return Text(

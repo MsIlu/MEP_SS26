@@ -30,7 +30,8 @@ class SymptomSelectionStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedSymptom = controller.text.trim();
-    final canAddCustom = selectedSymptom.isNotEmpty &&
+    final canAddCustom =
+        selectedSymptom.isNotEmpty &&
         !suggestions.any(
           (symptom) => symptom.toLowerCase() == selectedSymptom.toLowerCase(),
         );
@@ -55,12 +56,20 @@ class SymptomSelectionStep extends StatelessWidget {
             final isCustom = customSuggestions.contains(symptom);
 
             if (!isCustom) {
-              return ChoiceChip(
-                label: Text(symptom),
+              return Semantics(
+                button: true,
                 selected: isSelected,
-                selectedColor: AppColors.careenaBubbleBackground,
-                checkmarkColor: AppColors.careenaTeal,
-                onSelected: (_) => onSelected(symptom),
+                label: 'Symptom $symptom auswählen',
+                onTap: () => onSelected(symptom),
+                child: ExcludeSemantics(
+                  child: ChoiceChip(
+                    label: Text(symptom),
+                    selected: isSelected,
+                    selectedColor: AppColors.careenaBubbleBackground,
+                    checkmarkColor: AppColors.careenaTeal,
+                    onSelected: (_) => onSelected(symptom),
+                  ),
+                ),
               );
             }
 
@@ -73,7 +82,8 @@ class SymptomSelectionStep extends StatelessWidget {
               // Only user-created symptoms can be removed from the quick list.
               onDeleted: isCustom ? () => onRemoveCustom(symptom) : null,
               deleteIcon: const Icon(Icons.close, size: 16),
-              deleteButtonTooltipMessage: 'Eigenes Symptom entfernen',
+              deleteButtonTooltipMessage:
+                  '$symptom aus der Auswahlliste entfernen',
             );
           }).toList(),
         ),
@@ -89,10 +99,17 @@ class SymptomSelectionStep extends StatelessWidget {
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: onAddCustom,
-              icon: const Icon(Icons.add),
-              label: const Text('Zur Auswahlliste hinzufügen'),
+            child: Semantics(
+              button: true,
+              label: '$selectedSymptom zur Auswahlliste hinzufügen',
+              onTap: onAddCustom,
+              child: ExcludeSemantics(
+                child: OutlinedButton.icon(
+                  onPressed: onAddCustom,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Zur Auswahlliste hinzufügen'),
+                ),
+              ),
             ),
           ),
         ],
@@ -132,6 +149,7 @@ class _SymptomTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       textInputAction: TextInputAction.next,
+      autofocus: true,
       onChanged: onChanged,
       onSubmitted: (_) => onSubmitted(),
       decoration: InputDecoration(
@@ -175,15 +193,22 @@ class _InlineSymptomSuggestions extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: suggestions.map((symptom) {
-        return ActionChip(
-          avatar: const Icon(Icons.north_west, size: 16),
-          label: Text(symptom),
-          onPressed: () => onSelected(symptom),
-          side: BorderSide(
-            color: AppColors.careenaTeal.withValues(alpha: 0.35),
-          ),
-          backgroundColor: AppColors.careenaBubbleBackground.withValues(
-            alpha: 0.72,
+        return Semantics(
+          button: true,
+          label: 'Vorschlag $symptom übernehmen',
+          onTap: () => onSelected(symptom),
+          child: ExcludeSemantics(
+            child: ActionChip(
+              avatar: const Icon(Icons.north_west, size: 16),
+              label: Text(symptom),
+              onPressed: () => onSelected(symptom),
+              side: BorderSide(
+                color: AppColors.careenaTeal.withValues(alpha: 0.35),
+              ),
+              backgroundColor: AppColors.careenaBubbleBackground.withValues(
+                alpha: 0.72,
+              ),
+            ),
           ),
         );
       }).toList(),

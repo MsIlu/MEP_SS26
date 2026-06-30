@@ -74,6 +74,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                     child: _SourceButton(
                       icon: Icons.attach_file,
                       label: 'Datei',
+                      semanticLabel: 'Datei auswählen',
                       onPressed: _pickFile,
                     ),
                   ),
@@ -82,6 +83,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                     child: _SourceButton(
                       icon: Icons.photo_library_outlined,
                       label: 'Foto',
+                      semanticLabel: 'Foto aus Mediathek auswählen',
                       onPressed: () => _pickImage(ImageSource.gallery),
                     ),
                   ),
@@ -90,6 +92,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                     child: _SourceButton(
                       icon: Icons.camera_alt_outlined,
                       label: 'Kamera',
+                      semanticLabel: 'Foto mit Kamera aufnehmen',
                       onPressed: () => _pickImage(ImageSource.camera),
                     ),
                   ),
@@ -173,29 +176,42 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Abbrechen'),
         ),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.careenaTeal,
-            foregroundColor: Colors.white,
+        Semantics(
+          button: true,
+          enabled:
+              _selectedBytes != null &&
+              _selectedMimeType != null &&
+              _nameController.text.trim().isNotEmpty,
+          label: 'Ausgewähltes Dokument hinzufügen',
+          hint: _selectedBytes == null
+              ? 'Wähle zuerst eine Datei, ein Foto oder die Kamera aus.'
+              : null,
+          child: ExcludeSemantics(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.careenaTeal,
+                foregroundColor: Colors.white,
+              ),
+              onPressed:
+                  _selectedBytes == null ||
+                      _selectedMimeType == null ||
+                      _nameController.text.trim().isEmpty
+                  ? null
+                  : () {
+                      Navigator.pop(
+                        context,
+                        UploadDocumentDraft(
+                          name: _nameController.text.trim(),
+                          category: _category,
+                          fileBytes: _selectedBytes!,
+                          mimeType: _selectedMimeType!,
+                        ),
+                      );
+                    },
+              icon: const Icon(Icons.add),
+              label: const Text('Hinzufügen'),
+            ),
           ),
-          onPressed:
-              _selectedBytes == null ||
-                  _selectedMimeType == null ||
-                  _nameController.text.trim().isEmpty
-              ? null
-              : () {
-                  Navigator.pop(
-                    context,
-                    UploadDocumentDraft(
-                      name: _nameController.text.trim(),
-                      category: _category,
-                      fileBytes: _selectedBytes!,
-                      mimeType: _selectedMimeType!,
-                    ),
-                  );
-                },
-          icon: const Icon(Icons.add),
-          label: const Text('Hinzufügen'),
         ),
       ],
     );
@@ -308,35 +324,46 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
 class _SourceButton extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String semanticLabel;
   final VoidCallback onPressed;
 
   const _SourceButton({
     required this.icon,
     required this.label,
+    required this.semanticLabel,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.careenaTeal,
-        side: const BorderSide(color: AppColors.careenaTeal, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 22),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            maxLines: 1,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      onTap: onPressed,
+      child: ExcludeSemantics(
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.careenaTeal,
+            side: const BorderSide(color: AppColors.careenaTeal, width: 1.5),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

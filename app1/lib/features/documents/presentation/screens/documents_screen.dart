@@ -99,22 +99,30 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   children: [
                     const DocumentInfoCard(),
                     const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: _openUploadDialog,
-                      icon: const Icon(Icons.upload_file_outlined),
-                      label: const Text(
-                        'Dokument hinzufügen',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.careenaTeal,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                    Semantics(
+                      button: true,
+                      label: 'Neues Dokument hinzufügen',
+                      hint: 'Öffnet die Auswahl für Datei, Foto oder Kamera.',
+                      onTap: _openUploadDialog,
+                      child: ExcludeSemantics(
+                        child: FilledButton.icon(
+                          onPressed: _openUploadDialog,
+                          icon: const Icon(Icons.upload_file_outlined),
+                          label: const Text(
+                            'Dokument hinzufügen',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.careenaTeal,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
                         ),
                       ),
                     ),

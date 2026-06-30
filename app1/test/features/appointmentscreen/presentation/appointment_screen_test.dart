@@ -38,7 +38,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Termin hinzufügen'), findsOneWidget);
-    expect(find.text('Arzt'), findsOneWidget);
+    expect(find.text('Arzt oder Praxis'), findsOneWidget);
     expect(find.text('Datum'), findsOneWidget);
     expect(find.text('Uhrzeit'), findsOneWidget);
     expect(find.text('Notiz (optional)'), findsOneWidget);
@@ -53,7 +53,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final doctorField = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.decoration?.labelText == 'Arzt',
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Arzt oder Praxis',
     );
 
     final noteField = find.byWidgetPredicate(
@@ -127,7 +129,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final doctorField = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.decoration?.labelText == 'Arzt',
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Arzt oder Praxis',
     );
 
     final dateField = find.byWidgetPredicate(
@@ -190,7 +194,7 @@ void main() {
 
     expect(find.text('Augenarzt'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Termin löschen'));
+    await tester.tap(find.byTooltip('Termin Augenarzt löschen'));
     await tester.pumpAndSettle();
 
     expect(find.text('Termin löschen'), findsOneWidget);
@@ -217,13 +221,15 @@ void main() {
 
     await pumpAppointmentScreen(tester);
 
-    await tester.tap(find.byTooltip('Termin bearbeiten'));
+    await tester.tap(find.byTooltip('Termin Hausarzt bearbeiten'));
     await tester.pumpAndSettle();
 
     expect(find.text('Termin bearbeiten'), findsOneWidget);
 
     final doctorField = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.decoration?.labelText == 'Arzt',
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Arzt oder Praxis',
     );
 
     final noteField = find.byWidgetPredicate(

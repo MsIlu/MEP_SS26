@@ -1,14 +1,15 @@
-import 'package:app1/core/themes/app_colors.dart';
-import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/app/app_page_store.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
-import 'package:flutter/material.dart';
-import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../../data/symptom_entry.dart';
 import '../../data/symptom_import.dart';
@@ -54,17 +55,22 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   void initState() {
     super.initState();
     AppPageStore.saveCurrentPage(AppPage.symptomDiary);
+
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
+
     final initialDate = widget.initialDate;
     _selectedDate = initialDate == null
         ? _today
         : DateTime(initialDate.year, initialDate.month, initialDate.day);
+
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
       profileId: widget.authSession?.activeProfileId,
     );
+
     _controller.loadEntries();
+
     final toImport = widget.initialSymptoms;
     if (toImport != null && toImport.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -196,7 +202,9 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     for (var i = 0; i < imports.length; i++) {
       if (!selected[i]) continue;
+
       final imp = imports[i];
+
       if (imp.severity != null) {
         await _addEntry(
           symptom: imp.name,
@@ -209,6 +217,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       } else {
         await _openSymptomFormForImport(imp.name, biologicalSex);
       }
+
       if (!mounted) return;
     }
   }
@@ -342,7 +351,13 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     );
 
     if (confirmed == true) {
+      final symptom = entry.symptom;
       await _controller.deleteEntry(entry);
+
+      if (!mounted) return;
+
+      showCareenaSnackBar(context, 'Symptom gelöscht');
+      _announce('$symptom gelöscht');
     }
   }
 
@@ -390,12 +405,12 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       return;
     }
 
-    showCareenaSnackBar(
-      context,
-      entry.isSynced
-          ? 'Symptom gespeichert'
-          : 'Symptom offline gespeichert – Synchronisierung folgt',
-    );
+    final message = entry.isSynced
+        ? 'Symptom gespeichert'
+        : 'Symptom offline gespeichert – Synchronisierung folgt';
+
+    showCareenaSnackBar(context, message);
+    _announce(message);
   }
 
   Future<void> _updateEntry({
@@ -416,26 +431,36 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         temperatureC: temperatureC,
         note: note,
       );
-      if (mounted) {
-        final updated = _controller.entries.firstWhere(
-          (item) => item.id == entry.id,
-          orElse: () => entry,
-        );
-        showCareenaSnackBar(
-          context,
-          updated.pendingUpdate
-              ? 'Änderung offline gespeichert – Synchronisierung folgt'
-              : 'Symptom aktualisiert',
-        );
-      }
+
+      if (!mounted) return;
+
+      final updated = _controller.entries.firstWhere(
+        (item) => item.id == entry.id,
+        orElse: () => entry,
+      );
+
+      final message = updated.pendingUpdate
+          ? 'Änderung offline gespeichert – Synchronisierung folgt'
+          : 'Symptom aktualisiert';
+
+      showCareenaSnackBar(context, message);
+      _announce(message);
     } catch (_) {
       if (mounted) {
-        showCareenaSnackBar(
-          context,
-          'Symptom konnte nicht aktualisiert werden',
-        );
+        const message = 'Symptom konnte nicht aktualisiert werden';
+        showCareenaSnackBar(context, message);
+        _announce(message);
       }
+
       rethrow;
     }
+  }
+
+  void _announce(String message) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 }

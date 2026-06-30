@@ -30,6 +30,7 @@ class SymptomDiaryPage extends StatefulWidget {
   /// chat-confirmed symptoms into the diary without re-typing them.
   /// Each entry can carry the symptom name, severity (1-10), and body area.
   final List<SymptomImport>? initialSymptoms;
+  final Future<void> Function()? onInitialSymptomsSaved;
 
   const SymptomDiaryPage({
     super.key,
@@ -39,6 +40,7 @@ class SymptomDiaryPage extends StatefulWidget {
     this.profileApiService,
     this.initialDate,
     this.initialSymptoms,
+    this.onInitialSymptomsSaved,
   });
 
   @override
@@ -200,6 +202,8 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     final biologicalSex = await _activeProfileBiologicalSex();
     if (!mounted) return;
 
+    var savedAny = false;
+
     for (var i = 0; i < imports.length; i++) {
       if (!selected[i]) continue;
 
@@ -214,53 +218,70 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           source: 'careena',
           date: imp.date,
         );
+        savedAny = true;
       } else {
-        await _openSymptomFormForImport(imp.name, biologicalSex);
+        savedAny =
+            await _openSymptomFormForImport(imp.name, biologicalSex) ||
+            savedAny;
       }
 
       if (!mounted) return;
     }
+
+    if (savedAny) {
+      try {
+        await widget.onInitialSymptomsSaved?.call();
+      } catch (_) {
+        if (!mounted) return;
+
+        showCareenaSnackBar(
+          context,
+          'Gespeichert, aber der Chatstatus konnte nicht aktualisiert werden',
+        );
+      }
+    }
   }
 
-  Future<void> _openSymptomFormForImport(
+  Future<bool> _openSymptomFormForImport(
     String symptom,
     String? biologicalSex,
   ) async {
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(18),
-          backgroundColor: AppColors.transparent,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: SingleChildScrollView(
-              child: SymptomEntryForm(
-                initialSymptom: symptom,
-                onSave:
-                    ({
-                      required String symptom,
-                      required String bodyArea,
-                      required int intensity,
-                      double? temperatureC,
-                      required String note,
-                    }) => _addEntry(
-                      symptom: symptom,
-                      bodyArea: bodyArea,
-                      intensity: intensity,
-                      temperatureC: temperatureC,
-                      note: note,
-                      source: 'careena',
-                    ),
-                onCancel: () => Navigator.pop(dialogContext),
-                onSaved: () => Navigator.pop(dialogContext),
-                biologicalSex: biologicalSex,
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(18),
+              backgroundColor: AppColors.transparent,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: SingleChildScrollView(
+                  child: SymptomEntryForm(
+                    initialSymptom: symptom,
+                    onSave:
+                        ({
+                          required String symptom,
+                          required String bodyArea,
+                          required int intensity,
+                          double? temperatureC,
+                          required String note,
+                        }) => _addEntry(
+                          symptom: symptom,
+                          bodyArea: bodyArea,
+                          intensity: intensity,
+                          temperatureC: temperatureC,
+                          note: note,
+                          source: 'careena',
+                        ),
+                    onCancel: () => Navigator.pop(dialogContext, false),
+                    onSaved: () => Navigator.pop(dialogContext, true),
+                    biologicalSex: biologicalSex,
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
-    );
+            );
+          },
+        ) ??
+        false;
   }
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.

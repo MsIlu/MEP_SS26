@@ -55,6 +55,7 @@ Diese Datei ordnet die Backend-Tests des Projekts nach Themen, Testdateien und e
 
 - `T03.1.1`: Chat-History ist profilgebunden und nach Erstellungszeit sortiert.
 - `T03.1.2`: Chat-History verlangt Zugriff auf das Profil.
+- `T03.1.3`: Ein bereits verarbeiteter Continue-Request kann nicht erneut ausgeführt werden.
 
 ## T04 Symptome Und Input-Drafts
 

@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -64,10 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
         widget.authApiService ?? dependencies?.authApiService;
 
     return AnimatedBuilder(
-      animation: Listenable.merge([
-        widget.themeController,
-        ?authSession,
-      ]),
+      animation: Listenable.merge([widget.themeController, ?authSession]),
       builder: (context, _) {
         final simpleView = widget.themeController.isSimpleView;
         final visibleItems = _items(
@@ -75,14 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ).where((item) => item.matches(_query)).toList();
 
         return Scaffold(
-          appBar: CareenaPageHeader(
-            title: 'Einstellungen',
-            onBack: _openHome,
-            trailing: CareenaThemeHeaderAction(
-              onPressed: widget.themeController.toggleTheme,
-              isDarkMode: widget.themeController.isDarkMode,
-            ),
-          ),
+          appBar: CareenaPageHeader(title: 'Einstellungen', onBack: _openHome),
           body: ResponsivePageBody(
             maxWidth: 620,
             scrollable: true,

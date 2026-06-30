@@ -1,4 +1,4 @@
-enum AppGuideTarget { careena, search, features, theme, navigation }
+enum AppGuideTarget { careena, search, features, profile, navigation }
 
 class AppGuideStep {
   final AppGuideTarget target;
@@ -30,11 +30,11 @@ const appGuideSteps = [
         'Gib hier ein, was du suchst. Careena zeigt dir direkt die passende Funktion.',
   ),
   AppGuideStep(
-    target: AppGuideTarget.theme,
+    target: AppGuideTarget.profile,
     spotlightRadius: 24,
-    title: 'Hell oder dunkel',
+    title: 'Aktives Profil',
     description:
-        'Mit diesem Schalter oben rechts wechselst du jederzeit zwischen Hell- und Dunkelmodus.',
+        'Hier siehst du, für wen Careena gerade arbeitet. Tippe darauf, um das Profil zu wechseln.',
   ),
   AppGuideStep(
     target: AppGuideTarget.features,
@@ -48,6 +48,6 @@ const appGuideSteps = [
     spotlightRadius: 40,
     title: 'Immer schnell erreichbar',
     description:
-    'Mit dieser Leiste wechselst du jederzeit zur Startseite, zum Kalender, zu deiner Chathistorie oder zu deinen Einstellungen.',
+        'Mit dieser Leiste wechselst du jederzeit zur Startseite, zum Kalender, zu deiner Chathistorie oder zu deinen Einstellungen.',
   ),
 ];

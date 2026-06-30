@@ -1,4 +1,5 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/active_profile_header_action.dart';
 import 'package:flutter/material.dart';
 
 class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -26,6 +27,13 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
     final backgroundColor = isDark
         ? AppColors.headerBackgroundDark
         : AppColors.headerBackgroundLight;
+    final trailingWidget = trailing ?? const ActiveProfileHeaderAction();
+    final reservesWideTrailing =
+        trailing != null || ActiveProfileHeaderAction.hasActiveProfile(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final titleSidePadding = reservesWideTrailing
+        ? (screenWidth >= 700 ? 228.0 : (screenWidth < 390 ? 112.0 : 156.0))
+        : 64.0;
 
     return AppBar(
       automaticallyImplyLeading: false,
@@ -51,7 +59,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
                     : const SizedBox.square(dimension: 48)),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 64),
+            padding: EdgeInsets.symmetric(horizontal: titleSidePadding),
             child: Tooltip(
               message: title,
               child: Text(
@@ -67,10 +75,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: trailing ?? const SizedBox.square(dimension: 48),
-          ),
+          Align(alignment: Alignment.centerRight, child: trailingWidget),
         ],
       ),
     );
@@ -106,26 +111,6 @@ class CareenaHeaderAction extends StatelessWidget {
       ),
       onPressed: onPressed,
       icon: Icon(icon),
-    );
-  }
-}
-
-class CareenaThemeHeaderAction extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool isDarkMode;
-
-  const CareenaThemeHeaderAction({
-    super.key,
-    required this.onPressed,
-    required this.isDarkMode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CareenaHeaderAction(
-      tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
-      icon: isDarkMode ? Icons.light_mode : Icons.dark_mode,
-      onPressed: onPressed,
     );
   }
 }

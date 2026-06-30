@@ -14,7 +14,7 @@ void main() {
             onBack: () {},
             trailing: CareenaHeaderAction(
               tooltip: 'Aktion',
-              icon: Icons.light_mode,
+              icon: Icons.info_outline,
               onPressed: () {},
             ),
           ),

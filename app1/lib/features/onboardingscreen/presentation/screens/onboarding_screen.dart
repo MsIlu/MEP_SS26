@@ -1,4 +1,4 @@
-﻿import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -46,14 +46,7 @@ class OnboardingScreen extends StatelessWidget {
       backgroundColor: isDarkMode
           ? Theme.of(context).scaffoldBackgroundColor
           : AppColors.onboardingBackgroundLight,
-      appBar: CareenaPageHeader(
-        title: 'MedBitAid',
-        showBack: false,
-        trailing: CareenaThemeHeaderAction(
-          onPressed: themeController.toggleTheme,
-          isDarkMode: themeController.isDarkMode,
-        ),
-      ),
+      appBar: CareenaPageHeader(title: 'MedBitAid', showBack: false),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: screenWidth >= 1100 ? 1040 : (useDesktopLayout ? 900 : 490),
@@ -516,10 +509,7 @@ class _ShortAuthDivider extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'oder',
-            style: TextStyle(fontSize: 14, color: textColor),
-          ),
+          child: Text('oder', style: TextStyle(fontSize: 14, color: textColor)),
         ),
         SizedBox(
           width: 104,

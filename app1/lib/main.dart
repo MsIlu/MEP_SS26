@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/features/appointmentscreen/presentation/screens/appointment_screen.dart';
@@ -61,6 +63,7 @@ class _AppBootState extends State<_AppBoot> {
   late final AuthApiService _authApiService;
   late final SymptomRepository _symptomRepository;
   late final Future<_InitialAppState> _initialState;
+  int? _loadedThemeProfileId;
 
   @override
   void initState() {
@@ -85,12 +88,14 @@ class _AppBootState extends State<_AppBoot> {
     _authApiService =
         widget.externalAuthApiService ?? _ownedDependencies!.authApiService;
 
+    _authSession.addListener(_handleAuthSessionChanged);
     _initialState = _loadInitialState();
   }
 
   @override
   void dispose() {
     _themeController.dispose();
+    _authSession.removeListener(_handleAuthSessionChanged);
     _authSession.dispose();
     _ownedDependencies?.dispose();
     super.dispose();
@@ -156,12 +161,25 @@ class _AppBootState extends State<_AppBoot> {
 
   Future<_InitialAppState> _loadInitialState() async {
     final restoredSession = await _authSession.restorePersistedSession();
+    await _syncProfileDisplaySettings();
     final currentPage = await AppPageStore.loadCurrentPage();
 
     return _InitialAppState(
       isAuthenticated: restoredSession,
       currentPage: currentPage,
     );
+  }
+
+  Future<void> _syncProfileDisplaySettings() async {
+    final profileId = _authSession.activeProfileId;
+    if (_loadedThemeProfileId == profileId) return;
+
+    await _themeController.loadProfileSettings(profileId);
+    _loadedThemeProfileId = profileId;
+  }
+
+  void _handleAuthSessionChanged() {
+    unawaited(_syncProfileDisplaySettings());
   }
 
   Widget _buildAuthenticatedPage(AppPage page) {

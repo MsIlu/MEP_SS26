@@ -72,7 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ? appGuideSteps
             .where(
               (step) =>
-                  step.target != AppGuideTarget.search &&
                   step.target != AppGuideTarget.profile,
             )
             .toList()

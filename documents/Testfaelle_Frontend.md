@@ -119,7 +119,7 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 ### T04.3 `app1/test/features/authscreen/presentation/registration_layout_test.dart`
 
 - `T04.3.1`: Step-Connectoren sind auf alle Fortschrittskreise zentriert.
-- `T04.3.2`: Fester Auth-Header hält den Titel zwischen gleich grossen Aktionsbuttons.
+- `T04.3.2`: Fester Auth-Header hält den Titel zwischen gleich großen Aktionsbuttons.
 
 ### T04.4 `app1/test/features/authscreen/state/auth_session_test.dart`
 
@@ -127,6 +127,8 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 - `T04.4.2`: Aktives Profil kann per ID gewechselt werden.
 - `T04.4.3`: Auswahl eines fremden Profils wird abgelehnt.
 - `T04.4.4`: Logout/Reset leert Session-Daten.
+- `T04.4.5`: Das zuletzt aktive Profil wird für die nächste Anmeldung gespeichert.
+- `T04.4.6`: Das eigene Profil steht vor allen betreuten Profiltypen, deren Erstellungsreihenfolge erhalten bleibt.
 
 ### T04.5 `app1/test/features/authscreen/utils/auth_error_message_test.dart`
 

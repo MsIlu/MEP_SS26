@@ -47,6 +47,7 @@ Diese Datei ordnet die Backend-Tests des Projekts nach Themen, Testdateien und e
 - `T02.1.5`: Profil-Löschen setzt Soft-Delete und blendet Profil aus.
 - `T02.1.6`: Gelöschtes Profil liefert `404`.
 - `T02.1.7`: Familienmitglieder und andere betreute Personen erhalten Guardian-Zugriff und können per Soft-Delete gelöscht werden.
+- `T02.1.8`: Die Profil-Liste enthält zuerst das Hauptprofil und danach betreute Profile in Erstellungsreihenfolge.
 
 ## T03 Chat History
 

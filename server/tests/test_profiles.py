@@ -50,6 +50,30 @@ def test_get_profiles_returns_accessible_profiles(client):
     assert profiles[0]["role"] == "owner"
 
 
+def test_get_profiles_returns_main_profile_then_creation_order(client):
+    auth = register_user(client)
+
+    for display_name in ("Zweites Profil", "Drittes Profil"):
+        response = client.post(
+            "/profiles",
+            headers=auth["headers"],
+            json={
+                "display_name": display_name,
+                "profile_type": "other",
+            },
+        )
+        assert response.status_code == 200
+
+    response = client.get("/profiles", headers=auth["headers"])
+
+    assert response.status_code == 200
+    assert [profile["display_name"] for profile in response.json()] == [
+        "Anna",
+        "Zweites Profil",
+        "Drittes Profil",
+    ]
+
+
 def test_create_child_profile_creates_guardian_access(client, db_session):
     auth = register_user(client)
 

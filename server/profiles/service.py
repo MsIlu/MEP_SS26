@@ -87,6 +87,11 @@ def list_profiles(current_user: User, session: Session) -> list[ProfileResponse]
         .join(AccountProfileAccess, AccountProfileAccess.profile_id == Profile.id)
         .where(AccountProfileAccess.account_id == current_user.id)
         .where(Profile.deleted_at.is_(None))
+        .order_by(
+            (Profile.profile_type != "self").asc(),
+            Profile.created_at.asc(),
+            Profile.id.asc(),
+        )
     ).all()
 
     return [

@@ -77,6 +77,8 @@ void main() {
 
       expect(chatApi.availabilityRequests, 2);
       expect(controller.availability.value, CareenaAvailability.offline);
+
+      controller.dispose();
     });
 
     test(

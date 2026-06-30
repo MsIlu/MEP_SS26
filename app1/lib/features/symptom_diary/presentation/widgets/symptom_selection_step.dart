@@ -147,7 +147,7 @@ class _SymptomTextField extends StatelessWidget {
         ),
         floatingLabelStyle: TextStyle(
           color: hasSymptom
-              ? AppColors.careenaTeal
+              ? colorScheme.onSurface
               : colorScheme.onSurfaceVariant.withValues(alpha: 0.68),
           fontWeight: FontWeight.w600,
         ),

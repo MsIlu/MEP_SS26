@@ -79,26 +79,47 @@ class CustomBottomNav extends StatelessWidget {
                 iconSize: isSimpleView ? 32 : 24,
                 currentIndex: currentIndex,
                 onTap: onTap,
-                items: [
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    label: "Startseite",
-                  ),
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today_outlined),
-                    label: "Kalender",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: historyBadgeCount == null
-                        ? const _LiveHistoryBadgeIcon()
-                        : _HistoryBadgeIcon(count: historyBadgeCount!),
-                    label: "Verlauf",
-                  ),
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined),
-                    label: "Einstellungen",
-                  ),
-                ],
+                items: isSimpleView
+                    ? [
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.home_outlined),
+                          label: "Startseite",
+                        ),
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.calendar_today_outlined),
+                          label: "Kalender",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: historyBadgeCount == null
+                              ? const _LiveHistoryBadgeIcon()
+                              : _HistoryBadgeIcon(count: historyBadgeCount!),
+                          label: "Verlauf",
+                        ),
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.settings_outlined),
+                          label: "Einstellungen",
+                        ),
+                      ]
+                    : [
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.home_outlined),
+                          label: "Startseite",
+                        ),
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.calendar_today_outlined),
+                          label: "Kalender",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: historyBadgeCount == null
+                              ? const _LiveHistoryBadgeIcon()
+                              : _HistoryBadgeIcon(count: historyBadgeCount!),
+                          label: "Chathistorie",
+                        ),
+                        const BottomNavigationBarItem(
+                          icon: Icon(Icons.settings_outlined),
+                          label: "Einstellungen",
+                        ),
+                      ],
               ),
             ),
           ),

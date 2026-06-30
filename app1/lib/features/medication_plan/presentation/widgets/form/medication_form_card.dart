@@ -9,6 +9,7 @@ import 'dose_unit_autocomplete_field.dart';
 import 'medication_catalog_autocomplete_field.dart';
 import 'medication_catalog_details.dart';
 import 'medication_frequency_field.dart';
+import 'medication_input_decoration.dart';
 import 'time_selector.dart';
 
 /// Form card for entering medication name, dose, time, and reminder state.
@@ -124,10 +125,11 @@ class MedicationFormCard extends StatelessWidget {
                       decimal: true,
                     ),
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Dosis',
-                      hintText: 'z. B. 5, 1/2, ...',
-                      prefixIcon: Icon(Icons.straighten),
+                    decoration: medicationInputDecoration(
+                      context: context,
+                      label: 'Dosis',
+                      hint: 'z. B. 5, 1/2, ...',
+                      icon: Icons.straighten,
                     ),
                     validator: _requiredDoseAmount,
                   ),

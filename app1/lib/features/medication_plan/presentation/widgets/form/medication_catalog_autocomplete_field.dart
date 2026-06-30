@@ -2,6 +2,7 @@ import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/medication_catalog_item.dart';
+import 'medication_input_decoration.dart';
 
 /// Autocomplete input backed by the local medication demo catalog.
 class MedicationCatalogAutocompleteField extends StatelessWidget {
@@ -36,10 +37,11 @@ class MedicationCatalogAutocompleteField extends StatelessWidget {
               controller: textEditingController,
               focusNode: fieldFocusNode,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Was nimmst du ein?',
-                hintText: 'Arzneimittel suchen oder frei eintragen',
-                prefixIcon: Icon(Icons.medication_outlined),
+              decoration: medicationInputDecoration(
+                context: context,
+                label: 'Was nimmst du ein?',
+                hint: 'Arzneimittel suchen oder frei eintragen',
+                icon: Icons.medication_outlined,
               ),
               validator: validator,
             );

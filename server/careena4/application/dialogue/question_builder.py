@@ -31,10 +31,10 @@ class QuestionBuilder:
                 blocking=True,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "person_ref_missing":
-            label = case_focus_label or focus_label or "die Beschwerden"
+            label = focus_label or case_focus_label or "die Beschwerden"
             question = ActiveQuestion(
                 kind="subject_clarification",
                 question_intent="subject_clarification",
@@ -46,7 +46,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "duration_missing":
             question = ActiveQuestion(
@@ -58,7 +58,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "description_missing":
             question = ActiveQuestion(
@@ -70,7 +70,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "severity_missing":
             label = case_focus_label or focus_label or "die Beschwerde"
@@ -83,7 +83,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "location_unclear":
             question = ActiveQuestion(
@@ -95,7 +95,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         question = ActiveQuestion(
             kind="followup",
@@ -106,7 +106,7 @@ class QuestionBuilder:
             blocking=need.blocking,
             allows_additional_medical_info=True,
         )
-        question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+        question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
         return question
 
     def build_additional_information_request(self) -> ActiveQuestion:

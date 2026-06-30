@@ -9,6 +9,7 @@ from careena4.application.dialogue import QuestionBuilder, QuestionResolver, Saf
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
+from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.safety import CaseSafetyEvaluator
 from careena4.application.topic import TopicLabelBuilder, TopicUpdater
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
@@ -152,6 +153,10 @@ def build_runtime(
         catalog_cache=safety_catalog_cache,
         llm_client=llm_client,
     )
+    recommendation_builder = RecommendationBuilder(
+        case_manager=case_manager,
+        llm_client=llm_client,
+    )
     turn_engine = TurnEngine(
         raw_red_flag_detector=raw_red_flag_detector,
         case_safety_evaluator=case_safety_evaluator,
@@ -164,6 +169,7 @@ def build_runtime(
         question_builder=question_builder,
         response_builder=response_builder,
         turn_understanding_service=turn_understanding_service,
+        recommendation_builder=recommendation_builder,
     )
     session_store = Careena4SessionStore()
     return Careena4RuntimeServices(

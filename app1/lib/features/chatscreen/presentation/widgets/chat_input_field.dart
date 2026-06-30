@@ -24,6 +24,10 @@ class ChatInputField extends StatefulWidget {
   final List<String> smartReplies;
   final ValueChanged<String> onSmartReplySelected;
 
+  /// When true the text field is locked and the user must answer via a
+  /// smart-reply bubble (e.g. during a safety clarification question).
+  final bool lockedToReplies;
+
   const ChatInputField({
     super.key,
     required this.controller,
@@ -31,6 +35,7 @@ class ChatInputField extends StatefulWidget {
     required this.focusNode,
     required this.isSending,
     this.isEnabled = true,
+    this.lockedToReplies = false,
     required this.smartReplies,
     required this.onSmartReplySelected,
     required this.speechService,
@@ -169,7 +174,8 @@ class _ChatInputFieldState extends State<ChatInputField>
         final bottomPadding = isShortViewport ? 8.0 : 16.0;
         final fieldVerticalPadding = isShortViewport ? 10.0 : 16.0;
         final buttonSize = isShortViewport ? 40.0 : (isCompact ? 44.0 : 48.0);
-        final isInputEnabled = widget.isEnabled && !widget.isSending;
+        final isInputEnabled =
+            widget.isEnabled && !widget.isSending && !widget.lockedToReplies;
 
         return Container(
           padding: EdgeInsets.fromLTRB(
@@ -239,7 +245,8 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     controller: widget.controller,
                                     focusNode: widget.focusNode,
                                     autofocus: true,
-                                    enabled: widget.isEnabled,
+                                    enabled: widget.isEnabled &&
+                                        !widget.lockedToReplies,
                                     textInputAction: TextInputAction.send,
                                     keyboardType: TextInputType.text,
                                     minLines: 1,
@@ -260,9 +267,11 @@ class _ChatInputFieldState extends State<ChatInputField>
                                           ? 'Ich höre zu...'
                                           : (!widget.isEnabled
                                                 ? 'Chat abgeschlossen'
-                                                : (isCompact
-                                                      ? 'Beschwerden beschreiben'
-                                                      : 'Beschreibe kurz deine Beschwerden')),
+                                                : (widget.lockedToReplies
+                                                      ? 'Bitte eine Antwort auswählen'
+                                                      : (isCompact
+                                                            ? 'Beschwerden beschreiben'
+                                                            : 'Beschreibe kurz deine Beschwerden'))),
                                       hintStyle: TextStyle(
                                         color: colorScheme.onSurfaceVariant,
                                       ),
@@ -287,7 +296,8 @@ class _ChatInputFieldState extends State<ChatInputField>
                                         : 'Spracheingabe starten',
 
                                     child: GestureDetector(
-                                      onTap: widget.isEnabled
+                                      onTap: widget.isEnabled &&
+                                              !widget.lockedToReplies
                                           ? _toggleListening
                                           : null,
 

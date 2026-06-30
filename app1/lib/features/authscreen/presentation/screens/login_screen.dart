@@ -60,10 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return AuthPageScaffold(
       maxWidth: AuthTheme.loginMaxWidth,
-      fixedHeader: CareenaPageHeader(
-        title: 'Anmelden',
-        onBack: _goBack,
-      ),
+      fixedHeader: CareenaPageHeader(title: 'Anmelden', onBack: _goBack),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -204,7 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
         authResponse,
         preferredProfileId: rememberedProfileId,
       );
-      await widget.symptomRepository.clearEntries();
       await _syncSymptomDiary();
 
       if (!mounted) return;

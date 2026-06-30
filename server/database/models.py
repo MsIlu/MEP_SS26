@@ -75,9 +75,12 @@ class SymptomDiaryEntry(SQLModel, table=True):
     symptom: str = Field(max_length=255)
     body_area: str = Field(default="", max_length=100)
     intensity: int
+    temperature_c: Optional[float] = Field(default=None)
     note: str = Field(default="")
+    source: str = Field(default="manual", max_length=30)
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class AccountProfileAccess(SQLModel, table=True):

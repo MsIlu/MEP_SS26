@@ -7,9 +7,16 @@ import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AppDependencies', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
     test('syncs restored auth token into ApiClient', () async {
       String? authorizationHeader;
       final session = AuthSession();

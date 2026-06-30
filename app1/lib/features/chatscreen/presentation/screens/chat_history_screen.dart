@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/responsive_frame.dart';
+import '../../controllers/chat_controller.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
 import '../widgets/chat_bubble.dart';
-import '../../controllers/chat_controller.dart';
 import 'chat_screen.dart';
 
 class ChatHistoryScreen extends StatefulWidget {
@@ -96,7 +96,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CareenaPageHeader(
-        title: 'Nachrichtenverlauf',
+        title: 'Chathistorie',
         trailing: CareenaThemeHeaderAction(
           onPressed: widget.themeController.toggleTheme,
           isDarkMode: widget.themeController.isDarkMode,

@@ -83,6 +83,7 @@ class ChatController {
   void finishOpeningHistory(String historyEntryId) {
     _openingHistoryEntries.remove(historyEntryId);
   }
+
   final ValueNotifier<CareenaAvailability> availability =
       ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
@@ -212,11 +213,8 @@ class ChatController {
 
     return _sendSessionRequest(
       visibleUserText: visibleUserText?.trim() ?? trimmed,
-      request: (sessionId) => chatApi.sendMessage(
-        trimmed,
-        sessionId,
-        authSession.activeProfileId,
-      ),
+      request: (sessionId) =>
+          chatApi.sendMessage(trimmed, sessionId, authSession.activeProfileId),
     );
   }
 
@@ -250,9 +248,7 @@ class ChatController {
       return null;
     }
 
-    _addMessage(
-      message: Message(text: visibleUserText, isUser: true),
-    );
+    _addMessage(message: Message(text: visibleUserText, isUser: true));
 
     lastReplyOptions.value = [];
 
@@ -370,6 +366,7 @@ class ChatController {
       )) {
         return response;
       }
+
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
       if (chatService.isFinalRecommendation(response) || isEmergency) {
@@ -380,7 +377,6 @@ class ChatController {
           isEmergency: isEmergency,
         );
       }
-
       return response;
     } catch (e) {
       if (!_isChatRequestActive(
@@ -391,8 +387,18 @@ class ChatController {
       )) {
         return null;
       }
-      
+
       await refreshAvailability();
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return null;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       await _markActiveChatFailed();

@@ -24,7 +24,7 @@ class CareenaIconActionButton extends StatelessWidget {
     super.key,
     required this.tooltip,
     required this.onPressed,
-    this.size = const Size(48, 48),
+    this.size = const Size(56, 56),
   }) : icon = Icons.add,
        backgroundColor = AppColors.toolbarButtonBackground,
        foregroundColor = AppColors.toolbarButtonForeground;
@@ -54,6 +54,7 @@ class CareenaIconActionButton extends StatelessWidget {
         backgroundColor: backgroundColor,
         foregroundColor: foregroundColor,
         fixedSize: size,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       onPressed: onPressed,
       icon: Icon(icon),
@@ -83,8 +84,10 @@ class CareenaPrimaryIconButton extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.toolbarButtonBackground,
         foregroundColor: AppColors.toolbarButtonForeground,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        minimumSize: const Size.fromHeight(44),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+        iconSize: 20,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
     );
   }
@@ -113,20 +116,43 @@ class CareenaStepNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCancelAction = backLabel == 'Abbrechen';
+
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onBack,
-            icon: Icon(backIcon),
-            label: Text(backLabel),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
+          child: isCancelAction
+              ? TextButton(
+                  onPressed: onBack,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.careenaTeal,
+                    minimumSize: const Size.fromHeight(44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 11,
+                    ),
+                  ),
+                  child: Text(
+                    backLabel,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                )
+              : OutlinedButton.icon(
+                  onPressed: onBack,
+                  icon: Icon(backIcon),
+                  label: Text(backLabel),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 11,
+                    ),
+                    iconSize: 20,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(width: 10),
         Expanded(

@@ -33,6 +33,7 @@ void main() {
 
     expect(find.text('Einfache Ansicht'), findsOneWidget);
     expect(find.text('Einstellung suchen...'), findsOneWidget);
+    expect(find.text('Benutzerhandbuch'), findsOneWidget);
     expect(find.text('Datenschutz und Sicherheit'), findsOneWidget);
     expect(find.text('Über Careena'), findsOneWidget);
     expect(find.text('Vom Konto abmelden'), findsOneWidget);

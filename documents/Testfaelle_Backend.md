@@ -35,6 +35,7 @@ Diese Datei ordnet die Backend-Tests des Projekts nach Themen, Testdateien und e
 - `T01.1.5`: `/auth/me` verlangt einen Token.
 - `T01.1.6`: `/auth/me` gibt den aktuellen Account mit gültigem Token zurück.
 - `T01.1.7`: Account-Löschen deaktiviert den User und blockiert späteren Login.
+- `T01.1.8`: Login liefert zuerst das Hauptprofil und danach betreute Profile in Erstellungsreihenfolge.
 
 ## T02 Profile Management
 

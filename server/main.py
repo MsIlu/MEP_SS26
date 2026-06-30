@@ -252,6 +252,10 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
         careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
 
+app.state.careena4_turn_engine = careena4_turn_engine
+app.state.careena4_response_builder = build_careena4_chat_response
+
+
 #1. checks if Careena4-Session exist
 #2. validate empty input
 #3. save profile_id

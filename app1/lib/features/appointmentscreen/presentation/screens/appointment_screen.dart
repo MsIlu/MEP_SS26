@@ -281,6 +281,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             child: FloatingActionButton(
               backgroundColor: AppColors.careenaTeal,
               foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               onPressed: _showAddAppointmentDialog,
               child: const Icon(Icons.add),
             ),

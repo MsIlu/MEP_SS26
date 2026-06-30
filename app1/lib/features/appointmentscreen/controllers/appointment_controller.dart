@@ -62,4 +62,28 @@ class AppointmentController {
     addAppointment(appointment);
     return true;
   }
+
+  void upsertRecommendedAppointments(List<Appointment> remoteAppointments) {
+    if (remoteAppointments.isEmpty) {
+      return;
+    }
+
+    final remoteKeys = remoteAppointments
+        .map(_recommendedAppointmentKey)
+        .toSet();
+
+    final preservedAppointments = appointments.value.where((appointment) {
+      if (!appointment.isRecommendation) {
+        return true;
+      }
+
+      return !remoteKeys.contains(_recommendedAppointmentKey(appointment));
+    }).toList();
+
+    appointments.value = [...preservedAppointments, ...remoteAppointments];
+  }
+
+  String _recommendedAppointmentKey(Appointment appointment) {
+    return '${appointment.profileId ?? 'none'}:${appointment.id}';
+  }
 }

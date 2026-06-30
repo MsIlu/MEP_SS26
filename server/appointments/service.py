@@ -127,6 +127,7 @@ def save_recommended_appointment(
         request: RecommendedAppointmentCreateRequest,
         current_user: User,
         session: Session,
+        fhir_client: HapiFhirClient | None = None,
 ) -> RecommendedAppointmentResponse:
     require_profile_role(
         account_id=current_user.id,
@@ -134,8 +135,6 @@ def save_recommended_appointment(
         allowed_roles=EDIT_ROLES,
         session=session,
     )
-
-    starts_at = _parse_appointment_start(request.date, request.time)
 
     existing = session.exec(
         select(RecommendedAppointment)
@@ -150,17 +149,38 @@ def save_recommended_appointment(
     if existing is not None:
         return _to_recommended_response(existing)
 
+    client = fhir_client or HapiFhirClient()
+
+    try:
+        booked_resource = client.book_appointment(
+            appointment_id=request.fhir_appointment_id.strip(),
+            session_id=request.session_id.strip(),
+            profile_id=profile_id,
+            booked_by_account_id=current_user.id,
+        )
+    except HapiFhirError as exc:
+        raise _hapi_booking_exception(exc) from exc
+
+    appointment_data = appointment_resource_to_result(booked_resource)
+    starts_at = _parse_hapi_appointment_start(
+        booked_resource,
+        date_value=appointment_data["date"],
+        time_value=appointment_data["time"],
+    )
+
     entry = RecommendedAppointment(
         profile_id=profile_id,
-        session_id=request.session_id,
-        fhir_appointment_id=request.fhir_appointment_id.strip(),
-        provider_name=request.provider_name.strip(),
-        specialty=request.specialty.strip(),
-        address=request.address.strip(),
-        distance_km=request.distance_km,
+        booked_by_account_id=current_user.id,
+        session_id=request.session_id.strip(),
+        fhir_appointment_id=appointment_data["id"],
+        provider_name=appointment_data["provider_name"].strip(),
+        specialty=appointment_data["specialty"].strip(),
+        address=appointment_data["address"].strip(),
+        distance_km=appointment_data["distance_km"],
         starts_at=starts_at,
-        care_type=request.care_type.strip(),
+        care_type=appointment_data["care_type"].strip(),
         note=(request.note or "").strip() or None,
+        status="booked",
     )
 
     session.add(entry)
@@ -168,6 +188,23 @@ def save_recommended_appointment(
     session.refresh(entry)
 
     return _to_recommended_response(entry)
+
+
+def _parse_hapi_appointment_start(
+        resource: dict[str, Any],
+        *,
+        date_value: str,
+        time_value: str,
+) -> datetime:
+    start_value = resource.get("start")
+
+    if start_value:
+        try:
+            return datetime.fromisoformat(str(start_value).replace("Z", "+00:00"))
+        except ValueError:
+            pass
+
+    return _parse_appointment_start(date_value, time_value)
 
 
 def _parse_appointment_start(date_value: str, time_value: str) -> datetime:
@@ -180,6 +217,20 @@ def _parse_appointment_start(date_value: str, time_value: str) -> datetime:
         ) from exc
 
 
+def _hapi_booking_exception(exc: HapiFhirError) -> HTTPException:
+    detail = str(exc)
+    status_code = (
+        status.HTTP_503_SERVICE_UNAVAILABLE
+        if (
+            "nicht erreichbar" in detail
+            or "keine gueltige JSON-Antwort" in detail
+            or "keine FHIR-Resource" in detail
+        )
+        else status.HTTP_409_CONFLICT
+    )
+    return HTTPException(status_code=status_code, detail=detail)
+
+
 def _to_recommended_response(
         entry: RecommendedAppointment,
 ) -> RecommendedAppointmentResponse:
@@ -187,6 +238,7 @@ def _to_recommended_response(
         id=entry.id,
         profile_id=entry.profile_id,
         session_id=entry.session_id,
+        booked_by_account_id=entry.booked_by_account_id,
         fhir_appointment_id=entry.fhir_appointment_id,
         provider_name=entry.provider_name,
         specialty=entry.specialty,
@@ -195,6 +247,7 @@ def _to_recommended_response(
         starts_at=entry.starts_at,
         care_type=entry.care_type,
         note=entry.note,
+        status=entry.status,
         created_at=entry.created_at,
         updated_at=entry.updated_at,
     )

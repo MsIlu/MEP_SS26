@@ -39,15 +39,8 @@ class AppointmentSearchResponse(BaseModel):
 
 
 class RecommendedAppointmentCreateRequest(BaseModel):
-    session_id: str | None = None
+    session_id: str = Field(min_length=1, max_length=100)
     fhir_appointment_id: str = Field(min_length=1, max_length=120)
-    provider_name: str = Field(min_length=1, max_length=255)
-    specialty: str = Field(default="", max_length=120)
-    address: str = Field(default="", max_length=255)
-    distance_km: float = Field(default=0, ge=0)
-    date: str = Field(min_length=10, max_length=10)
-    time: str = Field(min_length=5, max_length=5)
-    care_type: str = Field(default="", max_length=120)
     note: str | None = Field(default=None, max_length=1000)
 
 
@@ -55,6 +48,7 @@ class RecommendedAppointmentResponse(BaseModel):
     id: int
     profile_id: int
     session_id: str | None = None
+    booked_by_account_id: int
     fhir_appointment_id: str
     provider_name: str
     specialty: str
@@ -63,5 +57,6 @@ class RecommendedAppointmentResponse(BaseModel):
     starts_at: datetime
     care_type: str
     note: str | None = None
+    status: str
     created_at: datetime
     updated_at: datetime

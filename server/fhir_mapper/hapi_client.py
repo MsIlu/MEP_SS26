@@ -33,6 +33,9 @@ CARE_TYPE_EXTENSION_URL = (
 BUNDLE_REFERENCE_EXTENSION_URL = (
     "https://careena.local/fhir/StructureDefinition/careena-source-bundle-id"
 )
+BOOKED_BY_ACCOUNT_EXTENSION_URL = (
+    "https://careena.local/fhir/StructureDefinition/careena-booked-by-account-id"
+)
 
 SPECIALTY_LABELS = {
     "general_practice": "Allgemeinmedizin",
@@ -151,6 +154,67 @@ class HapiFhirClient:
             appointments.append(resource)
 
         return sorted(appointments, key=lambda item: item.get("start") or "")
+
+    def get_appointment(self, appointment_id: str) -> dict[str, Any]:
+        resource = self._request("GET", f"/Appointment/{appointment_id}")
+
+        if resource.get("resourceType") != "Appointment":
+            raise HapiFhirError("HAPI hat keine Appointment-Resource geliefert.")
+
+        return resource
+
+    def book_appointment(
+            self,
+            *,
+            appointment_id: str,
+            session_id: str,
+            profile_id: int,
+            booked_by_account_id: int,
+    ) -> dict[str, Any]:
+        appointment = self.get_appointment(appointment_id)
+
+        if _extension_value(appointment, SESSION_EXTENSION_URL) != session_id:
+            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu dieser Session.")
+
+        if _extension_value(appointment, PROFILE_EXTENSION_URL) != profile_id:
+            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu diesem Profil.")
+
+        status = str(appointment.get("status") or "")
+        if status not in {"proposed", "pending", "booked"}:
+            raise HapiFhirError("Der HAPI-Termin kann nicht gebucht werden.")
+
+        booked_by_account = _extension_value(
+            appointment,
+            BOOKED_BY_ACCOUNT_EXTENSION_URL,
+        )
+        if status == "booked" and str(booked_by_account) != str(booked_by_account_id):
+            raise HapiFhirError("Der HAPI-Termin ist bereits gebucht.")
+
+        appointment["status"] = "booked"
+        appointment["comment"] = (
+            "Aus einer Careena-Handlungsempfehlung gebuchter lokaler HAPI-Termin."
+        )
+
+        appointment["extension"] = [
+            extension
+            for extension in appointment.get("extension", []) or []
+            if extension.get("url") != BOOKED_BY_ACCOUNT_EXTENSION_URL
+        ]
+        appointment["extension"].append(
+            {
+                "url": BOOKED_BY_ACCOUNT_EXTENSION_URL,
+                "valueInteger": booked_by_account_id,
+            }
+        )
+
+        for participant in appointment.get("participant", []) or []:
+            participant["status"] = "accepted"
+
+        return self._request(
+            "PUT",
+            f"/Appointment/{appointment['id']}",
+            json=appointment,
+        )
 
     def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         headers = kwargs.pop("headers", {})

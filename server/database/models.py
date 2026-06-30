@@ -149,6 +149,7 @@ class RecommendedAppointment(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     profile_id: int = Field(foreign_key="profiles.id", index=True)
+    booked_by_account_id: int = Field(foreign_key="users.id", index=True)
 
     session_id: Optional[str] = Field(default=None, max_length=100, index=True)
     fhir_appointment_id: str = Field(max_length=120, index=True)

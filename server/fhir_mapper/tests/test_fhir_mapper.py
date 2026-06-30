@@ -5,6 +5,12 @@ from careena4.models.domain.observation import Observation
 from careena4.models.domain.recommendation import RecommendationState
 from careena4.models.workflow.recommendation_result import RecommendationResult
 from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
+from fhir_mapper.hapi_client import (
+    BOOKED_BY_ACCOUNT_EXTENSION_URL,
+    HapiFhirClient,
+    PROFILE_EXTENSION_URL,
+    SESSION_EXTENSION_URL,
+)
 
 
 def _sample_internal_data():
@@ -185,3 +191,67 @@ def test_careena4_session_is_mapped_to_fhir_bundle():
 
     assert service_request["extension"][0]["valueCode"] == "medium"
     assert "hausärztlich" in service_request["note"][0]["text"]
+
+
+class FakeHapiResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return self._payload
+
+
+class FakeHapiHttpClient:
+    def __init__(self):
+        self.put_payload = None
+
+    def request(self, method, url, **kwargs):
+        if method == "GET":
+            return FakeHapiResponse(
+                {
+                    "resourceType": "Appointment",
+                    "id": "appointment-1",
+                    "status": "proposed",
+                    "participant": [
+                        {
+                            "actor": {"display": "Hausarztpraxis Dr. Schneider"},
+                            "status": "needs-action",
+                        }
+                    ],
+                    "extension": [
+                        {"url": SESSION_EXTENSION_URL, "valueString": "session-1"},
+                        {"url": PROFILE_EXTENSION_URL, "valueInteger": 10},
+                    ],
+                }
+            )
+
+        if method == "PUT":
+            self.put_payload = kwargs["json"]
+            return FakeHapiResponse(self.put_payload)
+
+        raise AssertionError(f"Unexpected method {method}")
+
+
+def test_hapi_client_books_appointment_with_account_extension():
+    http_client = FakeHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+
+    booked = client.book_appointment(
+        appointment_id="appointment-1",
+        session_id="session-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert booked["status"] == "booked"
+    assert booked["participant"][0]["status"] == "accepted"
+    assert {
+        "url": BOOKED_BY_ACCOUNT_EXTENSION_URL,
+        "valueInteger": 3,
+    } in booked["extension"]

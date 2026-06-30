@@ -11,12 +11,17 @@ from appointments.service import (
 )
 from auth.security import get_current_account, get_session
 from database.models import User
+from fhir_mapper.hapi_client import HapiFhirClient
 
 
 router = APIRouter(
     prefix="/profiles/{profile_id}/appointments",
     tags=["appointments"],
 )
+
+
+def get_hapi_fhir_client() -> HapiFhirClient:
+    return HapiFhirClient()
 
 
 @router.get("/recommended", response_model=list[RecommendedAppointmentResponse])
@@ -38,10 +43,12 @@ def post_profile_recommended_appointment(
         request: RecommendedAppointmentCreateRequest,
         current_user: User = Depends(get_current_account),
         session: Session = Depends(get_session),
+        fhir_client: HapiFhirClient = Depends(get_hapi_fhir_client),
 ):
     return save_recommended_appointment(
         profile_id=profile_id,
         request=request,
         current_user=current_user,
         session=session,
+        fhir_client=fhir_client,
     )

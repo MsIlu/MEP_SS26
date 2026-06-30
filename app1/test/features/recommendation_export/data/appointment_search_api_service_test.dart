@@ -75,6 +75,7 @@ void main() {
             jsonEncode({
               'id': 7,
               'profile_id': 10,
+              'booked_by_account_id': 3,
               'session_id': 'session-1',
               'fhir_appointment_id': 'hapi-appointment-1',
               'provider_name': 'Hausarztpraxis Dr. Schneider',
@@ -84,6 +85,7 @@ void main() {
               'starts_at': '2026-07-02T09:30:00',
               'care_type': 'Vor-Ort-Termin',
               'note': 'Von Careena empfohlen',
+              'status': 'booked',
               'created_at': '2026-07-01T08:00:00',
               'updated_at': '2026-07-01T08:00:00',
             }),
@@ -93,7 +95,7 @@ void main() {
         });
 
         final service = AppointmentSearchApiService(ApiClient(mockHttpClient));
-        await service.saveRecommendedAppointment(
+        final appointment = await service.saveRecommendedAppointment(
           profileId: 10,
           sessionId: 'session-1',
           note: 'Von Careena empfohlen',
@@ -113,9 +115,17 @@ void main() {
 
         expect(sentBody?['session_id'], 'session-1');
         expect(sentBody?['fhir_appointment_id'], 'hapi-appointment-1');
-        expect(sentBody?['provider_name'], 'Hausarztpraxis Dr. Schneider');
-        expect(sentBody?['date'], '2026-07-02');
-        expect(sentBody?['time'], '09:30');
+        expect(sentBody?['note'], 'Von Careena empfohlen');
+        expect(sentBody?.containsKey('provider_name'), isFalse);
+        expect(sentBody?.containsKey('date'), isFalse);
+        expect(sentBody?.containsKey('time'), isFalse);
+        expect(sentBody?.containsKey('address'), isFalse);
+
+        expect(appointment.id, 'hapi-appointment-1');
+        expect(appointment.profileId, 10);
+        expect(appointment.doctorName, 'Hausarztpraxis Dr. Schneider');
+        expect(appointment.appointmentDate, DateTime(2026, 7, 2, 9, 30));
+        expect(appointment.isRecommendation, isTrue);
       },
     );
   });

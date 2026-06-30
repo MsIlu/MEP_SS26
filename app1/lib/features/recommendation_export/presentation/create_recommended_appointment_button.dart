@@ -38,7 +38,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       ),
       icon: const Icon(Icons.event_available_outlined),
       label: Text(sessionId == null ? 'Termin erstellen' : 'Termin finden'),
-      onPressed: () => _handlePressed(context)
+      onPressed: () => _handlePressed(context),
     );
   }
 
@@ -132,10 +132,12 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
 
     final note = _buildAppointmentNote(selectedAppointment);
 
+    Appointment appointment;
+
     try {
-      await appointmentSearchApi.saveRecommendedAppointment(
+      appointment = await appointmentSearchApi.saveRecommendedAppointment(
         profileId: profileId,
-        sessionId: sessionId,
+        sessionId: sessionId!,
         appointment: selectedAppointment,
         note: note,
       );
@@ -151,17 +153,14 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       return;
     }
 
-    final appointment = Appointment(
-      id: selectedAppointment.id,
-      profileId: profileId,
-      doctorName: selectedAppointment.providerName,
-      appointmentDate: selectedAppointment.appointmentDate,
-      note: note,
-      isRecommendation: true,
+    final controller = AppointmentController();
+    final wasCreated = controller.addRecommendedAppointmentIfMissing(
+      appointment,
     );
 
-    final wasCreated = AppointmentController()
-        .addRecommendedAppointmentIfMissing(appointment);
+    if (!wasCreated) {
+      controller.upsertRecommendedAppointments([appointment]);
+    }
 
     if (!context.mounted) return;
 
@@ -172,7 +171,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     );
   }
 
-    Future<void> _createFallbackAppointment(
+  Future<void> _createFallbackAppointment(
     BuildContext context,
     int profileId,
   ) async {

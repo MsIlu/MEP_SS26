@@ -1,4 +1,6 @@
 import 'package:app1/core/network/api_client.dart';
+import 'package:app1/features/appointmentscreen/data/appointment_api_service.dart';
+import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
 
 class AppointmentSearchApiService {
   final ApiClient client;
@@ -19,24 +21,22 @@ class AppointmentSearchApiService {
     return AppointmentSearchResponse.fromJson(data);
   }
 
-  Future<void> saveRecommendedAppointment({
+  Future<Appointment> saveRecommendedAppointment({
     required int profileId,
-    required String? sessionId,
+    required String sessionId,
     required FhirAppointmentResult appointment,
     required String note,
   }) async {
-    await client.post('/profiles/$profileId/appointments/recommended', {
-      'session_id': sessionId,
-      'fhir_appointment_id': appointment.id,
-      'provider_name': appointment.providerName,
-      'specialty': appointment.specialty,
-      'address': appointment.address,
-      'distance_km': appointment.distanceKm,
-      'date': appointment.date,
-      'time': appointment.time,
-      'care_type': appointment.careType,
-      'note': note,
-    });
+    final data = await client.post(
+      '/profiles/$profileId/appointments/recommended',
+      {
+        'session_id': sessionId,
+        'fhir_appointment_id': appointment.id,
+        'note': note,
+      },
+    );
+
+    return RecommendedAppointmentResult.fromJson(data).toAppointment();
   }
 }
 

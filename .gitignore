@@ -38,3 +38,5 @@ Thumbs.db
 
 # Claude Code
 .claude/
+PROGRESS.md
+CHANGELOG.md

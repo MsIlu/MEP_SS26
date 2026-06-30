@@ -120,7 +120,7 @@ class WarningPage extends StatelessWidget {
     final observations = response.caseObservations;
     if (observations.isNotEmpty) {
       return observations
-          .map((o) => SymptomImport(name: o.label, severity: o.severity))
+          .map((o) => SymptomImport(name: o.label, severity: o.severity, date: o.date))
           .toList();
     }
     return symptoms.map((s) => SymptomImport(name: s)).toList();

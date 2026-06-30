@@ -12,6 +12,7 @@ import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../../data/symptom_import.dart';
 import '../controllers/symptom_diary_controller.dart';
+import '../utils/symptom_date_format.dart';
 import '../widgets/symptom_diary_content.dart';
 import '../widgets/symptom_entry_form.dart';
 
@@ -157,12 +158,15 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                     CheckboxListTile(
                       value: selected[i],
                       title: Text(imports[i].name),
-                      subtitle: imports[i].severity != null
-                          ? Text(
-                              'Intensität: ${imports[i].severity}/10 (aus Chat)',
-                              style: const TextStyle(fontSize: 12),
-                            )
-                          : null,
+                      subtitle: Text(
+                        [
+                          if (imports[i].severity != null)
+                            'Intensität: ${imports[i].severity}/10 (aus Chat)',
+                          if (imports[i].date != null)
+                            formatSymptomDateTitle(imports[i].date!, _today),
+                        ].join(' · '),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) =>
                           setDialogState(() => selected[i] = v ?? false),
@@ -199,6 +203,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           bodyArea: imp.bodyArea ?? '',
           intensity: imp.severity!,
           note: '',
+          date: imp.date,
         );
       } else {
         await _openSymptomFormForImport(imp.name, biologicalSex);
@@ -287,8 +292,9 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     required int intensity,
     double? temperatureC,
     required String note,
+    DateTime? date,
   }) async {
-    final entryDate = _selectedDate;
+    final entryDate = date ?? _selectedDate;
     final savedNote = temperatureC == null
         ? note
         : 'Temperatur: ${temperatureC.toStringAsFixed(1)} °C'

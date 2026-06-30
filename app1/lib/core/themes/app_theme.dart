@@ -20,9 +20,7 @@ class AppTheme {
       foregroundColor: AppColors.white,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.lightCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.lightCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.lightTextPrimary),
       bodySmall: TextStyle(color: AppColors.lightTextSecondary),
@@ -30,8 +28,25 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.lightCard,
+      labelStyle: const TextStyle(color: AppColors.lightTextPrimary),
+      floatingLabelStyle: const TextStyle(
+        color: AppColors.lightTextPrimary,
+        fontWeight: FontWeight.w600,
+      ),
+      hintStyle: const TextStyle(color: AppColors.lightTextPrimary),
+      prefixIconColor: AppColors.lightTextPrimary,
+      suffixIconColor: AppColors.lightTextPrimary,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400, width: 2),
       ),
     ),
   );
@@ -52,9 +67,7 @@ class AppTheme {
       foregroundColor: AppColors.darkTextPrimary,
       elevation: 0,
     ),
-    cardTheme: const CardThemeData(
-      color: AppColors.darkCard,
-    ),
+    cardTheme: const CardThemeData(color: AppColors.darkCard),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: AppColors.darkTextPrimary),
       bodySmall: TextStyle(color: AppColors.darkTextSecondary),
@@ -62,8 +75,25 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.darkCard,
+      labelStyle: const TextStyle(color: AppColors.darkTextPrimary),
+      floatingLabelStyle: const TextStyle(
+        color: AppColors.darkTextPrimary,
+        fontWeight: FontWeight.w600,
+      ),
+      hintStyle: const TextStyle(color: AppColors.darkTextPrimary),
+      prefixIconColor: AppColors.darkTextPrimary,
+      suffixIconColor: AppColors.darkTextPrimary,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.greyShade400, width: 2),
       ),
     ),
   );

@@ -10,10 +10,21 @@ EXTRACTION_HISTORY_LIMIT = 4
 RESPONSE_HISTORY_LIMIT = 6
 
 
+class DiaryEntry(PipelineModel):
+    """One symptom diary entry from the user's persistent health diary."""
+    date: str
+    symptom: str
+    body_area: str = ""
+    intensity: int
+    note: str = ""
+
+
 class TurnInput(PipelineModel):
     message: str
     session_id: str | None = None
     turn_id: str | None = None
+    profile_id: int | None = None
+    diary_history: list[DiaryEntry] = Field(default_factory=list)
     entry_history_messages: list[dict[str, str]] = Field(default_factory=list)
     extraction_history_messages: list[dict[str, str]] = Field(default_factory=list)
     response_history_messages: list[dict[str, str]] = Field(default_factory=list)
@@ -29,6 +40,8 @@ class TurnInput(PipelineModel):
         message: str,
         session_id: str | None = None,
         turn_id: str | None = None,
+        profile_id: int | None = None,
+        diary_history: list[DiaryEntry] | None = None,
         conversation_messages: list[dict[str, str]] | None = None,
         persisted_medical_case: MedicalCase | None = None,
         persisted_conversation_state: ConversationState | None = None,
@@ -40,6 +53,8 @@ class TurnInput(PipelineModel):
             message=message,
             session_id=session_id,
             turn_id=turn_id,
+            profile_id=profile_id,
+            diary_history=diary_history or [],
             entry_history_messages=_recent_history(history, ENTRY_HISTORY_LIMIT),
             extraction_history_messages=_recent_history(history, EXTRACTION_HISTORY_LIMIT),
             response_history_messages=_recent_history(history, RESPONSE_HISTORY_LIMIT),

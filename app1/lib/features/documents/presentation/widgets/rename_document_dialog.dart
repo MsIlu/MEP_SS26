@@ -27,6 +27,8 @@ class _RenameDocumentDialogState extends State<RenameDocumentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AlertDialog(
       icon: const Icon(
         Icons.edit_outlined,
@@ -42,18 +44,18 @@ class _RenameDocumentDialogState extends State<RenameDocumentDialog> {
         child: TextField(
           controller: _nameController,
           autofocus: true,
-          cursorColor: AppColors.careenaTeal,
+          cursorColor: colorScheme.onSurface,
           maxLength: 100,
           decoration: InputDecoration(
             labelText: 'Dokumentname',
-            floatingLabelStyle: const TextStyle(
-              color: AppColors.careenaTeal,
+            floatingLabelStyle: TextStyle(
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: AppColors.careenaTeal,
+              borderSide: BorderSide(
+                color: AppColors.greyShade400,
                 width: 2,
               ),
             ),

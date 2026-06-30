@@ -1,8 +1,37 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
+
+from careena4.models.understanding import StsConsultationReasonCandidate
+
+# Generic tokens that appear in STS labels but are too broad to use for matching.
+_MATCH_STOPWORDS = {
+    "schmerzen", "symptome", "beschwerden", "stoerung", "stoerungen",
+    "zustand", "bereich", "region", "trauma", "defizit", "zustand",
+}
+
+
+def _normalize_token(text: str) -> str:
+    text = text.casefold()
+    text = (
+        text.replace("ä", "ae").replace("ö", "oe")
+        .replace("ü", "ue").replace("ß", "ss")
+    )
+    return re.sub(r"[^a-z0-9]", "", text)
+
+
+def _sts_tokens(label: str) -> list[str]:
+    """Extract matchable keyword tokens from an STS label."""
+    raw_tokens = re.split(r"[^a-zA-Z0-9äöüÄÖÜß]+", label)
+    tokens = []
+    for raw in raw_tokens:
+        t = _normalize_token(raw)
+        if len(t) >= 6 and t not in _MATCH_STOPWORDS:
+            tokens.append(t)
+    return tokens
 
 
 class StsConsultationReasonCatalog:
@@ -17,6 +46,7 @@ class StsConsultationReasonCatalog:
         self.seed_path = seed_path or self._default_seed_path()
         self._reasons_cache: str | None = None
         self._index_cache: dict[str, dict[str, Any]] | None = None
+        self._match_entries_cache: list[dict[str, Any]] | None = None
 
     def reasons_for_prompt(self) -> str:
         """
@@ -42,6 +72,7 @@ class StsConsultationReasonCatalog:
             lines.append(f"{sts_id}: {item.get('source_label_de', '')}")
 
         self._reasons_cache = "\n".join(lines)
+        self._match_entries_cache = full_reasons
         self._index_cache = {
             str(item["sts_id"]): {
                 "sts_id": str(item["sts_id"]),
@@ -79,6 +110,44 @@ class StsConsultationReasonCatalog:
             or seed_reason.get("source_sts_levels_present", [])
         )
         return hydrated
+
+    def match_by_labels(
+        self,
+        labels: list[str],
+        *,
+        max_results: int = 3,
+    ) -> list[StsConsultationReasonCandidate]:
+        """Match normalized symptom labels against STS entries by keyword overlap.
+
+        Runs after normalization so that STS catalog content cannot bias
+        the normalization step.
+        """
+        if not labels:
+            return []
+
+        symptom_text = " ".join(_normalize_token(label) for label in labels)
+        self.reasons_for_prompt()
+
+        matches: list[StsConsultationReasonCandidate] = []
+        for entry in self._match_entries_cache or []:
+            tokens = _sts_tokens(entry.get("source_label_de", ""))
+            if not tokens:
+                continue
+            if any(token in symptom_text for token in tokens):
+                matches.append(
+                    StsConsultationReasonCandidate(
+                        sts_id=str(entry["sts_id"]),
+                        sts_label_de=entry.get("source_label_de"),
+                        source_category_de=entry.get("source_category_de"),
+                        source_sts_levels_present=entry.get("source_sts_levels_present", []),
+                        match_confidence=1.0,
+                        match_reason="keyword_match",
+                    )
+                )
+            if len(matches) >= max_results:
+                break
+
+        return matches
 
     @staticmethod
     def _default_seed_path() -> Path:

@@ -2,6 +2,8 @@
 # Created as part of the authentication and profile management test setup.
 # Tests registration and duplicate email handling.
 
+from datetime import datetime
+
 from sqlmodel import select
 
 from database.models import AccountProfileAccess, Profile, User
@@ -107,6 +109,62 @@ def test_login_succeeds_with_valid_credentials(client):
     assert data["account"]["email"] == "login@example.com"
     assert len(data["profiles"]) == 1
     assert data["profiles"][0]["role"] == "owner"
+
+
+def test_login_returns_main_profile_then_managed_profiles_by_creation(client, db_session):
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": "profile-order@example.com",
+            "password": "12345678",
+            "display_name": "Eigenes Profil",
+        },
+    )
+    headers = {
+        "Authorization": f"Bearer {register_response.json()['access_token']}"
+    }
+
+    first_response = client.post(
+        "/profiles",
+        headers=headers,
+        json={"display_name": "Später erstellt", "profile_type": "child"},
+    )
+    second_response = client.post(
+        "/profiles",
+        headers=headers,
+        json={"display_name": "Früher erstellt", "profile_type": "other"},
+    )
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    main_profile = db_session.get(Profile, register_response.json()["profiles"][0]["id"])
+    first_profile = db_session.get(Profile, first_response.json()["id"])
+    second_profile = db_session.get(Profile, second_response.json()["id"])
+    assert main_profile is not None
+    assert first_profile is not None
+    assert second_profile is not None
+    main_profile.created_at = datetime(2030, 1, 1)
+    first_profile.created_at = datetime(2026, 1, 2)
+    second_profile.created_at = datetime(2026, 1, 1)
+    db_session.add(main_profile)
+    db_session.add(first_profile)
+    db_session.add(second_profile)
+    db_session.commit()
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": "profile-order@example.com",
+            "password": "12345678",
+        },
+    )
+
+    assert login_response.status_code == 200
+    assert [profile["display_name"] for profile in login_response.json()["profiles"]] == [
+        "Eigenes Profil",
+        "Früher erstellt",
+        "Später erstellt",
+    ]
 
 
 def test_login_fails_with_wrong_password(client):

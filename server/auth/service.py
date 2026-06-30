@@ -124,6 +124,11 @@ def login_account(request: LoginRequest, session: Session) -> AuthResponse:
         .join(AccountProfileAccess, AccountProfileAccess.profile_id == Profile.id)
         .where(AccountProfileAccess.account_id == user.id)
         .where(Profile.deleted_at.is_(None))
+        .order_by(
+            (Profile.profile_type != "self").asc(),
+            Profile.created_at.asc(),
+            Profile.id.asc(),
+        )
     ).all()
 
     profiles = [

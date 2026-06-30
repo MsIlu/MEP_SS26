@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
+from careena4.domain.case import CaseManager
 from careena4.llm.call_control import CallModelConfig, RECOMMENDATION_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase
@@ -38,24 +38,24 @@ class ResponseBuilder:
         if decision.response_mode == "emergency":
             return (
                 "Wichtiger Hinweis:\n"
-                "Ihre Angaben koennen auf eine akute Notfallsituation hindeuten.\n\n"
-                "Bitte waehlen Sie sofort den Notruf 112 oder holen Sie umgehend medizinische Hilfe."
+                "Deine Angaben können auf eine akute Notfallsituation hindeuten.\n\n"
+                "Bitte wähle sofort den Notruf 112 oder hole umgehend medizinische Hilfe."
             )
         if decision.response_mode == "out_of_scope":
-            return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreiben Sie eine gesundheitliche Beschwerde oder Frage."
+            return "Ich kann hier nur bei gesundheitsbezogenen Anliegen helfen. Bitte beschreibe eine gesundheitliche Beschwerde oder Frage."
         if decision.response_mode in {"ask_safety_question", "ask_followup"} and active_question is not None:
             if active_question.guided_input is not None and active_question.guided_input.options:
                 options = ", ".join(option.label for option in active_question.guided_input.options)
-                return f"{active_question.prompt_text} Bitte antworten Sie mit: {options}."
+                return f"{active_question.prompt_text} Bitte antworte mit: {options}."
             return active_question.prompt_text
         if decision.response_mode == "guide_next_step":
             return (
-                "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. "
-                "Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button."
+                "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. "
+                "Wenn du eine Handlungsempfehlung möchtest, nutze bitte den Empfehlungs-Button."
             )
         if decision.response_mode == "recommend" and recommendation_result is not None:
             return self._render_recommendation(recommendation_result=recommendation_result)
-        return "Bitte beschreiben Sie Ihr gesundheitliches Anliegen genauer."
+        return "Bitte beschreibe dein gesundheitliches Anliegen genauer."
 
     def _render_recommendation(self, *, recommendation_result: RecommendationResult) -> str:
         if self.llm_client is None or getattr(self.llm_client, "client", None) is None:
@@ -111,6 +111,6 @@ class ResponseBuilder:
     def _fallback_recommendation(*, recommendation_result: RecommendationResult) -> str:
         return (
             f"{recommendation_result.summary}\n\n"
-            f"Naechster Schritt: {recommendation_result.next_step}\n\n"
-            "Hinweis: Diese Orientierung ersetzt keine aerztliche Untersuchung oder Diagnose."
+            f"Nächster Schritt: {recommendation_result.next_step}\n\n"
+            "Hinweis: Diese Orientierung ersetzt keine ärztliche Untersuchung oder Diagnose."
         )

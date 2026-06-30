@@ -26,7 +26,7 @@ class QuestionBuilder:
                 kind="person_clarification",
                 question_intent="person_clarification",
                 target_followup_id=need.followup_id,
-                prompt_text="Geht es um Sie selbst, um Ihr Kind oder um eine andere Person?",
+                prompt_text="Geht es um dich selbst, um dein Kind oder um eine andere Person?",
                 blocking=True,
                 allows_additional_medical_info=True,
             )
@@ -62,7 +62,7 @@ class QuestionBuilder:
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
                 prompt_text=(
-                    f"Betreffen {self._accusative_label(label)} Sie selbst, Ihr Kind oder eine andere Person?"
+                    f"Betreffen {self._accusative_label(label)} dich selbst, dein Kind oder eine andere Person?"
                 ),
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
@@ -111,7 +111,7 @@ class QuestionBuilder:
             question_intent="free_description",
             target_followup_id=need.followup_id,
             target_observation_id=need.observation_id,
-            prompt_text="Koennen Sie das bitte noch etwas genauer beschreiben?",
+            prompt_text="Kannst du das bitte noch etwas genauer beschreiben?",
             blocking=need.blocking,
             allows_additional_medical_info=True,
         )
@@ -122,7 +122,7 @@ class QuestionBuilder:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu Ihren Beschwerden moechten Sie noch hinzufuegen?",
+            prompt_text="Welche weiteren Angaben zu deinen Beschwerden moechtest du noch hinzufuegen?",
             blocking=False,
             allows_additional_medical_info=True,
         )
@@ -176,14 +176,14 @@ class QuestionBuilder:
 
     def _description_prompt(self, *, focus_label: str | None) -> str:
         label = focus_label or "die Beschwerden"
-        return f"Koennen Sie {self._accusative_label(label)} bitte etwas genauer beschreiben?"
+        return f"Kannst du {self._accusative_label(label)} bitte etwas genauer beschreiben?"
 
     @staticmethod
     def _person_age_prompt(*, person_relation: str | None) -> str:
         if person_relation == "self":
-            return "Wie alt sind Sie?"
+            return "Wie alt bist du?"
         if person_relation == "child":
-            return "Wie alt ist Ihr Kind?"
+            return "Wie alt ist dein Kind?"
         if person_relation == "other":
             return "Wie alt ist die betroffene Person?"
         return "Wie alt ist die betroffene Person?"
@@ -191,43 +191,12 @@ class QuestionBuilder:
     @staticmethod
     def _person_sex_prompt(*, person_relation: str | None) -> str:
         if person_relation == "self":
-            return "Welches Geschlecht haben Sie?"
+            return "Welches Geschlecht hast du?"
         if person_relation == "child":
-            return "Welches Geschlecht hat Ihr Kind?"
+            return "Welches Geschlecht hat dein Kind?"
         if person_relation == "other":
             return "Welches Geschlecht hat die betroffene Person?"
         return "Welches Geschlecht hat die betroffene Person?"
-
-    @staticmethod
-    def _body_site_from_label(label: str | None) -> str | None:
-        if not label:
-            return None
-        normalized = label.casefold()
-        for token, body_site in (
-            ("huefte", "Huefte"),
-            ("hüfte", "Huefte"),
-            ("bauch", "Bauch"),
-            ("brust", "Brust"),
-            ("kopf", "Kopf"),
-            ("hals", "Hals"),
-            ("bein", "Bein"),
-            ("arm", "Arm"),
-        ):
-            if token in normalized:
-                return body_site
-        return None
-
-    @staticmethod
-    def _body_site_phrase(body_site: str) -> str:
-        return {
-            "Huefte": "an der Huefte",
-            "Brust": "in der Brust",
-            "Bauch": "im Bauch",
-            "Kopf": "am Kopf",
-            "Hals": "im Hals",
-            "Bein": "im Bein",
-            "Arm": "im Arm",
-        }.get(body_site, f"an der {body_site}")
 
     @staticmethod
     def _accusative_label(label: str) -> str:

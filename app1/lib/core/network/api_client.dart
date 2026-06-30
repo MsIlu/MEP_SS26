@@ -58,19 +58,19 @@ class ApiClient {
     } on TimeoutException {
       throw const ApiException(
         ApiErrorType.timeout,
-        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.',
       );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(
         ApiErrorType.network,
-        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuche es erneut.',
       );
     }
   }
@@ -91,19 +91,19 @@ class ApiClient {
     } on TimeoutException {
       throw const ApiException(
         ApiErrorType.timeout,
-        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.',
       );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(
         ApiErrorType.network,
-        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuche es erneut.',
       );
     }
   }
@@ -123,24 +123,26 @@ class ApiClient {
         switch (response.statusCode) {
           case 400:
             message =
-                'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+                'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
             break;
           case 401:
             message =
-                'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+                'Du bist nicht angemeldet. Bitte melde dich erneut an.';
             break;
           case 403:
-            message = 'Sie haben keine Berechtigung für diese Aktion.';
+            message = 'Du hast keine Berechtigung für diese Aktion.';
             break;
           case 404:
             message = 'Die angefragten Daten wurden nicht gefunden.';
             break;
           case 409:
-            message = 'Diese E-Mail-Adresse wurde schon registriert.';
+            message =
+                _mappedErrorDetailFromResponse(response) ??
+                'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
             break;
           default:
             message =
-                'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+                'Es ist ein Serverfehler aufgetreten. Bitte versuche es später erneut.';
         }
 
         throw ApiException(
@@ -158,24 +160,24 @@ class ApiClient {
 
       throw const ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on TimeoutException {
       throw const ApiException(
         ApiErrorType.timeout,
-        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.',
       );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(
         ApiErrorType.network,
-        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuche es erneut.',
       );
     }
   }
@@ -196,19 +198,19 @@ class ApiClient {
     } on TimeoutException {
       throw const ApiException(
         ApiErrorType.timeout,
-        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.',
       );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(
         ApiErrorType.network,
-        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuche es erneut.',
       );
     }
   }
@@ -226,19 +228,19 @@ class ApiClient {
     } on TimeoutException {
       throw const ApiException(
         ApiErrorType.timeout,
-        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuchen Sie es erneut.',
+        'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.',
       );
     } on FormatException {
       throw ApiException(
         ApiErrorType.invalidResponse,
-        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+        'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
       );
     } on ApiException {
       rethrow;
     } catch (e) {
       throw ApiException(
         ApiErrorType.network,
-        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuchen Sie es erneut.',
+        'Es konnte keine Verbindung zum Server hergestellt werden. Bitte versuche es erneut.',
       );
     }
   }
@@ -259,24 +261,26 @@ class ApiClient {
       switch (response.statusCode) {
         case 400:
           message =
-              'Die Anfrage ist ungültig. Bitte überprüfen Sie Ihre Eingaben.';
+              'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
           break;
         case 401:
           message =
-              'Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.';
+              'Du bist nicht angemeldet. Bitte melde dich erneut an.';
           break;
         case 403:
-          message = 'Sie haben keine Berechtigung für diese Aktion.';
+          message = 'Du hast keine Berechtigung für diese Aktion.';
           break;
         case 404:
           message = 'Die angefragten Daten wurden nicht gefunden.';
           break;
         case 409:
-          message = 'Diese E-Mail-Adresse wurde schon registriert.';
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
           break;
         default:
           message =
-              'Es ist ein Serverfehler aufgetreten. Bitte versuchen Sie es später erneut.';
+              'Es ist ein Serverfehler aufgetreten. Bitte versuche es später erneut.';
       }
 
       throw ApiException(
@@ -294,8 +298,34 @@ class ApiClient {
 
     throw const ApiException(
       ApiErrorType.invalidResponse,
-      'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+      'Die Serverantwort konnte nicht verarbeitet werden. Bitte versuche es später erneut.',
     );
+  }
+
+  String? _errorDetailFromResponse(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is Map<String, dynamic>) {
+        final detail = decoded['detail'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String? _mappedErrorDetailFromResponse(http.Response response) {
+    final detail = _errorDetailFromResponse(response);
+
+    switch (detail) {
+      case 'Email is already registered.':
+        return 'Diese E-Mail-Adresse wurde schon registriert.';
+      default:
+        return detail;
+    }
   }
 
   /*

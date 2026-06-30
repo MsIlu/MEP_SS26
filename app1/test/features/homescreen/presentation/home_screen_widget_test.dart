@@ -10,13 +10,14 @@ import 'package:app1/features/chatscreen/data/chat_history_repository.dart';
 import 'package:app1/features/chatscreen/data/models/chat_history_entry.dart';
 import 'package:app1/features/chatscreen/data/models/message_model.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
 import 'package:app1/features/chatscreen/services/chat_service.dart';
 import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen_test_harness.dart';
 
@@ -41,7 +42,7 @@ void main() {
       expect(find.text('Suchen...'), findsNothing);
       expect(find.textContaining('tun?'), findsOneWidget);
       expect(find.text('Kalender'), findsOneWidget);
-      expect(find.text('Verlauf'), findsOneWidget);
+      expect(find.text('Chathistorie'), findsNothing);
       expect(find.text('Einstellungen'), findsOneWidget);
 
       final iconBackground = find.byKey(
@@ -74,7 +75,7 @@ void main() {
       expect(featureCard.shadowColor, AppColors.darkBackground);
     });
 
-    testWidgets('opens calendar overview from bottom navigation', (
+    testWidgets('opens saved chat history from bottom navigation', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({});
@@ -87,7 +88,7 @@ void main() {
       expect(find.text('Keine Einträge'), findsOneWidget);
     });
 
-    testWidgets('opens saved chat history from Nachrichten navigation', (
+    testWidgets('opens saved chat history from Chathistorie navigation', (
       WidgetTester tester,
     ) async {
       final firstProfileEntry = ChatHistoryEntry(
@@ -182,7 +183,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Verlauf'));
+      await tester.tap(find.text('Chathistorie'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChatHistoryScreen), findsOneWidget);
@@ -256,5 +257,17 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
   }
 
   @override
-  Future<void> saveCompletedChat(ChatHistoryEntry entry) async {}
+  Future<ChatHistoryEntry> saveChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> updateChat(ChatHistoryEntry entry) async {
+    return entry;
+  }
+
+  @override
+  Future<ChatHistoryEntry> saveCompletedChat(ChatHistoryEntry entry) async {
+    return saveChat(entry);
+  }
 }

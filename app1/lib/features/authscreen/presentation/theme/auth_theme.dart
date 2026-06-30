@@ -53,22 +53,21 @@ class AuthTheme {
       fillColor: colorScheme.surface,
       suffixIcon: suffixIcon,
       suffixText: suffixText,
-      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      labelStyle: TextStyle(color: colorScheme.onSurface),
+      hintStyle: TextStyle(color: colorScheme.onSurface),
+      prefixIconColor: colorScheme.onSurface,
+      suffixIconColor: colorScheme.onSurface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(fieldRadius),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: AppColors.greyShade400),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(fieldRadius),
-        borderSide: BorderSide(color: colorScheme.outlineVariant),
+        borderSide: BorderSide(color: AppColors.greyShade400),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(fieldRadius),
-        borderSide: const BorderSide(
-          color: AppColors.careenaPrimary,
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: AppColors.careenaPrimary, width: 2),
       ),
     );
   }

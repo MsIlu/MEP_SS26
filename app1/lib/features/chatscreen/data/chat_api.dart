@@ -52,6 +52,16 @@ class ChatApi {
     await client.delete("/input-drafts/$sessionId");
   }
 
+  Future<void> setObservationSeverities(
+    String sessionId,
+    Map<String, int> severities,
+  ) async {
+    await client.post("/chatscreen/set-severities", {
+      "session_id": sessionId,
+      "severities": severities,
+    });
+  }
+
   Future<void> warmup() async {
     try {
       await client.post("/warmup", {}).timeout(const Duration(seconds: 5));
@@ -90,5 +100,23 @@ class ChatApi {
     }
 
     return sessionId;
+  }
+
+  Future<String> resumeHistorySession(String historyId) async {
+    final data = await client.post('/chat-history/$historyId/resume', {});
+
+    final sessionId = data['session_id'];
+
+    if (sessionId == null) {
+      throw Exception('Failed to resume session: missing session_id');
+    }
+
+    return sessionId as String;
+  }
+
+  Future<ChatResponse> continueHistorySession(String historyId) async {
+    final data = await client.post('/chat-history/$historyId/continue', {});
+
+    return ChatResponse.fromJson(data);
   }
 }

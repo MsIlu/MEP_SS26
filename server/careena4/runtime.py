@@ -10,12 +10,13 @@ from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetect
 from careena4.application.entry import EntryClassifier
 from careena4.application.extraction import MedicalExtractor
 from careena4.application.interpretation import TurnInterpreter
+from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
+from careena4.application.response import ResponseBuilder
 from careena4.application.safety import CaseSafetyEvaluator
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
-from careena4.application.response import ResponseBuilder
-from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.engine import ExtractionEngine
+from careena4.domain.case import CaseManager
 from careena4.infrastructure import Careena4SessionStore, SafetyCatalogCache
 from careena4.llm.call_control import CallModelConfig, build_call_model_config
 from careena4.server_log import configure_debug_logging
@@ -106,7 +107,7 @@ def build_runtime(
     )
     extraction_engine = ExtractionEngine(llm_client)
     safety_catalog_cache = SafetyCatalogCache()
-    # Cache is NOT loaded here — main.py on_startup() loads it after catalog seeding.
+    # Cache is NOT loaded here - main.py on_startup() loads it after catalog seeding.
     safety_clarification_builder = SafetyClarificationBuilder(
         llm_client=llm_client,
     )
@@ -147,6 +148,10 @@ def build_runtime(
         catalog_cache=safety_catalog_cache,
         llm_client=llm_client,
     )
+    recommendation_builder = RecommendationBuilder(
+        case_manager=case_manager,
+        llm_client=llm_client,
+    )
     turn_engine = TurnEngine(
         raw_red_flag_detector=raw_red_flag_detector,
         case_safety_evaluator=case_safety_evaluator,
@@ -159,6 +164,7 @@ def build_runtime(
         response_builder=response_builder,
         turn_interpreter=turn_interpreter,
         turn_understanding_service=turn_understanding_service,
+        recommendation_builder=recommendation_builder,
     )
     session_store = Careena4SessionStore()
     return Careena4RuntimeServices(

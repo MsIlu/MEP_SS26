@@ -1,16 +1,18 @@
 import unittest
 import json
 
+from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.interpretation.turn_interpreter import TurnInterpreter
+from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
 from careena4.application.understanding.sts_consultation_reason_catalog import StsConsultationReasonCatalog
 from careena4.llm.call_control import CallModelConfig, ENTRY_CALL, EXTRACTION_CALL, TURN_INTERPRETATION_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import ActiveQuestion
+from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase
 from careena4.models.turn import SafetyState
 from careena4.models.interpretation import TurnInterpretation
 from careena4.models.turn import EntryAssessment, ExtractedCaseInput, QuestionResolution, TurnDecision
@@ -541,9 +543,32 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertEqual(
             text,
-            "Es liegen ausreichend Angaben fuer eine Handlungsempfehlung vor. Wenn Sie eine Handlungsempfehlung moechten, nutzen Sie bitte den Empfehlungs-Button.",
+            "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. Wenn du eine Handlungsempfehlung möchtest, nutze bitte den Empfehlungs-Button.",
         )
+
+    def test_question_builder_uses_german_umlauts(self):
+        builder = QuestionBuilder()
+
+        description_question = builder.build_for_need(
+            need=FollowupNeed(reason="description_missing"),
+            focus_label="Hueftschmerzen",
+        )
+        additional_question = builder.build_additional_information_request()
+
+        self.assertEqual(
+            description_question.prompt_text,
+            "Kannst du die Hueftschmerzen bitte etwas genauer beschreiben?",
+        )
+        self.assertIn("hinzufuegen", additional_question.prompt_text)
+
+    def test_recommendation_builder_uses_german_umlauts(self):
+        result = RecommendationBuilder().build(medical_case=MedicalCase())
+
+        self.assertIn("für", result.summary)
+        self.assertIn("fühlst", result.next_step)
+        self.assertIn("ärztliche", result.limitations[1])
 
 
 if __name__ == "__main__":
     unittest.main()
+

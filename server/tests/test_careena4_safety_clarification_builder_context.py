@@ -29,12 +29,12 @@ def suspected_state(evidence_terms: list[str] | None = None) -> SafetyState:
 
 def test_builder_uses_medgemma_question_when_llm_available():
     llm = MagicMock()
-    llm.complete.return_value = "Bekommen Sie gerade Schwierigkeiten beim Atmen?"
+    llm.complete.return_value = "Bekommst du gerade Schwierigkeiten beim Atmen?"
     builder = SafetyClarificationBuilder(llm_client=llm)
 
     question = builder.build_active_question(safety_state=suspected_state())
 
-    assert question.prompt_text == "Bekommen Sie gerade Schwierigkeiten beim Atmen?"
+    assert question.prompt_text == "Bekommst du gerade Schwierigkeiten beim Atmen?"
     assert question.safety_context.catalog_mapping_status == "medgemma_generated"
     llm.complete.assert_called_once()
 

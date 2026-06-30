@@ -17,7 +17,10 @@ from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain.observation import Observation
+from careena4.models.input import SymptomInputDraft
 from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
+from careena4.models.turn.entry_assessment import EntryAssessment
 from careena4.server_log import log_event
 
 
@@ -110,7 +113,10 @@ class TurnEngine:
                 turn_interpretation=turn_interpretation,
             )
 
-        if self.turn_interpreter is not None:
+        is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
+        if is_fast_path:
+            trace_notes.append("turn:guided_input_fast_path")
+        elif self.turn_interpreter is not None:
             turn_interpretation = self.turn_interpreter.interpret(
                 message=turn_input.message,
                 active_question=conversation_state.active_question,
@@ -147,7 +153,8 @@ class TurnEngine:
                     trace_notes.append("turn_interpretation:understanding_skipped_for_guided_safety_answer")
 
         if (
-            current_turn_understanding is None
+            not is_fast_path
+            and current_turn_understanding is None
             and self.turn_understanding_service is not None
             and self._should_use_understanding_fallback(
                 active_question=conversation_state.active_question,
@@ -170,17 +177,26 @@ class TurnEngine:
                 trace_notes=trace_notes,
             )
 
-        entry_assessment = (
-            turn_interpretation.entry_assessment
-            if turn_interpretation is not None
-            else self.entry_classifier.classify(
-                message=turn_input.message,
-                active_question=conversation_state.active_question,
-                medical_case=medical_case,
-                history_messages=turn_input.entry_history_messages,
+        if is_fast_path:
+            entry_assessment = EntryAssessment(
+                in_scope=True,
+                medical_relevance="medical",
+                answers_active_question=True,
+                contains_new_medical_information=False,
+                message_kind="question_answer",
             )
-        )
-        if turn_interpretation is None:
+        else:
+            entry_assessment = (
+                turn_interpretation.entry_assessment
+                if turn_interpretation is not None
+                else self.entry_classifier.classify(
+                    message=turn_input.message,
+                    active_question=conversation_state.active_question,
+                    medical_case=medical_case,
+                    history_messages=turn_input.entry_history_messages,
+                )
+            )
+        if not is_fast_path and turn_interpretation is None:
             trace_notes.append("entry:fallback_classifier_used")
             log_event(
                 "entry.fallback_classifier_used",
@@ -384,6 +400,12 @@ class TurnEngine:
             )
             trace_notes.extend(write_trace)
 
+            medical_case, chip_trace = self._sync_chips_to_case(
+                medical_case=medical_case,
+                symptom_input_draft=symptom_input_draft,
+            )
+            trace_notes.extend(chip_trace)
+
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
             ):
@@ -409,6 +431,12 @@ class TurnEngine:
                         extra_trace_notes=["turn:case_safety_clarification_selected"],
                         turn_interpretation=turn_interpretation,
                     )
+
+        medical_case, chip_trace = self._sync_chips_to_case(
+            medical_case=medical_case,
+            symptom_input_draft=symptom_input_draft,
+        )
+        trace_notes.extend(chip_trace)
 
         if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
             decision = TurnDecision(
@@ -552,6 +580,51 @@ class TurnEngine:
             resolved_question=resolved_question,
             turn_interpretation=turn_interpretation,
         )
+
+    @staticmethod
+    def _is_guided_input_answer(message: str, active_question: ActiveQuestion | None) -> bool:
+        if active_question is None or active_question.guided_input is None:
+            return False
+        normalized = message.strip().lower()
+        return any(opt.label.strip().lower() == normalized for opt in active_question.guided_input.options)
+
+    def _sync_chips_to_case(
+        self,
+        *,
+        medical_case: MedicalCase,
+        symptom_input_draft: SymptomInputDraft | None,
+    ) -> tuple[MedicalCase, list[str]]:
+        """Write user-confirmed/edited chips into MedicalCase observations.
+
+        Only chips with a normalized_label_de (set by MedGemma) are accepted â€”
+        that normalization step serves as the plausibility gate.
+        """
+        if symptom_input_draft is None:
+            return medical_case, []
+
+        _syncable = {"user_confirmed", "user_edited", "user_added"}
+        trace_notes: list[str] = []
+
+        for chip in symptom_input_draft.chips:
+            if chip.status not in _syncable:
+                continue
+            if not chip.normalized_label_de:
+                continue
+
+            label_cf = chip.normalized_label_de.casefold()
+            already_present = any(
+                obs.label.casefold() == label_cf
+                for obs in medical_case.observations
+            )
+            if already_present:
+                continue
+
+            medical_case.observations.append(
+                Observation(type="symptom", label=chip.normalized_label_de)
+            )
+            trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
+
+        return medical_case, trace_notes
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
         medical_case = request_input.persisted_medical_case or MedicalCase()
@@ -863,3 +936,4 @@ class TurnEngine:
         if callable(normalize_resolution):
             return normalize_resolution(question=question, resolution=resolution)
         return resolution
+

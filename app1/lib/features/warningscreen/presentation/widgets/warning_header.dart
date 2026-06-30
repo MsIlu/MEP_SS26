@@ -86,11 +86,7 @@ class _WarningHeaderCopy extends StatelessWidget {
         const SizedBox(height: 7),
         Text(
           WarningCopy.headerBody,
-          style: TextStyle(
-            color: bodyColor,
-            fontSize: 13,
-            height: 1.35,
-          ),
+          style: TextStyle(color: bodyColor, fontSize: 13, height: 1.35),
         ),
       ],
     );

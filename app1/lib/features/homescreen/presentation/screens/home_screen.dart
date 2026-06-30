@@ -306,6 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GlobalKey _targetKey(AppGuideTarget target) => switch (target) {
     AppGuideTarget.careena => _careenaKey,
+    AppGuideTarget.search => _featuresKey,
     AppGuideTarget.features => _featuresKey,
     AppGuideTarget.profile => _profileKey,
     AppGuideTarget.navigation => _navigationKey,

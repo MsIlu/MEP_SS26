@@ -60,7 +60,9 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: titleSidePadding),
-            child: Semantics(
+            child: Tooltip(
+              message: title,
+              child: Semantics(
                 header: true,
                 label: title,
                 child: ExcludeSemantics(

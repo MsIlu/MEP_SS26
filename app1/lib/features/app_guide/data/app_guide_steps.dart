@@ -1,4 +1,4 @@
-enum AppGuideTarget { careena, features, profile, navigation }
+enum AppGuideTarget { careena, search, features, profile, navigation }
 
 class AppGuideStep {
   final AppGuideTarget target;
@@ -21,6 +21,13 @@ const appGuideSteps = [
     title: 'Careena ist für dich da',
     description:
         'Tippe auf diesen Knopf, wenn du Beschwerden beschreiben oder eine gesundheitliche Frage stellen möchtest.',
+  ),
+  AppGuideStep(
+    target: AppGuideTarget.search,
+    spotlightRadius: 30,
+    title: 'Schnell finden',
+    description:
+        'Nutze die Funktionsübersicht, um direkt zum passenden Bereich zu wechseln.',
   ),
   AppGuideStep(
     target: AppGuideTarget.profile,

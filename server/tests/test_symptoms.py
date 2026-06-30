@@ -17,7 +17,9 @@ def test_create_symptom_stores_entry(client, db_session):
             "symptom": "Kopfschmerzen",
             "bodyArea": "Kopf",
             "intensity": 7,
+            "temperatureC": 38.4,
             "note": "Seit dem Morgen",
+            "source": "careena",
             "createdAt": "2026-06-12T09:30:00",
         },
     )
@@ -30,13 +32,101 @@ def test_create_symptom_stores_entry(client, db_session):
     assert data["symptom"] == "Kopfschmerzen"
     assert data["bodyArea"] == "Kopf"
     assert data["intensity"] == 7
+    assert data["temperatureC"] == 38.4
     assert data["note"] == "Seit dem Morgen"
+    assert data["source"] == "careena"
     assert data["createdAt"] == "2026-06-12T09:30:00"
+    assert data["updatedAt"] is not None
 
     entry = db_session.exec(select(SymptomDiaryEntry)).first()
     assert entry is not None
     assert entry.profile_id == auth["profile_id"]
     assert entry.body_area == "Kopf"
+    assert entry.temperature_c == 38.4
+    assert entry.source == "careena"
+
+
+def test_update_symptom_changes_editable_fields(client, db_session):
+    auth = register_user(client, email="symptom-update@example.com")
+    create_response = client.post(
+        f"/profiles/{auth['profile_id']}/symptoms",
+        headers=auth["headers"],
+        json={
+            "date": "2026-06-12T00:00:00",
+            "symptom": "Fieber",
+            "intensity": 5,
+            "temperatureC": 38.1,
+            "note": "",
+            "source": "careena",
+        },
+    )
+    entry_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/profiles/{auth['profile_id']}/symptoms/{entry_id}",
+        headers=auth["headers"],
+        json={
+            "intensity": 7,
+            "temperatureC": 39.2,
+            "note": "Am Abend gestiegen",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["intensity"] == 7
+    assert data["temperatureC"] == 39.2
+    assert data["note"] == "Am Abend gestiegen"
+    assert data["source"] == "careena"
+
+    entry = db_session.get(SymptomDiaryEntry, entry_id)
+    assert entry is not None
+    assert entry.updated_at >= entry.created_at
+
+
+def test_update_symptom_rejects_entry_from_another_profile(client):
+    first_user = register_user(client, email="symptom-owner@example.com")
+    second_user = register_user(client, email="symptom-attacker@example.com")
+    created = client.post(
+        f"/profiles/{first_user['profile_id']}/symptoms",
+        headers=first_user["headers"],
+        json={
+            "date": "2026-06-12T00:00:00",
+            "symptom": "Husten",
+            "intensity": 3,
+            "note": "",
+        },
+    )
+
+    response = client.patch(
+        f"/profiles/{first_user['profile_id']}/symptoms/{created.json()['id']}",
+        headers=second_user["headers"],
+        json={"intensity": 9},
+    )
+
+    assert response.status_code == 403
+
+
+def test_update_symptom_validates_temperature(client):
+    auth = register_user(client, email="symptom-temperature@example.com")
+    created = client.post(
+        f"/profiles/{auth['profile_id']}/symptoms",
+        headers=auth["headers"],
+        json={
+            "date": "2026-06-12T00:00:00",
+            "symptom": "Fieber",
+            "intensity": 3,
+            "note": "",
+        },
+    )
+
+    response = client.patch(
+        f"/profiles/{auth['profile_id']}/symptoms/{created.json()['id']}",
+        headers=auth["headers"],
+        json={"temperatureC": 48.0},
+    )
+
+    assert response.status_code == 422
 
 
 def test_get_symptoms_returns_profile_entries(client):

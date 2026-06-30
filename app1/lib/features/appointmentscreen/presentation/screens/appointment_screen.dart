@@ -1,4 +1,6 @@
+﻿import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +50,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.appointments);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _openInitialAppointment();
     });
@@ -181,7 +184,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CareenaPageHeader(title: 'Terminplanung'),
+      appBar: CareenaPageHeader(
+        title: 'Terminplanung',
+        onBack: () => navigateToHomeFallback(
+          context,
+          themeController: widget.themeController,
+        ),
+      ),
       body: ResponsivePageBody(
         maxWidth: 1000,
         padding: const EdgeInsets.all(16),

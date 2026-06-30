@@ -38,10 +38,10 @@ class AuthSession extends ChangeNotifier {
   void setAuthResponse(AuthResponse response, {int? preferredProfileId}) {
     _accessToken = response.accessToken;
     _account = response.account;
-    _profiles = response.profiles;
+    _profiles = _withMainProfileFirst(response.profiles);
     _activeProfile =
         _profileById(preferredProfileId) ??
-        (response.profiles.isNotEmpty ? response.profiles.first : null);
+        (_profiles.isNotEmpty ? _profiles.first : null);
 
     _rememberActiveProfile();
     notifyListeners();
@@ -77,7 +77,7 @@ class AuthSession extends ChangeNotifier {
   ///
   /// This is useful after loading profiles from /profiles or after deleting a profile.
   void setProfiles(List<AuthProfile> profiles) {
-    _profiles = profiles;
+    _profiles = _withMainProfileFirst(profiles);
 
     if (_activeProfile == null ||
         !_profiles.any((profile) => profile.id == _activeProfile!.id)) {
@@ -169,6 +169,13 @@ class AuthSession extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  List<AuthProfile> _withMainProfileFirst(List<AuthProfile> profiles) {
+    return [
+      ...profiles.where((profile) => profile.profileType == 'self'),
+      ...profiles.where((profile) => profile.profileType != 'self'),
+    ];
   }
 
   Future<void> _rememberActiveProfile() async {

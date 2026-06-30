@@ -178,7 +178,11 @@ def continue_chat_history(
         turn_engine,
         response_builder,
 ) -> ChatHistoryContinueResponse:
-    entry = session.get(ChatHistory, history_id)
+    entry = session.exec(
+        select(ChatHistory)
+        .where(ChatHistory.id == history_id)
+        .with_for_update()
+    ).first()
 
     if entry is None:
         raise HTTPException(status_code=404, detail="Chat history entry not found.")

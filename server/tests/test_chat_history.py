@@ -278,6 +278,16 @@ def test_chat_history_can_continue_pending_assistant_response(client):
         "Bitte trinken Sie ausreichend und beobachten Sie den Verlauf."
     )
 
+    duplicate_response = client.post(
+        f"/chat-history/{history_id}/continue",
+        headers=auth["headers"],
+    )
+
+    assert duplicate_response.status_code == 409
+    assert duplicate_response.json()["detail"] == (
+        "Only waiting chat history entries can be continued."
+    )
+
 
 def test_chat_history_requires_profile_access(client):
     first_user = register_user(client, email="first-history@example.com")

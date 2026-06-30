@@ -394,6 +394,11 @@ class _ChatHistoryTile extends StatelessWidget {
             if (context.mounted) {
               onReturnedFromChat();
             }
+          } catch (error) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(controller.userFacingChatError(error))),
+            );
           } finally {
             controller.finishOpeningHistory(entry.id);
           }

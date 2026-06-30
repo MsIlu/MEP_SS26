@@ -31,10 +31,10 @@ class QuestionBuilder:
                 blocking=True,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "person_ref_missing":
-            label = case_focus_label or focus_label or "die Beschwerden"
+            label = focus_label or case_focus_label or "die Beschwerden"
             question = ActiveQuestion(
                 kind="subject_clarification",
                 question_intent="subject_clarification",
@@ -46,7 +46,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "duration_missing":
             question = ActiveQuestion(
@@ -58,7 +58,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "description_missing":
             question = ActiveQuestion(
@@ -70,7 +70,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "severity_missing":
             label = case_focus_label or focus_label or "die Beschwerde"
@@ -83,7 +83,7 @@ class QuestionBuilder:
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         if need.reason == "location_unclear":
             question = ActiveQuestion(
@@ -91,11 +91,11 @@ class QuestionBuilder:
                 question_intent="localization",
                 target_followup_id=need.followup_id,
                 target_observation_id=need.observation_id,
-                prompt_text="Wo genau spuerst du das?",
+                prompt_text="Wo genau spürst du das?",
                 blocking=need.blocking,
                 allows_additional_medical_info=True,
             )
-            question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+            question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
             return question
         question = ActiveQuestion(
             kind="followup",
@@ -106,14 +106,14 @@ class QuestionBuilder:
             blocking=need.blocking,
             allows_additional_medical_info=True,
         )
-        question.prompt_text = self._render_prompt(question=question, focus_label=case_focus_label)
+        question.prompt_text = self._render_prompt(question=question, focus_label=focus_label or case_focus_label)
         return question
 
     def build_additional_information_request(self) -> ActiveQuestion:
         return ActiveQuestion(
             kind="followup",
             question_intent="free_description",
-            prompt_text="Welche weiteren Angaben zu deinen Beschwerden moechtest du noch hinzufuegen?",
+            prompt_text="Welche weiteren Angaben zu deinen Beschwerden möchtest du noch hinzufügen?",
             blocking=False,
             allows_additional_medical_info=True,
         )
@@ -180,8 +180,8 @@ class QuestionBuilder:
             return None
         normalized = label.casefold()
         for token, body_site in (
-            ("huefte", "Huefte"),
-            ("hüfte", "Huefte"),
+            ("huefte", "Hüfte"),
+            ("hüfte", "Hüfte"),
             ("bauch", "Bauch"),
             ("brust", "Brust"),
             ("kopf", "Kopf"),
@@ -196,7 +196,7 @@ class QuestionBuilder:
     @staticmethod
     def _body_site_phrase(body_site: str) -> str:
         return {
-            "Huefte": "an der Huefte",
+            "Hüfte": "an der Hüfte",
             "Brust": "in der Brust",
             "Bauch": "im Bauch",
             "Kopf": "am Kopf",

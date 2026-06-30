@@ -24,8 +24,11 @@ class SymptomRepository {
     );
   }
 
-  /// Removes all locally stored symptom diary entries.
-  Future<void> clearEntries() async {
+  /// Removes locally stored symptom diary entries.
+  ///
+  /// The optional profile id keeps callers compatible while profile-aware
+  /// storage is introduced in other sync paths.
+  Future<void> clearEntries({int? profileId}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
   }

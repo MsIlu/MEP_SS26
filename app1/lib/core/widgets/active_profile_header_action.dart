@@ -162,7 +162,7 @@ class ActiveProfileHeaderAction extends StatelessWidget {
     if (dependencies == null) return;
 
     try {
-      await dependencies.symptomRepository.clearEntries();
+      await dependencies.symptomRepository.clearEntries(profileId: profileId);
       await dependencies.symptomSyncService.syncActiveProfile(profileId);
     } catch (_) {
       // Profile switching should not fail just because cached diary data cannot refresh.

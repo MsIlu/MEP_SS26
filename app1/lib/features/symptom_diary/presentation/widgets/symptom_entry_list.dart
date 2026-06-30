@@ -59,10 +59,16 @@ class _EmptySymptomState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CareenaEmptyState(
-      icon: Icons.check_circle_outline,
-      title: 'Noch keine Einträge vorhanden',
-      message: 'Trage deinen ersten Eintrag über das Plus "+" hinzu.',
+    return Semantics(
+      liveRegion: true,
+      label: 'Noch keine Einträge vorhanden.',
+      child: const ExcludeSemantics(
+        child: CareenaEmptyState(
+          icon: Icons.check_circle_outline,
+          title: 'Noch keine Einträge vorhanden',
+          message: 'Trage deinen ersten Eintrag über das Plus "+" hinzu.',
+        ),
+      ),
     );
   }
 }

@@ -13,6 +13,8 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
   final String nextSteps;
   final List<String> symptoms;
   final List<String> userMessages;
+  final bool alreadySaved;
+  final VoidCallback? onSaved;
 
   const SaveRecommendationToDocumentsButton({
     super.key,
@@ -22,6 +24,8 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
     required this.nextSteps,
     required this.symptoms,
     required this.userMessages,
+    this.alreadySaved = false,
+    this.onSaved,
   });
 
   @override
@@ -78,7 +82,7 @@ class _SaveRecommendationToDocumentsButtonState
 
   @override
   Widget build(BuildContext context) {
-    final isSaved = _isSavedForCurrentProfile(context);
+    final isSaved = widget.alreadySaved || _isSavedForCurrentProfile(context);
 
     return OutlinedButton.icon(
       onPressed: isSaved ? null : _saveRecommendation,
@@ -140,6 +144,8 @@ class _SaveRecommendationToDocumentsButtonState
         mimeType: 'application/pdf',
       ),
     );
+
+    widget.onSaved?.call();
 
     if (!mounted) return;
 

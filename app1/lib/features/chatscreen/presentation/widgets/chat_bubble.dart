@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/config/app_assets.dart';
 import '../../data/models/message_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -20,6 +20,10 @@ class ChatBubble extends StatelessWidget {
   final List<String> userMessages;
   final bool showLongProcessingHint;
   final AuthSession? authSession;
+  final String? recommendationSessionId;
+  final Future<void> Function(Message, RecommendationAction)?
+  onRecommendationAction;
+  final VoidCallback? onSaveSymptoms;
 
   const ChatBubble({
     super.key,
@@ -28,6 +32,9 @@ class ChatBubble extends StatelessWidget {
     required this.userMessages,
     this.showLongProcessingHint = false,
     this.authSession,
+    this.recommendationSessionId,
+    this.onRecommendationAction,
+    this.onSaveSymptoms,
   });
 
   @override
@@ -55,6 +62,9 @@ class ChatBubble extends StatelessWidget {
     final shadowColor = isDarkMode
         ? AppColors.black.withValues(alpha: 0.15)
         : AppColors.black.withValues(alpha: 0.10);
+    final recommendationSymptoms = message.recommendationSymptoms.isNotEmpty
+        ? message.recommendationSymptoms
+        : symptoms;
 
     // Show the animated indicator while the assistant response is pending.
     if (message.isLoading) {
@@ -134,14 +144,21 @@ class ChatBubble extends StatelessWidget {
                           runSpacing: 8,
                           children: [
                             SaveRecommendationToDocumentsButton(
-  title: message.exportTitle ?? 'Handlungsempfehlung',
-  patientSummary: 'Zusammenfassung des Chatverlaufes',
-  recommendation:
-      message.exportRecommendation ?? message.text,
-  nextSteps: message.exportNextSteps ?? '',
-  symptoms: symptoms,
-  userMessages: userMessages,
-),
+                              title:
+                                  message.exportTitle ?? 'Handlungsempfehlung',
+                              patientSummary:
+                                  'Zusammenfassung des Chatverlaufes',
+                              recommendation:
+                                  message.exportRecommendation ?? message.text,
+                              nextSteps: message.exportNextSteps ?? '',
+                              symptoms: recommendationSymptoms,
+                              userMessages: userMessages,
+                              alreadySaved: message.documentSaved,
+                              onSaved: () => onRecommendationAction?.call(
+                                message,
+                                RecommendationAction.document,
+                              ),
+                            ),
                             ExportRecommendationPdfButton(
                               title:
                                   message.exportTitle ?? 'Handlungsempfehlung',
@@ -150,7 +167,7 @@ class ChatBubble extends StatelessWidget {
                               recommendation:
                                   message.exportRecommendation ?? message.text,
                               nextSteps: message.exportNextSteps ?? '',
-                              symptoms: symptoms,
+                              symptoms: recommendationSymptoms,
                               userMessages: userMessages,
                             ),
                             if (message.canCreateAppointment)
@@ -159,6 +176,41 @@ class ChatBubble extends StatelessWidget {
                                     message.appointmentTitle ??
                                     'Arzttermin vereinbaren',
                                 authSession: authSession,
+                                sessionId: recommendationSessionId,
+                                alreadySearched: message.appointmentSearched,
+                                onSearched: () => onRecommendationAction?.call(
+                                  message,
+                                  RecommendationAction.appointment,
+                                ),
+                              ),
+                            if (recommendationSymptoms.isNotEmpty)
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.careenaTeal,
+                                  side: const BorderSide(
+                                    color: AppColors.careenaTeal,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                onPressed: message.symptomsSaved
+                                    ? null
+                                    : onSaveSymptoms,
+                                icon: Icon(
+                                  message.symptomsSaved
+                                      ? Icons.check_circle_outline
+                                      : Icons.book_outlined,
+                                ),
+                                label: Text(
+                                  message.symptomsSaved
+                                      ? 'Symptome bereits gespeichert – siehe Tagebuch'
+                                      : 'Symptome ins Tagebuch',
+                                ),
                               ),
                           ],
                         ),

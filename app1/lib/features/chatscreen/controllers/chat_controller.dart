@@ -33,12 +33,18 @@ class ChatController {
   final Set<String> _openingHistoryEntries = {};
   String? _activeHistoryEntryId;
   DateTime? _activeHistoryCreatedAt;
+  String? _activeHistorySessionId;
+  String? _activeHistoryTitle;
+  bool _activeHistoryIsEmergency = false;
   int _profileChangeGeneration = 0;
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
 
   String? get currentSessionId => chatSessionService.sessionId;
+  String? get recommendationSessionId =>
+      chatSessionService.sessionId ?? _activeHistorySessionId;
+  String? get currentHistoryEntryId => _activeHistoryEntryId;
 
   ChatController({
     required this.chatApi,
@@ -322,6 +328,12 @@ class ChatController {
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
       if (chatService.isFinalRecommendation(response) || isEmergency) {
+        final botMessage = chatService.buildAssistantMessage(response);
+        _addMessage(
+          message: botMessage.copyWith(
+            recommendationSymptoms: List<String>.from(symptoms.value),
+          ),
+        );
         await _completeChat(
           recommendation:
               response.recommendationResult?.summary ?? response.text,
@@ -492,9 +504,12 @@ class ChatController {
     ChatHistoryEntry entry, {
     required bool continuePendingResponse,
   }) async {
-    final resumedMessages = _collapseStreamingSnapshots(entry.messages);
+    final resumedMessages = _messagesForHistoryEntry(entry);
     _activeHistoryEntryId = entry.id;
     _activeHistoryCreatedAt = entry.createdAt;
+    _activeHistorySessionId = entry.sessionId;
+    _activeHistoryTitle = entry.symptomTitle;
+    _activeHistoryIsEmergency = entry.isEmergency;
     _setCompleted(entry.status == 'completed');
     messages.value = resumedMessages;
     _setChatRunState(
@@ -629,6 +644,12 @@ class ChatController {
       final isEmergency = chatService.isEmergencyRecommendation(response);
 
       if (chatService.isFinalRecommendation(response) || isEmergency) {
+        final botMessage = chatService.buildAssistantMessage(response);
+        _addMessage(
+          message: botMessage.copyWith(
+            recommendationSymptoms: List<String>.from(symptoms.value),
+          ),
+        );
         await _completeChat(
           recommendation:
               response.recommendationResult?.summary ?? response.text,
@@ -744,8 +765,11 @@ class ChatController {
       }
 
       final entry = matchingEntries.first;
-      final synchronizedMessages = _collapseStreamingSnapshots(entry.messages);
+      final synchronizedMessages = _messagesForHistoryEntry(entry);
       _activeHistoryCreatedAt = entry.createdAt;
+      _activeHistorySessionId = entry.sessionId;
+      _activeHistoryTitle = entry.symptomTitle;
+      _activeHistoryIsEmergency = entry.isEmergency;
       _setCompleted(entry.status == 'completed');
       messages.value = synchronizedMessages;
       _setChatRunState(
@@ -814,6 +838,9 @@ class ChatController {
     symptoms.value = [];
     _activeHistoryEntryId = null;
     _activeHistoryCreatedAt = null;
+    _activeHistorySessionId = null;
+    _activeHistoryTitle = null;
+    _activeHistoryIsEmergency = false;
     _setCompleted(false);
     _initFuture = null;
 
@@ -864,6 +891,114 @@ class ChatController {
     messages.value = updatedMessages;
   }
 
+  Future<void> markRecommendationAction(
+    Message message,
+    RecommendationAction action,
+  ) async {
+    final index = messages.value.indexWhere(
+      (candidate) =>
+          identical(candidate, message) ||
+          (candidate.timestamp == message.timestamp &&
+              candidate.text == message.text &&
+              candidate.isUser == message.isUser),
+    );
+    if (index < 0 || _activeHistoryEntryId == null) return;
+
+    final updatedMessage = _messageWithAction(message, action);
+    final updatedMessages = List<Message>.from(messages.value);
+    updatedMessages[index] = updatedMessage;
+    _setMessages(updatedMessages);
+
+    await _persistChatHistory(
+      status: 'completed',
+      recommendation:
+          updatedMessage.exportRecommendation ?? updatedMessage.text,
+      nextSteps: updatedMessage.exportNextSteps,
+    );
+  }
+
+  Future<void> markRecommendationActionForHistory({
+    required String historyId,
+    required Message message,
+    required RecommendationAction action,
+  }) async {
+    final profileId = authSession.activeProfileId;
+    if (profileId == null) return;
+
+    final entries = await chatHistoryRepository.loadEntries(
+      profileId: profileId,
+    );
+    final matchingEntries = entries.where((entry) => entry.id == historyId);
+    if (matchingEntries.isEmpty) return;
+
+    final entry = matchingEntries.first;
+    final messages = List<Message>.from(entry.messages);
+    final index = messages.indexWhere(
+      (candidate) =>
+          candidate.timestamp == message.timestamp &&
+          candidate.text == message.text &&
+          candidate.isUser == message.isUser,
+    );
+    if (index < 0) return;
+
+    messages[index] = _messageWithAction(messages[index], action);
+    await chatHistoryRepository.updateChat(
+      ChatHistoryEntry(
+        id: entry.id,
+        profileId: entry.profileId,
+        sessionId: entry.sessionId,
+        symptomTitle: entry.symptomTitle,
+        status: entry.status,
+        isEmergency: entry.isEmergency,
+        createdAt: entry.createdAt,
+        updatedAt: DateTime.now(),
+        messages: messages,
+        recommendation: entry.recommendation,
+        nextSteps: entry.nextSteps,
+      ),
+    );
+    historyRevision.value += 1;
+  }
+
+  Message _messageWithAction(Message message, RecommendationAction action) {
+    return switch (action) {
+      RecommendationAction.document => message.copyWith(documentSaved: true),
+      RecommendationAction.symptoms => message.copyWith(symptomsSaved: true),
+      RecommendationAction.appointment => message.copyWith(
+        appointmentSearched: true,
+      ),
+    };
+  }
+
+  List<Message> _messagesForHistoryEntry(ChatHistoryEntry entry) {
+    final restored = _collapseStreamingSnapshots(entry.messages);
+    final hasRecommendation = restored.any(
+      (message) => !message.isUser && message.canExportPdf,
+    );
+    final recommendation = entry.recommendation.trim();
+
+    if (entry.status == 'completed' &&
+        recommendation.isNotEmpty &&
+        !hasRecommendation) {
+      final nextSteps = entry.nextSteps?.trim();
+      restored.add(
+        Message(
+          text: recommendation,
+          isUser: false,
+          canExportPdf: true,
+          exportTitle: 'Handlungsempfehlung',
+          exportRecommendation: recommendation,
+          exportNextSteps: nextSteps,
+          canCreateAppointment:
+              !entry.isEmergency && nextSteps != null && nextSteps.isNotEmpty,
+          appointmentTitle: nextSteps,
+        ),
+      );
+    }
+
+    return restored;
+  }
+
   Future<void> _completeChat({
     required String recommendation,
     String? nextSteps,
@@ -911,7 +1046,7 @@ class ChatController {
     required String status,
     String recommendation = '',
     String? nextSteps,
-    bool isEmergency = false,
+    bool? isEmergency,
   }) async {
     final activeProfileId = authSession.activeProfileId;
 
@@ -927,10 +1062,10 @@ class ChatController {
     final entry = ChatHistoryEntry(
       id: _activeHistoryEntryId ?? now.microsecondsSinceEpoch.toString(),
       profileId: activeProfileId,
-      sessionId: chatSessionService.sessionId,
-      symptomTitle: _historyTitleFromSymptoms(),
+      sessionId: chatSessionService.sessionId ?? _activeHistorySessionId,
+      symptomTitle: _historyTitleFromSymptoms() ?? _activeHistoryTitle,
       status: status,
-      isEmergency: isEmergency,
+      isEmergency: isEmergency ?? _activeHistoryIsEmergency,
       createdAt: createdAt,
       updatedAt: now,
       messages: messages.value,
@@ -950,6 +1085,9 @@ class ChatController {
 
     _activeHistoryEntryId = savedEntry.id;
     _activeHistoryCreatedAt = savedEntry.createdAt;
+    _activeHistorySessionId = savedEntry.sessionId;
+    _activeHistoryTitle = savedEntry.symptomTitle;
+    _activeHistoryIsEmergency = savedEntry.isEmergency;
     _setChatRunState(
       ChatRunState(
         historyId: savedEntry.id,

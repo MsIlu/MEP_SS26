@@ -468,6 +468,12 @@ void main() {
           historyRepository.updatedEntries.last.recommendation,
           'Bitte heute aerztlich abklaeren.',
         );
+        final recommendationMessage =
+            historyRepository.updatedEntries.last.messages.last;
+        expect(recommendationMessage.isUser, isFalse);
+        expect(recommendationMessage.canExportPdf, isTrue);
+        expect(recommendationMessage.canCreateAppointment, isTrue);
+        expect(recommendationMessage.recommendationSymptoms, ['Kopfschmerzen']);
       },
     );
 

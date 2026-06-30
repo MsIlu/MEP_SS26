@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
+import '../../../chatscreen/data/models/message_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/app/app_dependencies_scope.dart';
@@ -14,6 +15,7 @@ import '../widgets/no_diagnosis_info_box.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../recommendation_export/presentation/create_recommended_appointment_button.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
+import '../../../recommendation_export/presentation/save_recommendation_to_documents_button.dart';
 
 /// Recommendation result page shown after a chat session is completed.
 class WarningPage extends StatelessWidget {
@@ -21,11 +23,14 @@ class WarningPage extends StatelessWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final ThemeController? themeController;
+
   /// Symptom data enriched via the in-chat editor (body area + intensity).
   /// Takes priority over [response.caseObservations] when building the diary import list.
   final List<SymptomImport>? enrichedSymptoms;
   final String? sessionId;
   final AuthSession? authSession;
+  final Message? recommendationMessage;
+  final Future<void> Function(RecommendationAction)? onRecommendationAction;
 
   const WarningPage({
     super.key,
@@ -36,6 +41,8 @@ class WarningPage extends StatelessWidget {
     this.enrichedSymptoms,
     this.sessionId,
     this.authSession,
+    this.recommendationMessage,
+    this.onRecommendationAction,
   });
 
   @override
@@ -82,12 +89,49 @@ class WarningPage extends StatelessWidget {
                 userMessages: userMessages,
               ),
 
-              if ((symptoms.isNotEmpty || response.caseObservations.isNotEmpty) && themeController != null) ...[
+              if (!showEmergencyActions) ...[
+                const SizedBox(height: 8),
+                SaveRecommendationToDocumentsButton(
+                  title: WarningCopy.pageTitle,
+                  patientSummary:
+                      'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                  recommendation: _recommendationTextFor(response),
+                  nextSteps:
+                      response.recommendationResult?.nextStep ??
+                      response.action ??
+                      '',
+                  symptoms: symptoms,
+                  userMessages: userMessages,
+                  alreadySaved: recommendationMessage?.documentSaved ?? false,
+                  onSaved: () => _markAction(RecommendationAction.document),
+                ),
+              ],
+
+              if ((symptoms.isNotEmpty ||
+                      response.caseObservations.isNotEmpty) &&
+                  themeController != null) ...[
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: () => _navigateToSymptomDiary(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.careenaTeal,
+                    side: const BorderSide(color: AppColors.careenaTeal),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  onPressed: recommendationMessage?.symptomsSaved == true
+                      ? null
+                      : () => _navigateToSymptomDiary(context),
                   icon: const Icon(Icons.book_outlined, size: 18),
-                  label: const Text('Symptome ins Tagebuch'),
+                  label: Text(
+                    recommendationMessage?.symptomsSaved == true
+                        ? 'Symptome bereits gespeichert – siehe Tagebuch'
+                        : 'Symptome ins Tagebuch',
+                  ),
                 ),
               ],
 
@@ -100,6 +144,10 @@ class WarningPage extends StatelessWidget {
                       'Termin finden',
                   authSession: authSession,
                   sessionId: sessionId,
+                  alreadySearched:
+                      recommendationMessage?.appointmentSearched ?? false,
+                  onSearched: () =>
+                      _markAction(RecommendationAction.appointment),
                 ),
               ],
 
@@ -126,6 +174,10 @@ class WarningPage extends StatelessWidget {
     return symptoms.map((s) => SymptomImport(name: s)).toList();
   }
 
+  void _markAction(RecommendationAction action) {
+    onRecommendationAction?.call(action);
+  }
+
   void _navigateToSymptomDiary(BuildContext context) {
     final tc = themeController;
     if (tc == null) return;
@@ -139,6 +191,8 @@ class WarningPage extends StatelessWidget {
           symptomApiService: deps.symptomApiService,
           profileApiService: deps.profileApiService,
           initialSymptoms: _buildSymptomImports(),
+          onInitialSymptomsSaved: () =>
+              _markAction(RecommendationAction.symptoms),
         ),
       ),
     );
@@ -231,17 +285,17 @@ class _RecommendationCard extends StatelessWidget {
                     Text(
                       'Kein Notfall erkannt',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Text(
                       'Auf Grundlage deiner Angaben besteht derzeit kein Hinweis auf einen akuten Notfall.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            height: 1.35,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
+                      ),
                     ),
                   ],
                 ),
@@ -253,9 +307,9 @@ class _RecommendationCard extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             'Was solltest du jetzt tun?',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           if (nextStep != null && nextStep.trim().isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -333,17 +387,13 @@ bool _isContainedInBetterReason(String reason, List<String> allReasons) {
 }
 
 String _reasonKey(String reason) {
-  return reason
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^a-zäöüß0-9]+'), ' ')
-      .trim();
+  return reason.toLowerCase().replaceAll(RegExp(r'[^a-zäöüß0-9]+'), ' ').trim();
 }
 
 Set<String> _reasonTokens(String reason) {
-  return _reasonKey(reason)
-      .split(' ')
-      .where((token) => token.length > 1)
-      .toSet();
+  return _reasonKey(
+    reason,
+  ).split(' ').where((token) => token.length > 1).toSet();
 }
 
 String _userMessageReason(String message) {
@@ -477,9 +527,6 @@ class _RecommendationDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      color: color.withValues(alpha: 0.28),
-    );
+    return Container(height: 1, color: color.withValues(alpha: 0.28));
   }
 }

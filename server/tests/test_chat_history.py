@@ -43,6 +43,12 @@ def test_chat_history_is_profile_bound_and_sorted(client):
                     "text": "Erste Empfehlung",
                     "is_user": False,
                     "can_export_pdf": True,
+                    "can_create_appointment": True,
+                    "appointment_title": "Hausarzttermin",
+                    "recommendation_symptoms": ["Kopfschmerzen"],
+                    "document_saved": True,
+                    "symptoms_saved": True,
+                    "appointment_searched": True,
                 },
             ],
         },
@@ -86,6 +92,13 @@ def test_chat_history_is_profile_bound_and_sorted(client):
     assert entries[0]["messages"][0]["text"] == "Husten"
     assert entries[0]["status"] == "completed"
     assert entries[0]["updated_at"].endswith(("Z", "+00:00"))
+    recommendation_message = first_response.json()["messages"][1]
+    assert recommendation_message["can_create_appointment"] is True
+    assert recommendation_message["appointment_title"] == "Hausarzttermin"
+    assert recommendation_message["recommendation_symptoms"] == ["Kopfschmerzen"]
+    assert recommendation_message["document_saved"] is True
+    assert recommendation_message["symptoms_saved"] is True
+    assert recommendation_message["appointment_searched"] is True
 
 
 def test_chat_history_can_update_active_entry(client):

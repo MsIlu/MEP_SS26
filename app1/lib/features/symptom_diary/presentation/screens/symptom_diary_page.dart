@@ -22,10 +22,12 @@ class SymptomDiaryPage extends StatefulWidget {
   final SymptomApiService? symptomApiService;
   final ProfileApiService? profileApiService;
   final DateTime? initialDate;
+
   /// When set, shows an import dialog on open so the user can transfer
   /// chat-confirmed symptoms into the diary without re-typing them.
   /// Each entry can carry the symptom name, severity (1-10), and body area.
   final List<SymptomImport>? initialSymptoms;
+  final VoidCallback? onInitialSymptomsSaved;
 
   const SymptomDiaryPage({
     super.key,
@@ -35,6 +37,7 @@ class SymptomDiaryPage extends StatefulWidget {
     this.profileApiService,
     this.initialDate,
     this.initialSymptoms,
+    this.onInitialSymptomsSaved,
   });
 
   @override
@@ -84,10 +87,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: CareenaPageHeader(
-        title: 'Symptomtagebuch',
-        onBack: _handleBack,
-      ),
+      appBar: CareenaPageHeader(title: 'Symptomtagebuch', onBack: _handleBack),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -190,6 +190,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     final biologicalSex = await _activeProfileBiologicalSex();
     if (!mounted) return;
 
+    var savedAny = false;
     for (var i = 0; i < imports.length; i++) {
       if (!selected[i]) continue;
       final imp = imports[i];
@@ -200,19 +201,26 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
           intensity: imp.severity!,
           note: '',
         );
+        savedAny = true;
       } else {
-        await _openSymptomFormForImport(imp.name, biologicalSex);
+        savedAny =
+            await _openSymptomFormForImport(imp.name, biologicalSex) ||
+            savedAny;
       }
       if (!mounted) return;
     }
+
+    if (savedAny) {
+      widget.onInitialSymptomsSaved?.call();
+    }
   }
 
-  Future<void> _openSymptomFormForImport(
-      String symptom,
-      String? biologicalSex
-      ) async {
-    await showDialog<void>(
-      context: context,
+  Future<bool> _openSymptomFormForImport(
+    String symptom,
+    String? biologicalSex,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
       builder: (dialogContext) {
         return Dialog(
           insetPadding: const EdgeInsets.all(18),
@@ -223,15 +231,16 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
               child: SymptomEntryForm(
                 initialSymptom: symptom,
                 onSave: _addEntry,
-                onCancel: () => Navigator.pop(dialogContext),
-                onSaved: () => Navigator.pop(dialogContext),
+                onCancel: () => Navigator.pop(dialogContext, false),
+                onSaved: () => Navigator.pop(dialogContext, true),
                 biologicalSex: biologicalSex,
               ),
             ),
           ),
         );
       },
-    );
+        ) ??
+        false;
   }
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.

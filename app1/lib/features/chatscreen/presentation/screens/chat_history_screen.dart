@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
@@ -16,6 +16,9 @@ import '../../../../core/widgets/responsive_frame.dart';
 import '../../controllers/chat_controller.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
+import '../../data/models/message_model.dart';
+import '../../../symptom_diary/data/symptom_import.dart';
+import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../widgets/chat_bubble.dart';
 import 'chat_screen.dart';
 
@@ -415,7 +418,11 @@ class _ChatHistoryTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatHistoryDetailScreen(entry: entry),
+            builder: (context) => ChatHistoryDetailScreen(
+              entry: entry,
+              chatController: chatController,
+              themeController: themeController,
+            ),
           ),
         );
       },
@@ -578,13 +585,39 @@ class _EmptyChatHistory extends StatelessWidget {
   }
 }
 
-class ChatHistoryDetailScreen extends StatelessWidget {
+class ChatHistoryDetailScreen extends StatefulWidget {
   final ChatHistoryEntry entry;
+  final ChatController? chatController;
+  final ThemeController themeController;
 
-  const ChatHistoryDetailScreen({super.key, required this.entry});
+  const ChatHistoryDetailScreen({
+    super.key,
+    required this.entry,
+    required this.chatController,
+    required this.themeController,
+  });
+
+  @override
+  State<ChatHistoryDetailScreen> createState() =>
+      _ChatHistoryDetailScreenState();
+}
+
+class _ChatHistoryDetailScreenState extends State<ChatHistoryDetailScreen> {
+  late List<Message> _messages;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = List<Message>.from(widget.entry.messages);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userMessages = _messages
+        .where((message) => message.isUser)
+        .map((message) => message.text)
+        .toList();
+
     return Scaffold(
       appBar: const CareenaPageHeader(title: 'Verlauf'),
       body: SafeArea(
@@ -595,15 +628,63 @@ class ChatHistoryDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final message in entry.messages)
+              for (final message in _messages)
                 ChatBubble(
                   message: message,
-                  symptoms: const [],
-                  userMessages: const [],
+                  symptoms: message.recommendationSymptoms,
+                  userMessages: userMessages,
+                  authSession: widget.chatController?.authSession,
+                  recommendationSessionId: widget.entry.sessionId,
+                  onRecommendationAction: _markAction,
+                  onSaveSymptoms: () => _openSymptoms(message),
                   showLongProcessingHint: false,
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _markAction(Message message, RecommendationAction action) async {
+    final index = _messages.indexOf(message);
+    if (index < 0) return;
+
+    final updated = switch (action) {
+      RecommendationAction.document => message.copyWith(documentSaved: true),
+      RecommendationAction.symptoms => message.copyWith(symptomsSaved: true),
+      RecommendationAction.appointment => message.copyWith(
+        appointmentSearched: true,
+      ),
+    };
+    setState(() => _messages[index] = updated);
+
+    await widget.chatController?.markRecommendationActionForHistory(
+      historyId: widget.entry.id,
+      message: message,
+      action: action,
+    );
+  }
+
+  Future<void> _openSymptoms(Message message) async {
+    if (message.recommendationSymptoms.isEmpty) return;
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    if (dependencies == null) return;
+
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SymptomDiaryPage(
+          themeController: widget.themeController,
+          authSession: dependencies.authSession,
+          symptomApiService: dependencies.symptomApiService,
+          profileApiService: dependencies.profileApiService,
+          initialSymptoms: message.recommendationSymptoms
+              .map((symptom) => SymptomImport(name: symptom))
+              .toList(),
+          onInitialSymptomsSaved: () async {
+            await _markAction(message, RecommendationAction.symptoms);
+          },
         ),
       ),
     );

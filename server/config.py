@@ -14,6 +14,9 @@ LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://localhost:4000").rstrip
 LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "")
 SELECTED_MODEL = os.getenv("LITELLM_MODEL", "medgemma:27b")
 
+FHIR_BASE_URL = os.getenv("FHIR_BASE_URL", "http://localhost:8080/fhir").rstrip("/")
+FHIR_TIMEOUT_SECONDS = float(os.getenv("FHIR_TIMEOUT_SECONDS", "5"))
+
 # LLM-Konfiguration
 
 MAX_HISTORY_MESSAGES = 6

@@ -137,6 +137,24 @@ class DummyCareena4Session:
         )
 
 
+def test_careena4_session_bundle_can_include_profile_identifier():
+    bundle = build_fhir_bundle_from_careena4_session(
+        DummyCareena4Session(),
+        profile_id=42,
+    )
+
+    patient = next(
+        entry["resource"]
+        for entry in bundle["entry"]
+        if entry["resource"]["resourceType"] == "Patient"
+    )
+
+    assert patient["identifier"][0]["system"] == (
+        "https://careena.local/fhir/NamingSystem/profile-id"
+    )
+    assert patient["identifier"][0]["value"] == "42"
+
+
 def test_careena4_session_is_mapped_to_fhir_bundle():
     bundle = build_fhir_bundle_from_careena4_session(DummyCareena4Session())
 

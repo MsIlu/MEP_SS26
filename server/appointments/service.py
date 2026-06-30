@@ -1,32 +1,39 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import datetime
 from typing import Any
+
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
 
 from appointments.schemas import (
     AppointmentRecommendationSummary,
     AppointmentSearchResponse,
-    SimulatedAppointment,
+    FhirAppointment,
+    RecommendedAppointmentCreateRequest,
+    RecommendedAppointmentResponse,
 )
+from database.models import RecommendedAppointment, User
+from fhir_mapper.hapi_client import (
+    HapiFhirClient,
+    HapiFhirError,
+    appointment_resource_to_result,
+)
+from profiles.service import EDIT_ROLES, get_profile_access_role, require_profile_role
 
 
-SPECIALTY_LABELS = {
-    "general_practice": "Allgemeinmedizin",
-    "dermatology": "Dermatologie",
-    "orthopedics": "Orthopädie",
-    "neurology": "Neurologie",
-    "ent": "HNO",
-    "emergency_medicine": "Notfallmedizin",
-    "unknown": "Allgemeinmedizin",
-}
+class AppointmentProviderUnavailable(RuntimeError):
+    """Raised when the local FHIR appointment provider cannot be reached."""
 
 
-def search_simulated_appointments(
+def search_fhir_appointments(
         *,
         session_id: str,
         profile_id: int,
         postal_code: str,
         recommendation_result: Any,
+        fhir_bundle: dict[str, Any],
+        fhir_client: HapiFhirClient | None = None,
 ) -> AppointmentSearchResponse:
     urgency = getattr(recommendation_result, "urgency_level", "unclear")
     care_level = getattr(recommendation_result, "care_level", "unknown")
@@ -40,115 +47,154 @@ def search_simulated_appointments(
         next_step=next_step,
     )
 
+    client = fhir_client or HapiFhirClient()
+
+    try:
+        bundle_id = client.submit_bundle(fhir_bundle)
+    except HapiFhirError as exc:
+        raise AppointmentProviderUnavailable(str(exc)) from exc
+
     if care_level in {"112", "emergency_department"} or urgency == "emergency":
         return AppointmentSearchResponse(
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
             message=(
-                "Für diese Empfehlung werden keine regulären Termine simuliert. "
-                "Bitte folgen Sie der Notfall-Empfehlung aus Careena."
+                "Die Careena-Empfehlung wurde als FHIR-Bundle an HAPI uebertragen. "
+                "Fuer Notfall-Empfehlungen werden keine regulaeren Termine bereitgestellt."
             ),
             recommendation_summary=summary,
             appointments=[],
         )
 
-    appointment_offsets = _appointment_offsets_for_urgency(urgency)
-    provider_type = _provider_type_for_care_level(care_level)
-    specialty_label = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
-    location = _location_for_postal_code(postal_code)
+    try:
+        resources = client.ensure_recommendation_appointments(
+            session_id=session_id,
+            profile_id=profile_id,
+            postal_code=postal_code,
+            recommendation_result=recommendation_result,
+            bundle_id=bundle_id,
+        )
+    except HapiFhirError as exc:
+        raise AppointmentProviderUnavailable(str(exc)) from exc
 
     appointments = [
-        SimulatedAppointment(
-            id=f"apt_{session_id[:8]}_{index}",
-            provider_name=f"{provider_type} {provider_name}",
-            specialty=specialty_label,
-            address=f"{street}, {postal_code} {location}",
-            distance_km=distance_km,
-            date=(date.today() + timedelta(days=offset_days)).isoformat(),
-            time=time,
-            care_type=care_type,
-            urgency_match=True,
-        )
-        for index, (provider_name, street, distance_km, offset_days, time, care_type)
-        in enumerate(
-            [
-                (
-                    "Dr. Schneider",
-                    "Musterstraße 12",
-                    2.4,
-                    appointment_offsets[0],
-                    "09:30",
-                    "Vor-Ort-Termin",
-                ),
-                (
-                    "Care Praxiszentrum",
-                    "Bahnhofstraße 8",
-                    4.1,
-                    appointment_offsets[1],
-                    "14:00",
-                    "Vor-Ort-Termin",
-                ),
-                (
-                    "Videosprechstunde CareConnect",
-                    "Online",
-                    0.0,
-                    appointment_offsets[2],
-                    "16:30",
-                    "Videosprechstunde",
-                ),
-            ],
-            start=1,
-        )
+        FhirAppointment(**appointment_resource_to_result(resource))
+        for resource in resources
     ]
+
+    message = (
+        "HAPI-FHIR hat passende Termine zur Careena-Empfehlung bereitgestellt."
+        if appointments
+        else "HAPI-FHIR hat aktuell keine passenden Termine bereitgestellt."
+    )
 
     return AppointmentSearchResponse(
         session_id=session_id,
         profile_id=profile_id,
         postal_code=postal_code,
-        message="Es wurden simulierte Termine passend zur Careena-Empfehlung gefunden.",
+        message=message,
         recommendation_summary=summary,
         appointments=appointments,
     )
 
 
-def _appointment_offsets_for_urgency(urgency: str) -> list[int]:
-    if urgency == "high":
-        return [0, 1, 2]
+def list_recommended_appointments(
+        *,
+        profile_id: int,
+        current_user: User,
+        session: Session,
+) -> list[RecommendedAppointmentResponse]:
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        session=session,
+    )
 
-    if urgency == "medium":
-        return [2, 4, 6]
+    entries = session.exec(
+        select(RecommendedAppointment)
+        .where(RecommendedAppointment.profile_id == profile_id)
+        .where(RecommendedAppointment.deleted_at.is_(None))
+        .order_by(RecommendedAppointment.starts_at, RecommendedAppointment.id)
+    ).all()
 
-    if urgency == "low":
-        return [7, 14, 21]
-
-    return [5, 10, 15]
-
-
-def _provider_type_for_care_level(care_level: str) -> str:
-    if care_level == "general_practice":
-        return "Hausarztpraxis"
-
-    if care_level == "specialist":
-        return "Facharztpraxis"
-
-    if care_level == "116117":
-        return "Terminservicestelle"
-
-    return "Praxis"
+    return [_to_recommended_response(entry) for entry in entries]
 
 
-def _location_for_postal_code(postal_code: str) -> str:
-    if postal_code.startswith("68"):
-        return "Mannheim"
+def save_recommended_appointment(
+        *,
+        profile_id: int,
+        request: RecommendedAppointmentCreateRequest,
+        current_user: User,
+        session: Session,
+) -> RecommendedAppointmentResponse:
+    require_profile_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        allowed_roles=EDIT_ROLES,
+        session=session,
+    )
 
-    if postal_code.startswith("69"):
-        return "Heidelberg"
+    starts_at = _parse_appointment_start(request.date, request.time)
 
-    if postal_code.startswith("70"):
-        return "Stuttgart"
+    existing = session.exec(
+        select(RecommendedAppointment)
+        .where(RecommendedAppointment.profile_id == profile_id)
+        .where(
+            RecommendedAppointment.fhir_appointment_id
+            == request.fhir_appointment_id.strip()
+        )
+        .where(RecommendedAppointment.deleted_at.is_(None))
+    ).first()
 
-    if postal_code.startswith("10"):
-        return "Berlin"
+    if existing is not None:
+        return _to_recommended_response(existing)
 
-    return "Ihre Umgebung"
+    entry = RecommendedAppointment(
+        profile_id=profile_id,
+        session_id=request.session_id,
+        fhir_appointment_id=request.fhir_appointment_id.strip(),
+        provider_name=request.provider_name.strip(),
+        specialty=request.specialty.strip(),
+        address=request.address.strip(),
+        distance_km=request.distance_km,
+        starts_at=starts_at,
+        care_type=request.care_type.strip(),
+        note=(request.note or "").strip() or None,
+    )
+
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+
+    return _to_recommended_response(entry)
+
+
+def _parse_appointment_start(date_value: str, time_value: str) -> datetime:
+    try:
+        return datetime.fromisoformat(f"{date_value}T{time_value}:00")
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Der Terminzeitpunkt ist ungueltig.",
+        ) from exc
+
+
+def _to_recommended_response(
+        entry: RecommendedAppointment,
+) -> RecommendedAppointmentResponse:
+    return RecommendedAppointmentResponse(
+        id=entry.id,
+        profile_id=entry.profile_id,
+        session_id=entry.session_id,
+        fhir_appointment_id=entry.fhir_appointment_id,
+        provider_name=entry.provider_name,
+        specialty=entry.specialty,
+        address=entry.address,
+        distance_km=entry.distance_km,
+        starts_at=entry.starts_at,
+        care_type=entry.care_type,
+        note=entry.note,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )

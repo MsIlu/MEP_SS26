@@ -18,6 +18,26 @@ class AppointmentSearchApiService {
 
     return AppointmentSearchResponse.fromJson(data);
   }
+
+  Future<void> saveRecommendedAppointment({
+    required int profileId,
+    required String? sessionId,
+    required FhirAppointmentResult appointment,
+    required String note,
+  }) async {
+    await client.post('/profiles/$profileId/appointments/recommended', {
+      'session_id': sessionId,
+      'fhir_appointment_id': appointment.id,
+      'provider_name': appointment.providerName,
+      'specialty': appointment.specialty,
+      'address': appointment.address,
+      'distance_km': appointment.distanceKm,
+      'date': appointment.date,
+      'time': appointment.time,
+      'care_type': appointment.careType,
+      'note': note,
+    });
+  }
 }
 
 class AppointmentSearchResponse {
@@ -25,7 +45,7 @@ class AppointmentSearchResponse {
   final int profileId;
   final String postalCode;
   final String message;
-  final List<SimulatedAppointmentResult> appointments;
+  final List<FhirAppointmentResult> appointments;
 
   AppointmentSearchResponse({
     required this.sessionId,
@@ -43,13 +63,13 @@ class AppointmentSearchResponse {
       message: json['message']?.toString() ?? '',
       appointments: (json['appointments'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
-          .map(SimulatedAppointmentResult.fromJson)
+          .map(FhirAppointmentResult.fromJson)
           .toList(),
     );
   }
 }
 
-class SimulatedAppointmentResult {
+class FhirAppointmentResult {
   final String id;
   final String providerName;
   final String specialty;
@@ -59,8 +79,9 @@ class SimulatedAppointmentResult {
   final String time;
   final String careType;
   final bool urgencyMatch;
+  final String source;
 
-  SimulatedAppointmentResult({
+  FhirAppointmentResult({
     required this.id,
     required this.providerName,
     required this.specialty,
@@ -70,10 +91,11 @@ class SimulatedAppointmentResult {
     required this.time,
     required this.careType,
     required this.urgencyMatch,
+    required this.source,
   });
 
-  factory SimulatedAppointmentResult.fromJson(Map<String, dynamic> json) {
-    return SimulatedAppointmentResult(
+  factory FhirAppointmentResult.fromJson(Map<String, dynamic> json) {
+    return FhirAppointmentResult(
       id: json['id']?.toString() ?? '',
       providerName: json['provider_name']?.toString() ?? '',
       specialty: json['specialty']?.toString() ?? '',
@@ -83,6 +105,7 @@ class SimulatedAppointmentResult {
       time: json['time']?.toString() ?? '',
       careType: json['care_type']?.toString() ?? '',
       urgencyMatch: json['urgency_match'] == true,
+      source: json['source']?.toString() ?? 'hapi-fhir',
     );
   }
 

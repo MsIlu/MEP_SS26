@@ -91,4 +91,34 @@ void main() {
     expect(duplicateWasAdded, isFalse);
     expect(controller.appointments.value, hasLength(1));
   });
+
+  test('does not add the same dated FHIR recommendation twice', () {
+    final appointmentDate = DateTime(2026, 7, 2, 9, 30);
+    final firstRecommendation = Appointment(
+      id: 'hapi-appointment-1',
+      doctorName: 'Hausarztpraxis Dr. Schneider',
+      appointmentDate: appointmentDate,
+      note: '',
+      isRecommendation: true,
+    );
+
+    final duplicateRecommendation = Appointment(
+      id: 'hapi-appointment-1',
+      doctorName: 'Hausarztpraxis Dr. Schneider',
+      appointmentDate: appointmentDate,
+      note: '',
+      isRecommendation: true,
+    );
+
+    final firstWasAdded = controller.addRecommendedAppointmentIfMissing(
+      firstRecommendation,
+    );
+    final duplicateWasAdded = controller.addRecommendedAppointmentIfMissing(
+      duplicateRecommendation,
+    );
+
+    expect(firstWasAdded, isTrue);
+    expect(duplicateWasAdded, isFalse);
+    expect(controller.appointments.value, hasLength(1));
+  });
 }

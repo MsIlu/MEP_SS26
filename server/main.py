@@ -30,10 +30,11 @@ from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
+from appointments.router import router as appointments_router
 from logging_config import configure_logging
 from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 from appointments.schemas import AppointmentSearchRequest, AppointmentSearchResponse
-from appointments.service import search_simulated_appointments
+from appointments.service import AppointmentProviderUnavailable, search_fhir_appointments
 
 from uuid import uuid4 #for turn_id
 
@@ -73,6 +74,7 @@ app.state.careena4_session_profiles = careena4_session_profiles
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)
+app.include_router(appointments_router)
 app.include_router(chat_history_router)
 app.include_router(symptoms_router)
 
@@ -295,12 +297,24 @@ def search_appointments(
             detail="No Careena recommendation available for this session.",
         )
 
-    return search_simulated_appointments(
-        session_id=request.session_id,
+    fhir_bundle = build_fhir_bundle_from_careena4_session(
+        careena4_session,
         profile_id=request.profile_id,
-        postal_code=request.postal_code,
-        recommendation_result=recommendation_result,
     )
+
+    try:
+        return search_fhir_appointments(
+            session_id=request.session_id,
+            profile_id=request.profile_id,
+            postal_code=request.postal_code,
+            recommendation_result=recommendation_result,
+            fhir_bundle=fhir_bundle,
+        )
+    except AppointmentProviderUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
 app.state.careena4_turn_engine = careena4_turn_engine
 app.state.careena4_response_builder = build_careena4_chat_response

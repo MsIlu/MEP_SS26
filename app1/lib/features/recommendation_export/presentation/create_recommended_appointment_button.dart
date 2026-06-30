@@ -100,7 +100,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
           context,
           title: 'Terminsuche fehlgeschlagen',
           message:
-              'Careena konnte gerade keine simulierten Termine laden. Bitte versuche es erneut.',
+              'Careena konnte gerade keine FHIR-Termine aus HAPI laden. '
+              'Bitte prüfe, ob der lokale HAPI-FHIR-Server läuft.',
         );
       }
       return;
@@ -129,12 +130,33 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       return;
     }
 
+    final note = _buildAppointmentNote(selectedAppointment);
+
+    try {
+      await appointmentSearchApi.saveRecommendedAppointment(
+        profileId: profileId,
+        sessionId: sessionId,
+        appointment: selectedAppointment,
+        note: note,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        await _showInfoDialog(
+          context,
+          title: 'Termin konnte nicht gespeichert werden',
+          message:
+              'Der FHIR-Termin wurde gefunden, konnte aber nicht in der Terminplanung gespeichert werden.',
+        );
+      }
+      return;
+    }
+
     final appointment = Appointment(
       id: selectedAppointment.id,
       profileId: profileId,
       doctorName: selectedAppointment.providerName,
       appointmentDate: selectedAppointment.appointmentDate,
-      note: _buildAppointmentNote(selectedAppointment),
+      note: note,
       isRecommendation: true,
     );
 
@@ -229,7 +251,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Gib deine Postleitzahl ein. Careena sucht dann simulierte Termine.',
+                    'Gib deine Postleitzahl ein. Careena fragt dann passende '
+                    'FHIR-Termine aus HAPI ab.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           height: 1.35,
                           color: isDarkMode
@@ -335,11 +358,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     return result;
   }
 
-  Future<SimulatedAppointmentResult?> _showAppointmentSelectionDialog(
+  Future<FhirAppointmentResult?> _showAppointmentSelectionDialog(
     BuildContext context,
     AppointmentSearchResponse response,
   ) async {
-    return showDialog<SimulatedAppointmentResult>(
+    return showDialog<FhirAppointmentResult>(
       context: context,
       builder: (dialogContext) {
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -617,7 +640,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
               const SizedBox(width: 18),
               Expanded(
                 child: Text(
-                  'Careena sucht passende Termine...',
+                  'Careena fragt HAPI-FHIR nach passenden Terminen...',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: isDarkMode
@@ -688,12 +711,13 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     );
   }
 
-  String _buildAppointmentNote(SimulatedAppointmentResult appointment) {
+  String _buildAppointmentNote(FhirAppointmentResult appointment) {
     return 'Von Careena empfohlen\n'
         'Fachrichtung: ${appointment.specialty}\n'
         'Versorgungsart: ${appointment.careType}\n'
         'Adresse: ${appointment.address}\n'
-        'Entfernung: ${appointment.distanceKm.toStringAsFixed(1)} km';
+        'Entfernung: ${appointment.distanceKm.toStringAsFixed(1)} km\n'
+        'Quelle: ${appointment.source}';
   }
 }
 

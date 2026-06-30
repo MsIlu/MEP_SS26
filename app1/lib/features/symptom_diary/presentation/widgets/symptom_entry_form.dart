@@ -5,6 +5,7 @@ import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/symptom_entry.dart';
 import '../utils/symptom_body_area.dart';
 import 'body_area_selector.dart';
 import 'symptom_details_step.dart';
@@ -50,6 +51,8 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onSaved;
   final String? biologicalSex;
   final String? initialSymptom;
+  final SymptomEntry? initialEntry;
+
   /// When true and [initialSymptom] is set, skips straight to the details
   /// (intensity) step instead of stopping at body area first.
   final bool skipToDetails;
@@ -61,6 +64,7 @@ class SymptomEntryForm extends StatefulWidget {
     this.onSaved,
     this.biologicalSex,
     this.initialSymptom,
+    this.initialEntry,
     this.skipToDetails = false,
   });
 
@@ -83,12 +87,20 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
   void initState() {
     super.initState();
     _loadCustomSymptomSuggestions();
-    final pre = widget.initialSymptom;
+    final initialEntry = widget.initialEntry;
+    final pre = initialEntry?.symptom ?? widget.initialSymptom;
     if (pre != null && pre.isNotEmpty) {
       _symptomController.text = pre;
       // skipToDetails: jump to the last step (intensity); the index is clamped
       // to _lastStepIndex at render time so using a large value is safe.
       _currentStepIndex = widget.skipToDetails ? 999 : 1;
+    }
+    if (initialEntry != null) {
+      _bodyArea = initialEntry.bodyArea;
+      _intensity = initialEntry.intensity;
+      _temperatureC = initialEntry.temperatureC ?? 37.0;
+      _noteController.text = initialEntry.note;
+      _currentStepIndex = 0;
     }
   }
 
@@ -118,7 +130,10 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _FormHeader(onCancel: widget.onCancel),
+          _FormHeader(
+            onCancel: widget.onCancel,
+            isEditing: widget.initialEntry != null,
+          ),
           const SizedBox(height: 12),
           RegistrationStepIndicator(
             currentStep: _currentStepIndex,
@@ -136,7 +151,11 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
           const SizedBox(height: 16),
           CareenaStepNavigation(
             backLabel: _isFirstStep ? 'Abbrechen' : 'Zurück',
-            nextLabel: _isLastStep ? 'Speichern' : 'Weiter',
+            nextLabel: _isLastStep
+                ? (widget.initialEntry == null
+                      ? 'Speichern'
+                      : 'Änderungen speichern')
+                : 'Weiter',
             backIcon: _isFirstStep ? Icons.close : Icons.arrow_back,
             nextIcon: _isLastStep ? Icons.add : Icons.arrow_forward,
             isBusy: _isSaving,
@@ -204,13 +223,18 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     }
 
     setState(() => _isSaving = true);
-    await widget.onSave(
-      symptom: _symptom,
-      bodyArea: _needsBodyArea ? _bodyArea : '',
-      intensity: _intensity,
-      temperatureC: _usesTemperature ? _temperatureC : null,
-      note: _noteController.text,
-    );
+    try {
+      await widget.onSave(
+        symptom: _symptom,
+        bodyArea: _needsBodyArea ? _bodyArea : '',
+        intensity: _intensity,
+        temperatureC: _usesTemperature ? _temperatureC : null,
+        note: _noteController.text,
+      );
+    } catch (_) {
+      if (mounted) setState(() => _isSaving = false);
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -363,8 +387,9 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
 
 class _FormHeader extends StatelessWidget {
   final VoidCallback? onCancel;
+  final bool isEditing;
 
-  const _FormHeader({required this.onCancel});
+  const _FormHeader({required this.onCancel, required this.isEditing});
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +399,7 @@ class _FormHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Symptom eintragen',
+            isEditing ? 'Symptom bearbeiten' : 'Symptom eintragen',
             style: TextStyle(
               color: colorScheme.onSurface,
               fontSize: 18,

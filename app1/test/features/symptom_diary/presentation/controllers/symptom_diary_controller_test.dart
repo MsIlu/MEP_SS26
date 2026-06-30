@@ -40,5 +40,38 @@ void main() {
         expect(controller.entriesForDate(DateTime(2026, 6, 3)), isEmpty);
       },
     );
+
+    test(
+      'updates an existing entry and keeps temperature structured',
+      () async {
+        final controller = SymptomDiaryController(profileId: 42);
+        addTearDown(controller.dispose);
+
+        await controller.loadEntries();
+        final entry = await controller.addEntry(
+          date: DateTime(2026, 6, 2),
+          symptom: 'Fieber',
+          intensity: 5,
+          temperatureC: 38.1,
+          note: 'Am Morgen',
+        );
+
+        final updated = await controller.updateEntry(
+          entry: entry,
+          date: entry.date,
+          symptom: 'Fieber',
+          bodyArea: '',
+          intensity: 7,
+          temperatureC: 39.2,
+          note: 'Am Abend',
+        );
+
+        expect(controller.entries, hasLength(1));
+        expect(updated.temperatureC, 39.2);
+        expect(updated.intensity, 7);
+        expect(updated.note, 'Am Abend');
+        expect(updated.source, 'manual');
+      },
+    );
   });
 }

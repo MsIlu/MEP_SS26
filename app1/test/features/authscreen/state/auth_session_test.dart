@@ -82,6 +82,43 @@ void main() {
       expect(session.activeProfile?.displayName, 'Ben');
     });
 
+    test('keeps own profile first and managed profiles in creation order', () {
+      final session = AuthSession();
+
+      session.setAuthResponse(
+        const AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: Account(id: 1, email: 'test@example.com'),
+          profiles: [
+            AuthProfile(
+              id: 11,
+              displayName: 'Erstes betreutes Profil',
+              profileType: 'child',
+            ),
+            AuthProfile(
+              id: 12,
+              displayName: 'Zweites betreutes Profil',
+              profileType: 'family',
+            ),
+            AuthProfile(
+              id: 10,
+              displayName: 'Eigenes Profil',
+              profileType: 'self',
+            ),
+            AuthProfile(
+              id: 13,
+              displayName: 'Drittes betreutes Profil',
+              profileType: 'other',
+            ),
+          ],
+        ),
+      );
+
+      expect(session.profiles.map((profile) => profile.id), [10, 11, 12, 13]);
+      expect(session.activeProfileId, 10);
+    });
+
     test('remembers the last active profile for the next login', () async {
       final session = AuthSession();
       final response = _authResponse();

@@ -17,6 +17,8 @@ from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain.observation import Observation
+from careena4.models.input import SymptomInputDraft
 from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
 from careena4.server_log import log_event
 
@@ -288,6 +290,12 @@ class TurnEngine:
                 )
                 trace_notes.append("topic:updated")
 
+            medical_case, chip_trace = self._sync_chips_to_case(
+                medical_case=medical_case,
+                symptom_input_draft=symptom_input_draft,
+            )
+            trace_notes.extend(chip_trace)
+
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
             ):
@@ -312,6 +320,14 @@ class TurnEngine:
                         active_question=conversation_state.active_question,
                         extra_trace_notes=["turn:case_safety_clarification_selected"],
                     )
+
+        # Sync chips also for turns without case_input (e.g. followup answers after user edits chips via PATCH).
+        # Runs again harmlessly if already synced inside the case_input block (dedup prevents duplicates).
+        medical_case, chip_trace = self._sync_chips_to_case(
+            medical_case=medical_case,
+            symptom_input_draft=symptom_input_draft,
+        )
+        trace_notes.extend(chip_trace)
 
         conversation_state.followup_needs = self.followup_need_builder.build(
             medical_case=medical_case,
@@ -407,6 +423,44 @@ class TurnEngine:
             trace_notes=trace_notes,
             resolved_question=resolved_question,
         )
+
+    def _sync_chips_to_case(
+        self,
+        *,
+        medical_case: MedicalCase,
+        symptom_input_draft: SymptomInputDraft | None,
+    ) -> tuple[MedicalCase, list[str]]:
+        """Write user-confirmed/edited chips into MedicalCase observations.
+
+        Only chips with a normalized_label_de (set by MedGemma) are accepted —
+        that normalization step serves as the plausibility gate.
+        """
+        if symptom_input_draft is None:
+            return medical_case, []
+
+        _syncable = {"user_confirmed", "user_edited", "user_added"}
+        trace_notes: list[str] = []
+
+        for chip in symptom_input_draft.chips:
+            if chip.status not in _syncable:
+                continue
+            if not chip.normalized_label_de:
+                continue
+
+            label_cf = chip.normalized_label_de.casefold()
+            already_present = any(
+                obs.label.casefold() == label_cf
+                for obs in medical_case.observations
+            )
+            if already_present:
+                continue
+
+            medical_case.observations.append(
+                Observation(type="symptom", label=chip.normalized_label_de)
+            )
+            trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
+
+        return medical_case, trace_notes
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
         medical_case = request_input.persisted_medical_case or MedicalCase()

@@ -18,7 +18,8 @@ import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
-import '../widgets/symptom_editor.dart';
+import '../widgets/symptom_chat_editor_sheet.dart';
+import '../../../symptom_diary/data/symptom_import.dart';
 import '../widgets/symptom_list.dart';
 import '../../../../core/themes/theme_controller.dart';
 import 'package:app1/core/services/speech_service.dart';
@@ -59,6 +60,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _speechService = SpeechService();
 
   List<String> _smartReplies = [];
+  bool _smartRepliesAreFromBackend = false;
+  List<String>? _preRecommendationSymptoms;
+  List<SymptomImport> _enrichedChatSymptoms = [];
   Timer? _longProcessingTimer;
   bool _isSending = false;
   bool _shouldAutoScroll = true;
@@ -162,6 +166,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _handleRecommendationRequest() async {
     if (_isSending || widget.controller.isCompleted.value) return;
 
+    _preRecommendationSymptoms =
+        List<String>.from(widget.controller.symptoms.value);
+
     await _speechService.stop();
     _textController.clear();
 
@@ -216,9 +223,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final recommendationResponse = showsRecommendation ? response : null;
 
     if (recommendationResponse != null) {
-      final recommendationSymptoms = List<String>.from(
-        widget.controller.symptoms.value,
-      );
+      final recommendationSymptoms =
+          _preRecommendationSymptoms ?? List<String>.from(widget.controller.symptoms.value);
+      _preRecommendationSymptoms = null;
       final recommendationUserMessages = widget.controller.messages.value
           .where((message) => message.isUser)
           .map((message) => message.text.trim())
@@ -236,6 +243,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             response: recommendationResponse,
             symptoms: recommendationSymptoms,
             userMessages: recommendationUserMessages,
+            themeController: widget.themeController,
+            enrichedSymptoms: _enrichedChatSymptoms.isNotEmpty
+                ? _enrichedChatSymptoms
+                : null,
           ),
         ),
       );
@@ -267,9 +278,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // clarification question), otherwise fall back to text-based generation.
     final backendOptions = widget.controller.lastReplyOptions.value;
     setState(() {
-      _smartReplies = backendOptions.isNotEmpty
-          ? backendOptions
-          : SmartReplies.generate(lastMessage.text);
+      if (backendOptions.isNotEmpty) {
+        _smartReplies = backendOptions;
+        _smartRepliesAreFromBackend = true;
+      } else {
+        _smartReplies = SmartReplies.generate(lastMessage.text);
+        _smartRepliesAreFromBackend = false;
+      }
     });
   }
 
@@ -327,10 +342,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _handleSmartReplySelected(String reply) {
     if (widget.controller.isCompleted.value) return;
 
-    final currentText = _textController.text.trim();
-    final newText = currentText.isEmpty ? reply : '$currentText $reply';
+    _textController.text = reply;
 
-    _textController.text = newText;
+    if (_smartRepliesAreFromBackend) {
+      _handleSend();
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -381,14 +398,36 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _showSymptomEditor() async {
+    final initialSymptoms = _enrichedChatSymptoms.isNotEmpty
+        ? _enrichedChatSymptoms
+        : widget.controller.symptoms.value
+            .map((s) => SymptomImport(name: s))
+            .toList();
+    final biologicalSex =
+        widget.controller.authSession.activeProfile?.biologicalSex;
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) {
-        return SymptomEditor(
-          symptoms: widget.controller.symptoms.value,
-          onSave: widget.controller.updateSymptomsDirectly,
+        return SymptomChatEditorSheet(
+          symptoms: initialSymptoms,
+          biologicalSex: biologicalSex,
+          onChanged: (updated) {
+            setState(() => _enrichedChatSymptoms = updated);
+            widget.controller.updateSymptomsDirectly(
+              updated.map((s) => s.name).toList(),
+            );
+          },
+          onSeveritiesChanged: (severities) async {
+            final sessionId = widget.controller.chatSessionService.sessionId;
+            if (sessionId == null) return;
+            await widget.controller.chatApi.setObservationSeverities(
+              sessionId,
+              severities,
+            );
+          },
         );
       },
     );
@@ -554,6 +593,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           focusNode: _inputFocusNode,
                           isSending: _isSending || isContinuing,
                           isEnabled: !isCompleted && !isContinuing,
+                          lockedToReplies: _smartRepliesAreFromBackend,
                           onSend: _handleSend,
                           smartReplies: isCompleted || isContinuing
                               ? const []

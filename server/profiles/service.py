@@ -18,6 +18,7 @@ from profiles.schemas import (
 
 EDIT_ROLES = {"owner", "guardian", "editor"}
 DELETE_ROLES = {"owner", "guardian"}
+MANAGED_PROFILE_TYPES = {"child", "relative", "family", "other"}
 
 
 def get_profile_access_role(account_id: int, profile_id: int, session: Session) -> str:
@@ -86,6 +87,11 @@ def list_profiles(current_user: User, session: Session) -> list[ProfileResponse]
         .join(AccountProfileAccess, AccountProfileAccess.profile_id == Profile.id)
         .where(AccountProfileAccess.account_id == current_user.id)
         .where(Profile.deleted_at.is_(None))
+        .order_by(
+            (Profile.profile_type != "self").asc(),
+            Profile.created_at.asc(),
+            Profile.id.asc(),
+        )
     ).all()
 
     return [
@@ -136,9 +142,7 @@ def create_profile(
 
     if request.profile_type == "self":
         role = "owner"
-    elif request.profile_type == "child":
-        role = "guardian"
-    elif request.profile_type == "relative":
+    elif request.profile_type in MANAGED_PROFILE_TYPES:
         role = "guardian"
     else:
         role = "editor"
@@ -255,10 +259,15 @@ def delete_profile(
 
     The profile row remains in the database but is hidden from normal profile queries.
     """
+    profile = session.get(Profile, profile_id)
+    allowed_roles = DELETE_ROLES
+    if profile is not None and profile.profile_type in MANAGED_PROFILE_TYPES:
+        allowed_roles = DELETE_ROLES | {"editor"}
+
     require_profile_role(
         account_id=current_user.id,
         profile_id=profile_id,
-        allowed_roles=DELETE_ROLES,
+        allowed_roles=allowed_roles,
         session=session,
     )
 

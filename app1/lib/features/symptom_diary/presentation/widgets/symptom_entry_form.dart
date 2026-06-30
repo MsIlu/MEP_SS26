@@ -3,6 +3,7 @@ import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/features/authscreen/presentation/widgets/registration/registration_step_indicator.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/symptom_body_area.dart';
@@ -50,6 +51,7 @@ class SymptomEntryForm extends StatefulWidget {
   final VoidCallback? onSaved;
   final String? biologicalSex;
   final String? initialSymptom;
+
   /// When true and [initialSymptom] is set, skips straight to the details
   /// (intensity) step instead of stopping at body area first.
   final bool skipToDetails;
@@ -258,6 +260,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
 
   void _showMissingSymptomMessage() {
     showCareenaSnackBar(context, 'Bitte ein Symptom eintragen');
+    _announce('Bitte ein Symptom eintragen');
   }
 
   Future<void> _loadCustomSymptomSuggestions() async {
@@ -279,6 +282,7 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     await _saveCustomSymptomSuggestions(updated);
     if (!mounted) return;
     showCareenaSnackBar(context, 'Symptom zur Auswahlliste hinzugefügt');
+    _announce('$symptom zur Auswahlliste hinzugefügt');
   }
 
   Future<void> _removeCustomSymptomSuggestion(String symptom) async {
@@ -286,6 +290,8 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
         .where((item) => item.toLowerCase() != symptom.toLowerCase())
         .toList(growable: false);
     await _saveCustomSymptomSuggestions(updated);
+    if (!mounted) return;
+    _announce('$symptom aus der Auswahlliste entfernt');
   }
 
   Future<void> _saveCustomSymptomSuggestions(List<String> suggestions) async {
@@ -294,6 +300,14 @@ class _SymptomEntryFormState extends State<SymptomEntryForm> {
     if (!mounted) return;
 
     setState(() => _customSymptomSuggestions = suggestions);
+  }
+
+  void _announce(String message) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 
   void _clampCurrentStepToActiveFlow() {

@@ -18,24 +18,36 @@ class CalendarMonthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        IconButton(
-          tooltip: 'Vorheriger Monat',
-          onPressed: onPrevious,
-          icon: const Icon(Icons.chevron_left),
+        Semantics(
+          button: true,
+          label: 'Vorherigen Monat anzeigen',
+          child: ExcludeSemantics(
+            child: IconButton(
+              tooltip: 'Vorherigen Monat anzeigen',
+              onPressed: onPrevious,
+              icon: const Icon(Icons.chevron_left),
+            ),
+          ),
         ),
         Expanded(
           child: Text(
             calendarMonthLabel(month),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
         ),
-        IconButton(
-          tooltip: 'Nächster Monat',
-          onPressed: onNext,
-          icon: const Icon(Icons.chevron_right),
+        Semantics(
+          button: true,
+          label: 'Nächsten Monat anzeigen',
+          child: ExcludeSemantics(
+            child: IconButton(
+              tooltip: 'Nächsten Monat anzeigen',
+              onPressed: onNext,
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ),
         ),
       ],
     );

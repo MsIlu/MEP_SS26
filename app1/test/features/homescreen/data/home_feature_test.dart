@@ -18,12 +18,17 @@ void main() {
           icon: Icons.calendar_today,
           title: 'Terminplanung',
           backgroundColor: AppColors.careenaTeal,
+          semanticDescription: 'Arzttermine und Empfehlungen planen',
           onTap: () {},
         );
 
         expect(feature.title, 'Terminplanung');
         expect(feature.icon, Icons.calendar_today);
         expect(feature.backgroundColor, AppColors.careenaTeal);
+        expect(
+          feature.semanticDescription,
+          'Arzttermine und Empfehlungen planen',
+        );
       },
     );
   });

@@ -1,14 +1,16 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
 
 import '../../data/symptom_import.dart';
+import '../../data/symptom_entry.dart';
 import '../controllers/symptom_diary_controller.dart';
 import '../widgets/symptom_diary_content.dart';
 import '../widgets/symptom_entry_form.dart';
@@ -20,6 +22,7 @@ class SymptomDiaryPage extends StatefulWidget {
   final SymptomApiService? symptomApiService;
   final ProfileApiService? profileApiService;
   final DateTime? initialDate;
+
   /// When set, shows an import dialog on open so the user can transfer
   /// chat-confirmed symptoms into the diary without re-typing them.
   /// Each entry carries the symptom name and, when known, its severity (1–10).
@@ -65,7 +68,6 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         if (mounted) _showChatImportDialog(toImport);
       });
     }
-
   }
 
   @override
@@ -82,9 +84,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: CareenaPageHeader(
-        title: 'Symptomtagebuch',
-      ),
+      appBar: CareenaPageHeader(title: 'Symptomtagebuch'),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -106,7 +106,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 allEntries: _controller.entries,
                 onDateSelected: _selectDate,
                 onAddSymptom: _openSymptomForm,
-                onDelete: _controller.deleteEntry,
+                onDelete: _deleteEntry,
               ),
             );
           },
@@ -201,7 +201,9 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }
 
   Future<void> _openSymptomFormForImport(
-      String symptom, String? biologicalSex) async {
+    String symptom,
+    String? biologicalSex,
+  ) async {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -312,6 +314,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         }
 
         showCareenaSnackBar(context, 'Symptom lokal gespeichert');
+        _announce('Symptom lokal gespeichert');
         return;
       }
     }
@@ -321,5 +324,23 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
 
     showCareenaSnackBar(context, 'Symptom gespeichert');
+    _announce('Symptom gespeichert');
+  }
+
+  Future<void> _deleteEntry(SymptomEntry entry) async {
+    final symptom = entry.symptom;
+    await _controller.deleteEntry(entry);
+    if (!mounted) return;
+
+    showCareenaSnackBar(context, 'Symptom gelöscht');
+    _announce('$symptom gelöscht');
+  }
+
+  void _announce(String message) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'smart_reply_list.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/services/speech_service.dart';
@@ -179,6 +179,11 @@ class _ChatInputFieldState extends State<ChatInputField>
         final micIconColor = !canUseMic
             ? colorScheme.onSurfaceVariant.withValues(alpha: 0.38)
             : (_isListening ? accentForeground : colorScheme.onSurfaceVariant);
+        final sendButtonLabel = widget.isSending
+            ? 'Nachricht wird verarbeitet'
+            : !widget.isEnabled
+            ? 'Chat ist abgeschlossen'
+            : 'Nachricht senden';
 
         return Container(
           padding: EdgeInsets.fromLTRB(
@@ -248,7 +253,8 @@ class _ChatInputFieldState extends State<ChatInputField>
                                     controller: widget.controller,
                                     focusNode: widget.focusNode,
                                     autofocus: true,
-                                    enabled: widget.isEnabled &&
+                                    enabled:
+                                        widget.isEnabled &&
                                         !widget.lockedToReplies,
                                     textInputAction: TextInputAction.send,
                                     keyboardType: TextInputType.text,
@@ -311,9 +317,7 @@ class _ChatInputFieldState extends State<ChatInputField>
                                       style: IconButton.styleFrom(
                                         tapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
-                                        minimumSize: Size.square(
-                                          micButtonSize,
-                                        ),
+                                        minimumSize: Size.square(micButtonSize),
                                       ),
                                       icon: AnimatedSwitcher(
                                         duration: const Duration(
@@ -352,22 +356,24 @@ class _ChatInputFieldState extends State<ChatInputField>
                   Semantics(
                     button: true,
                     enabled: isInputEnabled,
-                    label: widget.isSending
-                        ? 'Nachricht wird verarbeitet'
-                        : !widget.isEnabled
-                        ? 'Chat ist abgeschlossen'
-                        : 'Symptombeschreibung senden',
-                    child: IconButton.filled(
-                      onPressed: isInputEnabled ? widget.onSend : null,
-                      style: IconButton.styleFrom(
-                        backgroundColor: sendButtonColor,
-                        disabledBackgroundColor: sendingButtonColor,
-                        fixedSize: Size.square(buttonSize),
-                      ),
-                      icon: Icon(
-                        widget.isSending ? Icons.hourglass_top : Icons.send,
-                        color: isInputEnabled ? AppColors.white : sendingIconColor,
-                        size: 20,
+                    label: sendButtonLabel,
+                    onTap: isInputEnabled ? widget.onSend : null,
+                    child: ExcludeSemantics(
+                      child: IconButton.filled(
+                        tooltip: sendButtonLabel,
+                        onPressed: isInputEnabled ? widget.onSend : null,
+                        style: IconButton.styleFrom(
+                          backgroundColor: sendButtonColor,
+                          disabledBackgroundColor: sendingButtonColor,
+                          fixedSize: Size.square(buttonSize),
+                        ),
+                        icon: Icon(
+                          widget.isSending ? Icons.hourglass_top : Icons.send,
+                          color: isInputEnabled
+                              ? AppColors.white
+                              : sendingIconColor,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),

@@ -347,24 +347,30 @@ class _HomeScreenState extends State<HomeScreen> {
       HomeFeature(
         icon: Icons.menu_book_outlined,
         title: 'Symptomtagebuch',
+        semanticDescription: 'Symptome, Intensität und Notizen dokumentieren',
         backgroundColor: featureColor,
         onTap: () => _navigateToSymptomDiary(context),
       ),
       HomeFeature(
         icon: Icons.medication,
         title: 'Medikamententagebuch',
+        semanticDescription:
+            'Medikamente, Einnahmezeiten und Erinnerungen verwalten',
         backgroundColor: featureColor,
         onTap: () => _navigateToMedicationPlan(context),
       ),
       HomeFeature(
         icon: Icons.access_time,
         title: 'Terminplanung',
+        semanticDescription: 'Arzttermine und Empfehlungen planen',
         backgroundColor: featureColor,
         onTap: () => _navigateToAppointments(context),
       ),
       HomeFeature(
         icon: Icons.description_outlined,
         title: 'Dokumente',
+        semanticDescription:
+            'Gesundheitsdokumente ansehen, speichern und verwalten',
         backgroundColor: featureColor,
         badgeCount: _documentRepository.unreadCountForProfile(activeProfileId),
         onTap: () => _navigateToDocuments(context),

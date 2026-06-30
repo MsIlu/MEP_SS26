@@ -88,43 +88,71 @@ class _CalendarDayTile extends StatelessWidget {
         ? AppColors.darkElevatedSurface
         : AppColors.careenaNoteBackground;
     final textColor = isSelected ? AppColors.white : colorScheme.onSurface;
+    final semanticLabel = _semanticLabel();
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: semanticLabel,
       onTap: onTap,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: backgroundColor,
+      child: ExcludeSemantics(
+        child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected || isToday
-                ? accentColor
-                : AppColors.careenaBorder,
-            width: isToday && !isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${date.day}',
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            SizedBox.square(
-              dimension: 5,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: hasMarker
-                      ? (isSelected ? AppColors.white : accentColor)
-                      : AppColors.transparent,
-                  shape: BoxShape.circle,
-                ),
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected || isToday
+                    ? accentColor
+                    : AppColors.careenaBorder,
+                width: isToday && !isSelected ? 2 : 1,
               ),
             ),
-          ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${date.day}',
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                SizedBox.square(
+                  dimension: 5,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: hasMarker
+                          ? (isSelected ? AppColors.white : accentColor)
+                          : AppColors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  String _semanticLabel() {
+    final parts = <String>[
+      'Kalendertag ${date.day}.${date.month}.${date.year}',
+    ];
+    if (isToday) {
+      parts.add('heute');
+    }
+    if (isSelected) {
+      parts.add('ausgewählt');
+    }
+    if (hasMarker) {
+      parts.add('mit Einträgen');
+    }
+    return parts.join(', ');
   }
 }

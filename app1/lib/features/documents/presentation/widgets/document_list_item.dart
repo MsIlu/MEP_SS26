@@ -19,6 +19,7 @@ class DocumentListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final documentLabel = _semanticLabel(document);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -31,104 +32,142 @@ class DocumentListItem extends StatelessWidget {
               : colorScheme.outlineVariant,
         ),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+      child: Semantics(
+        button: true,
+        label: documentLabel,
+        hint: 'Doppeltippen, um das Dokument zu öffnen.',
         onTap: () => onAction(DocumentAction.open),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 54,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _categoryColor(
-                    document.category,
-                  ).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => onAction(DocumentAction.open),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    width: 46,
+                    height: 54,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _categoryColor(
+                        document.category,
+                      ).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      _categoryIcon(document.category),
+                      color: _categoryColor(document.category),
+                      size: 28,
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  _categoryIcon(document.category),
-                  color: _categoryColor(document.category),
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                const SizedBox(width: 14),
+                Expanded(
+                  child: ExcludeSemantics(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            document.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                        if (document.source == DocumentSource.careena)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 8),
-                            child: Tooltip(
-                              message: 'Von Careena erstellt',
-                              child: Icon(
-                                Icons.auto_awesome_outlined,
-                                size: 18,
-                                color: AppColors.careenaTeal,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                document.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
+                            if (document.source == DocumentSource.careena)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 8),
+                                child: Tooltip(
+                                  message: 'Von Careena erstellt',
+                                  child: Icon(
+                                    Icons.auto_awesome_outlined,
+                                    size: 18,
+                                    color: AppColors.careenaTeal,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${document.category.label} · ${_formatDate(document.createdAt)}'
+                          '${document.sizeInBytes > 0 ? ' · ${_formatSize(document.sizeInBytes)}' : ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${document.category.label} · ${_formatDate(document.createdAt)}'
-                      '${document.sizeInBytes > 0 ? ' · ${_formatSize(document.sizeInBytes)}' : ''}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              PopupMenuButton<DocumentAction>(
-                tooltip: 'Dokumentaktionen',
-                onSelected: onAction,
-                itemBuilder: (context) => const [
-                  PopupMenuItem(
-                    value: DocumentAction.open,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.visibility_outlined),
-                      title: Text('Öffnen'),
+                Semantics(
+                  button: true,
+                  label: 'Dokument ${document.name} verwalten',
+                  hint:
+                      'Öffnet Aktionen zum Anzeigen, Umbenennen oder Löschen.',
+                  child: ExcludeSemantics(
+                    child: PopupMenuButton<DocumentAction>(
+                      tooltip: 'Dokument ${document.name} verwalten',
+                      onSelected: onAction,
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: DocumentAction.open,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.visibility_outlined),
+                            title: Text('Anzeigen'),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: DocumentAction.rename,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.edit_outlined),
+                            title: Text('Umbenennen'),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: DocumentAction.delete,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            title: Text('Löschen'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  PopupMenuItem(
-                    value: DocumentAction.rename,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.edit_outlined),
-                      title: Text('Umbenennen'),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: DocumentAction.delete,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.delete_outline, color: Colors.red),
-                      title: Text('Löschen'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  static String _semanticLabel(DocumentEntry document) {
+    final parts = <String>[
+      'Dokument: ${document.name}',
+      document.category.label,
+      'erstellt am ${_formatDate(document.createdAt)}',
+    ];
+    if (document.source == DocumentSource.careena) {
+      parts.add('von Careena erstellt');
+    }
+    if (document.sizeInBytes > 0) {
+      parts.add(_formatSize(document.sizeInBytes));
+    }
+    return parts.join('. ');
   }
 
   static IconData _categoryIcon(DocumentCategory category) {

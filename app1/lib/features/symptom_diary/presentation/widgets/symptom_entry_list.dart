@@ -20,7 +20,11 @@ class SymptomEntryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Semantics(
+        liveRegion: true,
+        label: 'Symptomeinträge werden geladen',
+        child: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Column(
@@ -30,8 +34,8 @@ class SymptomEntryList extends StatelessWidget {
           entries.isEmpty
               ? 'Einträge für diesen Tag'
               : entries.length == 1
-                  ? '1 Eintrag für diesen Tag'
-                  : '${entries.length} Einträge für diesen Tag',
+              ? '1 Eintrag für diesen Tag'
+              : '${entries.length} Einträge für diesen Tag',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
@@ -58,27 +62,36 @@ class _EmptySymptomState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.careenaBorder),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, color: AppColors.careenaTeal),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Noch keine Symptome für diesen Tag eingetragen.',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+    return Semantics(
+      liveRegion: true,
+      label: 'Noch keine Symptome für diesen Tag eingetragen.',
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.careenaBorder),
           ),
-        ],
+          child: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.careenaTeal,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Noch keine Symptome für diesen Tag eingetragen.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -95,6 +108,7 @@ class _SymptomEntryTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final intensityColor = SymptomIntensity.color(entry.intensity);
+    final semanticLabel = _semanticLabel(entry);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -110,80 +124,118 @@ class _SymptomEntryTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: intensityColor.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(_iconForEntry(entry), color: intensityColor, size: 25),
-          ),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.symptom,
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (entry.bodyArea.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.accessibility_new,
-                        size: 14,
-                        color: AppColors.careenaTeal,
+            child: Semantics(
+              container: true,
+              label: semanticLabel,
+              child: ExcludeSemantics(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: intensityColor.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        entry.bodyArea,
-                        style: const TextStyle(
-                          color: AppColors.careenaTeal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      child: Icon(
+                        _iconForEntry(entry),
+                        color: intensityColor,
+                        size: 25,
                       ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 3),
-                Text(
-                  'Intensität ${entry.intensity}/10 · ${SymptomIntensity.label(entry.intensity)}',
-                  style: TextStyle(
-                    color: intensityColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (entry.note.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    entry.note,
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.35,
                     ),
-                  ),
-                ],
-              ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.symptom,
+                            style: TextStyle(
+                              color: colorScheme.onSurface,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (entry.bodyArea.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.accessibility_new,
+                                  size: 14,
+                                  color: AppColors.careenaTeal,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  entry.bodyArea,
+                                  style: const TextStyle(
+                                    color: AppColors.careenaTeal,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 3),
+                          Text(
+                            'Intensität ${entry.intensity}/10 · ${SymptomIntensity.label(entry.intensity)}',
+                            style: TextStyle(
+                              color: intensityColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (entry.note.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              entry.note,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          IconButton(
-            tooltip: 'Eintrag löschen',
-            onPressed: () => onDelete(entry),
-            icon: const Icon(Icons.delete_outline),
+          Semantics(
+            button: true,
+            label: 'Eintrag ${entry.symptom} löschen',
+            child: ExcludeSemantics(
+              child: IconButton(
+                tooltip: 'Eintrag ${entry.symptom} löschen',
+                onPressed: () => onDelete(entry),
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  String _semanticLabel(SymptomEntry entry) {
+    final parts = <String>[
+      'Symptomeintrag: ${entry.symptom}',
+      'Intensität ${entry.intensity} von 10',
+      SymptomIntensity.label(entry.intensity),
+    ];
+    if (entry.bodyArea.isNotEmpty) {
+      parts.add('Körperbereich: ${entry.bodyArea}');
+    }
+    if (entry.note.isNotEmpty) {
+      parts.add('Notiz: ${entry.note}');
+    }
+    return parts.join('. ');
   }
 
   IconData _iconForEntry(SymptomEntry entry) {

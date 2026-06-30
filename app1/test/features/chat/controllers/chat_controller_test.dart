@@ -477,6 +477,44 @@ void main() {
       },
     );
 
+    test(
+      'reconstructs recommendation actions for legacy completed history',
+      () async {
+        final authSession = AuthSession();
+        final controller = ChatController(
+          chatApi: _FakeChatApi(),
+          chatService: ChatService(),
+          authSession: authSession,
+          chatHistoryRepository: _FakeChatHistoryRepository(),
+        );
+        addTearDown(controller.dispose);
+        addTearDown(authSession.dispose);
+
+        await controller.resumeHistoryEntry(
+          ChatHistoryEntry(
+            id: 'legacy-completed',
+            profileId: 42,
+            sessionId: 'legacy-session',
+            status: 'completed',
+            createdAt: DateTime(2026, 6, 1),
+            messages: [Message(text: 'Ich habe Kopfschmerzen', isUser: true)],
+            recommendation: 'Bitte ärztlich abklären lassen.',
+            nextSteps: 'Hausarzttermin vereinbaren',
+          ),
+          continuePendingResponse: false,
+        );
+
+        final recommendationMessage = controller.messages.value.last;
+        expect(recommendationMessage.isUser, isFalse);
+        expect(recommendationMessage.canExportPdf, isTrue);
+        expect(recommendationMessage.canCreateAppointment, isTrue);
+        expect(
+          recommendationMessage.exportRecommendation,
+          'Bitte ärztlich abklären lassen.',
+        );
+      },
+    );
+
     test('completes anonymous recommendation without saving history', () async {
       final authSession = AuthSession();
       final chatApi = _FakeChatApi()

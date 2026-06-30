@@ -12,7 +12,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   final String title;
   final String? sessionId;
   final bool alreadySearched;
-  final VoidCallback? onSearched;
+  final Future<void> Function()? onSearched;
 
   const CreateRecommendedAppointmentButton({
     super.key,
@@ -25,26 +25,54 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.careenaTeal,
-        side: const BorderSide(color: AppColors.careenaTeal),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      ),
-      icon: const Icon(Icons.event_available_outlined),
-      label: Text(
-        alreadySearched
-            ? 'Termin bereits gebucht – siehe Terminplanung'
-            : sessionId == null
-            ? 'Termin erstellen'
-            : 'Termin finden',
-      ),
-      onPressed: alreadySearched ? null : () => _handlePressed(context),
+    return _AsyncAppointmentButton(
+      isCompleted: alreadySearched,
+      onPressed: () => _handlePressed(context),
+      builder: _buildButton,
     );
   }
 
-  Future<void> _handlePressed(BuildContext context) async {
+  Widget _buildButton(
+    bool isLoading,
+    bool isCompleted,
+    VoidCallback? onPressed,
+  ) {
+    return Tooltip(
+      message: isCompleted
+          ? 'Termin bereits gebucht – siehe Terminplanung'
+          : 'Termin suchen und buchen',
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.careenaTeal,
+          side: const BorderSide(color: AppColors.careenaTeal),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        icon: isLoading
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                isCompleted
+                    ? Icons.check_circle_outline
+                    : Icons.event_available_outlined,
+              ),
+        label: Text(
+          isCompleted
+              ? 'Bereits gebucht'
+              : sessionId == null
+              ? 'Termin erstellen'
+              : 'Termin finden',
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Future<bool> _handlePressed(BuildContext context) async {
     final profileId = authSession?.activeProfileId;
 
     if (profileId == null) {
@@ -54,30 +82,29 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         message:
             'Bitte wähle zuerst ein Profil aus, damit der Termin korrekt zugeordnet werden kann.',
       );
-      return;
+      return false;
     }
 
     if (sessionId == null) {
-      await _createFallbackAppointment(context, profileId);
-      return;
+      return _createFallbackAppointment(context, profileId);
     }
 
     final postalCode = await _askForPostalCode(context);
 
     if (postalCode == null) {
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
-    await _searchAndSelectAppointment(
+    return _searchAndSelectAppointment(
       context: context,
       profileId: profileId,
       postalCode: postalCode,
     );
   }
 
-  Future<void> _searchAndSelectAppointment({
+  Future<bool> _searchAndSelectAppointment({
     required BuildContext context,
     required int profileId,
     required String postalCode,
@@ -106,10 +133,10 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
               'Bitte prüfe, ob der lokale HAPI-FHIR-Server läuft.',
         );
       }
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
     Navigator.pop(context);
 
     if (response.appointments.isEmpty) {
@@ -118,10 +145,10 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         title: 'Keine regulären Termine',
         message: response.message,
       );
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     final selectedAppointment = await _showAppointmentSelectionDialog(
       context,
@@ -129,7 +156,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     );
 
     if (selectedAppointment == null) {
-      return;
+      return false;
     }
 
     final note = _buildAppointmentNote(selectedAppointment);
@@ -152,11 +179,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
               'Der FHIR-Termin wurde gefunden, konnte aber nicht in der Terminplanung gespeichert werden.',
         );
       }
-      return;
+      return false;
     }
 
     // Persist the completed action only after HAPI booking and backend save.
-    onSearched?.call();
+    await onSearched?.call();
 
     final controller = AppointmentController();
     final wasCreated = controller.addRecommendedAppointmentIfMissing(
@@ -167,16 +194,17 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       controller.upsertRecommendedAppointments([appointment]);
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     await _showAppointmentSavedDialog(
       context: context,
       appointment: appointment,
       wasCreated: wasCreated,
     );
+    return true;
   }
 
-  Future<void> _createFallbackAppointment(
+  Future<bool> _createFallbackAppointment(
     BuildContext context,
     int profileId,
   ) async {
@@ -191,15 +219,16 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     final wasCreated = AppointmentController()
         .addRecommendedAppointmentIfMissing(appointment);
 
-    onSearched?.call();
+    await onSearched?.call();
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     await _showAppointmentSavedDialog(
       context: context,
       appointment: appointment,
       wasCreated: wasCreated,
     );
+    return true;
   }
 
   Future<String?> _askForPostalCode(BuildContext context) async {
@@ -721,6 +750,70 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         'Adresse: ${appointment.address}\n'
         'Entfernung: ${appointment.distanceKm.toStringAsFixed(1)} km\n'
         'Quelle: ${appointment.source}';
+  }
+}
+
+class _AsyncAppointmentButton extends StatefulWidget {
+  final bool isCompleted;
+  final Future<bool> Function() onPressed;
+  final Widget Function(
+    bool isLoading,
+    bool isCompleted,
+    VoidCallback? onPressed,
+  )
+  builder;
+
+  const _AsyncAppointmentButton({
+    required this.isCompleted,
+    required this.onPressed,
+    required this.builder,
+  });
+
+  @override
+  State<_AsyncAppointmentButton> createState() =>
+      _AsyncAppointmentButtonState();
+}
+
+class _AsyncAppointmentButtonState extends State<_AsyncAppointmentButton> {
+  bool _isLoading = false;
+  late bool _isCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCompleted = widget.isCompleted;
+  }
+
+  @override
+  void didUpdateWidget(covariant _AsyncAppointmentButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCompleted) _isCompleted = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(
+      _isLoading,
+      _isCompleted,
+      _isCompleted || _isLoading ? null : _run,
+    );
+  }
+
+  Future<void> _run() async {
+    setState(() => _isLoading = true);
+    try {
+      final completed = await widget.onPressed();
+      if (mounted && completed) setState(() => _isCompleted = true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Der Aktionsstatus konnte nicht gespeichert werden'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }
 

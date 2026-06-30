@@ -27,7 +27,7 @@ class SymptomDiaryPage extends StatefulWidget {
   /// chat-confirmed symptoms into the diary without re-typing them.
   /// Each entry can carry the symptom name, severity (1-10), and body area.
   final List<SymptomImport>? initialSymptoms;
-  final VoidCallback? onInitialSymptomsSaved;
+  final Future<void> Function()? onInitialSymptomsSaved;
 
   const SymptomDiaryPage({
     super.key,
@@ -211,7 +211,15 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
 
     if (savedAny) {
-      widget.onInitialSymptomsSaved?.call();
+      try {
+        await widget.onInitialSymptomsSaved?.call();
+      } catch (_) {
+        if (!mounted) return;
+        showCareenaSnackBar(
+          context,
+          'Gespeichert, aber der Chatstatus konnte nicht aktualisiert werden',
+        );
+      }
     }
   }
 
@@ -221,24 +229,24 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   ) async {
     return await showDialog<bool>(
           context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(18),
-          backgroundColor: AppColors.transparent,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: SingleChildScrollView(
-              child: SymptomEntryForm(
-                initialSymptom: symptom,
-                onSave: _addEntry,
-                onCancel: () => Navigator.pop(dialogContext, false),
-                onSaved: () => Navigator.pop(dialogContext, true),
-                biologicalSex: biologicalSex,
+          builder: (dialogContext) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(18),
+              backgroundColor: AppColors.transparent,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: SingleChildScrollView(
+                  child: SymptomEntryForm(
+                    initialSymptom: symptom,
+                    onSave: _addEntry,
+                    onCancel: () => Navigator.pop(dialogContext, false),
+                    onSaved: () => Navigator.pop(dialogContext, true),
+                    biologicalSex: biologicalSex,
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
         ) ??
         false;
   }

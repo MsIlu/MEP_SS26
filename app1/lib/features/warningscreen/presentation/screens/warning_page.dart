@@ -103,7 +103,9 @@ class WarningPage extends StatelessWidget {
                   symptoms: symptoms,
                   userMessages: userMessages,
                   alreadySaved: recommendationMessage?.documentSaved ?? false,
-                  onSaved: () => _markAction(RecommendationAction.document),
+                  onSaved: () async {
+                    await _markAction(RecommendationAction.document);
+                  },
                 ),
               ],
 
@@ -111,27 +113,9 @@ class WarningPage extends StatelessWidget {
                       response.caseObservations.isNotEmpty) &&
                   themeController != null) ...[
                 const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.careenaTeal,
-                    side: const BorderSide(color: AppColors.careenaTeal),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  onPressed: recommendationMessage?.symptomsSaved == true
-                      ? null
-                      : () => _navigateToSymptomDiary(context),
-                  icon: const Icon(Icons.book_outlined, size: 18),
-                  label: Text(
-                    recommendationMessage?.symptomsSaved == true
-                        ? 'Symptome bereits gespeichert – siehe Tagebuch'
-                        : 'Symptome ins Tagebuch',
-                  ),
+                _WarningSymptomButton(
+                  isCompleted: recommendationMessage?.symptomsSaved == true,
+                  onPressed: () => _navigateToSymptomDiary(context),
                 ),
               ],
 
@@ -146,8 +130,9 @@ class WarningPage extends StatelessWidget {
                   sessionId: sessionId,
                   alreadySearched:
                       recommendationMessage?.appointmentSearched ?? false,
-                  onSearched: () =>
-                      _markAction(RecommendationAction.appointment),
+                  onSearched: () async {
+                    await _markAction(RecommendationAction.appointment);
+                  },
                 ),
               ],
 
@@ -174,15 +159,16 @@ class WarningPage extends StatelessWidget {
     return symptoms.map((s) => SymptomImport(name: s)).toList();
   }
 
-  void _markAction(RecommendationAction action) {
-    onRecommendationAction?.call(action);
+  Future<void> _markAction(RecommendationAction action) async {
+    await onRecommendationAction?.call(action);
   }
 
-  void _navigateToSymptomDiary(BuildContext context) {
+  Future<bool> _navigateToSymptomDiary(BuildContext context) async {
     final tc = themeController;
-    if (tc == null) return;
+    if (tc == null) return false;
     final deps = AppDependenciesScope.of(context);
-    Navigator.push(
+    var saved = false;
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (_) => SymptomDiaryPage(
@@ -191,11 +177,90 @@ class WarningPage extends StatelessWidget {
           symptomApiService: deps.symptomApiService,
           profileApiService: deps.profileApiService,
           initialSymptoms: _buildSymptomImports(),
-          onInitialSymptomsSaved: () =>
-              _markAction(RecommendationAction.symptoms),
+          onInitialSymptomsSaved: () async {
+            await _markAction(RecommendationAction.symptoms);
+            saved = true;
+          },
         ),
       ),
     );
+    return saved;
+  }
+}
+
+class _WarningSymptomButton extends StatefulWidget {
+  final bool isCompleted;
+  final Future<bool> Function() onPressed;
+
+  const _WarningSymptomButton({
+    required this.isCompleted,
+    required this.onPressed,
+  });
+
+  @override
+  State<_WarningSymptomButton> createState() => _WarningSymptomButtonState();
+}
+
+class _WarningSymptomButtonState extends State<_WarningSymptomButton> {
+  bool _isLoading = false;
+  late bool _isCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCompleted = widget.isCompleted;
+  }
+
+  @override
+  void didUpdateWidget(covariant _WarningSymptomButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCompleted) _isCompleted = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: _isCompleted
+          ? 'Symptome im Tagebuch gespeichert'
+          : 'Symptome ins Tagebuch übernehmen',
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.careenaTeal,
+          side: const BorderSide(color: AppColors.careenaTeal),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        onPressed: _isCompleted || _isLoading ? null : _run,
+        icon: _isLoading
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                _isCompleted ? Icons.check_circle_outline : Icons.book_outlined,
+              ),
+        label: Text(
+          _isCompleted ? 'Bereits gespeichert' : 'Symptome speichern',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _run() async {
+    setState(() => _isLoading = true);
+    try {
+      final completed = await widget.onPressed();
+      if (mounted && completed) setState(() => _isCompleted = true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Symptome konnten nicht geöffnet werden')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
@@ -646,10 +646,7 @@ class _ChatHistoryDetailScreenState extends State<ChatHistoryDetailScreen> {
     );
   }
 
-  Future<void> _markAction(
-    Message message,
-    RecommendationAction action,
-  ) async {
+  Future<void> _markAction(Message message, RecommendationAction action) async {
     final index = _messages.indexOf(message);
     if (index < 0) return;
 
@@ -685,8 +682,8 @@ class _ChatHistoryDetailScreenState extends State<ChatHistoryDetailScreen> {
           initialSymptoms: message.recommendationSymptoms
               .map((symptom) => SymptomImport(name: symptom))
               .toList(),
-          onInitialSymptomsSaved: () {
-            unawaited(_markAction(message, RecommendationAction.symptoms));
+          onInitialSymptomsSaved: () async {
+            await _markAction(message, RecommendationAction.symptoms);
           },
         ),
       ),

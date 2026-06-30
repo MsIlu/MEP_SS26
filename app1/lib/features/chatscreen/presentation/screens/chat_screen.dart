@@ -473,12 +473,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           initialSymptoms: symptoms
               .map((symptom) => SymptomImport(name: symptom))
               .toList(),
-          onInitialSymptomsSaved: () {
-            unawaited(
-              widget.controller.markRecommendationAction(
-                message,
-                RecommendationAction.symptoms,
-              ),
+          onInitialSymptomsSaved: () async {
+            await widget.controller.markRecommendationAction(
+              message,
+              RecommendationAction.symptoms,
             );
           },
         ),

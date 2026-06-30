@@ -17,7 +17,6 @@ import '../../controllers/chat_controller.dart';
 import '../../data/chat_history_repository.dart';
 import '../../data/models/chat_history_entry.dart';
 import '../widgets/chat_bubble.dart';
-import '../../controllers/chat_controller.dart';
 import 'chat_screen.dart';
 
 class ChatHistoryScreen extends StatefulWidget {

@@ -1,4 +1,7 @@
+import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
@@ -44,11 +47,17 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   bool showAllProfiles = false;
   String selectedFilter = 'Alle';
+  final Set<int> _loadedRemoteProfileIds = {};
+  final Set<int> _loadingRemoteProfileIds = {};
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    AppPageStore.saveCurrentPage(AppPage.appointments);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _loadRecommendedAppointmentsForCurrentView();
+      if (!mounted) return;
       _openInitialAppointment();
     });
   }
@@ -61,6 +70,55 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       if (appointment.id == appointmentId) {
         _showEditDialog(appointment);
         return;
+      }
+    }
+  }
+
+  Future<void> _loadRecommendedAppointmentsForCurrentView() async {
+    if (showAllProfiles) {
+      final profiles = widget.authSession?.profiles ?? const [];
+      final profileIds = profiles.map((profile) => profile.id).toSet();
+
+      await Future.wait(
+        profileIds.map(_loadRecommendedAppointmentsForProfile),
+      );
+      return;
+    }
+
+    final profileId = selectedProfileId;
+    if (profileId == null) {
+      return;
+    }
+
+    await _loadRecommendedAppointmentsForProfile(profileId);
+  }
+
+  Future<void> _loadRecommendedAppointmentsForProfile(int profileId) async {
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    final authSession = widget.authSession;
+
+    if (dependencies == null || authSession?.isAuthenticated != true) {
+      return;
+    }
+
+    if (_loadedRemoteProfileIds.contains(profileId) ||
+        _loadingRemoteProfileIds.contains(profileId)) {
+      return;
+    }
+
+    _loadingRemoteProfileIds.add(profileId);
+
+    try {
+      final appointments = await dependencies.appointmentApiService
+          .getRecommendedAppointments(profileId: profileId);
+      controller.upsertRecommendedAppointments(appointments);
+      _loadedRemoteProfileIds.add(profileId);
+    } catch (_) {
+      // Loading DB-backed appointment recommendations is best-effort.
+    } finally {
+      _loadingRemoteProfileIds.remove(profileId);
+      if (mounted) {
+        setState(() {});
       }
     }
   }
@@ -181,7 +239,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CareenaPageHeader(title: 'Terminplanung'),
+      appBar: CareenaPageHeader(
+        title: 'Terminplanung',
+        onBack: () => navigateToHomeFallback(
+          context,
+          themeController: widget.themeController,
+        ),
+      ),
       body: ResponsivePageBody(
         maxWidth: 1000,
         padding: const EdgeInsets.all(16),
@@ -227,12 +291,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     setState(() {
                       showAllProfiles = true;
                     });
+                    _loadRecommendedAppointmentsForCurrentView();
                   },
                   onProfileSelected: (profileId) {
                     setState(() {
                       selectedProfileId = profileId;
                       showAllProfiles = false;
                     });
+                    _loadRecommendedAppointmentsForProfile(profileId);
                   },
                 ),
                 if ((widget.authSession?.profiles.length ?? 0) > 1)

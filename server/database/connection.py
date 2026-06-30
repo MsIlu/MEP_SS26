@@ -269,6 +269,24 @@ def create_db_and_tables():
                 "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
             )
         )
+        session.exec(
+            text(
+                "ALTER TABLE recommended_appointments "
+                "ADD COLUMN IF NOT EXISTS booked_by_account_id INTEGER"
+            )
+        )
+        session.exec(
+            text(
+                """
+                UPDATE recommended_appointments AS appointment
+                SET booked_by_account_id = access.account_id
+                FROM acc_profile_access AS access
+                WHERE appointment.booked_by_account_id IS NULL
+                  AND access.profile_id = appointment.profile_id
+                  AND access.role = 'owner'
+                """
+            )
+        )
         session.commit()
     _migrate_legacy_user_schema()
     _migrate_chat_history_schema()

@@ -8,6 +8,7 @@ import '../features/chatscreen/data/chat_history_repository.dart';
 import '../features/chatscreen/services/chat_service.dart';
 import '../features/chatscreen/services/chat_session_service.dart';
 import '../features/chatscreen/services/symptom_draft_service.dart';
+import '../features/appointmentscreen/data/appointment_api_service.dart';
 import '../features/authscreen/data/auth_api_service.dart';
 import '../features/authscreen/state/auth_session.dart';
 import '../features/symptom_diary/data/symptom_api_service.dart';
@@ -22,6 +23,7 @@ class AppDependencies {
   late final ApiClient apiClient;
   late final ChatController chatController;
   late final ChatWarningController chatWarningController;
+  late final AppointmentApiService appointmentApiService;
   late final AuthApiService authApiService;
   late final SymptomApiService symptomApiService;
   late final SymptomRepository symptomRepository;
@@ -35,6 +37,9 @@ class AppDependencies {
   }) : _httpClient = httpClient ?? http.Client(),
        symptomRepository = symptomRepository ?? SymptomRepository() {
     apiClient = ApiClient(_httpClient);
+    authSession.addListener(_syncAuthToken);
+    _syncAuthToken();
+    appointmentApiService = AppointmentApiService(apiClient);
     authApiService = AuthApiService(apiClient);
     symptomApiService = SymptomApiService(apiClient);
     symptomSyncService = SymptomSyncService(
@@ -55,7 +60,20 @@ class AppDependencies {
     chatWarningController = ChatWarningController(profileApiService);
   }
 
+  void _syncAuthToken() {
+    final accessToken = authSession.accessToken;
+
+    // Restored sessions bypass AuthApiService, so keep ApiClient in sync here.
+    if (accessToken == null) {
+      apiClient.clearAccessToken();
+      return;
+    }
+
+    apiClient.setAccessToken(accessToken);
+  }
+
   void dispose() {
+    authSession.removeListener(_syncAuthToken);
     chatController.dispose();
     _httpClient.close();
   }

@@ -1,4 +1,5 @@
 import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
@@ -6,7 +7,6 @@ import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
 import 'package:app1/features/appointmentscreen/presentation/screens/appointment_screen.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
-import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/medication_plan/data/medication_entry.dart';
 import 'package:app1/features/medication_plan/presentation/screens/medication_plan_page.dart';
 import 'package:app1/features/settings/presentation/screens/settings_page.dart';
@@ -44,26 +44,7 @@ class CalendarOverviewNavigation {
   }
 
   void openHome() {
-    final dependencies = AppDependenciesScope.maybeOf(context);
-    if (dependencies == null || themeController == null) {
-      // Isolated widget tests already have the home route below the calendar.
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: dependencies.chatController,
-          themeController: themeController!,
-          apiClient: dependencies.apiClient,
-          authSession: dependencies.authSession,
-          authApiService: dependencies.authApiService,
-          symptomApiService: dependencies.symptomApiService,
-        ),
-      ),
-      (route) => false,
-    );
+    navigateToHomeFallback(context, themeController: themeController);
   }
 
   void openHistory() {

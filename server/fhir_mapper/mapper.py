@@ -8,6 +8,7 @@ from uuid import NAMESPACE_URL, uuid5
 URGENCY_EXTENSION_URL = (
     "https://careena.local/fhir/StructureDefinition/urgency-level"
 )
+PROFILE_IDENTIFIER_SYSTEM = "https://careena.local/fhir/NamingSystem/profile-id"
 
 
 def map_to_fhir_bundle(data: dict[str, Any]) -> dict[str, Any]:
@@ -120,6 +121,15 @@ def _map_patient(patient_data: dict[str, Any], patient_id: str) -> dict[str, Any
     birth_date = patient_data.get("birthDate")
     if birth_date:
         patient["birthDate"] = birth_date
+
+    profile_id = patient_data.get("profileId")
+    if profile_id is not None:
+        patient["identifier"] = [
+            {
+                "system": PROFILE_IDENTIFIER_SYSTEM,
+                "value": str(profile_id),
+            }
+        ]
 
     return patient
 

@@ -1,15 +1,21 @@
 import unittest
+import json
 
 from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
+from careena4.application.dialogue.safety_clarification_builder import SafetyClarificationBuilder
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
-from careena4.application.response.response_builder import ResponseBuilder
+from careena4.application.interpretation.turn_interpreter import TurnInterpreter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
-from careena4.application.topic import TopicLabelBuilder
-from careena4.llm.call_control import CallModelConfig, ENTRY_CALL, EXTRACTION_CALL, TOPIC_LABELING_CALL
+from careena4.application.response.response_builder import ResponseBuilder
+from careena4.application.understanding.sts_consultation_reason_catalog import StsConsultationReasonCatalog
+from careena4.llm.call_control import CallModelConfig, ENTRY_CALL, EXTRACTION_CALL, TURN_INTERPRETATION_CALL
 from careena4.llm.prompt_registry import load_prompt
-from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase, Source, Topic, TopicEntry
+from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase
+from careena4.models.turn import SafetyState
+from careena4.models.interpretation import TurnInterpretation
+from careena4.models.understanding import StsConsultationReasonCandidate
 from careena4.models.turn import EntryAssessment, ExtractedCaseInput, QuestionResolution, TurnDecision
 
 
@@ -44,6 +50,14 @@ class _FakeMedicalExtractor:
     def extract(self, **kwargs):
         self.calls.append(kwargs)
         return self.result
+
+
+class _RawLlmBackedExtractionEngine:
+    def __init__(self, llm_client):
+        self.llm_client = llm_client
+
+    def extract(self, **kwargs):
+        raise AssertionError("partial-turn-interpreter path should bypass full-schema extraction")
 
 
 class Careena4LlmPathTests(unittest.TestCase):
@@ -135,12 +149,8 @@ class Careena4LlmPathTests(unittest.TestCase):
                     },
                     "additional_medical_information": True,
                     "extra_case_input": {
-                        "topic_entries_to_add": [
-                            {
-                                "topic_part": "Bauchschmerzen mit Uebelkeit",
-                                "source": {"message_id": None, "source_span": "Bauchschmerzen und Uebelkeit"},
-                            }
-                        ],
+                        "topic_label": "Bauchschmerzen mit Uebelkeit",
+                        "topic_description": "Bauchschmerzen zusaetzlich mit Uebelkeit",
                         "person": None,
                         "observations": [
                             {
@@ -182,7 +192,7 @@ class Careena4LlmPathTests(unittest.TestCase):
         self.assertTrue(result.additional_medical_information)
         assert result.extra_case_input is not None
         self.assertEqual(result.extra_case_input.observations[0].label, "Uebelkeit")
-        self.assertEqual(result.extra_case_input.topic_entries_to_add[0].topic_part, "Bauchschmerzen mit Uebelkeit")
+        self.assertEqual(result.extra_case_input.topic_label, "Bauchschmerzen mit Uebelkeit")
 
     def test_question_resolver_accepts_severity_resolution_from_llm(self):
         resolver = QuestionResolver(
@@ -220,19 +230,49 @@ class Careena4LlmPathTests(unittest.TestCase):
         assert result.observation_patch is not None
         self.assertEqual(result.observation_patch.severity, "8/10")
 
+    def test_question_resolver_rejects_free_description_without_description_value(self):
+        resolver = QuestionResolver(
+            extraction_engine=_FakeExtractionEngine(
+                {
+                    "status": "resolved",
+                    "answer_kind": "free_description_provided",
+                    "clear_active_question": True,
+                    "resolved_followup_id": "followup-1",
+                    "person_update": None,
+                    "observation_patch": {},
+                    "additional_medical_information": False,
+                    "extra_case_input": None,
+                    "next_question_text": None,
+                    "trace_notes": ["llm:resolved"],
+                }
+            ),
+            call_model_config=CallModelConfig(default_model="default", overrides={}),
+        )
+        question = ActiveQuestion(
+            kind="followup",
+            question_intent="free_description",
+            target_followup_id="followup-1",
+            target_observation_id="obs-1",
+            prompt_text="Bitte beschreiben Sie das genauer.",
+            blocking=True,
+        )
+
+        result = resolver.resolve(question=question, message="Es ist irgendwie komisch.")
+
+        self.assertEqual(result.status, "invalid")
+        self.assertEqual(result.answer_kind, "invalid")
+
     def test_medical_extractor_prefers_llm_schema_result(self):
         extractor = MedicalExtractor(
             extraction_engine=_FakeExtractionEngine(
                 {
-                    "topic_entries_to_add": [
-                        {
-                            "topic_part": "Bauchschmerzen",
-                            "source": {"message_id": None, "source_span": "Bauchschmerzen"},
-                        }
-                    ],
                     "person": {
                         "relation": "self",
                         "relation_source": {"message_id": None, "source_span": "ich"},
+                        "age": 24,
+                        "age_source": {"message_id": None, "source_span": "24"},
+                        "sex": "female",
+                        "sex_source": {"message_id": None, "source_span": "weiblich"},
                     },
                     "observations": [
                         {
@@ -262,16 +302,23 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertIsInstance(result, ExtractedCaseInput)
         self.assertEqual(result.observations[0].label, "Bauchschmerzen")
-        self.assertEqual(result.topic_entries_to_add[0].topic_part, "Bauchschmerzen")
+        self.assertIsNone(result.topic_label)
+        self.assertIsNone(result.topic_description)
+        assert result.person is not None
+        self.assertEqual(result.person.age, 24)
+        self.assertEqual(result.person.sex, "female")
         self.assertEqual(extractor.extraction_engine.calls[0]["call_name"], EXTRACTION_CALL)
         self.assertEqual(extractor.extraction_engine.calls[0]["prompt_name"], EXTRACTION_CALL)
         self.assertIn('"person": {', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('observation.type: "symptom"', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertNotIn("injury", load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"observations": [', load_prompt(EXTRACTION_CALL).system_prompt)
-        self.assertIn('"topic_entries_to_add": [', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('"topic_label": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('"topic_description": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('bleibt immer null', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"label_source": {', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertNotIn('"topic_signal"', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertNotIn("Aktuelles Chat-Thema", extractor.extraction_engine.calls[0]["text"])
 
     def test_medical_extractor_returns_empty_case_input_when_llm_is_unavailable(self):
         extractor = MedicalExtractor(
@@ -283,42 +330,206 @@ class Careena4LlmPathTests(unittest.TestCase):
         self.assertIsInstance(result, ExtractedCaseInput)
         self.assertEqual(result.observations, [])
         self.assertIsNone(result.person)
-        self.assertEqual(result.topic_entries_to_add, [])
+        self.assertIsNone(result.topic_label)
+        self.assertIsNone(result.topic_description)
 
-    def test_topic_label_builder_prefers_llm_schema_result(self):
-        builder = TopicLabelBuilder(
+    def test_turn_interpreter_prefers_single_call_schema_result(self):
+        class _StubCatalog(StsConsultationReasonCatalog):
+            def match_by_labels(self, labels: list[str], *, max_results: int = 3):
+                if "Kopfschmerzen" in labels or "Kopfschmerz" in labels:
+                    return [
+                        StsConsultationReasonCandidate(
+                            sts_id="1001",
+                            sts_label_de="Kopfschmerzen",
+                            source_category_de="Allgemein",
+                            source_sts_levels_present=[3],
+                            match_confidence=1.0,
+                            match_reason="keyword_match",
+                        )
+                    ]
+                return []
+
+        interpreter = TurnInterpreter(
             extraction_engine=_FakeExtractionEngine(
                 {
-                    "label": "Fahrradsturz mit Arztfrage",
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": False,
+                        "contains_new_medical_information": True,
+                        "message_kind": "new_case_report",
+                    },
+                    "question_resolution": None,
+                    "case_input": {
+                        "topic_label": "Kopfschmerzen",
+                        "topic_description": "Kopfschmerzen seit gestern",
+                        "person": None,
+                        "observations": [
+                            {
+                                "type": "symptom",
+                                "label": "Kopfschmerzen",
+                                "label_source": {"message_id": None, "source_span": "Kopfschmerzen"},
+                                "status": "active",
+                                "status_source": {"message_id": None, "source_span": "Kopfschmerzen"},
+                                "person_ref": "self",
+                                "person_ref_source": {"message_id": None, "source_span": "ich"},
+                                "onset": "seit gestern",
+                                "onset_source": {"message_id": None, "source_span": "seit gestern"},
+                                "body_site": None,
+                                "body_site_source": None,
+                                "description": "dumpf",
+                                "description_source": {"message_id": None, "source_span": "dumpf"},
+                                "severity": "5/10",
+                                "severity_source": {"message_id": None, "source_span": "5/10"},
+                            }
+                        ],
+                    },
+                    "current_turn_understanding": {
+                        "symptoms": [
+                            {
+                                "source_label": "Kopfschmerzen",
+                                "is_medical": True,
+                                "is_negated": False,
+                                "normalized_label_de": "Kopfschmerzen",
+                                "clinical_term_de": "Kopfschmerz",
+                                "confidence": 0.91,
+                                "reasoning_note": "direkt genannt",
+                            }
+                        ],
+                        "trace_notes": ["turn_interpreter:v1"],
+                    },
+                    "trace_notes": ["turn_interpretation:ok"],
+                }
+            ),
+            call_model_config=CallModelConfig(default_model="default", overrides={}),
+            sts_catalog=_StubCatalog(),
+        )
+
+        result = interpreter.interpret(message="Ich habe seit gestern dumpfe Kopfschmerzen.")
+
+        self.assertIsInstance(result, TurnInterpretation)
+        self.assertEqual(result.entry_assessment.message_kind, "new_case_report")
+        assert result.case_input is not None
+        self.assertEqual(result.case_input.topic_label, "Kopfschmerzen")
+        assert result.current_turn_understanding is not None
+        current_turn_understanding = interpreter.to_current_turn_understanding(
+            raw_message="Ich habe seit gestern dumpfe Kopfschmerzen.",
+            interpretation=result,
+        )
+        assert current_turn_understanding is not None
+        self.assertEqual(current_turn_understanding.sts_matches[0].sts_label_de, "Kopfschmerzen")
+        self.assertEqual(interpreter.extraction_engine.calls[0]["call_name"], TURN_INTERPRETATION_CALL)
+        self.assertEqual(interpreter.extraction_engine.calls[0]["prompt_name"], TURN_INTERPRETATION_CALL)
+        self.assertEqual(
+            interpreter.extraction_engine.calls[0]["prompt_version"],
+            load_prompt(TURN_INTERPRETATION_CALL).version,
+        )
+        payload = json.loads(interpreter.extraction_engine.calls[0]["text"])
+        self.assertNotIn("allowed_sts_consultation_reasons", payload)
+        self.assertNotIn("sts_reasons", payload)
+
+    def test_turn_interpreter_bridges_guided_safety_answer_without_legacy_followup_llm(self):
+        interpreter = TurnInterpreter(
+            extraction_engine=_FakeExtractionEngine(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": True,
+                        "contains_new_medical_information": False,
+                        "message_kind": "question_answer",
+                    },
+                    "question_resolution": None,
+                    "case_input": None,
+                    "current_turn_understanding": {
+                        "symptoms": [],
+                        "trace_notes": [],
+                    },
+                    "trace_notes": [],
                 }
             ),
             call_model_config=CallModelConfig(default_model="default", overrides={}),
         )
-        medical_case = MedicalCase(
-            topic=Topic(
-                label="",
-                entries=[
-                    TopicEntry(
-                        topic_part="Fahrradsturz",
-                        source=Source(source_span="Sturz mit dem Fahrrad"),
-                    ),
-                    TopicEntry(
-                        topic_part="Welcher Arzt ist zustaendig",
-                        source=Source(source_span="zu welchem Arzt ich soll"),
-                    ),
-                ],
+        question = SafetyClarificationBuilder().build_active_question(
+            safety_state=SafetyState(
+                checked_sources=["raw_message"],
+                red_flag_detected=True,
+                red_flag_status="suspected",
+                action="ask_safety_clarification",
+                evidence_terms=["Brustschmerzen"],
             )
         )
 
-        result = builder.build(medical_case=medical_case)
-
-        self.assertEqual(result, "Fahrradsturz mit Arztfrage")
-        self.assertEqual(builder.extraction_engine.calls[0]["call_name"], TOPIC_LABELING_CALL)
-        self.assertEqual(builder.extraction_engine.calls[0]["prompt_name"], TOPIC_LABELING_CALL)
-        self.assertEqual(
-            builder.extraction_engine.calls[0]["prompt_version"],
-            load_prompt(TOPIC_LABELING_CALL).version,
+        result = interpreter.interpret(
+            message="Nein",
+            active_question=question,
         )
+
+        assert result is not None
+        assert result.question_resolution is not None
+        self.assertEqual(result.question_resolution.status, "cleared_red_flag")
+        self.assertEqual(result.question_resolution.answer_kind, "cleared_red_flag")
+        self.assertTrue(result.question_resolution.clear_active_question)
+        self.assertIn("turn_interpretation:guided_safety_resolution_applied", result.trace_notes)
+        payload = json.loads(interpreter.extraction_engine.calls[0]["text"])
+        self.assertEqual(payload["active_question"]["guided_input"]["mode"], "structured_required")
+        self.assertEqual(payload["active_question"]["guided_input"]["options"][1]["code"], "no")
+
+    def test_turn_interpreter_keeps_understanding_when_case_input_section_is_invalid(self):
+        llm_client = _FakeLLMClient(
+            json.dumps(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": False,
+                        "contains_new_medical_information": True,
+                        "message_kind": "new_case_report",
+                    },
+                    "question_resolution": None,
+                    "case_input": {
+                        "topic_label": None,
+                        "topic_description": None,
+                        "person": None,
+                        "observations": [
+                            {
+                                "type": "symptom",
+                                "status": "active",
+                            }
+                        ],
+                    },
+                    "current_turn_understanding": {
+                        "symptoms": [
+                            {
+                                "source_label": "Bauchschmerzen",
+                                "is_medical": True,
+                                "is_negated": False,
+                                "normalized_label_de": "Bauchschmerzen",
+                                "clinical_term_de": "Abdominalsymptom",
+                                "confidence": 0.94,
+                                "reasoning_note": "direkt genannt",
+                            }
+                        ],
+                        "trace_notes": ["understanding:preserved"],
+                    },
+                    "trace_notes": ["turn_interpretation:partial_ok"],
+                }
+            )
+        )
+        interpreter = TurnInterpreter(
+            extraction_engine=_RawLlmBackedExtractionEngine(llm_client),
+            call_model_config=CallModelConfig(default_model="default", overrides={}),
+        )
+
+        result = interpreter.interpret(message="Ich habe Bauchschmerzen.")
+
+        assert result is not None
+        self.assertIsNone(result.case_input)
+        assert result.current_turn_understanding is not None
+        self.assertEqual(result.current_turn_understanding.symptoms[0].normalized_label_de, "Bauchschmerzen")
+        self.assertIn("turn_interpretation:partial_ok", result.trace_notes)
+        self.assertEqual(llm_client.calls[0]["call_name"], TURN_INTERPRETATION_CALL)
+        self.assertTrue(llm_client.calls[0]["json_mode"])
 
     def test_response_builder_renders_recommendation_button_hint_for_guide_next_step(self):
         builder = ResponseBuilder()
@@ -336,13 +547,17 @@ class Careena4LlmPathTests(unittest.TestCase):
     def test_question_builder_uses_german_umlauts(self):
         builder = QuestionBuilder()
 
-        location_question = builder.build_for_need(
-            need=FollowupNeed(reason="location_unclear")
+        description_question = builder.build_for_need(
+            need=FollowupNeed(reason="description_missing"),
+            focus_label="Hueftschmerzen",
         )
         additional_question = builder.build_additional_information_request()
 
-        self.assertEqual(location_question.prompt_text, "Wo genau spürst du das?")
-        self.assertIn("hinzufügen", additional_question.prompt_text)
+        self.assertEqual(
+            description_question.prompt_text,
+            "Kannst du die Hueftschmerzen bitte etwas genauer beschreiben?",
+        )
+        self.assertIn("hinzufuegen", additional_question.prompt_text)
 
     def test_recommendation_builder_uses_german_umlauts(self):
         result = RecommendationBuilder().build(medical_case=MedicalCase())
@@ -354,3 +569,4 @@ class Careena4LlmPathTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -10,7 +10,7 @@ from careena4.models.domain.source import Source
 from careena4.models.domain.recommendation import RecommendationState
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.domain.person import Person
-from careena4.models.domain.topic import Topic, TopicEntry
+from careena4.models.domain.topic import Topic
 
 __all__ = [
     "ActiveQuestion",
@@ -27,5 +27,4 @@ __all__ = [
     "SafetyQuestionContext",
     "Source",
     "Topic",
-    "TopicEntry",
 ]

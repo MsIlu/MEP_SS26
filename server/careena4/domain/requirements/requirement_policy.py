@@ -27,7 +27,9 @@ class ObservationRequirementRule:
 
 class RequirementPolicy:
     _CASE_RULES = (
-        CaseRequirementRule(reason="subject_unclear"),
+        CaseRequirementRule(reason="person_missing"),
+        CaseRequirementRule(reason="age_missing"),
+        CaseRequirementRule(reason="sex_missing"),
     )
 
     _SYMPTOM_RULES = (
@@ -47,8 +49,12 @@ class RequirementPolicy:
 
     @staticmethod
     def is_case_rule_satisfied(*, medical_case: MedicalCase, rule: CaseRequirementRule) -> bool:
-        if rule.reason == "subject_unclear":
+        if rule.reason == "person_missing":
             return medical_case.person.relation != "unclear"
+        if rule.reason == "age_missing":
+            return medical_case.person.relation == "unclear" or medical_case.person.age is not None
+        if rule.reason == "sex_missing":
+            return medical_case.person.relation == "unclear" or medical_case.person.sex not in (None, "")
         return True
 
     @staticmethod

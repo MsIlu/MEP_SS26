@@ -7,6 +7,10 @@ from careena4.models.domain import Source
 class ExtractedPersonInput(PipelineModel):
     relation: SubjectScope
     relation_source: Source | None = None
+    age: int | None = None
+    age_source: Source | None = None
+    sex: str | None = None
+    sex_source: Source | None = None
 
 
 class ExtractedObservationInput(PipelineModel):
@@ -41,13 +45,23 @@ class ExtractedObservationInput(PipelineModel):
                 return source.source_span
         return None
 
-
-class ExtractedTopicEntryInput(PipelineModel):
-    topic_part: str
-    source: Source
-
-
 class ExtractedCaseInput(PipelineModel):
-    topic_entries_to_add: list[ExtractedTopicEntryInput] = Field(default_factory=list)
+    topic_label: str | None = None
+    topic_description: str | None = None
     person: ExtractedPersonInput | None = None
     observations: list[ExtractedObservationInput] = Field(default_factory=list)
+
+    def has_topic_update(self) -> bool:
+        return (self.topic_label or "").strip() != "" or (self.topic_description or "").strip() != ""
+
+    def has_content(self) -> bool:
+        return self.has_topic_update() or self.has_meaningful_person_update() or bool(self.observations)
+
+    def has_meaningful_person_update(self) -> bool:
+        if self.person is None:
+            return False
+        return (
+            self.person.relation in {"self", "child", "other"}
+            or self.person.age is not None
+            or self.person.sex not in (None, "")
+        )

@@ -36,7 +36,7 @@ def client(monkeypatch: pytest.MonkeyPatch):
 
 
 class _StubMedicalExtractor:
-    def extract(self, *, message: str, topic_context: str | None = None, history_messages=None) -> ExtractedCaseInput:
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
         return ExtractedCaseInput(
             observations=[
                 ExtractedObservationInput(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from careena4.domain.case import CaseManager
 from careena4.core.client import LLMClient
 from careena4.core.exceptions import EmptyLLMResponseError, LLMRequestError
+from careena4.domain.case import CaseManager
 from careena4.llm.call_control import CallModelConfig, RECOMMENDATION_CALL
 from careena4.llm.prompt_registry import load_prompt
 from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase
@@ -52,11 +52,6 @@ class ResponseBuilder:
             return (
                 "Es liegen ausreichend Angaben für eine Handlungsempfehlung vor. "
                 "Wenn du eine Handlungsempfehlung möchtest, nutze bitte den Empfehlungs-Button."
-            )
-        if decision.response_mode == "request_case_description":
-            return self._render_case_description_request(
-                medical_case=medical_case,
-                conversation_state=conversation_state,
             )
         if decision.response_mode == "recommend" and recommendation_result is not None:
             return self._render_recommendation(recommendation_result=recommendation_result)
@@ -119,13 +114,3 @@ class ResponseBuilder:
             f"Nächster Schritt: {recommendation_result.next_step}\n\n"
             "Hinweis: Diese Orientierung ersetzt keine ärztliche Untersuchung oder Diagnose."
         )
-
-    def _render_case_description_request(
-        self,
-        *,
-        medical_case: MedicalCase | None,
-        conversation_state: ConversationState | None,
-    ) -> str:
-        if medical_case is not None and self.case_manager.has_active_observations(medical_case=medical_case):
-            return "Bitte beschreibe deine Beschwerden noch etwas genauer."
-        return "Bitte beschreibe dein gesundheitliches Anliegen oder deine Beschwerden genauer."

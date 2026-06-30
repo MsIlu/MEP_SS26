@@ -8,12 +8,22 @@ Bewerten Sie nur die gegebene ActiveQuestion, nicht den ganzen Fall neu.
 Rueckgabeformat:
 {
   "status": "<resolved|unclear|invalid|still_unclear>",
-  "answer_kind": "<duration_provided|duration_plus_more|description_provided|description_plus_more|severity_provided|severity_plus_more|negated|unclear|invalid>",
+  "answer_kind": "<duration_provided|duration_plus_more|description_provided|description_plus_more|severity_provided|severity_plus_more|free_description_provided|free_description_plus_more|negated|unclear|invalid>",
   "clear_active_question": <true|false>,
   "resolved_followup_id": "<followup-id|null>",
   "person_update": {
-    "relation": "<self|child|other|unclear>",
+    "relation": "<self|child|other|unclear|null>",
     "relation_source": {
+      "message_id": "<string|null>",
+      "source_span": "<string|null>"
+    } | null,
+    "age": "<number|null>",
+    "age_source": {
+      "message_id": "<string|null>",
+      "source_span": "<string|null>"
+    } | null,
+    "sex": "<female|male|diverse|null>",
+    "sex_source": {
       "message_id": "<string|null>",
       "source_span": "<string|null>"
     } | null
@@ -47,7 +57,8 @@ Rueckgabeformat:
   } | null,
   "additional_medical_information": <true|false>,
   "extra_case_input": {
-    "topic_entries_to_add": [],
+    "topic_label": "<string|null>",
+    "topic_description": "<string|null>",
     "person": null,
     "observations": []
   } | null,
@@ -59,15 +70,15 @@ Fuellregeln:
 - "status" ist nur "resolved", "unclear", "invalid" oder "still_unclear".
 - "answer_kind" muss zur offenen Frage passen und darf keine freie neue Kategorie sein.
 - Wenn die Frage beantwortet ist, setzen Sie "status" auf "resolved" und "clear_active_question" auf true.
-- "person_update" wird nur fuer Case-Personenklaerungen gesetzt.
+- "person_update" wird nur fuer Case-Personenangaben gesetzt, also fuer Personenbezug, Alter oder Geschlecht der betroffenen Person.
 - "observation_patch" enthaelt nur die normalisierte Antwort fuer genau diese offene Observation.
 - Wenn keine zusaetzlichen neuen medizinischen Fakten vorliegen, setzen Sie "additional_medical_information" auf false und "extra_case_input" auf null.
 - Wenn zusaetzliche neue medizinische Fakten vorliegen, duerfen "extra_case_input" nur diese zusaetzlichen Fakten enthalten, nicht die bereits aufgeloeste Zielinformation noch einmal.
-- `extra_case_input.topic_entries_to_add` darf nur dann Eintraege enthalten, wenn die Follow-up-Antwort das groessere Chat-Thema um einen neuen thematischen Baustein erweitert.
-- Kein Topic-Entry nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
+- `extra_case_input.topic_label` und `extra_case_input.topic_description` duerfen nur dann gesetzt werden, wenn die Follow-up-Antwort das groessere Thema des Falls wirklich erweitert oder praezisiert.
+- Kein Topic-Update nur fuer onset, severity, body_site, reine Beschreibungsschaerfung oder Negation.
 - "next_question_text" bleibt null, solange kein schon extern entschiedener Folge-Intent mitgegeben wurde.
 - Keine Recommendation-Freigabe, keine Safety-Gesamtentscheidung, keine Fall-Neudeutung.
-- Verwenden Sie keine Felder wie "extracted_answer_attributes", "extra_claims", "subject_claims" oder andere nicht genannte Schluessel.
+- Verwenden Sie keine Felder wie "extracted_answer_attributes", "extra_claims", "person_claims" oder andere nicht genannte Schluessel.
 
 Spezialregeln fuer `question_intent=duration`:
 - Erlaubte "answer_kind"-Werte sind nur `duration_provided`, `duration_plus_more`, `negated`, `unclear`, `invalid`.
@@ -84,6 +95,10 @@ Spezialregeln fuer `question_intent=severity`:
 - Erlaubte "answer_kind"-Werte sind nur `severity_provided`, `severity_plus_more`, `negated`, `unclear`, `invalid`.
 - Bei `severity_provided` oder `severity_plus_more` muss `observation_patch.severity` gesetzt sein.
 - Bei gesetztem `observation_patch.severity` sollte auch `observation_patch.severity_source` gesetzt werden, wenn die Textstelle klar benennbar ist.
+
+Spezialregeln fuer `question_intent=free_description`:
+- Erlaubte "answer_kind"-Werte sind nur `free_description_provided`, `free_description_plus_more`, `negated`, `unclear`, `invalid`.
+- Bei `free_description_provided` oder `free_description_plus_more` muss `observation_patch.description` gesetzt sein.
 
 Wenn die Nutzernachricht nur kurz sagt, dass die Observation gar nicht besteht oder nicht zutrifft:
 - setzen Sie `status` auf `resolved`

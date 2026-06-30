@@ -5,24 +5,24 @@ ResponseMode = Literal[
     "emergency",
     "ask_safety_question",
     "ask_followup",
-    "request_case_description",
     "guide_next_step",
     "recommend",
     "out_of_scope",
 ]
 
 QuestionIntent = Literal[
-    "subject_clarification",
+    "person_clarification",
+    "person_age",
+    "person_sex",
     "duration",
     "description",
     "free_description",
-    "localization",
     "severity",
 ]
 
 QuestionKind = Literal[
     "followup",
-    "subject_clarification",
+    "person_clarification",
     "safety_clarification",
 ]
 
@@ -62,11 +62,12 @@ ConversationPhase = Literal[
 RecommendationReadiness = Literal["not_ready", "tentative", "ready"]
 
 FollowupReason = Literal[
-    "subject_unclear",
+    "person_missing",
+    "age_missing",
+    "sex_missing",
     "person_ref_missing",
     "duration_missing",
     "description_missing",
-    "location_unclear",
     "severity_missing",
 ]
 
@@ -93,7 +94,6 @@ TurnDecisionKind = Literal[
     "out_of_scope",
     "ask_safety_question",
     "ask_followup",
-    "request_case_description",
     "guide_next_step",
     "recommend",
 ]

@@ -253,6 +253,15 @@ class QuestionResolver:
                 trace_notes=["followup:resolved:negated"],
             )
 
+        _SEVERITY_UNKNOWN_PHRASES = {"weiß nicht", "weiss nicht", "unknown", "keine ahnung"}
+        if question.question_intent == "severity" and stripped.strip().casefold() in _SEVERITY_UNKNOWN_PHRASES:
+            return QuestionResolution(
+                status="unclear",
+                answer_kind="unclear",
+                clear_active_question=False,
+                trace_notes=["followup:unclear:severity_unknown"],
+            )
+
         answer_kind = {
             "duration": "duration_provided",
             "description": "description_provided",
@@ -619,8 +628,6 @@ class QuestionResolver:
         if question_intent in {"description", "free_description"}:
             return ObservationPatch(description=value, description_source=source)
         if question_intent == "severity":
-            if value.strip().casefold() in ("weiß nicht", "weiss nicht", "unknown", "keine ahnung"):
-                return ObservationPatch(severity=5, severity_source=source)
             normalized = cls._GERMAN_DIGITS.get(value.strip().casefold(), value)
             return ObservationPatch(severity=normalized, severity_source=source)
         return ObservationPatch(description=value, description_source=source)

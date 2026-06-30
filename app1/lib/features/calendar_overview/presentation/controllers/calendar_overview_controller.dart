@@ -14,6 +14,7 @@ class CalendarOverviewController extends ChangeNotifier {
   final AppointmentController appointmentController;
   final SymptomRepository symptomRepository;
   final MedicationRepository medicationRepository;
+  final int? profileId;
   final bool _ownsAppointmentController;
 
   late final DateTime today;
@@ -26,10 +27,11 @@ class CalendarOverviewController extends ChangeNotifier {
   CalendarOverviewController({
     required this.symptomRepository,
     required this.medicationRepository,
+    this.profileId,
     AppointmentController? appointmentController,
     DateTime? now,
-  })  : appointmentController = appointmentController ?? AppointmentController(),
-        _ownsAppointmentController = appointmentController == null {
+  }) : appointmentController = appointmentController ?? AppointmentController(),
+       _ownsAppointmentController = appointmentController == null {
     final startDate = now ?? DateTime.now();
     today = DateTime(startDate.year, startDate.month, startDate.day);
     focusedMonth = DateTime(today.year, today.month);
@@ -38,7 +40,9 @@ class CalendarOverviewController extends ChangeNotifier {
   }
 
   Future<void> loadEntries() async {
-    final symptoms = await symptomRepository.loadEntries();
+    final symptoms = profileId == null
+        ? <SymptomEntry>[]
+        : await symptomRepository.loadEntries(profileId: profileId!);
     final medications = await medicationRepository.loadEntries();
     _symptoms = symptoms;
     _medications = medications;
@@ -66,12 +70,15 @@ class CalendarOverviewController extends ChangeNotifier {
   List<Appointment> appointmentsForDate(DateTime date) {
     return appointmentController.appointments.value.where((appointment) {
       final appointmentDate = appointment.appointmentDate;
-      return appointmentDate != null && isSameCalendarDay(appointmentDate, date);
+      return appointmentDate != null &&
+          isSameCalendarDay(appointmentDate, date);
     }).toList();
   }
 
   List<SymptomEntry> symptomsForDate(DateTime date) {
-    return _symptoms.where((entry) => isSameCalendarDay(entry.date, date)).toList();
+    return _symptoms
+        .where((entry) => isSameCalendarDay(entry.date, date))
+        .toList();
   }
 
   List<PlannedMedicationDose> medicationsForDate(DateTime date) {

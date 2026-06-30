@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_dependencies_scope.dart';
@@ -88,7 +88,6 @@ class CreateManagedProfileButton extends StatelessWidget {
     }
 
     try {
-      await dependencies.symptomRepository.clearEntries();
       await dependencies.symptomSyncService.syncActiveProfile(profileId);
     } catch (_) {
       // Keep profile creation flow working even if symptom reload fails.

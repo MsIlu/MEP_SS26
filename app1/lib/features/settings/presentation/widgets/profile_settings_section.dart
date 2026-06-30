@@ -103,9 +103,12 @@ class ProfileSettingsSection extends StatelessWidget {
               (profile.role == 'owner' ||
                   profile.role == 'guardian' ||
                   (profile.role == 'editor' &&
-                      const {'child', 'relative', 'family', 'other'}.contains(
-                        profile.profileType,
-                      ))),
+                      const {
+                        'child',
+                        'relative',
+                        'family',
+                        'other',
+                      }.contains(profile.profileType))),
         )
         .toList();
   }
@@ -235,7 +238,9 @@ class ProfileSettingsSection extends StatelessWidget {
       final dependencies = AppDependenciesScope.maybeOf(context);
       if (dependencies != null) {
         try {
-          await dependencies.symptomRepository.clearEntries();
+          await dependencies.symptomRepository.clearEntries(
+            profileId: profile.id,
+          );
           final nextProfileId = session.activeProfileId;
           if (nextProfileId != null) {
             await dependencies.symptomSyncService.syncActiveProfile(

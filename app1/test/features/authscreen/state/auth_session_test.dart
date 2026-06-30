@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app1/features/authscreen/domain/models/account.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
@@ -91,7 +91,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       final rememberedProfileId = await session.loadRememberedProfileId(1);
 
-      session.clear();
+      await session.clear();
       session.setAuthResponse(
         response,
         preferredProfileId: rememberedProfileId,
@@ -99,6 +99,37 @@ void main() {
 
       expect(session.activeProfileId, 11);
       expect(session.activeProfile?.displayName, 'Ben');
+    });
+
+    test('restores persisted auth session after app restart', () async {
+      final session = AuthSession();
+      session.setAuthResponse(_authResponse());
+      session.setActiveProfileById(11);
+      await Future<void>.delayed(Duration.zero);
+
+      final restoredSession = AuthSession();
+      final restored = await restoredSession.restorePersistedSession();
+
+      expect(restored, true);
+      expect(restoredSession.isAuthenticated, true);
+      expect(restoredSession.accessToken, 'test-token');
+      expect(restoredSession.account?.email, 'test@example.com');
+      expect(restoredSession.activeProfileId, 11);
+    });
+
+    test('clear removes persisted auth session', () async {
+      final session = AuthSession();
+      session.setAuthResponse(_authResponse());
+      await Future<void>.delayed(Duration.zero);
+
+      await session.clear();
+      await Future<void>.delayed(Duration.zero);
+
+      final restoredSession = AuthSession();
+      final restored = await restoredSession.restorePersistedSession();
+
+      expect(restored, false);
+      expect(restoredSession.isAuthenticated, false);
     });
 
     test('throws when selected profile is not part of current session', () {
@@ -126,7 +157,7 @@ void main() {
       );
     });
 
-    test('clears auth session data', () {
+    test('clears auth session data', () async {
       final session = AuthSession();
 
       session.setAuthResponse(
@@ -145,7 +176,7 @@ void main() {
         ),
       );
 
-      session.clear();
+      await session.clear();
 
       expect(session.accessToken, null);
       expect(session.account, null);

@@ -1,8 +1,9 @@
-import 'package:app1/app/app_dependencies_scope.dart';
+﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_page_store.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/chatscreen/presentation/screens/chat_history_screen.dart';
-import 'package:app1/features/homescreen/presentation/screens/home_screen.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 
@@ -44,6 +45,12 @@ class _SettingsPageState extends State<SettingsPage> {
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    AppPageStore.saveCurrentPage(AppPage.settings);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -70,6 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
         return Scaffold(
           appBar: CareenaPageHeader(
             title: 'Einstellungen',
+            onBack: _openHome,
             trailing: CareenaThemeHeaderAction(
               onPressed: widget.themeController.toggleTheme,
               isDarkMode: widget.themeController.isDarkMode,
@@ -190,26 +198,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _openHome() {
-    final dependencies = AppDependenciesScope.maybeOf(context);
-    if (dependencies == null) {
-      // Isolated widget tests can still fall back to the existing route stack.
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: dependencies.chatController,
-          themeController: widget.themeController,
-          apiClient: dependencies.apiClient,
-          authSession: dependencies.authSession,
-          authApiService: dependencies.authApiService,
-          symptomApiService: dependencies.symptomApiService,
-        ),
-      ),
-      (route) => false,
-    );
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 
   List<_SettingsItem> _items(BuildContext context) {
@@ -314,9 +303,11 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
-  void _logout(BuildContext context) {
+  Future<void> _logout(BuildContext context) async {
     widget.authApiService?.logout();
-    widget.authSession?.clear();
+    await widget.authSession?.clear();
+    await AppPageStore.clearCurrentPage();
+    if (!context.mounted) return;
     Navigator.of(
       context,
       rootNavigator: true,
@@ -373,7 +364,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     try {
       await authApiService.deleteAccount();
-      authSession.clear();
+      await authSession.clear();
+      await AppPageStore.clearCurrentPage();
       if (!context.mounted) return;
       Navigator.of(
         context,

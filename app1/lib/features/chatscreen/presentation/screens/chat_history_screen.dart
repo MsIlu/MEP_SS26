@@ -1,6 +1,8 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
@@ -42,6 +44,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.history);
     _entriesFuture = widget.repository.loadEntries(profileId: widget.profileId);
   }
 
@@ -97,6 +100,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     return Scaffold(
       appBar: CareenaPageHeader(
         title: 'Nachrichtenverlauf',
+        onBack: _openHome,
         trailing: CareenaThemeHeaderAction(
           onPressed: widget.themeController.toggleTheme,
           isDarkMode: widget.themeController.isDarkMode,
@@ -166,8 +170,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   void _onBottomNavigationTap(int index) {
     if (index == 2) return;
     if (index == 0) {
-      // The start tab is the first route in the main app flow.
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      _openHome();
       return;
     }
 
@@ -198,6 +201,10 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
         ),
       );
     }
+  }
+
+  void _openHome() {
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 }
 

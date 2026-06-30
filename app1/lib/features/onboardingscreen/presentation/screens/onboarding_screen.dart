@@ -7,7 +7,6 @@ import '../../../authscreen/presentation/screens/registration_screen.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import '../../../chatscreen/controllers/chat_controller.dart';
 import '../../../chatscreen/presentation/screens/chat_screen.dart';
-import '../../../homescreen/presentation/screens/home_screen.dart';
 import '../widgets/onboarding_hero_card.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/careena_page_header.dart';
@@ -180,18 +179,6 @@ class OnboardingScreen extends StatelessWidget {
                           borderRadius: 22,
                           elevation: 2,
                         ),
-                        const SizedBox(height: 12),
-                        // Todo: remove when testing is done
-                        TextButton.icon(
-                          onPressed: () => _navigateToHome(context),
-                          style: TextButton.styleFrom(
-                            foregroundColor: isDarkMode
-                                ? AppColors.toolbarButtonBackgroundDark
-                                : AppColors.careenaTeal,
-                          ),
-                          icon: const Icon(Icons.home_outlined, size: 18),
-                          label: const Text('Test: direkt zur Homepage'),
-                        ),
                       ],
                     ),
                   ),
@@ -246,18 +233,6 @@ class OnboardingScreen extends StatelessWidget {
           authSession: authSession,
           authApiService: authApiService,
           symptomRepository: symptomRepository,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToHome(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          controller: chatController,
-          themeController: themeController,
-          authSession: authSession,
         ),
       ),
     );

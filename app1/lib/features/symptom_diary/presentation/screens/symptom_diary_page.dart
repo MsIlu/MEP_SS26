@@ -1,5 +1,7 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +44,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.symptomDiary);
     final now = DateTime.now();
     _today = DateTime(now.year, now.month, now.day);
     final initialDate = widget.initialDate;
@@ -71,6 +74,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CareenaPageHeader(
         title: 'Symptomtagebuch',
+        onBack: _handleBack,
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -108,6 +112,10 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
 
     setState(() => _selectedDate = DateTime(date.year, date.month, date.day));
+  }
+
+  void _handleBack() {
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 
   /// Opens the symptom form as a centered dialog to keep the day overview clean.

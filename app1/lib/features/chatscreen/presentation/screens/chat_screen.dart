@@ -1,5 +1,7 @@
 import 'package:app1/core/themes/app_colors.dart';
 import 'dart:async';
+import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/widgets/careena_snack_bar.dart';
@@ -39,7 +41,7 @@ class ChatScreen extends StatefulWidget {
     required this.themeController,
     this.leaveDialogMessage =
         'Wenn du fortfährst, gelangst du zurück zur Startseite. '
-        'Der aktuelle Chat wird nicht gespeichert.',
+        'Der aktuelle Chat wird im Verlauf gespeichert.',
     this.leaveDialogConfirmLabel = 'Zur Startseite',
   });
 
@@ -67,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    AppPageStore.saveCurrentPage(AppPage.chat);
     WidgetsBinding.instance.addObserver(this);
     widget.controller.messages.addListener(_onMessagesChanged);
 
@@ -347,8 +350,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await _speechService.stop();
       if (!mounted) return;
 
-      _allowPopAfterConfirmation = true;
-      Navigator.of(context).pop();
+      await _openHomeAfterLeave();
       return;
     }
 
@@ -367,6 +369,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     _allowPopAfterConfirmation = true;
     Navigator.of(context).pop();
+  }
+
+  /// Leaves Chat reliably even after reload, when there is no route to pop.
+  Future<void> _openHomeAfterLeave() async {
+    await AppPageStore.saveCurrentPage(AppPage.home);
+    if (!mounted) return;
+
+    _allowPopAfterConfirmation = true;
+    navigateToHomeFallback(context, themeController: widget.themeController);
   }
 
   Future<void> _showSymptomEditor() async {

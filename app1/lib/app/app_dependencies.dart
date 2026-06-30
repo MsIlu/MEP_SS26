@@ -35,6 +35,8 @@ class AppDependencies {
   }) : _httpClient = httpClient ?? http.Client(),
        symptomRepository = symptomRepository ?? SymptomRepository() {
     apiClient = ApiClient(_httpClient);
+    authSession.addListener(_syncAuthToken);
+    _syncAuthToken();
     authApiService = AuthApiService(apiClient);
     symptomApiService = SymptomApiService(apiClient);
     symptomSyncService = SymptomSyncService(
@@ -55,7 +57,20 @@ class AppDependencies {
     chatWarningController = ChatWarningController(profileApiService);
   }
 
+  void _syncAuthToken() {
+    final accessToken = authSession.accessToken;
+
+    // Restored sessions bypass AuthApiService, so keep ApiClient in sync here.
+    if (accessToken == null) {
+      apiClient.clearAccessToken();
+      return;
+    }
+
+    apiClient.setAccessToken(accessToken);
+  }
+
   void dispose() {
+    authSession.removeListener(_syncAuthToken);
     chatController.dispose();
     _httpClient.close();
   }

@@ -753,15 +753,14 @@ class _FakeChatApi extends ChatApi {
   final List<String> requestRecommendationSessionIds = [];
   List<String> symptoms = [];
   Completer<ChatResponse>? responseCompleter;
+  CareenaAvailability nextAvailability = CareenaAvailability.online;
+  int availabilityRequests = 0;
+  bool throwOnSend = false;
+  ApiException? sendError;
   Completer<String>? resumeCompleter;
   Completer<ChatResponse>? continueCompleter;
   int resumeHistorySessionCalls = 0;
   int continueHistorySessionCalls = 0;
-  
-  CareenaAvailability nextAvailability = CareenaAvailability.online;
-  int availabilityRequests = 0;
-  bool throwOnSend = false;
-  Object? sendError;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -860,6 +859,7 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
     final savedEntry = ChatHistoryEntry(
       id: 'history-${savedEntries.length + 1}',
       profileId: entry.profileId,
+      sessionId: entry.sessionId,
       symptomTitle: entry.symptomTitle,
       status: entry.status,
       isEmergency: entry.isEmergency,
@@ -885,4 +885,3 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
     return saveChat(entry);
   }
 }
-

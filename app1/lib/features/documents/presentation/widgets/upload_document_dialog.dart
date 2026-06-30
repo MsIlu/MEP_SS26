@@ -47,6 +47,8 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AlertDialog(
       insetPadding: const EdgeInsets.all(24),
       icon: const Icon(
@@ -110,20 +112,20 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
               TextField(
                 controller: _nameController,
                 autofocus: true,
-                cursorColor: AppColors.careenaTeal,
+                cursorColor: colorScheme.onSurface,
                 maxLength: 100,
                 decoration: InputDecoration(
                   labelText: 'Dokumentname',
                   hintText: 'z. B. Blutwerte Juni 2026',
                   prefixIcon: const Icon(Icons.description_outlined),
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
+                  floatingLabelStyle: TextStyle(
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
+                    borderSide: BorderSide(
+                      color: AppColors.greyShade400,
                       width: 2,
                     ),
                   ),
@@ -136,14 +138,14 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                 decoration: InputDecoration(
                   labelText: 'Kategorie',
                   prefixIcon: const Icon(Icons.folder_outlined),
-                  floatingLabelStyle: const TextStyle(
-                    color: AppColors.careenaTeal,
+                  floatingLabelStyle: TextStyle(
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: AppColors.careenaTeal,
+                    borderSide: BorderSide(
+                      color: AppColors.greyShade400,
                       width: 2,
                     ),
                   ),

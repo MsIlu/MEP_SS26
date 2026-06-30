@@ -290,7 +290,7 @@ def create_db_and_tables():
         session.exec(
             text(
                 "ALTER TABLE symptom_diary_entries "
-                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP"
+                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW()"
             )
         )
         session.exec(

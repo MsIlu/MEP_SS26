@@ -21,6 +21,7 @@ class CalendarMonthHeader extends StatelessWidget {
         Semantics(
           button: true,
           label: 'Vorherigen Monat anzeigen',
+          onTap: onPrevious,
           child: ExcludeSemantics(
             child: IconButton(
               tooltip: 'Vorherigen Monat anzeigen',
@@ -41,6 +42,7 @@ class CalendarMonthHeader extends StatelessWidget {
         Semantics(
           button: true,
           label: 'Nächsten Monat anzeigen',
+          onTap: onNext,
           child: ExcludeSemantics(
             child: IconButton(
               tooltip: 'Nächsten Monat anzeigen',

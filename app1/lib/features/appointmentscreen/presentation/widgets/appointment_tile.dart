@@ -123,6 +123,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
                   Semantics(
                     button: true,
                     label: 'Termin ${appointment.doctorName} bearbeiten',
+                    onTap: widget.onEdit,
                     child: ExcludeSemantics(
                       child: IconButton(
                         tooltip: 'Termin ${appointment.doctorName} bearbeiten',
@@ -147,6 +148,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
                       label: isPendingRecommendation
                           ? 'Empfehlung ${appointment.doctorName} verwerfen'
                           : 'Termin ${appointment.doctorName} löschen',
+                      onTap: widget.onDelete,
                       child: ExcludeSemantics(
                         child: IconButton(
                           tooltip: isPendingRecommendation

@@ -109,6 +109,7 @@ class MedicationTile extends StatelessWidget {
                     Semantics(
                       button: true,
                       label: '${entry.name} bearbeiten',
+                      onTap: onEdit,
                       child: ExcludeSemantics(
                         child: IconButton(
                           tooltip: '${entry.name} bearbeiten',
@@ -120,6 +121,7 @@ class MedicationTile extends StatelessWidget {
                     Semantics(
                       button: true,
                       label: '${entry.name} löschen',
+                      onTap: onDelete,
                       child: ExcludeSemantics(
                         child: IconButton(
                           tooltip: '${entry.name} löschen',

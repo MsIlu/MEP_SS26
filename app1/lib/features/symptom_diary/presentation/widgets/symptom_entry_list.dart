@@ -210,6 +210,7 @@ class _SymptomEntryTile extends StatelessWidget {
           Semantics(
             button: true,
             label: 'Eintrag ${entry.symptom} löschen',
+            onTap: () => onDelete(entry),
             child: ExcludeSemantics(
               child: IconButton(
                 tooltip: 'Eintrag ${entry.symptom} löschen',

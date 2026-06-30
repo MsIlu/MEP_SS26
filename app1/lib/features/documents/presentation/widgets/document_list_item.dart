@@ -20,6 +20,7 @@ class DocumentListItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final documentLabel = _semanticLabel(document);
+    final menuKey = GlobalKey<PopupMenuButtonState<DocumentAction>>();
 
     return Card(
       margin: EdgeInsets.zero,
@@ -111,8 +112,10 @@ class DocumentListItem extends StatelessWidget {
                   label: 'Dokument ${document.name} verwalten',
                   hint:
                       'Öffnet Aktionen zum Anzeigen, Umbenennen oder Löschen.',
+                  onTap: () => menuKey.currentState?.showButtonMenu(),
                   child: ExcludeSemantics(
                     child: PopupMenuButton<DocumentAction>(
+                      key: menuKey,
                       tooltip: 'Dokument ${document.name} verwalten',
                       onSelected: onAction,
                       itemBuilder: (context) => const [

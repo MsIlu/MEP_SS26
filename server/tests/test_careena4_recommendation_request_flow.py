@@ -33,8 +33,8 @@ class _ReadyMedicalExtractor:
                 relation_source={"message_id": None, "source_span": "ich"},
                 age=24,
                 age_source={"message_id": None, "source_span": "24"},
-                sex="female",
-                sex_source={"message_id": None, "source_span": "weiblich"},
+                sex="male",
+                sex_source={"message_id": None, "source_span": "männlich"},
             ),
             observations=[
                 ExtractedObservationInput(

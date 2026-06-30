@@ -226,10 +226,6 @@ class _ProfileAppointmentSection extends StatelessWidget {
   }
 
   String _profileSectionTitle(AuthProfile profile) {
-    if (profile.profileType == 'self') {
-      return 'Hauptprofil';
-    }
-
     return profile.displayName;
   }
 }

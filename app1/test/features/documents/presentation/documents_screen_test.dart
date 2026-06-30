@@ -90,7 +90,7 @@ void main() {
 
     await pumpDocumentsScreen(tester, session);
 
-    expect(find.text('Noch keine Dokumente'), findsOneWidget);
+    expect(find.text('Noch keine Dokumente vorhanden'), findsOneWidget);
     expect(find.text('Deine Dokumente'), findsOneWidget);
   });
 

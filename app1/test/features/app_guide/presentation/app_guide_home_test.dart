@@ -58,7 +58,7 @@ void main() {
       await _nextStep(tester);
       expect(find.text('Schnell finden'), findsOneWidget);
       await _nextStep(tester);
-      expect(find.text('Hell oder dunkel'), findsOneWidget);
+      expect(find.text('Aktives Profil'), findsOneWidget);
       await _nextStep(tester);
       expect(find.textContaining('Tippe auf eine Funktion'), findsOneWidget);
       await _nextStep(tester);

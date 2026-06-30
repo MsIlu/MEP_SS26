@@ -5,6 +5,7 @@ import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../../core/widgets/careena_snack_bar.dart';
@@ -180,6 +181,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         dateController.text =
             '${pickedDate.day}.${pickedDate.month}.${pickedDate.year}';
       });
+      _announce('Datum ${dateController.text} ausgewählt');
     }
   }
 
@@ -223,6 +225,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             '${pickedTime.hour.toString().padLeft(2, '0')}:'
             '${pickedTime.minute.toString().padLeft(2, '0')}';
       });
+      _announce('Uhrzeit ${timeController.text} Uhr ausgewählt');
     }
   }
 
@@ -344,14 +347,23 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
           return Padding(
             padding: EdgeInsets.only(right: contentSideInset),
-            child: FloatingActionButton(
-              backgroundColor: AppColors.careenaTeal,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            child: Semantics(
+              button: true,
+              label: 'Neuen Termin hinzufügen',
+              hint: 'Öffnet das Formular für einen Arzt- oder Praxistermin.',
+              onTap: _showAddAppointmentDialog,
+              child: ExcludeSemantics(
+                child: FloatingActionButton(
+                  tooltip: 'Neuen Termin hinzufügen',
+                  backgroundColor: AppColors.careenaTeal,
+                  foregroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onPressed: _showAddAppointmentDialog,
+                  child: const Icon(Icons.add),
+                ),
               ),
-              onPressed: _showAddAppointmentDialog,
-              child: const Icon(Icons.add),
             ),
           );
         },
@@ -368,6 +380,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       shrinkWrap: shrinkWrap,
       onToggleCompleted: (appointment) {
         controller.toggleAppointment(appointment.id);
+        _announce(
+          appointment.isCompleted
+              ? 'Termin ${appointment.doctorName} als offen markiert'
+              : 'Termin ${appointment.doctorName} als erledigt markiert',
+        );
       },
       onDelete: _showDeleteDialog,
       onEdit: _showEditDialog,
@@ -418,6 +435,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     doctorErrorText =
                         'Bitte gib einen Arzt oder eine Praxis ein.';
                   });
+                  _announce('Bitte gib einen Arzt oder eine Praxis ein.');
                   return;
                 }
 
@@ -425,6 +443,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   setDialogState(() {
                     dateErrorText = 'Bitte wähle ein Datum aus.';
                   });
+                  _announce('Bitte wähle ein Datum aus.');
                   return;
                 }
 
@@ -441,6 +460,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 _clearAppointmentForm();
                 Navigator.pop(context);
                 _showSuccessMessage('Termin gespeichert');
+                _announce('Termin gespeichert');
                 setState(() {});
               },
             );
@@ -473,8 +493,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               style: FilledButton.styleFrom(backgroundColor: AppColors.red),
               onPressed: () {
                 controller.removeAppointment(appointment.id);
-                _showSuccessMessage('Termin gelöscht');
                 Navigator.pop(context);
+                _showSuccessMessage('Termin gelöscht');
+                _announce('Termin gelöscht');
               },
               child: const Text('Löschen'),
             ),
@@ -551,6 +572,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     doctorErrorText =
                         'Bitte gib einen Arzt oder eine Praxis ein.';
                   });
+                  _announce('Bitte gib einen Arzt oder eine Praxis ein.');
                   return;
                 }
 
@@ -558,6 +580,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   setDialogState(() {
                     dateErrorText = 'Bitte wähle ein Datum aus.';
                   });
+                  _announce('Bitte wähle ein Datum aus.');
                   return;
                 }
 
@@ -579,8 +602,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   ),
                 );
                 _clearAppointmentForm();
-                _showSuccessMessage('Termin aktualisiert');
                 Navigator.pop(context);
+                _showSuccessMessage('Termin aktualisiert');
+                _announce('Termin aktualisiert');
               },
             );
           },
@@ -612,6 +636,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   void _showSuccessMessage(String message) {
     showCareenaSnackBar(context, message);
+  }
+
+  void _announce(String message) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 
   void _clearAppointmentForm() {

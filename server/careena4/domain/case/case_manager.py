@@ -171,11 +171,13 @@ class CaseManager:
     def _person_from_update(*, person_update: PersonUpdate) -> Person | None:
         if person_update.relation not in {None, "self", "child", "other", "unclear"}:
             return None
-        if (
-            person_update.relation in (None, "unclear")
-            and person_update.age is None
-            and person_update.sex in (None, "")
-        ):
+        has_data = (
+            person_update.relation not in (None, "unclear")
+            or person_update.age is not None
+            or person_update.sex not in (None, "")
+            or person_update.pregnancy_status is not None
+        )
+        if not has_data:
             return None
         return Person(
             relation=person_update.relation or "unclear",
@@ -184,6 +186,7 @@ class CaseManager:
             age_source=CaseManager._copy_source(person_update.age_source),
             sex=person_update.sex,
             sex_source=CaseManager._copy_source(person_update.sex_source),
+            pregnancy_status=person_update.pregnancy_status,
         )
 
     @staticmethod

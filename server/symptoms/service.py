@@ -5,7 +5,12 @@ from sqlmodel import Session, select
 
 from database.models import SymptomDiaryEntry, User
 from profiles.service import EDIT_ROLES, get_profile_access_role, require_profile_role
-from symptoms.schemas import SymptomCreateRequest, SymptomDeleteResponse, SymptomResponse
+from symptoms.schemas import (
+    SymptomCreateRequest,
+    SymptomDeleteResponse,
+    SymptomResponse,
+    SymptomUpdateRequest,
+)
 
 
 def create_symptom_entry(
@@ -30,10 +35,45 @@ def create_symptom_entry(
         symptom=request.symptom.strip(),
         body_area=request.body_area.strip(),
         intensity=request.intensity,
+        temperature_c=request.temperature_c,
         note=request.note.strip(),
+        source=request.source,
         created_at=request.created_at or datetime.utcnow(),
     )
 
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+
+    return SymptomResponse.model_validate(entry)
+
+
+def update_symptom_entry(
+        profile_id: int,
+        entry_id: int,
+        request: SymptomUpdateRequest,
+        current_user: User,
+        session: Session,
+) -> SymptomResponse:
+    """Patch one symptom entry for a profile the account may edit."""
+    require_profile_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        allowed_roles=EDIT_ROLES,
+        session=session,
+    )
+
+    entry = session.get(SymptomDiaryEntry, entry_id)
+    if entry is None or entry.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Symptom entry not found.")
+
+    update_data = request.model_dump(exclude_unset=True, by_alias=False)
+    for field_name, value in update_data.items():
+        if isinstance(value, str):
+            value = value.strip()
+        setattr(entry, field_name, value)
+
+    entry.updated_at = datetime.utcnow()
     session.add(entry)
     session.commit()
     session.refresh(entry)

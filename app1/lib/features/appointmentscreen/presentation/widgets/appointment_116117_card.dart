@@ -1,4 +1,4 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
@@ -44,57 +44,67 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDarkMode ? AppColors.appointmentServiceCardDark : AppColors.appointmentServiceCardLight,
+          color: isDarkMode
+              ? AppColors.appointmentServiceCardDark
+              : AppColors.appointmentServiceCardLight,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    const Icon(Icons.phone, color: serviceBlue),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '116117 Terminservice',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Online Arzttermin vereinbaren',
-                            style: TextStyle(
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.72,
+            Semantics(
+              button: true,
+              expanded: _isExpanded,
+              label: '116117 Terminservice',
+              value: 'Online Arzttermin vereinbaren',
+              hint: _isExpanded
+                  ? 'Blendet die Informationen wieder aus.'
+                  : 'Zeigt weitere Informationen und den Buchungslink.',
+              onTap: _toggleExpanded,
+              child: ExcludeSemantics(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _toggleExpanded,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.phone, color: serviceBlue),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '116117 Terminservice',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
                               ),
-                              fontSize: 13,
-                            ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Online Arzttermin vereinbaren',
+                                style: TextStyle(
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.72,
+                                  ),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          _isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: colorScheme.onSurface.withValues(alpha: 0.72),
+                        ),
+                      ],
                     ),
-                    Icon(
-                      _isExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: colorScheme.onSurface.withValues(alpha: 0.72),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -115,17 +125,27 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
                     SizedBox(
                       width: double.infinity,
                       height: 42,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: serviceBlue,
-                          foregroundColor: AppColors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                      child: Semantics(
+                        button: true,
+                        label: '116117 Terminservice im Browser öffnen',
+                        hint: 'Öffnet die externe Webseite zur Terminbuchung.',
+                        onTap: _open116117,
+                        child: ExcludeSemantics(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: serviceBlue,
+                              foregroundColor: AppColors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: _open116117,
+                            child: const Text('Jetzt online Termin buchen'),
                           ),
                         ),
-                        onPressed: _open116117,
-                        child: const Text('Jetzt online Termin buchen'),
                       ),
                     ),
                   ],
@@ -141,6 +161,12 @@ class _Appointment116117CardState extends State<Appointment116117Card> {
         ),
       ),
     );
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
   }
 
   bool _isExpanded = false;

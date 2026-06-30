@@ -30,6 +30,7 @@ class RequirementPolicy:
         CaseRequirementRule(reason="person_missing"),
         CaseRequirementRule(reason="age_missing"),
         CaseRequirementRule(reason="sex_missing"),
+        CaseRequirementRule(reason="pregnancy_status_missing"),
     )
 
     _SYMPTOM_RULES = (
@@ -55,6 +56,13 @@ class RequirementPolicy:
             return medical_case.person.relation == "unclear" or medical_case.person.age is not None
         if rule.reason == "sex_missing":
             return medical_case.person.relation == "unclear" or medical_case.person.sex not in (None, "")
+        if rule.reason == "pregnancy_status_missing":
+            p = medical_case.person
+            if p.relation == "unclear":
+                return True  # don't ask before person is known
+            if p.sex not in ("female", "diverse"):
+                return True  # not relevant
+            return p.pregnancy_status is not None
         return True
 
     @staticmethod

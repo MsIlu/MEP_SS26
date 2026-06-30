@@ -9,18 +9,24 @@ class SymptomEntryList extends StatelessWidget {
   final bool isLoading;
   final List<SymptomEntry> entries;
   final ValueChanged<SymptomEntry> onDelete;
+  final ValueChanged<SymptomEntry>? onEdit;
 
   const SymptomEntryList({
     super.key,
     required this.isLoading,
     required this.entries,
     required this.onDelete,
+    this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Semantics(
+        liveRegion: true,
+        label: 'Symptomeinträge werden geladen',
+        child: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Column(
@@ -30,8 +36,8 @@ class SymptomEntryList extends StatelessWidget {
           entries.isEmpty
               ? 'Einträge für diesen Tag'
               : entries.length == 1
-                  ? '1 Eintrag für diesen Tag'
-                  : '${entries.length} Einträge für diesen Tag',
+              ? '1 Eintrag für diesen Tag'
+              : '${entries.length} Einträge für diesen Tag',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
@@ -45,7 +51,11 @@ class SymptomEntryList extends StatelessWidget {
           ...entries.map(
             (entry) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _SymptomEntryTile(entry: entry, onDelete: onDelete),
+              child: _SymptomEntryTile(
+                entry: entry,
+                onDelete: onDelete,
+                onEdit: onEdit,
+              ),
             ),
           ),
       ],
@@ -58,27 +68,36 @@ class _EmptySymptomState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.careenaBorder),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, color: AppColors.careenaTeal),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Noch keine Symptome für diesen Tag eingetragen.',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+    return Semantics(
+      liveRegion: true,
+      label: 'Noch keine Symptome für diesen Tag eingetragen.',
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.careenaBorder),
           ),
-        ],
+          child: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.careenaTeal,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Noch keine Symptome für diesen Tag eingetragen.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -87,14 +106,20 @@ class _EmptySymptomState extends StatelessWidget {
 class _SymptomEntryTile extends StatelessWidget {
   final SymptomEntry entry;
   final ValueChanged<SymptomEntry> onDelete;
+  final ValueChanged<SymptomEntry>? onEdit;
 
-  const _SymptomEntryTile({required this.entry, required this.onDelete});
+  const _SymptomEntryTile({
+    required this.entry,
+    required this.onDelete,
+    this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final intensityColor = SymptomIntensity.color(entry.intensity);
+    final semanticLabel = _semanticLabel(entry);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -110,80 +135,187 @@ class _SymptomEntryTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: intensityColor.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(_iconForEntry(entry), color: intensityColor, size: 25),
-          ),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.symptom,
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (entry.bodyArea.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.accessibility_new,
-                        size: 14,
-                        color: AppColors.careenaTeal,
+            child: Semantics(
+              container: true,
+              label: semanticLabel,
+              child: ExcludeSemantics(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: intensityColor.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        entry.bodyArea,
-                        style: const TextStyle(
-                          color: AppColors.careenaTeal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      child: Icon(
+                        _iconForEntry(entry),
+                        color: intensityColor,
+                        size: 25,
                       ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 3),
-                Text(
-                  'Intensität ${entry.intensity}/10 · ${SymptomIntensity.label(entry.intensity)}',
-                  style: TextStyle(
-                    color: intensityColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  entry.symptom,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              if (entry.source == 'careena') ...[
+                                const SizedBox(width: 6),
+                                const Tooltip(
+                                  message: 'Von Careena empfohlen',
+                                  child: Icon(
+                                    Icons.auto_awesome,
+                                    size: 17,
+                                    color: AppColors.careenaTeal,
+                                  ),
+                                ),
+                              ],
+                              if (!entry.isSynced || entry.pendingUpdate) ...[
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.cloud_upload_outlined,
+                                  size: 17,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (entry.bodyArea.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.accessibility_new,
+                                  size: 14,
+                                  color: AppColors.careenaTeal,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  entry.bodyArea,
+                                  style: const TextStyle(
+                                    color: AppColors.careenaTeal,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 3),
+                          Text(
+                            'Intensität ${entry.intensity}/10 · ${SymptomIntensity.label(entry.intensity)}',
+                            style: TextStyle(
+                              color: intensityColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (entry.temperatureC != null) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              'Temperatur ${entry.temperatureC!.toStringAsFixed(1)} °C',
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                          if (entry.note.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              entry.note,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                if (entry.note.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    entry.note,
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.35,
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              if (onEdit != null)
+                Semantics(
+                  button: true,
+                  label: 'Eintrag ${entry.symptom} bearbeiten',
+                  onTap: () => onEdit!(entry),
+                  child: ExcludeSemantics(
+                    child: IconButton(
+                      tooltip: 'Eintrag ${entry.symptom} bearbeiten',
+                      onPressed: () => onEdit!(entry),
+                      icon: const Icon(Icons.edit_outlined),
                     ),
                   ),
-                ],
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Eintrag löschen',
-            onPressed: () => onDelete(entry),
-            icon: const Icon(Icons.delete_outline),
+                ),
+              Semantics(
+                button: true,
+                label: 'Eintrag ${entry.symptom} löschen',
+                onTap: () => onDelete(entry),
+                child: ExcludeSemantics(
+                  child: IconButton(
+                    tooltip: 'Eintrag ${entry.symptom} löschen',
+                    onPressed: () => onDelete(entry),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  String _semanticLabel(SymptomEntry entry) {
+    final parts = <String>[
+      'Symptomeintrag: ${entry.symptom}',
+      'Intensität ${entry.intensity} von 10',
+      SymptomIntensity.label(entry.intensity),
+    ];
+
+    if (entry.bodyArea.isNotEmpty) {
+      parts.add('Körperbereich: ${entry.bodyArea}');
+    }
+
+    if (entry.temperatureC != null) {
+      parts.add('Temperatur ${entry.temperatureC!.toStringAsFixed(1)} Grad Celsius');
+    }
+
+    if (entry.source == 'careena') {
+      parts.add('Von Careena empfohlen');
+    }
+
+    if (!entry.isSynced || entry.pendingUpdate) {
+      parts.add('Noch nicht synchronisiert');
+    }
+
+    if (entry.note.isNotEmpty) {
+      parts.add('Notiz: ${entry.note}');
+    }
+
+    return parts.join('. ');
   }
 
   IconData _iconForEntry(SymptomEntry entry) {
@@ -192,28 +324,35 @@ class _SymptomEntryTile extends StatelessWidget {
     if (text.contains('kopf')) {
       return Icons.psychology_alt_outlined;
     }
+
     if (text.contains('müd') || text.contains('schlaf')) {
       return Icons.bedtime_outlined;
     }
+
     if (text.contains('übel') ||
         text.contains('magen') ||
         text.contains('bauch')) {
       return Icons.sick_outlined;
     }
+
     if (text.contains('schwindel')) {
       return Icons.blur_circular_outlined;
     }
+
     if (text.contains('husten') || text.contains('brust')) {
       return Icons.air_outlined;
     }
+
     if (text.contains('fieber')) {
       return Icons.thermostat_outlined;
     }
+
     if (text.contains('arm') ||
         text.contains('bein') ||
         text.contains('rücken')) {
       return Icons.accessibility_new;
     }
+
     if (text.contains('schmerz') ||
         text.contains('weh') ||
         text.contains('stech') ||

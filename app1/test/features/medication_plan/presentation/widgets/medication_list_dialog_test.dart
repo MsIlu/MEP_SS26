@@ -26,7 +26,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byTooltip('Bearbeiten'));
+      await tester.tap(find.byTooltip('Ibuprofen bearbeiten'));
 
       expect(editedEntry?.name, 'Ibuprofen');
     });

@@ -1,4 +1,4 @@
-﻿import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
+import 'package:app1/features/symptom_diary/data/symptom_repository.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/themes/theme_controller.dart';
 import '../../../../core/widgets/responsive_frame.dart';
@@ -12,6 +12,31 @@ import 'package:app1/core/themes/app_colors.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../authscreen/state/auth_session.dart';
 import '../../../authscreen/data/auth_api_service.dart';
+
+const _privacyNoticeText =
+    'Careena ist ein KI-Assistent zur ersten Einordnung von Beschwerden '
+    'und zur Unterstützung bei möglichen nächsten Schritten.\n\n'
+    'Verarbeitungszwecke:\n'
+    '- Ersteinschätzung eingegebener Beschwerden\n'
+    '- Patientensteuerung und Empfehlung nächster Schritte\n'
+    '- personalisierte Unterstützung anhand eingegebener Angaben\n'
+    '- Dokumentation von Beschwerden im Symptomtagebuch\n'
+    '- Registrierung, Anmeldung und Kontoverwaltung\n\n'
+    'Verarbeitete Datenkategorien:\n'
+    '- Kontoangaben, insbesondere E-Mail-Adresse und Authentifizierungsdaten\n'
+    '- Profildaten, insbesondere Name und Geburtsdatum\n'
+    '- medizinisch relevante Angaben, insbesondere biologisches Geschlecht, Größe, Gewicht, Vorerkrankungen und Hinweise\n'
+    '- Chatdaten, insbesondere Symptombeschreibungen und Empfehlungen\n'
+    '- Symptomtagebuch-Einträge, insbesondere Symptom, Datum, Intensität und Notizen\n'
+    '- technische Daten, insbesondere Session-ID und Zugriffstoken\n\n'
+    'Das biologische Geschlecht wird ausschließlich als medizinisch '
+    'relevanter Kontext für die Ersteinschätzung verwendet.\n\n'
+    'Careena ersetzt keine ärztliche Diagnose, Behandlung oder '
+    'Notfallversorgung. In akuten Notfällen ist der Notruf 112 '
+    'oder medizinisches Fachpersonal zu kontaktieren.\n\n'
+    'Diese Hinweise beschreiben den aktuellen Stand und '
+    'ersetzen keine vollständige rechtliche Datenschutzerklärung. '
+    'Die aktive Zustimmung erfolgt im Registrierungsprozess.';
 
 /// Entry screen that introduces Careena and routes users into chat or auth flows.
 class OnboardingScreen extends StatelessWidget {
@@ -107,41 +132,50 @@ class OnboardingScreen extends StatelessWidget {
                     onLogin: () => _navigateToLogin(context),
                     onRegister: () => _navigateToRegistration(context),
                   );
-                  final privacyButton = Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                    ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: TextButton.icon(
-                        onPressed: () => _showPrivacyInfo(context),
-                        style: TextButton.styleFrom(
-                          minimumSize: Size(0, isShortScreen ? 30 : 42),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isWideScreen || isShortScreen ? 8 : 12,
-                            vertical: isWideScreen ? 0 : 4,
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          foregroundColor: isDarkMode
-                              ? AppColors.toolbarButtonBackgroundDark
-                              : AppColors.careenaTeal,
+                  final privacyButton = Semantics(
+                    button: true,
+                    label: 'Datenschutzhinweise anzeigen',
+                    onTap: () => _showPrivacyInfo(context),
+                    child: ExcludeSemantics(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
-                        icon: Icon(
-                          Icons.privacy_tip_outlined,
-                          size: isWideScreen
-                              ? 14
-                              : isShortScreen
-                              ? 14
-                              : 18,
-                        ),
-                        label: Text(
-                          'Datenschutzhinweise anzeigen',
-                          style: TextStyle(
-                            fontSize: isWideScreen
-                                ? 12
-                                : isShortScreen
-                                ? 12
-                                : 14,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: TextButton.icon(
+                            onPressed: () => _showPrivacyInfo(context),
+                            style: TextButton.styleFrom(
+                              minimumSize: Size(0, isShortScreen ? 30 : 42),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isWideScreen || isShortScreen
+                                    ? 8
+                                    : 12,
+                                vertical: isWideScreen ? 0 : 4,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: isDarkMode
+                                  ? AppColors.toolbarButtonBackgroundDark
+                                  : AppColors.careenaTeal,
+                            ),
+                            icon: Icon(
+                              Icons.privacy_tip_outlined,
+                              size: isWideScreen
+                                  ? 14
+                                  : isShortScreen
+                                  ? 14
+                                  : 18,
+                            ),
+                            label: Text(
+                              'Datenschutzhinweise anzeigen',
+                              style: TextStyle(
+                                fontSize: isWideScreen
+                                    ? 12
+                                    : isShortScreen
+                                    ? 12
+                                    : 14,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -333,31 +367,11 @@ class OnboardingScreen extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Datenschutzhinweise'),
-          content: const SingleChildScrollView(
-            child: Text(
-              'Careena ist ein KI-Assistent zur ersten Einordnung von Beschwerden '
-              'und zur Unterstützung bei möglichen nächsten Schritten.\n\n'
-              'Verarbeitungszwecke:\n'
-              '- Ersteinschätzung eingegebener Beschwerden\n'
-              '- Patientensteuerung und Empfehlung nächster Schritte\n'
-              '- personalisierte Unterstützung anhand eingegebener Angaben\n'
-              '- Dokumentation von Beschwerden im Symptomtagebuch\n'
-              '- Registrierung, Anmeldung und Kontoverwaltung\n\n'
-              'Verarbeitete Datenkategorien:\n'
-              '- Kontoangaben, insbesondere E-Mail-Adresse und Authentifizierungsdaten\n'
-              '- Profildaten, insbesondere Name und Geburtsdatum\n'
-              '- medizinisch relevante Angaben, insbesondere biologisches Geschlecht, Größe, Gewicht, Vorerkrankungen und Hinweise\n'
-              '- Chatdaten, insbesondere Symptombeschreibungen und Empfehlungen\n'
-              '- Symptomtagebuch-Einträge, insbesondere Symptom, Datum, Intensität und Notizen\n'
-              '- technische Daten, insbesondere Session-ID und Zugriffstoken\n\n'
-              'Das biologische Geschlecht wird ausschließlich als medizinisch '
-              'relevanter Kontext für die Ersteinschätzung verwendet.\n\n'
-              'Careena ersetzt keine ärztliche Diagnose, Behandlung oder '
-              'Notfallversorgung. In akuten Notfällen ist der Notruf 112 '
-              'oder medizinisches Fachpersonal zu kontaktieren.\n\n'
-              'Diese Hinweise beschreiben den aktuellen Stand und '
-              'ersetzen keine vollständige rechtliche Datenschutzerklärung. '
-              'Die aktive Zustimmung erfolgt im Registrierungsprozess.',
+          content: SingleChildScrollView(
+            child: Semantics(
+              label: _privacyNoticeText,
+              readOnly: true,
+              child: const ExcludeSemantics(child: Text(_privacyNoticeText)),
             ),
           ),
           actions: [
@@ -516,10 +530,7 @@ class _ShortAuthDivider extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'oder',
-            style: TextStyle(fontSize: 14, color: textColor),
-          ),
+          child: Text('oder', style: TextStyle(fontSize: 14, color: textColor)),
         ),
         SizedBox(
           width: 104,
@@ -547,57 +558,68 @@ class _OnboardingNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    const noticeLabel =
+        'Hinweis. Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
+        'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.';
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: Container(
-        padding: EdgeInsets.all(
-          isCompactWide ? 10 : (isWide ? 16 : (isDense ? 8 : 10)),
-        ),
-        decoration: BoxDecoration(
-          color: isDarkMode ? colorScheme.surface : AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.careenaTeal, width: 2),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.info_outline,
-              size: isCompactWide ? 13 : (isWide ? 18 : (isDense ? 15 : 18)),
-              color: isDarkMode ? AppColors.white : AppColors.careenaTeal,
+      child: Semantics(
+        container: true,
+        label: noticeLabel,
+        child: ExcludeSemantics(
+          child: Container(
+            padding: EdgeInsets.all(
+              isCompactWide ? 10 : (isWide ? 16 : (isDense ? 8 : 10)),
             ),
-            SizedBox(width: isDense ? 6 : 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hinweis',
-                    style: TextStyle(
-                      fontSize: isCompactWide ? 12 : (isDense ? 13 : 15),
-                      fontWeight: FontWeight.w900,
-                      color: isDarkMode
-                          ? AppColors.white
-                          : AppColors.careenaTeal,
-                    ),
-                  ),
-                  SizedBox(height: isCompactWide || isDense ? 1 : 6),
-                  Text(
-                    'Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
-                    'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
-                    style: TextStyle(
-                      fontSize: isCompactWide
-                          ? 9.8
-                          : (isWide ? 12.5 : (isDense ? 10.8 : 12.2)),
-                      height: isWide || isDense ? 1.18 : 1.24,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
+            decoration: BoxDecoration(
+              color: isDarkMode ? colorScheme.surface : AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.careenaTeal, width: 2),
             ),
-          ],
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: isCompactWide
+                      ? 13
+                      : (isWide ? 18 : (isDense ? 15 : 18)),
+                  color: isDarkMode ? AppColors.white : AppColors.careenaTeal,
+                ),
+                SizedBox(width: isDense ? 6 : 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hinweis',
+                        style: TextStyle(
+                          fontSize: isCompactWide ? 12 : (isDense ? 13 : 15),
+                          fontWeight: FontWeight.w900,
+                          color: isDarkMode
+                              ? AppColors.white
+                              : AppColors.careenaTeal,
+                        ),
+                      ),
+                      SizedBox(height: isCompactWide || isDense ? 1 : 6),
+                      Text(
+                        'Careena unterstützt dich bei der Einordnung deiner Beschwerden. '
+                        'Die Anwendung ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
+                        style: TextStyle(
+                          fontSize: isCompactWide
+                              ? 9.8
+                              : (isWide ? 12.5 : (isDense ? 10.8 : 12.2)),
+                          height: isWide || isDense ? 1.18 : 1.24,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

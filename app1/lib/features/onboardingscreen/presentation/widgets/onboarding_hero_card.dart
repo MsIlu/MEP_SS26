@@ -1,12 +1,16 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:app1/core/config/app_assets.dart';
 import '../../../authscreen/presentation/widgets/common/auth_buttons.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'careena_chat_bubble.dart';
 
 const _heroTitle = "Die richtige Hilfe,\nzum richtigen\nZeitpunkt.";
+const _heroTitleSemantic = "Die richtige Hilfe, zum richtigen Zeitpunkt.";
 const _heroDescription =
     "Beschreibe deine Beschwerden\nund erhalte deine\npersönliche\nHandlungsempfehlung.";
+const _heroDescriptionSemantic =
+    "Beschreibe deine Beschwerden und erhalte deine persönliche Handlungsempfehlung.";
+const _heroCtaLabel = 'Jetzt mit Careena sprechen';
 
 /// Large onboarding card that presents the primary chat call to action.
 class OnboardingHeroCard extends StatelessWidget {
@@ -66,17 +70,24 @@ class OnboardingHeroCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _heroTitle,
-                  style: TextStyle(
-                    fontSize: useDenseLayout
-                        ? 28
-                        : (useCompactLayout ? 18 : (isCompact ? 24 : 32)),
-                    fontWeight: FontWeight.w800,
-                    height: useCompactLayout ? 1.16 : 1.2,
-                    color: isDarkMode
-                        ? Theme.of(context).colorScheme.onSurface
-                        : AppColors.careenaTitle,
+                Semantics(
+                  container: true,
+                  header: true,
+                  label: _heroTitleSemantic,
+                  child: ExcludeSemantics(
+                    child: Text(
+                      _heroTitle,
+                      style: TextStyle(
+                        fontSize: useDenseLayout
+                            ? 28
+                            : (useCompactLayout ? 18 : (isCompact ? 24 : 32)),
+                        fontWeight: FontWeight.w800,
+                        height: useCompactLayout ? 1.16 : 1.2,
+                        color: isDarkMode
+                            ? Theme.of(context).colorScheme.onSurface
+                            : AppColors.careenaTitle,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -95,23 +106,34 @@ class OnboardingHeroCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: FractionallySizedBox(
                     widthFactor: useDenseLayout ? 0.92 : 1,
-                    child: CareenaButton(
-                      text: 'Jetzt mit Careena sprechen',
-                      onPressed: onPressed,
-                      backgroundColor: isDarkMode
-                          ? AppColors.toolbarButtonBackgroundDark
-                          : AppColors.careenaPrimary,
-                      foregroundColor: isDarkMode
-                          ? AppColors.toolbarButtonForegroundDark
-                          : AppColors.white,
-                      borderRadius: 40,
-                      height: useDenseLayout
-                          ? 48
-                          : (useCompactLayout ? 36 : 54),
-                      fontSize: useDenseLayout
-                          ? 16
-                          : (useCompactLayout ? 14 : 18),
-                      side: BorderSide(color: AppColors.careenaGlow, width: 3),
+                    child: Semantics(
+                      container: true,
+                      button: true,
+                      label: _heroCtaLabel,
+                      onTap: onPressed,
+                      child: ExcludeSemantics(
+                        child: CareenaButton(
+                          text: _heroCtaLabel,
+                          onPressed: onPressed,
+                          backgroundColor: isDarkMode
+                              ? AppColors.toolbarButtonBackgroundDark
+                              : AppColors.careenaPrimary,
+                          foregroundColor: isDarkMode
+                              ? AppColors.toolbarButtonForegroundDark
+                              : AppColors.white,
+                          borderRadius: 40,
+                          height: useDenseLayout
+                              ? 48
+                              : (useCompactLayout ? 36 : 54),
+                          fontSize: useDenseLayout
+                              ? 16
+                              : (useCompactLayout ? 14 : 18),
+                          side: BorderSide(
+                            color: AppColors.careenaGlow,
+                            width: 3,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -227,27 +249,13 @@ class _CareenaBubbleGroup extends StatelessWidget {
     double mix(double small, double large) => small + (large - small) * scale;
 
     final groupWidth = compactWide ? 228.0 : (compact ? 210.0 : mix(200, 560));
-    final groupHeight = compactWide
-        ? 150.0
-        : (compact ? 142.0 : mix(142, 320));
-    final bubbleWidth = compactWide
-        ? 130.0
-        : (compact ? 112.0 : mix(132, 340));
-    final bubbleLeft = compactWide
-        ? 98.0
-        : (compact ? 98.0 : mix(66, 220));
-    final careenaLeft = compactWide
-        ? 24.0
-        : (compact ? 34.0 : mix(14, 73));
-    final careenaTop = compactWide
-        ? 38.0
-        : (compact ? 50.0 : mix(58, 122));
-    final careenaHeight = compactWide
-        ? 102.0
-        : (compact ? 98.0 : mix(76, 250));
-    final bubbleFontSize = compactWide
-        ? 7.3
-        : (compact ? 7.4 : mix(6.8, 15.5));
+    final groupHeight = compactWide ? 150.0 : (compact ? 142.0 : mix(142, 320));
+    final bubbleWidth = compactWide ? 130.0 : (compact ? 112.0 : mix(132, 340));
+    final bubbleLeft = compactWide ? 98.0 : (compact ? 98.0 : mix(66, 220));
+    final careenaLeft = compactWide ? 24.0 : (compact ? 34.0 : mix(14, 73));
+    final careenaTop = compactWide ? 38.0 : (compact ? 50.0 : mix(58, 122));
+    final careenaHeight = compactWide ? 102.0 : (compact ? 98.0 : mix(76, 250));
+    final bubbleFontSize = compactWide ? 7.3 : (compact ? 7.4 : mix(6.8, 15.5));
     final bubbleTop = compactWide ? -18.0 : (compact ? -18.0 : mix(0, 20));
     final bubbleText = scale > 0.66
         ? 'Ich bin Careena!\nDeine persönliche KI-Gesundheitsassistentin.'
@@ -255,27 +263,33 @@ class _CareenaBubbleGroup extends StatelessWidget {
         ? 'Ich bin Careena!\nDeine persönliche\nKI-Gesundheitsassistentin.'
         : 'Ich bin Careena!\nDeine persönliche\nKI-Gesundheits-\nassistentin.';
 
-    return SizedBox(
-      width: groupWidth,
-      height: groupHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: bubbleLeft,
-            top: bubbleTop,
-            width: bubbleWidth,
-            child: CareenaChatBubble(
-              fontSize: bubbleFontSize,
-              text: bubbleText,
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: groupWidth,
+        height: groupHeight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: bubbleLeft,
+              top: bubbleTop,
+              width: bubbleWidth,
+              child: CareenaChatBubble(
+                fontSize: bubbleFontSize,
+                text: bubbleText,
+              ),
             ),
-          ),
-          Positioned(
-            left: careenaLeft,
-            top: careenaTop,
-            child: Image.asset(AppAssets.careenaHi, height: careenaHeight),
-          ),
-        ],
+            Positioned(
+              left: careenaLeft,
+              top: careenaTop,
+              child: Image.asset(
+                AppAssets.careenaHi,
+                height: careenaHeight,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -292,15 +306,25 @@ class _CompactHeroBody extends StatelessWidget {
       children: [
         const _HeroDescription(),
         const SizedBox(height: 12),
-        const Align(
-          alignment: Alignment.centerRight,
-          child: FractionallySizedBox(
-            widthFactor: 0.78,
-            child: CareenaChatBubble(),
+        const ExcludeSemantics(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FractionallySizedBox(
+              widthFactor: 0.78,
+              child: CareenaChatBubble(),
+            ),
           ),
         ),
         const SizedBox(height: 6),
-        Center(child: Image.asset(AppAssets.careenaHi, height: 118)),
+        ExcludeSemantics(
+          child: Center(
+            child: Image.asset(
+              AppAssets.careenaHi,
+              height: 118,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -315,13 +339,20 @@ class _CompactWideHeroDescription extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Text(
-      _heroDescription,
-      style: TextStyle(
-        fontSize: 12.4,
-        fontWeight: FontWeight.w500,
-        color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.black87,
-        height: 1.22,
+    return Semantics(
+      label: _heroDescriptionSemantic,
+      child: ExcludeSemantics(
+        child: Text(
+          _heroDescription,
+          style: TextStyle(
+            fontSize: 12.4,
+            fontWeight: FontWeight.w500,
+            color: isDarkMode
+                ? colorScheme.onSurfaceVariant
+                : AppColors.black87,
+            height: 1.22,
+          ),
+        ),
       ),
     );
   }
@@ -338,13 +369,20 @@ class _HeroDescription extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Text(
-      _heroDescription,
-      style: TextStyle(
-        fontSize: dense ? 12 : 14.5,
-        fontWeight: FontWeight.w500,
-        color: isDarkMode ? colorScheme.onSurfaceVariant : AppColors.black87,
-        height: dense ? 1.24 : 1.3,
+    return Semantics(
+      label: _heroDescriptionSemantic,
+      child: ExcludeSemantics(
+        child: Text(
+          _heroDescription,
+          style: TextStyle(
+            fontSize: dense ? 12 : 14.5,
+            fontWeight: FontWeight.w500,
+            color: isDarkMode
+                ? colorScheme.onSurfaceVariant
+                : AppColors.black87,
+            height: dense ? 1.24 : 1.3,
+          ),
+        ),
       ),
     );
   }

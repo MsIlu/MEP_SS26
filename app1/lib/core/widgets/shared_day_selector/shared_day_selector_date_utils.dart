@@ -47,6 +47,15 @@ String formatSharedDateTitle(DateTime selectedDate, DateTime today) {
 
 String formatSharedWeekday(DateTime date) => _weekdays[date.weekday - 1];
 
+String formatSharedFullDate(DateTime date, DateTime today) {
+  final month = _months[date.month - 1];
+  if (isSameCalendarDay(date, today)) {
+    return 'Heute, ${date.day}. $month ${date.year}';
+  }
+
+  return '${_weekdays[date.weekday - 1]}, ${date.day}. $month ${date.year}';
+}
+
 String formatSharedShortMonth(DateTime date) => _shortMonths[date.month - 1];
 
 List<DateTime> buildSharedDayRange(DateTime today) {

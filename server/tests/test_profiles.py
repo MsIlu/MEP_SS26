@@ -50,6 +50,30 @@ def test_get_profiles_returns_accessible_profiles(client):
     assert profiles[0]["role"] == "owner"
 
 
+def test_get_profiles_returns_main_profile_then_creation_order(client):
+    auth = register_user(client)
+
+    for display_name in ("Zweites Profil", "Drittes Profil"):
+        response = client.post(
+            "/profiles",
+            headers=auth["headers"],
+            json={
+                "display_name": display_name,
+                "profile_type": "other",
+            },
+        )
+        assert response.status_code == 200
+
+    response = client.get("/profiles", headers=auth["headers"])
+
+    assert response.status_code == 200
+    assert [profile["display_name"] for profile in response.json()] == [
+        "Anna",
+        "Zweites Profil",
+        "Drittes Profil",
+    ]
+
+
 def test_create_child_profile_creates_guardian_access(client, db_session):
     auth = register_user(client)
 
@@ -93,6 +117,41 @@ def test_create_child_profile_creates_guardian_access(client, db_session):
 
     assert access is not None
     assert access.role == "guardian"
+
+
+def test_managed_profile_types_can_be_deleted(client, db_session):
+    auth = register_user(client)
+
+    for profile_type in ("family", "other"):
+        create_response = client.post(
+            "/profiles",
+            headers=auth["headers"],
+            json={
+                "display_name": f"Managed {profile_type}",
+                "profile_type": profile_type,
+            },
+        )
+
+        assert create_response.status_code == 200
+        profile = create_response.json()
+        assert profile["role"] == "guardian"
+
+        if profile_type == "other":
+            access = db_session.exec(
+                select(AccountProfileAccess).where(
+                    AccountProfileAccess.profile_id == profile["id"]
+                )
+            ).first()
+            assert access is not None
+            access.role = "editor"
+            db_session.add(access)
+            db_session.commit()
+
+        delete_response = client.delete(
+            f"/profiles/{profile['id']}",
+            headers=auth["headers"],
+        )
+        assert delete_response.status_code == 200
 
 
 def test_get_profile_by_id_requires_access(client):

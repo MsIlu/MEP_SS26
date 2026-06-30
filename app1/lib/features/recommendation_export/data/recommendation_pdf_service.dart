@@ -3,6 +3,15 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:app1/features/profiles/domain/models/profile.dart';
 
+String biologicalSexLabelForPdf(String? value) {
+  return switch (value?.trim().toLowerCase()) {
+    'female' => 'weiblich',
+    'male' => 'männlich',
+    null || '' => 'Keine Angabe',
+    _ => value!.trim(),
+  };
+}
+
 /// Creates a PDF document for a care recommendation.
 class RecommendationPdfService {
   static const String _logoPath = 'assets/images/logo_medbitaid.png';
@@ -433,7 +442,7 @@ class RecommendationPdfService {
       if (profile.dateOfBirth != null && profile.dateOfBirth!.isNotEmpty)
         'Geburtsdatum: ${_formatProfileDate(profile.dateOfBirth)}',
       if (profile.biologicalSex != null && profile.biologicalSex!.isNotEmpty)
-        'Biologisches Geschlecht: ${profile.biologicalSex}',
+        'Biologisches Geschlecht: ${biologicalSexLabelForPdf(profile.biologicalSex)}',
       if (profile.heightCm != null) 'Größe: ${profile.heightCm} cm',
       if (profile.weightKg != null) 'Gewicht: ${profile.weightKg} kg',
     ];

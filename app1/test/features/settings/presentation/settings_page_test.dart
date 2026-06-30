@@ -120,6 +120,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);
+    await tester.ensureVisible(find.text('Datenschutz und Sicherheit'));
     await tester.tap(find.text('Datenschutz und Sicherheit'));
     await tester.pumpAndSettle();
     expect(find.byIcon(SettingsIcons.privacy), findsOneWidget);
@@ -242,6 +243,66 @@ void main() {
     expect(authSession.activeProfile?.displayName, 'Mia');
     expect(authSession.profiles.map((profile) => profile.id), contains(12));
     expect(find.text('Profil "Mia" wurde erstellt.'), findsOneWidget);
+  });
+
+  testWidgets('offers family and other managed profiles for deletion', (
+    tester,
+  ) async {
+    final themeController = ThemeController();
+    final authSession = AuthSession();
+    authSession.setAuthResponse(
+      const AuthResponse(
+        accessToken: 'token',
+        tokenType: 'bearer',
+        account: Account(id: 1, email: 'anna@example.com'),
+        profiles: [
+          AuthProfile(
+            id: 10,
+            displayName: 'Anna',
+            profileType: 'self',
+            role: 'owner',
+          ),
+          AuthProfile(
+            id: 11,
+            displayName: 'Rufus',
+            profileType: 'family',
+            role: 'editor',
+          ),
+          AuthProfile(
+            id: 12,
+            displayName: 'Sam',
+            profileType: 'other',
+            role: 'editor',
+          ),
+        ],
+      ),
+    );
+    final apiClient = ApiClient(
+      MockClient((_) async => http.Response('{}', 200)),
+    )..setAccessToken('token');
+    addTearDown(themeController.dispose);
+    addTearDown(authSession.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SettingsPage(
+          themeController: themeController,
+          authSession: authSession,
+          profileApiService: ProfileApiService(apiClient),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile und persönliche Daten'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Profil löschen'));
+    await tester.tap(find.text('Profil löschen'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rufus'), findsOneWidget);
+    expect(find.text('Sam'), findsOneWidget);
+    expect(find.text('Familienmitglied'), findsOneWidget);
+    expect(find.text('Andere betreute Person'), findsOneWidget);
   });
 
   testWidgets('opens personal and health data settings pages', (tester) async {
@@ -420,7 +481,9 @@ void main() {
     expect(find.text('Einstellungen'), findsWidgets);
     expect(authSession.isAuthenticated, isTrue);
 
-    await tester.ensureVisible(find.byKey(const ValueKey('settings-logout-button')));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('settings-logout-button')),
+    );
     await tester.tap(find.byKey(const ValueKey('settings-logout-button')));
     await tester.pumpAndSettle();
 

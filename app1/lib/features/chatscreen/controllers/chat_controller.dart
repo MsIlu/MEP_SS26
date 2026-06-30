@@ -391,13 +391,15 @@ class ChatController {
       }
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
+      _addMessage(
+        message: Message(text: userFacingChatError(e), isUser: false),
+      );
       await _markActiveChatFailed();
       return null;
     }
   }
 
-  String _chatErrorMessage(Object error) {
+  String userFacingChatError(Object error) {
     if (error is ApiException) {
       if (error.type == ApiErrorType.timeout) {
         return 'Careena braucht gerade zu lange für eine Antwort. Bitte versuchen Sie es gleich erneut.';
@@ -413,6 +415,36 @@ class ChatController {
 
       if (error.statusCode == 403) {
         return 'Careena kann diese Anfrage für das aktuelle Profil nicht ausführen.';
+      }
+
+      if (error.statusCode == 409) {
+        final detail = error.message;
+
+        if (detail.contains('different profile')) {
+          return 'Dieser Chat gehört zu einem anderen Profil. Bitte wechseln '
+              'Sie zum passenden Profil oder starten Sie einen neuen Chat.';
+        }
+
+        if (detail.contains('Last user message is empty')) {
+          return 'Die letzte Nachricht ist leer und kann nicht verarbeitet '
+              'werden. Bitte senden Sie eine neue Nachricht.';
+        }
+
+        if (detail.contains('Only active chat history entries') ||
+            detail.contains('Only waiting chat history entries') ||
+            detail.contains('does not wait for an assistant response')) {
+          return 'Der Chat wurde bereits auf einem anderen Gerät oder in '
+              'einem anderen Fenster aktualisiert. Bitte öffnen Sie den '
+              'Verlauf erneut.';
+        }
+
+        return 'Der Chat befindet sich nicht mehr im erwarteten Zustand. '
+            'Bitte öffnen Sie den Verlauf erneut.';
+      }
+
+      if (error.statusCode != null && error.statusCode! >= 500) {
+        return 'Beim Verarbeiten der Anfrage ist auf dem Server ein Fehler '
+            'aufgetreten. Bitte versuchen Sie es später erneut.';
       }
     }
 
@@ -668,8 +700,65 @@ class ChatController {
       }
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      if (e is ApiException && e.statusCode == 409) {
+        final synchronized = await _synchronizeHistoryAfterConflict(
+          historyEntryId,
+          expectedProfileId,
+        );
+        if (!synchronized) {
+          _addMessage(
+            message: Message(text: userFacingChatError(e), isUser: false),
+          );
+        }
+        return;
+      }
+
+      _addMessage(
+        message: Message(text: userFacingChatError(e), isUser: false),
+      );
       await _markActiveChatFailed();
+    }
+  }
+
+  Future<bool> _synchronizeHistoryAfterConflict(
+    String historyEntryId,
+    int? expectedProfileId,
+  ) async {
+    if (expectedProfileId == null) {
+      return false;
+    }
+
+    try {
+      final entries = await chatHistoryRepository.loadEntries(
+        profileId: expectedProfileId,
+      );
+      final matchingEntries = entries.where(
+        (entry) => entry.id == historyEntryId,
+      );
+      if (matchingEntries.isEmpty ||
+          expectedProfileId != authSession.activeProfileId ||
+          historyEntryId != _activeHistoryEntryId) {
+        return false;
+      }
+
+      final entry = matchingEntries.first;
+      final synchronizedMessages = _collapseStreamingSnapshots(entry.messages);
+      _activeHistoryCreatedAt = entry.createdAt;
+      _setCompleted(entry.status == 'completed');
+      messages.value = synchronizedMessages;
+      _setChatRunState(
+        ChatRunState(
+          historyId: entry.id,
+          sessionId: entry.sessionId,
+          profileId: entry.profileId,
+          messages: synchronizedMessages,
+          status: entry.status,
+        ),
+      );
+      historyRevision.value += 1;
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

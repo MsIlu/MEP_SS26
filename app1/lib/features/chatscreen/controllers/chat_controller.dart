@@ -389,7 +389,7 @@ class ChatController {
       )) {
         return null;
       }
-      
+
       await refreshAvailability();
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
@@ -414,6 +414,17 @@ class ChatController {
 
       if (error.statusCode == 403) {
         return 'Careena kann diese Anfrage für das aktuelle Profil nicht ausführen.';
+      }
+
+      if (error.statusCode == 409) {
+        return 'Dieser Chat kann nicht fortgesetzt werden, weil keine Antwort '
+            'von Careena mehr aussteht. Bitte öffnen Sie den Verlauf erneut '
+            'oder starten Sie einen neuen Chat.';
+      }
+
+      if (error.statusCode != null && error.statusCode! >= 500) {
+        return 'Beim Verarbeiten der Anfrage ist auf dem Server ein Fehler '
+            'aufgetreten. Bitte versuchen Sie es später erneut.';
       }
     }
 
@@ -682,7 +693,7 @@ class ChatController {
       }
 
       _setMessages(chatService.removeLastBotMessage(messages.value));
-      _addMessage(message: Message(text: 'Fehler: $e', isUser: false));
+      _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       await _markActiveChatFailed();
     }
   }

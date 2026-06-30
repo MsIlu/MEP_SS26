@@ -82,6 +82,10 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 - `T02.3.10`: Ein Continue-Konflikt synchronisiert den aktuellen Serverstand, ohne den Chat auf `failed` zu setzen.
 - `T02.3.11`: Ein Profilkonflikt der Chat-Session wird verständlich auf Deutsch erklärt.
 
+### T02.4 `app1/test/features/chat/presentation/chat_history_screen_test.dart`
+
+- `T02.4.1`: Ein Resume-Konflikt wird im Verlauf als verständliche deutsche Meldung angezeigt.
+
 ## T03 Symptome Erkennen / Input-Drafts
 
 ### T03.1 `app1/test/features/chat/services/symptom_draft_service_test.dart`

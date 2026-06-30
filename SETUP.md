@@ -7,8 +7,9 @@ Please install the following software before starting the project.
 
 ### Required Software
 
-* Python 3.12+ (recommended)
-* Docker Desktop
+* Python 3.12 (recommended)
+* Flutter from the stable channel
+* Docker Desktop with Docker Compose v2
 * Git
 * Plugin Docker in your IDE
 
@@ -22,7 +23,7 @@ Docker Desktop usually requires:
 
 ---
 
-(You can skip step 2 - "Clone the Repository", if you have the repository and is up to date)
+(You can skip step 2 - "Clone the Repository", if you have the repository and it is up to date)
 
 ---
 
@@ -47,30 +48,29 @@ git pull
 
 Make sure Docker Desktop is running before starting the database.
 
-Verify Docker installation in bash-terminal:
+Verify the Docker installation:
 
 ```bash
 docker --version
+docker compose version
 ```
 
 ---
 
-# 4. Add in the .env File
+# 4. Add the `.env` File
 
-Add in the `.env` file, which is inside the main project folder, the database_URL:
+Create `.env` in the main project folder. You can copy `.env.example` and adjust its values.
 
-```text
-MEP_SS26/.env
-```
-
-Example content:
+Example content for the local PostgreSQL container:
 
 ```env
 LITELLM_BASE_URL=YOUR_URL
 LITELLM_API_KEY=YOUR_API_KEY
-LITELLM_MODEL=YOUR_MODEL
+LITELLM_MODEL=medgemma:27b
 
-DATABASE_URL= Database_URL
+DATABASE_URL=postgresql+psycopg://mep_user:mep_password@127.0.0.1:5433/mep_server
+SECRET_KEY=REPLACE_WITH_A_LONG_RANDOM_VALUE
+SQL_ECHO=false
 ```
 
 ### ⚠️ Warning
@@ -78,70 +78,92 @@ DATABASE_URL= Database_URL
 ```text
 The `.env` file contains sensitive information.
 Do NOT push the `.env` file to GitHub.
-The required `DATABASE_URL`, usernames, passwords, 
-and API keys are shared separately within the team (e.g. Discord - Channel "code-schnipsel"; pinned).
+The required API keys are shared separately within the team.
 ```
 ---
 
 # 5. Start PostgreSQL with Docker
 
-Inside the main project folder (C:/StudioProjects/MEP_SS26) open the bash-Terminal and insert the following code:
+Inside the main project folder, run:
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 This starts the PostgreSQL database container.
 
-Check running (also bash-Terminal):
+Check the running services:
 
 ```bash
-docker ps
+docker compose ps
 ```
+
+### Start the Local FHIR Server
+
+```bash
+docker compose up -d fhir-server
+```
+
+The HAPI FHIR test server is then available at `http://localhost:8080/fhir`.
 
 ---
 
 # 6. Install Python Dependencies
 
-Start the local-terminal (not bash-Terminal) and go into the server-folder:
+Go to the server folder:
 
 ```bash
 cd server
 ```
 
+Creating a virtual environment is recommended:
+
+```bash
+python -m venv .venv
+```
+
+Activate it with `.venv\Scripts\Activate.ps1` in PowerShell, `source .venv/Scripts/activate` in Git Bash on Windows, or `source .venv/bin/activate` on macOS/Linux.
+
 Install all required packages:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ---
 
 # 7. Start the Backend Server
 
-Start the local-Terminal (not bash-terminal) inside the `server` folder and start the server:
+Inside the `server` folder, start the server:
 
 ```bash
 python -m uvicorn main:app --reload
 ```
 
+Useful URLs:
+
+* API: `http://localhost:8000`
+* Swagger UI: `http://localhost:8000/docs`
+* Server health: `http://localhost:8000/health/server`
+* LLM health: `http://localhost:8000/health/llm`
+
 ---
 
-# 8. Verify Database Connection
+# 8. Verify the Database Connection
 
-Open the bash-terminal to start PostgreSQL in docker:
+Open PostgreSQL in Docker:
 
 ```bash
 docker exec -it mep_postgres psql -U mep_user -d mep_server
 ```
 
-To show all tables, use the following code:
+To show all tables, use:
 
 ```sql
 \dt
 ```
 
-To exit PostgreSQL, use the following code:
+To exit PostgreSQL, use:
 
 ```sql
 \q
@@ -149,9 +171,46 @@ To exit PostgreSQL, use the following code:
 
 ---
 
-# 9. Stop Docker
+# 9. Start the Flutter Application
 
-To stop the database:
+Open a second terminal in the project root:
+
+```bash
+cd app1
+flutter pub get
+flutter run -d chrome
+```
+
+The application uses `http://localhost:8000` on web, desktop, and the iOS simulator. The Android emulator automatically uses `http://10.0.2.2:8000`.
+
+For a physical device or another backend address, use:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://YOUR_COMPUTER_IP:8000
+```
+
+---
+
+# 10. Run Tests
+
+Backend tests from the `server` folder:
+
+```bash
+python -m pytest tests -q
+```
+
+Frontend tests from the `app1` folder:
+
+```bash
+flutter analyze
+flutter test
+```
+
+---
+
+# 11. Stop Docker
+
+To stop the services:
 
 ```bash
 docker compose down
@@ -159,7 +218,7 @@ docker compose down
 
 ---
 
-# 10. Common Issues
+# 12. Common Issues
 
 ## Docker command not found
 
@@ -171,48 +230,52 @@ Make sure Docker Desktop is installed and running.
 
 The project uses:
 
-```text
-5433
-```
+* `5433` for PostgreSQL
+* `8000` for FastAPI
+* `8080` for HAPI FHIR
 
-for PostgreSQL to avoid conflicts with local PostgreSQL installations.
+Stop the conflicting service or adjust the corresponding configuration.
 
 ---
 
-## Backend cannot connect to database
+## Backend cannot connect to the database
 
 Check:
 
 * Docker container is running
 * `.env` exists
-* `DATABASE_URL` is correct
+* `DATABASE_URL` is correct and uses port `5433`
 * PostgreSQL container started successfully
 
 ---
 
-# Project Structure (on 15.05.2026)
+## Flutter cannot connect to the backend
+
+Check:
+
+* `http://localhost:8000/health/server` is reachable
+* the Android emulator uses `10.0.2.2` instead of `localhost`
+* a physical device uses the development computer's LAN IP
+* firewall and network settings allow connections to port `8000`
+
+---
+
+# Project Structure
 
 ```text
 MEP_SS26/
 ├── .github/
 ├── app1/
-├── documents
+│   ├── lib/
+│   └── test/
+├── documents/
 ├── server/
+│   ├── careena4/
 │   ├── database/
-│   │    ├── __init__.py
-│   │    ├── connection.py
-│   │    └── models.py
-│   ├── docs/
-│   ├── models/
-│   ├── red_flags/
-│   ├── config.py
+│   ├── tests/
 │   ├── main.py
-│   ├── medical_rules.py
-│   ├── requirements.txt
-│   └── topic_filter.py
-├── .env
+│   └── requirements.txt
 ├── .env.example
-├── .gitignore
 ├── docker-compose.yml
 ├── README.md
 └── SETUP.md
@@ -222,18 +285,18 @@ MEP_SS26/
 
 # Database Architecture
 
-## models.py
+## `database/models.py`
 
-Defines database tables using SQLModel.
+Defines the application tables using SQLModel.
 
-## connection.py
+## `database/connection.py`
 
 Handles:
 
 * PostgreSQL connection
-* table creation
+* table creation and compatibility migrations
 * database sessions
 
-## main.py
+## `main.py`
 
 Starts the FastAPI backend and initializes the database.

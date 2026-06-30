@@ -48,7 +48,9 @@ class SymptomDiaryController extends ChangeNotifier {
     required String symptom,
     String bodyArea = '',
     required int intensity,
+    double? temperatureC,
     required String note,
+    String source = 'manual',
   }) async {
     final normalizedSymptom = symptom.trim();
     if (normalizedSymptom.isEmpty) {
@@ -62,13 +64,63 @@ class SymptomDiaryController extends ChangeNotifier {
       symptom: normalizedSymptom,
       bodyArea: bodyArea.trim(),
       intensity: intensity.clamp(1, 10),
+      temperatureC: temperatureC,
       note: note.trim(),
+      source: source,
       createdAt: now,
     );
     _entries.add(entry);
     _sortEntries();
     await _saveAndNotify();
     return entry;
+  }
+
+  /// Updates an existing entry locally and remotely when already synchronized.
+  Future<SymptomEntry> updateEntry({
+    required SymptomEntry entry,
+    required DateTime date,
+    required String symptom,
+    required String bodyArea,
+    required int intensity,
+    double? temperatureC,
+    required String note,
+  }) async {
+    final normalizedSymptom = symptom.trim();
+    if (normalizedSymptom.isEmpty) {
+      throw ArgumentError('Symptom darf nicht leer sein.');
+    }
+
+    var updatedEntry = entry.copyWith(
+      date: DateTime(date.year, date.month, date.day),
+      symptom: normalizedSymptom,
+      bodyArea: bodyArea.trim(),
+      intensity: intensity.clamp(1, 10),
+      temperatureC: temperatureC,
+      clearTemperature: temperatureC == null,
+      note: note.trim(),
+      updatedAt: DateTime.now(),
+    );
+
+    if (entry.isSynced && _profileId != null && _apiService != null) {
+      final response = await _apiService.updateSymptom(
+        profileId: _profileId,
+        entryId: entry.id,
+        date: updatedEntry.date,
+        symptom: updatedEntry.symptom,
+        bodyArea: updatedEntry.bodyArea,
+        intensity: updatedEntry.intensity,
+        temperatureC: updatedEntry.temperatureC,
+        note: updatedEntry.note,
+      );
+      updatedEntry = SymptomEntry.fromResponse(response);
+    }
+
+    _entries
+      ..removeWhere((item) => item.id == entry.id)
+      ..add(updatedEntry);
+    _sortEntries();
+    await _saveAndNotify();
+    return updatedEntry;
   }
 
   /// Removes an entry without touching other days.

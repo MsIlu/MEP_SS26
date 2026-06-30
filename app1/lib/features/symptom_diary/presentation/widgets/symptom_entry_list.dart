@@ -9,12 +9,14 @@ class SymptomEntryList extends StatelessWidget {
   final bool isLoading;
   final List<SymptomEntry> entries;
   final ValueChanged<SymptomEntry> onDelete;
+  final ValueChanged<SymptomEntry>? onEdit;
 
   const SymptomEntryList({
     super.key,
     required this.isLoading,
     required this.entries,
     required this.onDelete,
+    this.onEdit,
   });
 
   @override
@@ -30,8 +32,8 @@ class SymptomEntryList extends StatelessWidget {
           entries.isEmpty
               ? 'Einträge für diesen Tag'
               : entries.length == 1
-                  ? '1 Eintrag für diesen Tag'
-                  : '${entries.length} Einträge für diesen Tag',
+              ? '1 Eintrag für diesen Tag'
+              : '${entries.length} Einträge für diesen Tag',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
@@ -45,7 +47,11 @@ class SymptomEntryList extends StatelessWidget {
           ...entries.map(
             (entry) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _SymptomEntryTile(entry: entry, onDelete: onDelete),
+              child: _SymptomEntryTile(
+                entry: entry,
+                onDelete: onDelete,
+                onEdit: onEdit,
+              ),
             ),
           ),
       ],
@@ -87,8 +93,13 @@ class _EmptySymptomState extends StatelessWidget {
 class _SymptomEntryTile extends StatelessWidget {
   final SymptomEntry entry;
   final ValueChanged<SymptomEntry> onDelete;
+  final ValueChanged<SymptomEntry>? onEdit;
 
-  const _SymptomEntryTile({required this.entry, required this.onDelete});
+  const _SymptomEntryTile({
+    required this.entry,
+    required this.onDelete,
+    this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +174,17 @@ class _SymptomEntryTile extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (entry.temperatureC != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Temperatur ${entry.temperatureC!.toStringAsFixed(1)} °C',
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
                 if (entry.note.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -176,10 +198,20 @@ class _SymptomEntryTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Eintrag löschen',
-            onPressed: () => onDelete(entry),
-            icon: const Icon(Icons.delete_outline),
+          Column(
+            children: [
+              if (onEdit != null)
+                IconButton(
+                  tooltip: 'Eintrag bearbeiten',
+                  onPressed: () => onEdit!(entry),
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+              IconButton(
+                tooltip: 'Eintrag löschen',
+                onPressed: () => onDelete(entry),
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ],
           ),
         ],
       ),

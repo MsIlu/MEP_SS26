@@ -204,22 +204,23 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: SymptomEntryForm(
-                onSave: ({
-                  required symptom,
-                  required bodyArea,
-                  required intensity,
-                  double? temperatureC,
-                  required note,
-                }) async {
-                  savedEntries.add(
-                    _SavedSymptom(
-                      symptom: symptom,
-                      bodyArea: bodyArea,
-                      intensity: intensity,
-                      note: note,
-                    ),
-                  );
-                },
+                onSave:
+                    ({
+                      required symptom,
+                      required bodyArea,
+                      required intensity,
+                      double? temperatureC,
+                      required note,
+                    }) async {
+                      savedEntries.add(
+                        _SavedSymptom(
+                          symptom: symptom,
+                          bodyArea: bodyArea,
+                          intensity: intensity,
+                          note: note,
+                        ),
+                      );
+                    },
                 onSaved: () => savedCallbackCalled = true,
               ),
             ),
@@ -254,6 +255,7 @@ void main() {
         createdAt: DateTime(2026, 6, 22, 9),
       );
       SymptomEntry? deletedEntry;
+      SymptomEntry? editedEntry;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -269,6 +271,7 @@ void main() {
                 onDateSelected: (_) {},
                 onAddSymptom: () {},
                 onDelete: (entry) => deletedEntry = entry,
+                onEdit: (entry) => editedEntry = entry,
               ),
             ),
           ),
@@ -278,6 +281,10 @@ void main() {
       expect(find.text('1 Eintrag für diesen Tag'), findsOneWidget);
       expect(find.text('Husten'), findsWidgets);
       expect(find.text('Nach dem Sport'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pump();
+      expect(editedEntry, same(entry));
 
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pump();
@@ -319,7 +326,9 @@ class _FakeSymptomApiService extends SymptomApiService {
     required String symptom,
     String bodyArea = '',
     required int intensity,
+    double? temperatureC,
     required String note,
+    String source = 'manual',
     DateTime? createdAt,
   }) async {
     createCallCount++;
@@ -337,8 +346,11 @@ class _FakeSymptomApiService extends SymptomApiService {
       symptom: symptom,
       bodyArea: bodyArea,
       intensity: intensity,
+      temperatureC: temperatureC,
       note: note,
+      source: source,
       createdAt: createdAt ?? DateTime(2026, 6, 22, 9),
+      updatedAt: createdAt ?? DateTime(2026, 6, 22, 9),
     );
   }
 }

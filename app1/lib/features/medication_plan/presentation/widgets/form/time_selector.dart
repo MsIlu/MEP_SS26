@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/medication_time_format.dart';
+import 'medication_input_decoration.dart';
 
 /// Read-only form control that opens the platform time picker.
 class TimeSelector extends StatelessWidget {
@@ -21,9 +22,11 @@ class TimeSelector extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: InputDecorator(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.schedule),
-        ).copyWith(labelText: label),
+        decoration: medicationInputDecoration(
+          context: context,
+          label: label,
+          icon: Icons.schedule,
+        ),
         child: Text(
           formatMedicationTime(selectedTime),
           style: TextStyle(

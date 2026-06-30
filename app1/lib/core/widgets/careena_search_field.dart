@@ -8,6 +8,7 @@ class CareenaSearchField extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final bool simpleView;
   final Key? fieldKey;
+  final Color? fillColor;
 
   const CareenaSearchField({
     super.key,
@@ -16,20 +17,26 @@ class CareenaSearchField extends StatelessWidget {
     required this.onChanged,
     this.simpleView = false,
     this.fieldKey,
+    this.fillColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return TextField(
       key: fieldKey,
       controller: controller,
       onChanged: onChanged,
-      style: TextStyle(fontSize: simpleView ? 18 : 16),
+      style: TextStyle(
+        color: colorScheme.onSurface,
+        fontSize: simpleView ? 18 : 16,
+      ),
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: const Icon(Icons.search, color: AppColors.careenaTeal),
+        hintStyle: TextStyle(color: colorScheme.onSurface),
+        prefixIcon: Icon(Icons.search, color: colorScheme.onSurface),
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
@@ -39,15 +46,17 @@ class CareenaSearchField extends StatelessWidget {
                   onChanged('');
                   FocusScope.of(context).unfocus();
                 },
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close, color: colorScheme.onSurface),
               ),
         filled: true,
-        fillColor: isDark
-            ? AppColors.darkElevatedSurface
-            : AppColors.careenaBubbleBackground,
+        fillColor:
+            fillColor ??
+            (isDark
+                ? AppColors.darkElevatedSurface
+                : AppColors.careenaBubbleBackground),
         border: _border(),
         enabledBorder: _border(),
-        focusedBorder: _border(color: AppColors.careenaTeal, width: 2),
+        focusedBorder: _border(color: AppColors.greyShade400, width: 2),
       ),
     );
   }

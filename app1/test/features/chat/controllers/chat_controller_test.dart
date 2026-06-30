@@ -579,7 +579,7 @@ void main() {
       final chatApi = _FakeChatApi()
         ..nextResponse = const ChatResponse(
           text:
-              'Wichtiger Hinweis:\nIhre Angaben koennen auf eine akute Notfallsituation hinweisen.\n\nNächster Schritt:\nBitte wählen Sie sofort den Notruf 112.',
+              'Wichtiger Hinweis:\nDeine Angaben koennen auf eine akute Notfallsituation hinweisen.\n\nNächster Schritt:\nBitte wähle sofort den Notruf 112.',
           redFlag: false,
           action: 'Notruf 112',
         );
@@ -629,7 +629,7 @@ void main() {
       );
       final chatApi = _FakeChatApi()
         ..nextResponse = const ChatResponse(
-          text: 'Bitte holen Sie umgehend medizinische Hilfe.',
+          text: 'Bitte hole umgehend medizinische Hilfe.',
           redFlag: false,
           severity: 'sofort',
           category: 'emergency',
@@ -753,15 +753,14 @@ class _FakeChatApi extends ChatApi {
   final List<String> requestRecommendationSessionIds = [];
   List<String> symptoms = [];
   Completer<ChatResponse>? responseCompleter;
+  CareenaAvailability nextAvailability = CareenaAvailability.online;
+  int availabilityRequests = 0;
+  bool throwOnSend = false;
+  ApiException? sendError;
   Completer<String>? resumeCompleter;
   Completer<ChatResponse>? continueCompleter;
   int resumeHistorySessionCalls = 0;
   int continueHistorySessionCalls = 0;
-  
-  CareenaAvailability nextAvailability = CareenaAvailability.online;
-  int availabilityRequests = 0;
-  bool throwOnSend = false;
-  Object? sendError;
 
   @override
   Future<String> createSession([int? profileId]) async {
@@ -860,6 +859,7 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
     final savedEntry = ChatHistoryEntry(
       id: 'history-${savedEntries.length + 1}',
       profileId: entry.profileId,
+      sessionId: entry.sessionId,
       symptomTitle: entry.symptomTitle,
       status: entry.status,
       isEmergency: entry.isEmergency,
@@ -885,4 +885,3 @@ class _FakeChatHistoryRepository extends ChatHistoryRepository {
     return saveChat(entry);
   }
 }
-

@@ -81,6 +81,7 @@ class ChatController {
   void finishOpeningHistory(String historyEntryId) {
     _openingHistoryEntries.remove(historyEntryId);
   }
+
   final ValueNotifier<CareenaAvailability> availability =
       ValueNotifier<CareenaAvailability>(CareenaAvailability.checking);
 
@@ -122,7 +123,7 @@ class ChatController {
         _addMessage(
           message: Message(
             text:
-                'Der Chat ist gerade offline. Bitte prüfen Sie die Backend-Verbindung und versuchen Sie es erneut.',
+                'Der Chat ist gerade offline. Bitte prüfe die Backend-Verbindung und versuche es erneut.',
             isUser: false,
           ),
         );
@@ -210,11 +211,8 @@ class ChatController {
 
     return _sendSessionRequest(
       visibleUserText: visibleUserText?.trim() ?? trimmed,
-      request: (sessionId) => chatApi.sendMessage(
-        trimmed,
-        sessionId,
-        authSession.activeProfileId,
-      ),
+      request: (sessionId) =>
+          chatApi.sendMessage(trimmed, sessionId, authSession.activeProfileId),
     );
   }
 
@@ -248,9 +246,7 @@ class ChatController {
       return null;
     }
 
-    _addMessage(
-      message: Message(text: visibleUserText, isUser: true),
-    );
+    _addMessage(message: Message(text: visibleUserText, isUser: true));
 
     lastReplyOptions.value = [];
 
@@ -382,8 +378,18 @@ class ChatController {
       )) {
         return null;
       }
-      
+
       await refreshAvailability();
+
+      if (!_isChatRequestActive(
+        generation: expectedGeneration,
+        profileId: expectedProfileId,
+        historyEntryId: expectedHistoryEntryId,
+        sessionId: sessionId,
+      )) {
+        return null;
+      }
+
       _setMessages(chatService.removeLastBotMessage(messages.value));
       _addMessage(message: Message(text: _chatErrorMessage(e), isUser: false));
       await _markActiveChatFailed();
@@ -937,7 +943,7 @@ class ChatController {
   void _addTestRecommendation() {
     const recommendationText = '''Dringlichkeit: Nicht akut
     Empfohlene Versorgungsebene: Hausarzt
-    Nächster Schritt: Bitte vereinbaren Sie einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
+    Nächster Schritt: Bitte vereinbare einen Termin beim Hausarzt, wenn die Beschwerden anhalten oder sich verschlechtern.
     Hinweis: Diese Test-Handlungsempfehlung dient nur der Frontend-Entwicklung und ersetzt keine ärztliche Diagnose.''';
 
     _addMessage(message: Message(text: '/hp', isUser: true));

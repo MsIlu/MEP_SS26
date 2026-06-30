@@ -376,7 +376,7 @@ class RecommendationPdfService {
     final cleanedText = filteredLines.join('\n');
 
     if (cleanedText.isEmpty) {
-      return 'Bitte beachten Sie den nächsten Schritt und den wichtigen Hinweis.';
+      return 'Bitte beachte den nächsten Schritt und den wichtigen Hinweis.';
     }
 
     return cleanedText;

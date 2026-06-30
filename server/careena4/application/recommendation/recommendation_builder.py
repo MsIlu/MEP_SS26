@@ -160,5 +160,5 @@ class RecommendationBuilder:
             specialty=specialty if specialty in _VALID_SPECIALTY else "unknown",
             reasons=data.get("reasons") or [],
             next_step=data.get("next_step") or "",
-            limitations=["Diese Empfehlung ersetzt keine ärztliche Untersuchung oder Diagnose."],
+            limitations=["Diese Empfehlung ersetzt keine aerztliche Untersuchung oder Diagnose."],
         )

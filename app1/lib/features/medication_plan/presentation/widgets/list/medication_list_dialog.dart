@@ -76,9 +76,8 @@ class _MedicationListDialogHeader extends StatelessWidget {
             ),
           ),
         ),
-        CareenaIconActionButton(
+        CareenaIconActionButton.add(
           tooltip: 'Medikament hinzufügen',
-          icon: Icons.add,
           onPressed: onAdd,
         ),
         CareenaIconActionButton.close(tooltip: 'Schließen', onPressed: onClose),

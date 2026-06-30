@@ -71,7 +71,7 @@ class WarningPage extends StatelessWidget {
                 nextSteps:
                     response.recommendationResult?.nextStep ??
                     response.action ??
-                    'Bitte folgen Sie den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktieren Sie den Notruf 112.',
+                    'Bitte folge den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktiere den Notruf 112.',
                 symptoms: symptoms,
                 userMessages: userMessages,
               ),
@@ -218,7 +218,7 @@ class _RecommendationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Auf Grundlage Ihrer Angaben besteht derzeit kein Hinweis auf einen akuten Notfall.',
+                      'Auf Grundlage deiner Angaben besteht derzeit kein Hinweis auf einen akuten Notfall.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             height: 1.35,
@@ -233,7 +233,7 @@ class _RecommendationCard extends StatelessWidget {
           _RecommendationDivider(color: accent),
           const SizedBox(height: 18),
           Text(
-            'Was sollten Sie jetzt tun?',
+            'Was solltest du jetzt tun?',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),

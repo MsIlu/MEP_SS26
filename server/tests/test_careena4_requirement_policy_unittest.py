@@ -53,7 +53,7 @@ class RequirementPolicyTests(unittest.TestCase):
             question_intent="subject_clarification",
             target_followup_id="followup-1",
             target_observation_id="obs-1",
-            prompt_text="Betrifft das Sie selbst, Ihr Kind oder eine andere Person?",
+            prompt_text="Betrifft das dich selbst, dein Kind oder eine andere Person?",
             blocking=True,
         )
 

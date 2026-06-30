@@ -28,6 +28,8 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: widget.isCompact ? 16 : 20,
@@ -37,6 +39,7 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
         fieldKey: widget.guideTargetKey,
         controller: _controller,
         hintText: 'Suchen...',
+        fillColor: isDarkMode ? const Color(0xFF1B2733) : const Color(0xFFDDEFEF),
         onChanged: (_) {},
       ),
     );

@@ -4,9 +4,9 @@ from __future__ import annotations
 from careena4.application.understanding import MedGemmaTurnUnderstandingService
 from careena4.application.understanding.medgemma_turn_understanding_service import (
     MedGemmaTurnUnderstandingOutput,
-    MedGemmaUnderstandingStsMatch,
     MedGemmaUnderstandingSymptom,
 )
+from careena4.models.understanding import StsConsultationReasonCandidate
 
 
 class FakeExtractionEngine:
@@ -23,6 +23,8 @@ class FakeExtractionEngine:
 
 
 class FakeCatalog:
+    """Minimal catalog stub for unit tests. STS matching is keyword-based post-LLM."""
+
     def reasons_for_prompt(self):
         return [
             {
@@ -33,18 +35,22 @@ class FakeCatalog:
             }
         ]
 
-    def hydrate_match(self, match):
-        if match.get("sts_id") == "1304":
-            hydrated = dict(match)
-            hydrated["sts_label_de"] = hydrated.get("sts_label_de") or "Uebelkeit, Erbrechen"
-            hydrated["source_category_de"] = (
-                hydrated.get("source_category_de") or "Magen - Darm - Gynaekologie"
-            )
-            hydrated["source_sts_levels_present"] = (
-                hydrated.get("source_sts_levels_present") or [2, 3, 4]
-            )
-            return hydrated
-        return match
+    def match_by_labels(self, labels: list[str], *, max_results: int = 3) -> list[StsConsultationReasonCandidate]:
+        """Return STS candidates if any label contains 'uebelkeit' or 'erbrechen'."""
+        for label in labels:
+            norm = label.casefold().replace("ü", "ue").replace("ö", "oe")
+            if "uebelkeit" in norm or "erbrechen" in norm:
+                return [
+                    StsConsultationReasonCandidate(
+                        sts_id="1304",
+                        sts_label_de="Uebelkeit, Erbrechen",
+                        source_category_de="Magen - Darm - Gynaekologie",
+                        source_sts_levels_present=[2, 3, 4],
+                        match_confidence=1.0,
+                        match_reason="keyword_match",
+                    )
+                ]
+        return []
 
 
 def test_understanding_service_keeps_symptoms_even_without_sts_match():
@@ -54,12 +60,10 @@ def test_understanding_service_keeps_symptoms_even_without_sts_match():
                 MedGemmaUnderstandingSymptom(
                     source_label="komisches Flimmern",
                     normalized_label_de="Flimmern",
-                    clinical_term_de="Visuelle Wahrnehmungsst?rung",
+                    clinical_term_de="Visuelle Wahrnehmungsstörung",
                     confidence=0.8,
                 )
             ],
-            sts_matches=[],
-            no_match_reason="No direct STS match.",
             trace_notes=["fake"],
         )
     )
@@ -71,27 +75,21 @@ def test_understanding_service_keeps_symptoms_even_without_sts_match():
 
     result = service.extract(message="Ich habe so ein komisches Flimmern.")
 
-    assert [symptom.normalized_label_de for symptom in result.symptoms] == ["Flimmern"]
+    assert [s.normalized_label_de for s in result.symptoms] == ["Flimmern"]
+    # "Flimmern" doesn't match any STS catalog keyword → no STS match
     assert result.sts_matches == []
-    assert result.no_match_reason == "No direct STS match."
 
 
-def test_understanding_service_hydrates_partial_sts_match_from_catalog():
+def test_understanding_service_sts_matched_via_keyword_not_llm():
+    """STS candidates now come from deterministic keyword matching, not from LLM output."""
     engine = FakeExtractionEngine(
         MedGemmaTurnUnderstandingOutput(
             symptoms=[
                 MedGemmaUnderstandingSymptom(
-                    source_label="?bel",
-                    normalized_label_de="?belkeit",
-                    clinical_term_de="?belkeit",
+                    source_label="übel",
+                    normalized_label_de="Übelkeit",
+                    clinical_term_de="Übelkeit",
                     confidence=0.95,
-                )
-            ],
-            sts_matches=[
-                MedGemmaUnderstandingStsMatch(
-                    sts_id="1304",
-                    match_confidence=0.95,
-                    match_reason="Nausea and vomiting.",
                 )
             ],
             trace_notes=["fake"],
@@ -103,12 +101,42 @@ def test_understanding_service_hydrates_partial_sts_match_from_catalog():
         sts_catalog=FakeCatalog(),
     )
 
-    result = service.extract(message="Mir ist ?bel.")
+    result = service.extract(message="Mir ist übel.")
 
-    assert result.symptom_labels() == ["?belkeit"]
+    assert result.symptom_labels() == ["Übelkeit"]
+    assert len(result.sts_matches) == 1
     assert result.sts_matches[0].sts_id == "1304"
     assert result.sts_matches[0].sts_label_de == "Uebelkeit, Erbrechen"
     assert result.sts_matches[0].source_sts_levels_present == [2, 3, 4]
+    assert result.sts_matches[0].match_reason == "keyword_match"
+
+
+def test_understanding_service_sts_not_influenced_by_wrong_normalization():
+    """Even if MedGemma normalizes wrongly, STS is matched on the normalized label."""
+    engine = FakeExtractionEngine(
+        MedGemmaTurnUnderstandingOutput(
+            symptoms=[
+                MedGemmaUnderstandingSymptom(
+                    source_label="Kompfschmerzen",
+                    normalized_label_de="Kopfschmerzen",
+                    clinical_term_de="Cephalgie",
+                    confidence=0.9,
+                )
+            ],
+            trace_notes=["fake"],
+        )
+    )
+
+    service = MedGemmaTurnUnderstandingService(
+        extraction_engine=engine,
+        sts_catalog=FakeCatalog(),
+    )
+
+    result = service.extract(message="Ich habe Kompfschmerzen.")
+
+    # "Kopfschmerzen" / "Cephalgie" don't contain "uebelkeit" → FakeCatalog returns []
+    assert result.sts_matches == []
+    assert result.symptoms[0].normalized_label_de == "Kopfschmerzen"
 
 
 def test_understanding_service_returns_failed_understanding_without_fallback():
@@ -119,7 +147,7 @@ def test_understanding_service_returns_failed_understanding_without_fallback():
         sts_catalog=FakeCatalog(),
     )
 
-    result = service.extract(message="Mir ist ?bel.")
+    result = service.extract(message="Mir ist übel.")
 
     assert result.symptoms == []
     assert result.sts_matches == []
@@ -130,7 +158,6 @@ def test_understanding_service_prompt_does_not_contain_snomed():
     engine = FakeExtractionEngine(
         MedGemmaTurnUnderstandingOutput(
             symptoms=[],
-            sts_matches=[],
             trace_notes=["fake"],
         )
     )
@@ -140,7 +167,29 @@ def test_understanding_service_prompt_does_not_contain_snomed():
         sts_catalog=FakeCatalog(),
     )
 
-    service.extract(message="Mir ist ?bel.")
+    service.extract(message="Mir ist übel.")
 
     call = engine.calls[0]
     assert "SNOMED" not in call["system_prompt"]
+
+
+def test_understanding_service_prompt_does_not_contain_sts_catalog():
+    """STS catalog must NOT be in the Understanding prompt anymore."""
+    engine = FakeExtractionEngine(
+        MedGemmaTurnUnderstandingOutput(
+            symptoms=[],
+            trace_notes=["fake"],
+        )
+    )
+
+    service = MedGemmaTurnUnderstandingService(
+        extraction_engine=engine,
+        sts_catalog=FakeCatalog(),
+    )
+
+    service.extract(message="Ich habe Kopfschmerzen.")
+
+    call = engine.calls[0]
+    # STS catalog should no longer be in the prompt payload
+    assert "allowed_sts_consultation_reasons" not in call["text"]
+    assert "Swiss Triage System" not in call["system_prompt"]

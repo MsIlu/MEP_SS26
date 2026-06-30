@@ -3,24 +3,33 @@ import '../../../../core/widgets/responsive_frame.dart';
 import '../../../../core/widgets/careena_page_header.dart';
 import '../../../chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
+import '../../../symptom_diary/data/symptom_import.dart';
+import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../theme/warning_copy.dart';
 import '../theme/warning_layout.dart';
 import '../widgets/emergency_card.dart';
 import '../widgets/no_diagnosis_info_box.dart';
 import '../../../recommendation_export/presentation/export_recommendation_pdf_button.dart';
 
-/// Safety page shown when the backend detects a red-flag response.
+/// Recommendation result page shown after a chat session is completed.
 class WarningPage extends StatelessWidget {
-  /// Backend response that contains the red-flag metadata.
   final ChatResponse response;
   final List<String> symptoms;
   final List<String> userMessages;
+  final ThemeController? themeController;
+  /// Symptom data enriched via the in-chat editor (body area + intensity).
+  /// Takes priority over [response.caseObservations] when building the diary import list.
+  final List<SymptomImport>? enrichedSymptoms;
 
   const WarningPage({
     super.key,
     required this.response,
     this.symptoms = const [],
     this.userMessages = const [],
+    this.themeController,
+    this.enrichedSymptoms,
   });
 
   @override
@@ -67,6 +76,14 @@ class WarningPage extends StatelessWidget {
                 userMessages: userMessages,
               ),
 
+              if ((symptoms.isNotEmpty || response.caseObservations.isNotEmpty) && themeController != null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _navigateToSymptomDiary(context),
+                  icon: const Icon(Icons.book_outlined, size: 18),
+                  label: const Text('Symptome ins Tagebuch'),
+                ),
+              ],
               const SizedBox(height: 16),
               const NoDiagnosisInfoBox(),
             ],
@@ -75,17 +92,47 @@ class WarningPage extends StatelessWidget {
       ),
     );
   }
+
+  List<SymptomImport> _buildSymptomImports() {
+    // User-enriched data (set via the in-chat editor) takes priority.
+    final enriched = enrichedSymptoms;
+    if (enriched != null && enriched.isNotEmpty) return enriched;
+    // Backend observations carry the severity extracted from the conversation.
+    final observations = response.caseObservations;
+    if (observations.isNotEmpty) {
+      return observations
+          .map((o) => SymptomImport(name: o.label, severity: o.severity))
+          .toList();
+    }
+    return symptoms.map((s) => SymptomImport(name: s)).toList();
+  }
+
+  void _navigateToSymptomDiary(BuildContext context) {
+    final tc = themeController;
+    if (tc == null) return;
+    final deps = AppDependenciesScope.of(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SymptomDiaryPage(
+          themeController: tc,
+          authSession: deps.authSession,
+          symptomApiService: deps.symptomApiService,
+          profileApiService: deps.profileApiService,
+          initialSymptoms: _buildSymptomImports(),
+        ),
+      ),
+    );
+  }
 }
 
 bool _showEmergencyActions(ChatResponse response) {
-  final combined = '${response.text} ${response.action ?? ''}'
-      ' ${response.severity ?? ''} ${response.category ?? ''}'
-      .toLowerCase();
-  return response.redFlag ||
-      combined.contains('notruf') ||
-      combined.contains('112') ||
-      combined.contains('notaufnahme') ||
-      combined.contains('sofort');
+  if (response.redFlag) return true;
+  // Use the structured urgency field from the recommendation result — the
+  // backend classifier is the source of truth. Text keyword scanning is
+  // unreliable because routine advisory language includes words like "sofort"
+  // and "112" even for non-emergency recommendations.
+  return response.recommendationResult?.urgency == 'emergency';
 }
 
 String _recommendationTextFor(ChatResponse response) {

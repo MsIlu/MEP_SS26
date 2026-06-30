@@ -321,6 +321,18 @@ class ChatController {
         return response;
       }
 
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+        return response;
+      }
+
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
@@ -359,25 +371,6 @@ class ChatController {
       );
 
       await _persistActiveChat(status: 'active');
-
-      if (!_isChatRequestActive(
-        generation: expectedGeneration,
-        profileId: expectedProfileId,
-        historyEntryId: expectedHistoryEntryId,
-        sessionId: sessionId,
-      )) {
-        return response;
-      }
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation:
-              response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
-        );
-      }
 
       return response;
     } catch (e) {
@@ -593,6 +586,18 @@ class ChatController {
       }
       symptoms.value = loadedSymptoms;
 
+      final isEmergency = chatService.isEmergencyRecommendation(response);
+
+      if (chatService.isFinalRecommendation(response) || isEmergency) {
+        await _completeChat(
+          recommendation:
+              response.recommendationResult?.summary ?? response.text,
+          nextSteps: response.recommendationResult?.nextStep ?? response.action,
+          isEmergency: isEmergency,
+        );
+        return;
+      }
+
       final botMessage = chatService.buildAssistantMessage(response);
       _addMessage(message: botMessage.copyWith(text: ''));
 
@@ -641,31 +646,6 @@ class ChatController {
       );
 
       await _persistActiveChat(status: 'active');
-
-      if (!_isChatRequestActive(
-        generation: expectedGeneration,
-        profileId: expectedProfileId,
-        historyEntryId: expectedHistoryEntryId,
-        sessionId: expectedSessionId,
-      )) {
-        _updateChatRunState(
-          historyEntryId,
-          status: _statusForResponse(response),
-          hasUnreadUpdate: true,
-        );
-        return;
-      }
-
-      final isEmergency = chatService.isEmergencyRecommendation(response);
-
-      if (chatService.isFinalRecommendation(response) || isEmergency) {
-        await _completeChat(
-          recommendation:
-              response.recommendationResult?.summary ?? response.text,
-          nextSteps: response.recommendationResult?.nextStep ?? response.action,
-          isEmergency: isEmergency,
-        );
-      }
     } catch (e) {
       if (!_isChatRequestActive(
         generation: expectedGeneration,

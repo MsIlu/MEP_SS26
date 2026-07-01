@@ -221,3 +221,45 @@ class PersonInitialiser:
         mc_person.relation = "other"
         self._person_map.pop(session_id, None)
         return None, [], pending, None, True
+
+    def inject_deferred_clarification(
+        self,
+        *,
+        session_id: str,
+        careena4_session,
+        profiles: list[ProfileSnapshot],
+    ) -> ActiveQuestion | None:
+        """Injects profile clarification when the safety bypass skipped pre_turn.
+
+        Single profile: applies demographic data to the existing MedicalCase, returns None.
+        Multi-profile: builds person_map, sets active_question, returns the question.
+        Must be called AFTER post_turn() so 'Nein' is not matched as a profile name.
+        """
+        if not profiles:
+            return None
+        if len(profiles) == 1:
+            p = profiles[0]
+            mc = careena4_session.medical_case
+            if mc is not None:
+                mc.person.relation = _map_relation(p.profile_type)
+                if p.age is not None:
+                    mc.person.age = p.age
+                if p.sex is not None:
+                    mc.person.sex = p.sex
+            return None
+        person_map: dict[str, _PersonData] = {
+            p.display_name: (p.id, _map_relation(p.profile_type), p.age, p.sex)
+            for p in profiles
+        }
+        person_map["Jemand anderes"] = (None, "other", None, None)
+        self._person_map[session_id] = person_map
+        known_names = [p.display_name for p in profiles]
+        if careena4_session.conversation_state is None:
+            careena4_session.conversation_state = ConversationState()
+        question = _build_person_clarification(
+            "Für wen ist diese Anfrage?",
+            known_names,
+            allows_additional_medical_info=False,
+        )
+        careena4_session.conversation_state.active_question = question
+        return question

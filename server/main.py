@@ -569,6 +569,23 @@ def chat(
         raw_safety_precheck = careena4_turn_engine.raw_red_flag_detector.detect(req.message)
         if raw_safety_precheck.requires_safety_clarification or raw_safety_precheck.requires_emergency_response:
             needs_profile_pre_turn = False
+            # For a single profile, still fill in person data so the safety question
+            # runs with demographics and pre_turn is not needed on subsequent turns.
+            try:
+                from profiles.service import list_profiles as _list_profiles_bypass
+                _bypass_snapshots = [
+                    _snapshot_from_profile(p)
+                    for p in _list_profiles_bypass(current_user=current_user, session=session)
+                ]
+                if len(_bypass_snapshots) == 1:
+                    careena4_person_initialiser.pre_turn(
+                        session_id=req.session_id,
+                        careena4_session=careena4_session,
+                        profiles=_bypass_snapshots,
+                        pending_message=None,
+                    )
+            except Exception:
+                pass
     if needs_profile_pre_turn:
         try:
             from profiles.service import list_profiles
@@ -616,6 +633,12 @@ def chat(
 
     subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
     diary_history = _load_diary_history(subject_profile_id, current_user, session)
+
+    prev_active_question_kind = (
+        careena4_session.conversation_state.active_question.kind
+        if careena4_session.conversation_state and careena4_session.conversation_state.active_question
+        else None
+    )
 
     turn_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
@@ -709,6 +732,60 @@ def chat(
         )
         careena4_session.messages.append({"role": "user", "content": pending_message})
         response = build_careena4_chat_response(second_turn_result)
+
+    # Safety-just-resolved: if the previous turn held a safety_clarification and
+    # the user answered it (non-emergency), inject the deferred profile question
+    # that was skipped by the safety bypass.  Must run after post_turn() so "Nein"
+    # is not misread as a profile name.
+    if (
+        prev_active_question_kind == "safety_clarification"
+        and response.get("response_mode") != "emergency"
+        and current_user is not None
+        and not profile_warning
+        and not pending_message
+        and req.session_id not in careena4_session_case_profiles
+        and req.session_id not in careena4_session_unbound_cases
+    ):
+        _new_active_kind = (
+            careena4_session.conversation_state.active_question.kind
+            if careena4_session.conversation_state and careena4_session.conversation_state.active_question
+            else None
+        )
+        if _new_active_kind != "safety_clarification":
+            try:
+                from profiles.service import list_profiles as _list_profiles_deferred
+                _deferred_snapshots = [
+                    _snapshot_from_profile(p)
+                    for p in _list_profiles_deferred(current_user=current_user, session=session)
+                ]
+                _deferred_question = careena4_person_initialiser.inject_deferred_clarification(
+                    session_id=req.session_id,
+                    careena4_session=careena4_session,
+                    profiles=_deferred_snapshots,
+                )
+                if _deferred_question is not None:
+                    _deferred_reply_options = (
+                        [opt.label for opt in _deferred_question.guided_input.options]
+                        if _deferred_question.guided_input is not None and _deferred_question.guided_input.options
+                        else []
+                    )
+                    response = {
+                        **response,
+                        "response": _deferred_question.prompt_text,
+                        "response_mode": "ask_followup",
+                        "reply_options": _deferred_reply_options,
+                        "pending_followup": {
+                            "question_id": _deferred_question.question_id,
+                            "kind": _deferred_question.kind,
+                            "question_intent": _deferred_question.question_intent,
+                            "target_observation_id": _deferred_question.target_observation_id,
+                            "target_followup_id": _deferred_question.target_followup_id,
+                            "prompt_text": _deferred_question.prompt_text,
+                            "blocking": _deferred_question.blocking,
+                        },
+                    }
+            except Exception:
+                pass
 
     careena4_session.messages.append(
         {"role": "assistant", "content": response["response"]}

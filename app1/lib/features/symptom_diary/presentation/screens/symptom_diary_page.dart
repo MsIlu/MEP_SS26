@@ -136,7 +136,11 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }
 
   void _handleBack() {
-    navigateToHomeFallback(context, themeController: widget.themeController);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      navigateToHomeFallback(context, themeController: widget.themeController);
+    }
   }
 
   /// Shows a confirmation dialog to import chat symptoms into the diary.

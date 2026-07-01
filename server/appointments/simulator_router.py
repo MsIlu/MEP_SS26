@@ -22,14 +22,25 @@ def simulator_providers() -> dict:
     return {
         "synthetic": True,
         "specialties": SPECIALTY_LABELS,
-        "providers": [asdict(provider) for provider in PROVIDERS],
+        "providers": [
+            {
+                **asdict(provider),
+                "specialty": SPECIALTY_LABELS.get(
+                    provider.specialty,
+                    provider.specialty,
+                ),
+            }
+            for provider in PROVIDERS
+        ],
     }
 
 
 @router.get("/api/appointments")
 def simulator_appointments() -> dict:
     try:
-        resources = HapiFhirClient().list_all_appointments()
+        client = HapiFhirClient()
+        client.ensure_simulator_catalog()
+        resources = client.list_all_appointments()
     except HapiFhirError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -73,7 +84,7 @@ _DASHBOARD_HTML = r"""<!doctype html>
 <body>
   <header><h1>116117 FHIR-Simulator</h1><p>Lokale Entwicklungsoberfläche für synthetische Ärzte und FHIR-Termine. Keine echten Praxen, Verfügbarkeiten oder 116117-Daten.</p></header>
   <main>
-    <div class="notice"><strong>Simulationsmodus:</strong> Termine entstehen bei einer Careena-Terminsuche und werden als FHIR-Appointment im lokalen HAPI-Server gespeichert.</div>
+    <div class="notice"><strong>Simulationsmodus:</strong> Die Übersicht erzeugt einen gemischten Grundkatalog; Careena-Suchen und Buchungen aktualisieren diese FHIR-Termine im lokalen Server.</div>
     <section class="stats">
       <div class="stat"><strong id="providerCount">–</strong>Testpraxen</div><div class="stat"><strong id="slotCount">–</strong>FHIR-Slots</div>
       <div class="stat"><strong id="freeCount">–</strong>verfügbar</div><div class="stat"><strong id="bookedCount">–</strong>gebucht</div>
@@ -89,9 +100,10 @@ _DASHBOARD_HTML = r"""<!doctype html>
 <script>
 let slots=[], providers=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const statusLabel={proposed:'Verfügbar',pending:'Reserviert',booked:'Gebucht',cancelled:'Storniert'};
 function renderSlots(){const q=document.querySelector('#query').value.toLowerCase(),s=document.querySelector('#status').value;
  const rows=slots.filter(x=>(!s||x.status===s)&&JSON.stringify(x).toLowerCase().includes(q));
- document.querySelector('#appointments').innerHTML=rows.length?`<table><thead><tr><th>Status</th><th>Datum</th><th>Zeit</th><th>Praxis</th><th>Fachrichtung</th><th>Art</th><th>Adresse</th><th>Entfernung</th></tr></thead><tbody>${rows.map(x=>`<tr><td><span class="badge ${esc(x.status)}">${esc(x.status)}</span></td><td>${esc(x.date)}</td><td>${esc(x.time)}</td><td>${esc(x.provider_name)}</td><td>${esc(x.specialty)}</td><td>${esc(x.care_type)}</td><td>${esc(x.address)}</td><td>${esc(x.distance_km)} km</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Keine passenden FHIR-Termine vorhanden.</div>'}
+ document.querySelector('#appointments').innerHTML=rows.length?`<table><thead><tr><th>Status</th><th>Datum</th><th>Zeit</th><th>Praxis</th><th>Fachrichtung</th><th>Art</th><th>Adresse</th><th>Entfernung</th></tr></thead><tbody>${rows.map(x=>`<tr><td><span class="badge ${esc(x.status)}">${esc(statusLabel[x.status]??x.status)}</span></td><td>${esc(x.date)}</td><td>${esc(x.time)}</td><td>${esc(x.provider_name)}</td><td>${esc(x.specialty)}</td><td>${esc(x.care_type)}</td><td>${esc(x.address)}</td><td>${esc(x.distance_km)} km</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Keine passenden FHIR-Termine vorhanden.</div>'}
 function renderProviders(){document.querySelector('#providers').innerHTML=`<table><thead><tr><th>Praxis</th><th>Fachrichtung</th><th>Ort</th><th>PLZ-Bereiche</th><th>Video</th></tr></thead><tbody>${providers.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.specialty)}</td><td>${esc(x.city)}</td><td>${esc(x.postal_prefixes.join(', '))}</td><td>${x.supports_video?'Ja':'Nein'}</td></tr>`).join('')}</tbody></table>`}
 async function load(){try{const [p,a]=await Promise.all([fetch('/fhir-simulator/api/providers'),fetch('/fhir-simulator/api/appointments')]);if(!p.ok||!a.ok)throw new Error('HAPI-FHIR ist nicht erreichbar.');const pd=await p.json(),ad=await a.json();providers=pd.providers;slots=ad.appointments;
  providerCount.textContent=providers.length;slotCount.textContent=slots.length;freeCount.textContent=slots.filter(x=>x.status==='proposed').length;bookedCount.textContent=slots.filter(x=>x.status==='booked').length;renderProviders();renderSlots();}

@@ -328,6 +328,33 @@ def test_hapi_client_books_appointment_with_account_extension():
     assert http_client.put_headers["If-Match"] == 'W/"7"'
 
 
+def test_hapi_client_releases_cancelled_appointment_for_rebooking():
+    http_client = FakeHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+    client.book_appointment(
+        appointment_id="appointment-1",
+        session_id="session-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="appointment-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "proposed"
+    assert released["participant"][0]["status"] == "needs-action"
+    assert not any(
+        extension["url"] == BOOKED_BY_ACCOUNT_EXTENSION_URL
+        for extension in released["extension"]
+    )
+
+
 def test_simulated_slots_are_shared_between_sessions():
     recommendation = SimpleNamespace(
         urgency_level="medium",
@@ -350,3 +377,48 @@ def test_simulated_slots_are_shared_between_sessions():
     )
 
     assert [item["id"] for item in first] == [item["id"] for item in second]
+
+
+def test_simulator_catalog_contains_all_supported_specialties():
+    class CatalogClient(HapiFhirClient):
+        def __init__(self):
+            self.written = []
+
+        def list_all_appointments(self):
+            return []
+
+        def _put_appointments_transaction(self, resources):
+            self.written.extend(resources)
+
+    client = CatalogClient()
+    client.ensure_simulator_catalog()
+
+    specialties = {
+        appointment["specialty"][0]["text"] for appointment in client.written
+    }
+    assert len(client.written) == 96
+    assert {
+        "Allgemeinmedizin",
+        "HNO",
+        "Zahnmedizin",
+        "Augenheilkunde",
+        "Orthopädie",
+    }.issubset(specialties)
+
+
+def test_specialist_provider_prefix_is_not_hausarztpraxis():
+    resources = build_recommendation_appointment_resources(
+        session_id="session-1",
+        profile_id=10,
+        postal_code="68159",
+        recommendation_result=SimpleNamespace(
+            urgency_level="medium",
+            care_level="general_practice",
+            specialty="orthopedics",
+        ),
+        bundle_id=None,
+    )
+
+    assert resources[0]["participant"][0]["actor"]["display"].startswith(
+        "Facharztpraxis"
+    )

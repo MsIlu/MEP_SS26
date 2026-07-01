@@ -277,15 +277,23 @@ class HapiFhirClient:
         if str(booked_by_account) != str(booked_by_account_id):
             raise HapiFhirError("Der HAPI-Termin wurde von einem anderen Account gebucht.")
 
-        if appointment.get("status") == "cancelled":
-            return appointment
         if appointment.get("status") != "booked":
             raise HapiFhirError("Nur ein gebuchter HAPI-Termin kann storniert werden.")
 
-        appointment["status"] = "cancelled"
-        appointment["comment"] = "Vom Careena-Account stornierter lokaler HAPI-Termin."
-        for participant in appointment.get("participant", []) or []:
-            participant["status"] = "declined"
+        # A cancellation removes the user's booking but releases the simulated
+        # 116117 slot immediately so another search can book it again.
+        appointment["status"] = "proposed"
+        appointment["comment"] = (
+            "Stornierter Termin wurde im simulierten 116117-Terminservice "
+            "wieder freigegeben."
+        )
+        appointment["extension"] = [
+            extension
+            for extension in appointment.get("extension", []) or []
+            if extension.get("url") != BOOKED_BY_ACCOUNT_EXTENSION_URL
+        ]
+        for index, participant in enumerate(appointment.get("participant", []) or []):
+            participant["status"] = "needs-action" if index == 0 else "accepted"
 
         updated_resource = self._request(
             "PUT",
@@ -345,6 +353,56 @@ class HapiFhirClient:
             for entry in bundle.get("entry", []) or []
             if entry.get("resource", {}).get("resourceType") == "Appointment"
         ]
+
+    def ensure_simulator_catalog(self, postal_code: str = "68159") -> None:
+        """Seed one shared set of slots for every supported medical specialty."""
+        existing_by_id = {
+            str(resource.get("id")): resource
+            for resource in self.list_all_appointments()
+        }
+        resources_to_write: list[dict[str, Any]] = []
+
+        for specialty in SPECIALTY_LABELS:
+            if specialty in {"unknown", "emergency_medicine"}:
+                continue
+
+            recommendation = type(
+                "SimulatorRecommendation",
+                (),
+                {
+                    "urgency_level": "medium",
+                    "care_level": (
+                        "general_practice"
+                        if specialty == "general_practice"
+                        else "specialist"
+                    ),
+                    "specialty": specialty,
+                    "next_step": "Termin im simulierten 116117-Terminservice",
+                    "summary": None,
+                },
+            )()
+
+            for resource in build_recommendation_appointment_resources(
+                session_id="simulator-catalog",
+                profile_id=0,
+                postal_code=postal_code,
+                recommendation_result=recommendation,
+                bundle_id=None,
+            ):
+                existing = existing_by_id.get(str(resource["id"]))
+                if existing is not None:
+                    if existing.get("status") == "booked":
+                        continue
+                    if (
+                        existing.get("status") in {"proposed", "pending"}
+                        and _provider_display(existing)
+                        == _provider_display(resource)
+                    ):
+                        continue
+                resources_to_write.append(resource)
+
+        if resources_to_write:
+            self._put_appointments_transaction(resources_to_write)
 
     def _put_appointment_without_reopening_booking(
             self,
@@ -446,13 +504,12 @@ def build_recommendation_appointment_resources(
         bundle_id: str | None,
 ) -> list[dict[str, Any]]:
     urgency = getattr(recommendation_result, "urgency_level", "unclear")
-    care_level = getattr(recommendation_result, "care_level", "unknown")
     specialty = getattr(recommendation_result, "specialty", "unknown")
     next_step = getattr(recommendation_result, "next_step", None)
     summary = getattr(recommendation_result, "summary", None)
 
     specialty_label = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
-    provider_type = _provider_type_for_care_level(care_level)
+    provider_type = _provider_type_for_specialty(specialty)
     location = simulated_location(postal_code)
     offsets = _appointment_offsets_for_urgency(urgency)
     providers = providers_for(postal_code, specialty)
@@ -714,17 +771,15 @@ def _appointment_offsets_for_urgency(urgency: str) -> list[int]:
     return [5, 10, 15]
 
 
-def _provider_type_for_care_level(care_level: str) -> str:
-    if care_level == "general_practice":
-        return "Hausarztpraxis"
-
-    if care_level == "specialist":
-        return "Facharztpraxis"
-
-    if care_level == "116117":
-        return "Terminservicestelle"
-
-    return "Praxis"
+def _provider_type_for_specialty(specialty: str) -> str:
+    return {
+        "general_practice": "Hausarztpraxis",
+        "dentistry": "Zahnarztpraxis",
+        "ophthalmology": "Augenarztpraxis",
+        "gynecology": "Frauenarztpraxis",
+        "pediatrics": "Kinderarztpraxis",
+        "ent": "HNO-Praxis",
+    }.get(specialty, "Facharztpraxis")
 
 
 def _location_for_postal_code(postal_code: str) -> str:

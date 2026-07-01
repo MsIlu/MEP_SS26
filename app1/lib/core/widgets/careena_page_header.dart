@@ -35,8 +35,12 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final titlePadding = reservesWideTrailing
         ? EdgeInsets.only(
-            left: screenWidth < 390 ? 56.0 : (screenWidth >= 700 ? 228.0 : 156.0),
-            right: screenWidth < 390 ? 104.0 : (screenWidth >= 700 ? 228.0 : 156.0),
+            left: screenWidth < 390
+                ? 56.0
+                : (screenWidth >= 700 ? 228.0 : 156.0),
+            right: screenWidth < 390
+                ? 104.0
+                : (screenWidth >= 700 ? 228.0 : 156.0),
           )
         : const EdgeInsets.symmetric(horizontal: 64);
 

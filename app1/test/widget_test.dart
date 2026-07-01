@@ -202,45 +202,87 @@ void main() {
     expect(find.textContaining('Seit 2 Tagen Kopfschmerzen links'), findsOneWidget);
   });
 
-  testWidgets('Warning page summarizes duplicate recommendation reasons', (
-    WidgetTester tester,
-  ) async {
-    const response = ChatResponse(
-      text: 'Kein akuter Notfall erkannt.',
-      redFlag: false,
-      recommendationReady: true,
-      recommendationResult: RecommendationResult(
-        allowed: true,
-        urgency: 'routine',
-        urgencyLevel: 'low',
-        careLevel: 'Hausarztpraxis',
-        specialty: 'Allgemeinmedizin',
-        reasons: ['Kopfschmerzen seit 2 Tagen'],
-      ),
-    );
-
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WarningPage(
-          response: response,
-          symptoms: ['pulsierende Kopfschmerzen', 'Übelkeit'],
-          userMessages: [
-            'Ich habe seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit',
-            'Ja',
-          ],
+  testWidgets(
+    'Warning page summarizes chat-derived reasons when no backend reasons exist',
+    (WidgetTester tester) async {
+      // No structured backend reasons -> the fallback path derives and
+      // de-duplicates reasons from the chat messages and symptoms.
+      const response = ChatResponse(
+        text: 'Kein akuter Notfall erkannt.',
+        redFlag: false,
+        recommendationReady: true,
+        recommendationResult: RecommendationResult(
+          allowed: true,
+          urgency: 'routine',
+          urgencyLevel: 'low',
+          careLevel: 'general_practice',
+          specialty: 'general_practice',
+          reasons: [],
         ),
-      ),
-    );
+      );
 
-    expect(
-      find.text('• Seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit'),
-      findsOneWidget,
-    );
-    expect(find.text('• Kopfschmerzen seit 2 Tagen'), findsNothing);
-    expect(find.text('• pulsierende Kopfschmerzen'), findsNothing);
-    expect(find.text('• Übelkeit'), findsNothing);
-    expect(find.text('• Ja'), findsNothing);
-  });
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: WarningPage(
+            response: response,
+            symptoms: ['pulsierende Kopfschmerzen', 'Übelkeit'],
+            userMessages: [
+              'Ich habe seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit',
+              'Ja',
+            ],
+          ),
+        ),
+      );
+
+      expect(
+        find.text('• Seit 2 Tagen pulsierende Kopfschmerzen und Übelkeit'),
+        findsOneWidget,
+      );
+      // Shorter reasons contained in the longer one are suppressed.
+      expect(find.text('• pulsierende Kopfschmerzen'), findsNothing);
+      expect(find.text('• Übelkeit'), findsNothing);
+      expect(find.text('• Ja'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Warning page prefers structured backend reasons over chat messages',
+    (WidgetTester tester) async {
+      // When the backend supplies reasons, they take precedence and raw chat
+      // messages (profile picks, confirmations, meta requests) must not leak in.
+      const response = ChatResponse(
+        text: 'Kein akuter Notfall erkannt.',
+        redFlag: false,
+        recommendationReady: true,
+        recommendationResult: RecommendationResult(
+          allowed: true,
+          urgency: 'routine',
+          urgencyLevel: 'low',
+          careLevel: 'general_practice',
+          specialty: 'general_practice',
+          reasons: ['Die Kopfschmerzen sind leicht (2-4/10)'],
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: WarningPage(
+            response: response,
+            symptoms: ['pulsierende Kopfschmerzen'],
+            userMessages: ['Paula', 'Ja', 'Ich möchte eine Handlungsempfehlung'],
+          ),
+        ),
+      );
+
+      expect(
+        find.text('• Die Kopfschmerzen sind leicht (2-4/10)'),
+        findsOneWidget,
+      );
+      expect(find.text('• Paula'), findsNothing);
+      expect(find.text('• Ja'), findsNothing);
+      expect(find.text('• pulsierende Kopfschmerzen'), findsNothing);
+    },
+  );
 
   testWidgets('shows warning title, content and button', (tester) async {
     await tester.pumpWidget(

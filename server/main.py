@@ -30,6 +30,7 @@ from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from documents.router import router as documents_router
+from medications.service import list_medications
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
 from appointments.router import router as appointments_router
@@ -42,7 +43,7 @@ from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
-from careena4.models.turn.input import DiaryEntry, ProfileSnapshot
+from careena4.models.turn.input import DiaryEntry, MedicationEntry, ProfileSnapshot
 from careena4.application.dialogue.person_initialiser import PersonInitialiser
 from careena4.models.input import (
     CancelDraftResponse,
@@ -64,6 +65,16 @@ careena4_services = build_default_services(llm_mode="env")
 careena4_turn_engine = careena4_services.turn_engine
 careena4_session_store = careena4_services.session_store
 careena4_session_profiles: dict[str, int | None] = {}
+# session_id -> profile the case is *about* (the "Für wen?" answer), which can
+# differ from the session's owning profile above. Kept separate so the session
+# still belongs to the authenticated active profile (cross-profile guard),
+# while diary, medications and the reported profile follow the chosen person.
+careena4_session_case_profiles: dict[str, int] = {}
+# session_ids whose "Für wen?" answer resolved to a person with no diary profile
+# ("Jemand anderes" or a free-form relation like "meine Oma"). For these the case
+# is deliberately *not* bound to any profile, so diary, medications and the
+# reported profile must NOT fall back to the active session profile.
+careena4_session_unbound_cases: set[str] = set()
 careena4_person_initialiser = PersonInitialiser()
 careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
 
@@ -93,6 +104,7 @@ def _snapshot_from_profile(p) -> ProfileSnapshot:
     return ProfileSnapshot(
         display_name=p.display_name,
         profile_type=p.profile_type,
+        id=p.id,
         age=_age(p.date_of_birth),
         sex=_sex(p.biological_sex),
     )
@@ -226,6 +238,79 @@ def _resolve_onset_date(onset: str | None) -> str | None:
     if any(w in s for w in ("übermorgen", "nächste woche", "morgen früh")):
         return None
     return None
+
+
+_MEDICATION_FREQUENCY_LABELS = {
+    "daily": "täglich",
+    "twice_daily": "zweimal täglich",
+    "weekdays": "werktags",
+    "weekly": "wöchentlich",
+    "monthly": "monatlich",
+}
+
+
+def _resolve_subject_profile_id(session_id: str, session_profile_id):
+    """Profile the case is *about*, used to load diary/medications and report to
+    the client (PDF export).
+
+    Order of precedence:
+      1. Non-profile subject ("Jemand anderes"/free-form) -> None, so no data of
+         the active profile leaks into a case that is not about that person.
+      2. A profile explicitly chosen in the "Für wen?" step.
+      3. Fallback to the session's owning (active) profile.
+    """
+    if session_id in careena4_session_unbound_cases:
+        return None
+    return careena4_session_case_profiles.get(session_id) or session_profile_id
+
+
+def _load_diary_history(profile_id, current_user, session) -> list[DiaryEntry]:
+    """Load the symptom diary for a profile as pipeline DiaryEntry objects."""
+    if profile_id is None:
+        return []
+    raw_entries = list_symptom_entries(
+        profile_id=profile_id,
+        current_user=current_user,
+        session=session,
+    )
+    return [
+        DiaryEntry(
+            date=e.date.isoformat() if hasattr(e.date, "isoformat") else str(e.date),
+            symptom=e.symptom,
+            body_area=e.body_area or "",
+            intensity=e.intensity,
+            note=e.note or "",
+        )
+        for e in raw_entries
+    ]
+
+
+def _load_medication_history(profile_id, current_user, session) -> list[MedicationEntry]:
+    """Load the medication plan for a profile as pipeline MedicationEntry objects."""
+    if profile_id is None:
+        return []
+    raw_entries = list_medications(
+        profile_id=profile_id,
+        current_user=current_user,
+        session=session,
+    )
+    history: list[MedicationEntry] = []
+    for e in raw_entries:
+        times = [f"{e.intake_hour:02d}:{e.intake_minute:02d}"]
+        if e.second_intake_hour is not None and e.second_intake_minute is not None:
+            times.append(f"{e.second_intake_hour:02d}:{e.second_intake_minute:02d}")
+        history.append(
+            MedicationEntry(
+                name=e.name,
+                dose=e.dose or "",
+                frequency=_MEDICATION_FREQUENCY_LABELS.get(e.frequency, e.frequency),
+                schedule=", ".join(times),
+                active_substance=(
+                    e.catalog_item.active_substance if e.catalog_item else ""
+                ),
+            )
+        )
+    return history
 
 
 #Helper: convert Careena4 TurnResult into the Flutter chat response JSON.
@@ -481,6 +566,29 @@ def chat(
         )
     )
     if needs_profile_pre_turn:
+        # Safety-critical messages (catalog match) bypass profile selection so the
+        # safety question fires immediately without making the user pick a person first.
+        raw_safety_precheck = careena4_turn_engine.raw_red_flag_detector.detect(req.message)
+        if raw_safety_precheck.requires_safety_clarification or raw_safety_precheck.requires_emergency_response:
+            needs_profile_pre_turn = False
+            # For a single profile, still fill in person data so the safety question
+            # runs with demographics and pre_turn is not needed on subsequent turns.
+            try:
+                from profiles.service import list_profiles as _list_profiles_bypass
+                _bypass_snapshots = [
+                    _snapshot_from_profile(p)
+                    for p in _list_profiles_bypass(current_user=current_user, session=session)
+                ]
+                if len(_bypass_snapshots) == 1:
+                    careena4_person_initialiser.pre_turn(
+                        session_id=req.session_id,
+                        careena4_session=careena4_session,
+                        profiles=_bypass_snapshots,
+                        pending_message=None,
+                    )
+            except Exception:
+                pass
+    if needs_profile_pre_turn:
         try:
             from profiles.service import list_profiles
             snapshots = [_snapshot_from_profile(p) for p in list_profiles(current_user=current_user, session=session)]
@@ -525,23 +633,14 @@ def chat(
                 "case_observations": [],
             }
 
-    diary_history: list[DiaryEntry] = []
-    if session_profile_id is not None:
-        raw_entries = list_symptom_entries(
-            profile_id=session_profile_id,
-            current_user=current_user,
-            session=session,
-        )
-        diary_history = [
-            DiaryEntry(
-                date=e.date.isoformat() if hasattr(e.date, "isoformat") else str(e.date),
-                symptom=e.symptom,
-                body_area=e.body_area or "",
-                intensity=e.intensity,
-                note=e.note or "",
-            )
-            for e in raw_entries
-        ]
+    subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
+    diary_history = _load_diary_history(subject_profile_id, current_user, session)
+
+    prev_active_question_kind = (
+        careena4_session.conversation_state.active_question.kind
+        if careena4_session.conversation_state and careena4_session.conversation_state.active_question
+        else None
+    )
 
     turn_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
@@ -575,11 +674,35 @@ def chat(
 
     response = build_careena4_chat_response(turn_result)
 
-    profile_warning, profile_reply_options, pending_message = careena4_person_initialiser.post_turn(
+    (
+        profile_warning,
+        profile_reply_options,
+        pending_message,
+        matched_profile_id,
+        resolved_non_profile,
+    ) = careena4_person_initialiser.post_turn(
         session_id=req.session_id,
         careena4_session=careena4_session,
         message=req.message,
     )
+    # The user picked a profile in the "Für wen?" step. Record it as the case
+    # subject so diary, medications and the reported profile_id follow that
+    # person, without changing the session's owning profile (which stays the
+    # authenticated active profile and keeps the cross-profile guard intact).
+    if matched_profile_id is not None:
+        careena4_session_case_profiles[req.session_id] = matched_profile_id
+        careena4_session_unbound_cases.discard(req.session_id)
+        if matched_profile_id != subject_profile_id:
+            subject_profile_id = matched_profile_id
+            diary_history = _load_diary_history(subject_profile_id, current_user, session)
+    elif resolved_non_profile:
+        # Case is explicitly about a person without a profile. Unbind it so the
+        # deferred medical message (and later the recommendation/PDF) does not
+        # pull the active profile's diary, medications or reported profile_id.
+        careena4_session_unbound_cases.add(req.session_id)
+        careena4_session_case_profiles.pop(req.session_id, None)
+        subject_profile_id = None
+        diary_history = []
     if profile_warning:
         response["response"] = profile_warning
         response["reply_options"] = profile_reply_options
@@ -611,6 +734,60 @@ def chat(
         )
         careena4_session.messages.append({"role": "user", "content": pending_message})
         response = build_careena4_chat_response(second_turn_result)
+
+    # Safety-just-resolved: if the previous turn held a safety_clarification and
+    # the user answered it (non-emergency), inject the deferred profile question
+    # that was skipped by the safety bypass.  Must run after post_turn() so "Nein"
+    # is not misread as a profile name.
+    if (
+        prev_active_question_kind == "safety_clarification"
+        and response.get("response_mode") != "emergency"
+        and current_user is not None
+        and not profile_warning
+        and not pending_message
+        and req.session_id not in careena4_session_case_profiles
+        and req.session_id not in careena4_session_unbound_cases
+    ):
+        _new_active_kind = (
+            careena4_session.conversation_state.active_question.kind
+            if careena4_session.conversation_state and careena4_session.conversation_state.active_question
+            else None
+        )
+        if _new_active_kind != "safety_clarification":
+            try:
+                from profiles.service import list_profiles as _list_profiles_deferred
+                _deferred_snapshots = [
+                    _snapshot_from_profile(p)
+                    for p in _list_profiles_deferred(current_user=current_user, session=session)
+                ]
+                _deferred_question = careena4_person_initialiser.inject_deferred_clarification(
+                    session_id=req.session_id,
+                    careena4_session=careena4_session,
+                    profiles=_deferred_snapshots,
+                )
+                if _deferred_question is not None:
+                    _deferred_reply_options = (
+                        [opt.label for opt in _deferred_question.guided_input.options]
+                        if _deferred_question.guided_input is not None and _deferred_question.guided_input.options
+                        else []
+                    )
+                    response = {
+                        **response,
+                        "response": _deferred_question.prompt_text,
+                        "response_mode": "ask_followup",
+                        "reply_options": _deferred_reply_options,
+                        "pending_followup": {
+                            "question_id": _deferred_question.question_id,
+                            "kind": _deferred_question.kind,
+                            "question_intent": _deferred_question.question_intent,
+                            "target_observation_id": _deferred_question.target_observation_id,
+                            "target_followup_id": _deferred_question.target_followup_id,
+                            "prompt_text": _deferred_question.prompt_text,
+                            "blocking": _deferred_question.blocking,
+                        },
+                    }
+            except Exception:
+                pass
 
     careena4_session.messages.append(
         {"role": "assistant", "content": response["response"]}
@@ -673,11 +850,21 @@ def request_recommendation(
 
     turn_id = str(uuid4())
 
+    session_profile_id = careena4_session_profiles.get(req.session_id)
+    # Diary, medications and the reported profile follow the case subject (the
+    # "Für wen?" answer) when it differs from the session's owning profile, and
+    # are dropped entirely when the case is about a person without a profile.
+    subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
+    diary_history = _load_diary_history(subject_profile_id, current_user, session)
+    medication_history = _load_medication_history(subject_profile_id, current_user, session)
+
     turn_result = careena4_turn_engine.request_recommendation(
         RecommendationRequestInput.from_persisted_state(
             session_id=req.session_id,
             turn_id=turn_id,
             conversation_messages=careena4_session.messages,
+            diary_history=diary_history,
+            medication_history=medication_history,
             persisted_medical_case=careena4_session.medical_case,
             persisted_conversation_state=careena4_session.conversation_state,
             persisted_recommendation_state=careena4_session.recommendation_state,
@@ -691,6 +878,10 @@ def request_recommendation(
     )
 
     response = build_careena4_chat_response(turn_result)
+    # Expose the case subject profile so the client (e.g. the PDF export) uses
+    # the profile the recommendation is actually about — not the app's currently
+    # selected profile, which can differ after in-chat person resolution.
+    response["profile_id"] = subject_profile_id
     careena4_session.messages.append(
         {"role": "assistant", "content": response["response"]}
     )

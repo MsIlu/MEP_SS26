@@ -3,17 +3,38 @@ import logging
 
 from careena4.domain.case import CaseManager
 from careena4.models.domain import MedicalCase
-from careena4.models.turn.input import DiaryEntry
+from careena4.models.turn.input import DiaryEntry, MedicationEntry
 from careena4.models.workflow import RecommendationResult
 
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = (
-    "Du bist ein medizinisches Assistenzsystem. "
-    "Analysiere den geschilderten Fall und gib eine strukturierte Handlungsempfehlung auf Deutsch aus. "
-    "Berücksichtige Alter, Geschlecht, alle genannten Symptome und — falls vorhanden — den Verlauf aus dem Symptomtagebuch. "
+    "Du bist ein medizinisches Assistenzsystem für Laien. "
+    "Analysiere den geschilderten Fall und gib eine strukturierte, differenzierte "
+    "Handlungsempfehlung auf Deutsch aus. "
+    "Berücksichtige Alter, Geschlecht, alle genannten Symptome, deren Schweregrad, "
+    "den Verlauf aus dem Symptomtagebuch und die aktuell eingenommenen Medikamente. "
+    "Wähle die Versorgungsebene (care_level) so niedrig wie medizinisch vertretbar — "
+    "schicke nicht pauschal zum Hausarzt, wenn Selbstbehandlung oder die Apotheke ausreichen. "
     "Antworte ausschließlich mit einem gültigen JSON-Objekt, ohne Markdown-Blöcke oder Erklärungen."
 )
+
+# Concrete decision guidance so the model differentiates instead of always
+# defaulting to general_practice. Ordered from least to most urgent.
+_CARE_LEVEL_GUIDANCE = """
+Wähle care_level nach folgender Eskalationslogik (niedrigste vertretbare Stufe):
+- self_care: leichte, klar harmlose Beschwerden, kurze Dauer, kein Schweregrad-Hinweis
+  (z.B. leichter Schnupfen, leichte Kopfschmerzen). next_step: konkrete Selbsthilfe.
+- pharmacy: Beschwerden, bei denen rezeptfreie Mittel oder eine Apothekenberatung helfen
+  (z.B. Erkältung, leichte Schmerzen, Sodbrennen). next_step: Apotheke aufsuchen.
+- general_practice: anhaltende, unklare oder mittelschwere Beschwerden, die ärztlich
+  abgeklärt werden sollten, aber nicht dringend sind.
+- specialist: Beschwerden mit klarem Fachbezug (z.B. Hautbefund -> dermatology).
+- 116117: ärztlich abklärungsbedürftig außerhalb der Praxiszeiten, aber kein Notfall.
+- emergency_department / 112: Warnzeichen, akute schwere Symptome, Hinweise auf Notfall.
+Begründe in "reasons" konkret anhand der genannten Symptome, des Schweregrads und —
+falls vorhanden — des Verlaufs und der Medikamente, warum diese Stufe gewählt wurde.
+"""
 
 _JSON_SCHEMA = """
 {
@@ -23,7 +44,7 @@ _JSON_SCHEMA = """
   "specialty": "<unknown|general_practice|orthopedics|dermatology|neurology|ent|emergency_medicine>",
   "summary": "<1-2 Sätze Zusammenfassung der klinischen Situation>",
   "next_step": "<konkrete Handlungsempfehlung für den Patienten, 1-2 Sätze>",
-  "reasons": ["<Grund 1>", "<Grund 2>"]
+  "reasons": ["<konkreter Grund 1>", "<konkreter Grund 2>"]
 }
 """
 
@@ -95,6 +116,57 @@ def _serialize_diary(diary_history: list[DiaryEntry]) -> str:
     return "\n".join(lines)
 
 
+def _serialize_medications(medication_history: list[MedicationEntry]) -> str:
+    if not medication_history:
+        return ""
+    lines = ["Aktueller Medikamentenplan:"]
+    for entry in medication_history:
+        line = f"- {entry.name}"
+        if entry.dose:
+            line += f", Dosis: {entry.dose}"
+        if entry.active_substance:
+            line += f", Wirkstoff: {entry.active_substance}"
+        if entry.frequency:
+            line += f", Einnahme: {entry.frequency}"
+        if entry.schedule:
+            line += f" ({entry.schedule})"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _build_data_sources(
+    *,
+    medical_case: MedicalCase,
+    case_manager: CaseManager,
+    diary_history: list[DiaryEntry],
+    medication_history: list[MedicationEntry],
+) -> list[str]:
+    """Deterministically describe which inputs fed into the recommendation.
+
+    Never derived from the LLM, so the provenance shown to the user is reliable.
+    """
+    sources: list[str] = []
+
+    if case_manager.central_non_negated_observations(medical_case=medical_case):
+        sources.append("Angaben aus dem Chat")
+
+    person = medical_case.person
+    if person and (person.age or person.sex):
+        sources.append("Profilangaben (Alter/Geschlecht)")
+
+    if diary_history:
+        count = len(diary_history)
+        label = "Eintrag" if count == 1 else "Einträge"
+        sources.append(f"Symptom-Tagebuch ({count} {label})")
+
+    if medication_history:
+        count = len(medication_history)
+        label = "Medikament" if count == 1 else "Medikamente"
+        sources.append(f"Medikamentenplan ({count} {label})")
+
+    return sources
+
+
 class RecommendationBuilder:
     def __init__(self, *, case_manager: CaseManager | None = None, llm_client=None) -> None:
         self.case_manager = case_manager or CaseManager()
@@ -105,18 +177,33 @@ class RecommendationBuilder:
         *,
         medical_case: MedicalCase,
         diary_history: list[DiaryEntry] | None = None,
+        medication_history: list[MedicationEntry] | None = None,
     ) -> RecommendationResult:
+        diary_history = diary_history or []
+        medication_history = medication_history or []
+
+        data_sources = _build_data_sources(
+            medical_case=medical_case,
+            case_manager=self.case_manager,
+            diary_history=diary_history,
+            medication_history=medication_history,
+        )
+
         if self._llm_client is None:
-            return _FALLBACK_RESULT
+            return _FALLBACK_RESULT.model_copy(update={"data_sources": data_sources})
 
         case_text = _serialize_case(medical_case, self.case_manager)
-        diary_text = _serialize_diary(diary_history or [])
+        diary_text = _serialize_diary(diary_history)
+        medication_text = _serialize_medications(medication_history)
 
         user_prompt_parts = [case_text]
         if diary_text:
             user_prompt_parts.append(diary_text)
+        if medication_text:
+            user_prompt_parts.append(medication_text)
+        user_prompt_parts.append(_CARE_LEVEL_GUIDANCE)
         user_prompt_parts.append(
-            f"\nGib eine Handlungsempfehlung als JSON in diesem Format aus:\n{_JSON_SCHEMA}"
+            f"Gib eine Handlungsempfehlung als JSON in diesem Format aus:\n{_JSON_SCHEMA}"
         )
         user_prompt = "\n\n".join(user_prompt_parts)
 
@@ -126,16 +213,16 @@ class RecommendationBuilder:
                     {"role": "system", "content": _SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
-                max_tokens=400,
+                max_tokens=700,
                 temperature=0.2,
                 call_name="recommendation_build",
             )
-            return self._parse(raw or "")
+            return self._parse(raw or "", data_sources=data_sources)
         except Exception:
             logger.exception("Recommendation generation failed; using fallback.")
-            return _FALLBACK_RESULT
+            return _FALLBACK_RESULT.model_copy(update={"data_sources": data_sources})
 
-    def _parse(self, raw: str) -> RecommendationResult:
+    def _parse(self, raw: str, *, data_sources: list[str] | None = None) -> RecommendationResult:
         text = raw.strip()
         if text.startswith("```"):
             text = text.split("```")[1]
@@ -147,7 +234,7 @@ class RecommendationBuilder:
             data = json.loads(text)
         except json.JSONDecodeError:
             logger.warning("RecommendationBuilder: JSON parse failed, using fallback. raw=%r", raw[:200])
-            return _FALLBACK_RESULT
+            return _FALLBACK_RESULT.model_copy(update={"data_sources": data_sources or []})
 
         urgency = data.get("urgency", "unknown")
         urgency_level = data.get("urgency_level", "unclear")
@@ -164,4 +251,5 @@ class RecommendationBuilder:
             reasons=data.get("reasons") or [],
             next_step=data.get("next_step") or "",
             limitations=["Diese Empfehlung ersetzt keine aerztliche Untersuchung oder Diagnose."],
+            data_sources=data_sources or [],
         )

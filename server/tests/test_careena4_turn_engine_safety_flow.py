@@ -224,6 +224,85 @@ def test_unsure_to_open_safety_question_keeps_question_open():
     assert second.conversation_state.active_question.safety_context is not None
 
 
+def test_ja_to_safety_question_triggers_emergency_even_when_llm_returns_wrong_resolution():
+    """
+    Regression test for the critical safety bug:
+
+    The LLM interpreter can return question_resolution.status="resolved" for a
+    "Ja" answer to a safety_clarification question (instead of "confirmed_red_flag").
+    Before the fix, that wrong resolution was used verbatim: resolved_safety_clarification
+    was set to True, the safety path was skipped, and a duration followup
+    ("Seit wann hast du die Atemnot?") was asked instead of showing the emergency screen.
+
+    After the fix, safety_clarification questions always use the deterministic
+    question_resolver, so the LLM's wrong resolution is ignored.
+    """
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [_safety_match("atemnot")]
+    cache.scan_labels.return_value = []
+
+    first_engine = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    )
+    first = first_engine.run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+    assert first.response_mode == "ask_safety_question"
+    assert first.conversation_state.active_question is not None
+    assert first.conversation_state.active_question.kind == "safety_clarification"
+
+    class _BadLLMInterpreter:
+        """Simulates an LLM that misclassifies 'Ja' as a regular resolved answer."""
+
+        def interpret(self, *, message, active_question=None, medical_case=None, history_messages=None):
+            from careena4.models.turn import QuestionResolution
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=False,
+                    contains_new_medical_information=False,
+                    message_kind="question_answer",
+                ),
+                question_resolution=QuestionResolution(
+                    status="resolved",
+                    answer_kind="resolved",
+                    clear_active_question=True,
+                ),
+                case_input=None,
+                current_turn_understanding=None,
+            )
+
+        def to_current_turn_understanding(self, *, raw_message, interpretation):
+            return None
+
+    second_engine = TurnEngine(
+        turn_interpreter=_BadLLMInterpreter(),
+    )
+    second = second_engine.run_turn(
+        TurnInput(
+            message="Ja",
+            session_id="test-session",
+            turn_id="turn-2",
+            persisted_conversation_state=first.conversation_state,
+            persisted_medical_case=first.medical_case,
+            persisted_recommendation_state=first.recommendation_state,
+        )
+    )
+
+    assert second.response_mode == "emergency", (
+        "Confirming 'Ja' to a safety question must always trigger the emergency path, "
+        "even if the LLM interpreter returns a wrong resolution status."
+    )
+    assert "turn:safety_confirmation_emergency" in second.trace_notes
+
+
 def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text():
     cache = MagicMock()
     cache.is_loaded = True
@@ -300,5 +379,7 @@ def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text()
 
     assert second.symptom_input_draft is not None
     assert second.symptom_input_draft.symptom_labels() == ["Atemnot", "Brustschmerzen"]
-    assert "turn_interpretation:understanding_skipped_for_guided_safety_answer" in second.trace_notes
+    # Exact option-label matches ("Nein") take the fast path — the interpreter is never
+    # called, so the fake symptom from _FakeExtractionEngine is never applied.
+    assert "turn:guided_input_fast_path" in second.trace_notes
     assert "symptom_input_draft:updated_from_understanding" not in second.trace_notes

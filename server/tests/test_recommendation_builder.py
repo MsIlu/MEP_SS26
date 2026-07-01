@@ -9,7 +9,7 @@ from careena4.models.turn.input import DiaryEntry, MedicationEntry
 
 def _case_manager_with_observations(labels: list[str]) -> MagicMock:
     """Fake CaseManager exposing the methods the builder relies on."""
-    observations = [Observation(type="symptom", label=label) for label in labels]
+    observations = [Observation(type="symptom", normalized_label_de=label) for label in labels]
     manager = MagicMock()
     manager.central_non_negated_observations.return_value = observations
     manager.topic_label.return_value = labels[0] if labels else None

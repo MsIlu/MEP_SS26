@@ -42,6 +42,7 @@ from appointments.service import AppointmentProviderUnavailable, search_fhir_app
 from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
+from careena4.domain.case import CaseManager
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.turn.input import DiaryEntry, MedicationEntry, ProfileSnapshot
 from careena4.application.dialogue.person_initialiser import PersonInitialiser
@@ -350,12 +351,12 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     if result.medical_case is not None:
         case_observations = [
             {
-                "label": obs.label,
+                "label": obs.normalized_label_de,
                 "severity": obs.severity,
                 "onset_date": _resolve_onset_date(obs.onset),
             }
             for obs in result.medical_case.observations
-            if obs.is_active() and obs.label
+            if obs.is_active() and obs.normalized_label_de
         ]
 
     return {
@@ -820,8 +821,8 @@ def set_observation_severities(
     label_map = {label.casefold(): severity for label, severity in req.severities.items()}
 
     for obs in careena4_session.medical_case.observations:
-        if obs.is_active() and obs.label.casefold() in label_map:
-            obs.severity = str(label_map[obs.label.casefold()])
+        if obs.is_active() and obs.normalized_label_de.casefold() in label_map:
+            obs.severity = str(label_map[obs.normalized_label_de.casefold()])
 
     # Resolve the active severity question if it now has an answer.
     active_q = careena4_session.conversation_state.active_question
@@ -974,11 +975,24 @@ def update_input_draft(
         current_user=current_user,
         db_session=session,
     )
+    previous_labels = careena4_session.symptom_input_draft.symptom_labels()
 
     if request.chips is not None:
         careena4_session.symptom_input_draft.replace_from_chips(request.chips)
     else:
         careena4_session.symptom_input_draft.replace_from_labels(request.symptoms)
+
+    removed_labels = _removed_symptom_labels(
+        previous_labels,
+        careena4_session.symptom_input_draft.symptom_labels(),
+    )
+    if removed_labels and careena4_session.medical_case is not None:
+        careena4_session.medical_case = (
+            careena4_turn_engine.case_manager.negate_observations_by_labels(
+                medical_case=careena4_session.medical_case,
+                labels=removed_labels,
+            )
+        )
 
     return SymptomDraftResponse(
         session_id=session_id,
@@ -1007,6 +1021,30 @@ def cancel_input_draft(
         message="Draft cancelled successfully.",
         session_id=session_id,
     )
+
+
+def _removed_symptom_labels(
+    previous_labels: list[str],
+    updated_labels: list[str],
+) -> list[str]:
+    updated_identities = {
+        normalized
+        for label in updated_labels
+        if (normalized := _normalized_symptom_label(label)) is not None
+    }
+    removed_labels: list[str] = []
+
+    for label in previous_labels:
+        normalized = _normalized_symptom_label(label)
+        if normalized is None or normalized in updated_identities:
+            continue
+        removed_labels.append(label)
+
+    return removed_labels
+
+
+def _normalized_symptom_label(label: str | None) -> str | None:
+    return CaseManager._normalized_label(label)
 
 
 @app.post("/session")

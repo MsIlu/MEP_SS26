@@ -57,7 +57,7 @@ def _make_session(*, with_case: bool = True) -> tuple[str, Careena4Session]:
 
 
 def _add_observation(session: Careena4Session, label: str, severity: str | None = None) -> Observation:
-    obs = Observation(type="symptom", label=label, severity=severity)
+    obs = Observation(type="symptom", normalized_label_de=label, severity=severity)
     session.medical_case.observations.append(obs)
     return obs
 
@@ -111,7 +111,9 @@ def test_set_severities_updates_multiple_observations(client):
         "severities": {"Kopfschmerzen": 3, "Halsschmerzen": 2},
     })
 
-    severities = {obs.label: obs.severity for obs in session.medical_case.observations}
+    severities = {
+        obs.normalized_label_de: obs.severity for obs in session.medical_case.observations
+    }
     assert severities == {"Kopfschmerzen": "3", "Halsschmerzen": "2"}
 
 

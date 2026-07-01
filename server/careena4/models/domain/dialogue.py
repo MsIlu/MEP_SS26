@@ -53,6 +53,14 @@ class SafetyQuestionContext(PipelineModel):
     related_safety_event_id: str | None = None
 
 
+class ClearedSafetyClarification(PipelineModel):
+    """One safety clarification that was already answered negatively."""
+
+    safety_key: str
+    question_code: str
+    status: Literal["cleared"] = "cleared"
+
+
 class ActiveQuestion(PipelineModel):
     question_id: str = Field(default_factory=lambda: str(uuid4()))
     kind: QuestionKind
@@ -77,3 +85,4 @@ class ConversationState(PipelineModel):
     phase: ConversationPhase = "intake"
     active_question: ActiveQuestion | None = None
     followup_needs: list[FollowupNeed] = Field(default_factory=list)
+    cleared_safety_clarifications: list[ClearedSafetyClarification] = Field(default_factory=list)

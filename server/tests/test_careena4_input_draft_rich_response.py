@@ -41,7 +41,7 @@ class _StubMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Schwindel",
+                    normalized_label_de="Schwindel",
                     status="active",
                 )
             ]

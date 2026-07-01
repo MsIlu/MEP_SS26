@@ -38,10 +38,19 @@ class CaseManager:
         claims: ExtractedCaseInput,
     ) -> tuple[MedicalCase, list[str]]:
         existing_observations = self.case_reader.read_observations(medical_case=medical_case)
+        person_update = self._person_from_case_input(case_input=claims)
+        observations = [
+            self._observation_from_input(observation_input=observation)
+            for observation in claims.observations
+        ]
+        observations = self._apply_default_person_ref(
+            observations=observations,
+            default_person=(person_update or self._existing_person_default(medical_case=medical_case)),
+        )
         plan = self.case_write_planner.build_write_plan(
             existing_observations=existing_observations,
-            observations=[self._observation_from_input(observation_input=observation) for observation in claims.observations],
-            person_update=self._person_from_case_input(case_input=claims),
+            observations=observations,
+            person_update=person_update,
         )
         medical_case, trace_notes = self.apply_write_plan(medical_case=medical_case, plan=plan)
         if claims.has_topic_update():
@@ -248,6 +257,37 @@ class CaseManager:
         if source is None:
             return None
         return source.model_copy(deep=True)
+
+    @staticmethod
+    def _existing_person_default(*, medical_case: MedicalCase) -> Person | None:
+        if medical_case.person.relation not in {"self", "child", "other"}:
+            return None
+        return Person(
+            relation=medical_case.person.relation,
+            relation_source=CaseManager._copy_source(medical_case.person.relation_source),
+        )
+
+    @staticmethod
+    def _apply_default_person_ref(
+        *,
+        observations: list[Observation],
+        default_person: Person | None,
+    ) -> list[Observation]:
+        if default_person is None or default_person.relation not in {"self", "child", "other"}:
+            return observations
+        has_conflicting_explicit_person_ref = any(
+            observation.person_ref not in {"unclear", default_person.relation}
+            for observation in observations
+        )
+        if has_conflicting_explicit_person_ref:
+            return observations
+        for observation in observations:
+            if observation.person_ref != "unclear":
+                continue
+            observation.person_ref = default_person.relation
+            if observation.person_ref_source is None and default_person.relation_source is not None:
+                observation.person_ref_source = default_person.relation_source.model_copy(deep=True)
+        return observations
 
     @staticmethod
     def _normalized_label(label: str | None) -> str | None:

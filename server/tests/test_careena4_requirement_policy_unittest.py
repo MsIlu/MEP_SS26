@@ -2,8 +2,10 @@ import unittest
 
 from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
+from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
-from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase, Observation
+from careena4.models.domain import ActiveQuestion, FollowupNeed, MedicalCase, Observation, Source
+from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput, ExtractedPersonInput
 
 
 class RequirementPolicyTests(unittest.TestCase):
@@ -114,6 +116,89 @@ class RequirementPolicyTests(unittest.TestCase):
             "Kannst du die Bauchschmerzen bitte etwas genauer beschreiben?",
         )
         self.assertNotIn("im Bauch", question.prompt_text)
+
+    def test_apply_claims_defaults_unclear_observation_person_ref_from_person_update(self):
+        case_manager = CaseManager()
+        medical_case = MedicalCase()
+
+        medical_case, _ = case_manager.apply_claims(
+            medical_case=medical_case,
+            claims=ExtractedCaseInput(
+                person=ExtractedPersonInput(
+                    relation="self",
+                    relation_source=Source(source_span="ich"),
+                ),
+                observations=[
+                    ExtractedObservationInput(
+                        type="symptom",
+                        normalized_label_de="Bauchschmerzen",
+                    )
+                ],
+            ),
+        )
+
+        self.assertEqual(medical_case.person.relation, "self")
+        self.assertEqual(medical_case.observations[0].person_ref, "self")
+        self.assertEqual(medical_case.observations[0].person_ref_source.source_span, "ich")
+
+    def test_apply_claims_defaults_before_matching_existing_observation(self):
+        case_manager = CaseManager()
+        medical_case = MedicalCase(
+            observations=[
+                Observation(
+                    type="symptom",
+                    normalized_label_de="Bauchschmerzen",
+                    person_ref="self",
+                )
+            ]
+        )
+
+        medical_case, trace_notes = case_manager.apply_claims(
+            medical_case=medical_case,
+            claims=ExtractedCaseInput(
+                person=ExtractedPersonInput(
+                    relation="self",
+                    relation_source=Source(source_span="ich"),
+                ),
+                observations=[
+                    ExtractedObservationInput(
+                        type="symptom",
+                        normalized_label_de="Bauchschmerzen",
+                        onset="seit gestern",
+                    )
+                ],
+            ),
+        )
+
+        self.assertEqual(len(medical_case.observations), 1)
+        self.assertEqual(medical_case.observations[0].person_ref, "self")
+        self.assertEqual(medical_case.observations[0].onset, "seit gestern")
+        self.assertIn("case_write:enrich:Bauchschmerzen", trace_notes)
+
+    def test_apply_claims_does_not_default_unclear_person_ref_when_claims_signal_person_mix(self):
+        case_manager = CaseManager()
+        medical_case = MedicalCase()
+        medical_case.person.relation = "self"
+
+        medical_case, _ = case_manager.apply_claims(
+            medical_case=medical_case,
+            claims=ExtractedCaseInput(
+                observations=[
+                    ExtractedObservationInput(
+                        type="symptom",
+                        normalized_label_de="Fieber",
+                        person_ref="child",
+                    ),
+                    ExtractedObservationInput(
+                        type="symptom",
+                        normalized_label_de="Husten",
+                    ),
+                ],
+            ),
+        )
+
+        self.assertEqual(medical_case.observations[0].person_ref, "child")
+        self.assertEqual(medical_case.observations[1].person_ref, "unclear")
 
 
 if __name__ == "__main__":

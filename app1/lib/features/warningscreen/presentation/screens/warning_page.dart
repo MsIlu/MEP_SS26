@@ -89,25 +89,23 @@ class WarningPage extends StatelessWidget {
                 userMessages: userMessages,
               ),
 
-              if (!showEmergencyActions) ...[
-                const SizedBox(height: 8),
-                SaveRecommendationToDocumentsButton(
-                  title: WarningCopy.pageTitle,
-                  patientSummary:
-                      'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                  recommendation: _recommendationTextFor(response),
-                  nextSteps:
-                      response.recommendationResult?.nextStep ??
-                      response.action ??
-                      '',
-                  symptoms: symptoms,
-                  userMessages: userMessages,
-                  alreadySaved: recommendationMessage?.documentSaved ?? false,
-                  onSaved: () async {
-                    await _markAction(RecommendationAction.document);
-                  },
-                ),
-              ],
+              const SizedBox(height: 8),
+              SaveRecommendationToDocumentsButton(
+                title: WarningCopy.pageTitle,
+                patientSummary:
+                    'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                recommendation: _recommendationTextFor(response),
+                nextSteps:
+                    response.recommendationResult?.nextStep ??
+                    response.action ??
+                    '',
+                symptoms: symptoms,
+                userMessages: userMessages,
+                alreadySaved: recommendationMessage?.documentSaved ?? false,
+                onSaved: () async {
+                  await _markAction(RecommendationAction.document);
+                },
+              ),
 
               if ((symptoms.isNotEmpty ||
                       response.caseObservations.isNotEmpty) &&
@@ -153,7 +151,13 @@ class WarningPage extends StatelessWidget {
     final observations = response.caseObservations;
     if (observations.isNotEmpty) {
       return observations
-          .map((o) => SymptomImport(name: o.label, severity: o.severity, date: o.date))
+          .map(
+            (o) => SymptomImport(
+              name: o.label,
+              severity: o.severity,
+              date: o.date,
+            ),
+          )
           .toList();
     }
     return symptoms.map((s) => SymptomImport(name: s)).toList();

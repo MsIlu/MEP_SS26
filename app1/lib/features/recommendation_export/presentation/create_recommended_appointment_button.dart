@@ -32,7 +32,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileId = authSession?.activeProfileId;
+    final profileId =
+        this.profileId ??
+        (authSession?.isAuthenticated == true
+            ? authSession?.activeProfileId
+            : null);
     return ValueListenableBuilder<List<Appointment>>(
       valueListenable: AppointmentController().appointments,
       builder: (context, appointments, _) {
@@ -92,9 +96,13 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   }
 
   Future<bool> _handlePressed(BuildContext context) async {
-    final profileId = this.profileId;
+    final profileId =
+        this.profileId ??
+        (authSession?.isAuthenticated == true
+            ? authSession?.activeProfileId
+            : null);
 
-    if (profileId == null) {
+    if (sessionId == null && profileId == null) {
       await _showInfoDialog(
         context,
         title: 'Kein Profil ausgewählt',
@@ -105,7 +113,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     }
 
     if (sessionId == null) {
-      return _createFallbackAppointment(context, profileId);
+      return _createFallbackAppointment(context, profileId!);
     }
 
     final postalCode = await _askForPostalCode(context);
@@ -125,7 +133,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
 
   Future<bool> _searchAndSelectAppointment({
     required BuildContext context,
-    required int profileId,
+    required int? profileId,
     required String postalCode,
   }) async {
     final apiClient = AppDependenciesScope.of(context).apiClient;
@@ -174,6 +182,17 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     );
 
     if (selectedAppointment == null) {
+      return false;
+    }
+    if (!context.mounted) return false;
+
+    if (authSession?.isAuthenticated != true || profileId == null) {
+      await _showInfoDialog(
+        context,
+        title: 'Anmeldung erforderlich',
+        message:
+            'Die Terminsuche ist ohne Anmeldung möglich. Um den ausgewählten Termin verbindlich zu buchen und in deiner Terminplanung zu speichern, melde dich bitte an.',
+      );
       return false;
     }
 

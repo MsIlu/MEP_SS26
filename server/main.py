@@ -444,17 +444,15 @@ def search_appointments(
 
     session_profile_id = careena4_session_profiles.get(request.session_id)
 
-    if session_profile_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Chat session is not linked to a profile.",
-        )
-
-    if session_profile_id != request.profile_id:
+    if session_profile_id is not None and session_profile_id != request.profile_id:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Requested profile does not match chat session profile.",
         )
+
+    # Anonymous searches are isolated by their chat session and use zero only
+    # as an internal simulator key. They can never be persisted as bookings.
+    search_profile_id = session_profile_id or 0
 
     recommendation_state = getattr(careena4_session, "recommendation_state", None)
     recommendation_result = getattr(
@@ -471,13 +469,13 @@ def search_appointments(
 
     fhir_bundle = build_fhir_bundle_from_careena4_session(
         careena4_session,
-        profile_id=request.profile_id,
+        profile_id=search_profile_id,
     )
 
     try:
         return search_fhir_appointments(
             session_id=request.session_id,
-            profile_id=request.profile_id,
+            profile_id=search_profile_id,
             postal_code=request.postal_code,
             recommendation_result=recommendation_result,
             fhir_bundle=fhir_bundle,

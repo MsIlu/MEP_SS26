@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class AppointmentSearchRequest(BaseModel):
     session_id: str
-    profile_id: int
+    profile_id: int | None = None
     postal_code: str = Field(min_length=5, max_length=5)
 
 

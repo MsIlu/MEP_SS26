@@ -50,6 +50,7 @@ class WarningPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final showEmergencyActions = _showEmergencyActions(response);
+    final isAuthenticated = authSession?.isAuthenticated == true;
 
     final backgroundColor = isDarkMode
         ? colorScheme.surface
@@ -98,26 +99,29 @@ class WarningPage extends StatelessWidget {
                 profileId: response.profileId,
               ),
 
-              const SizedBox(height: 8),
-              SaveRecommendationToDocumentsButton(
-                title: WarningCopy.pageTitle,
-                patientSummary:
-                    'Aus dem Chatverlauf generierte Handlungsempfehlung.',
-                recommendation: _recommendationTextFor(response),
-                nextSteps:
-                    response.recommendationResult?.nextStep ??
-                    response.action ??
-                    '',
-                symptoms: symptoms,
-                userMessages: userMessages,
-                alreadySaved: recommendationMessage?.documentSaved ?? false,
-                onSaved: () async {
-                  await _markAction(RecommendationAction.document);
-                },
-                profileId: response.profileId,
-              ),
+              if (isAuthenticated) ...[
+                const SizedBox(height: 8),
+                SaveRecommendationToDocumentsButton(
+                  title: WarningCopy.pageTitle,
+                  patientSummary:
+                      'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                  recommendation: _recommendationTextFor(response),
+                  nextSteps:
+                      response.recommendationResult?.nextStep ??
+                      response.action ??
+                      '',
+                  symptoms: symptoms,
+                  userMessages: userMessages,
+                  alreadySaved: recommendationMessage?.documentSaved ?? false,
+                  onSaved: () async {
+                    await _markAction(RecommendationAction.document);
+                  },
+                  profileId: response.profileId,
+                ),
+              ],
 
-              if ((symptoms.isNotEmpty ||
+              if (isAuthenticated &&
+                  (symptoms.isNotEmpty ||
                       response.caseObservations.isNotEmpty) &&
                   themeController != null &&
                   response.profileId != null) ...[

@@ -143,24 +143,27 @@ class ChatBubble extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            SaveRecommendationToDocumentsButton(
-                              title:
-                                  message.exportTitle ?? 'Handlungsempfehlung',
-                              patientSummary:
-                                  'Zusammenfassung des Chatverlaufes',
-                              recommendation:
-                                  message.exportRecommendation ?? message.text,
-                              nextSteps: message.exportNextSteps ?? '',
-                              symptoms: recommendationSymptoms,
-                              userMessages: userMessages,
-                              alreadySaved: message.documentSaved,
-                              onSaved: () async {
-                                await onRecommendationAction?.call(
-                                  message,
-                                  RecommendationAction.document,
-                                );
-                              },
-                            ),
+                            if (authSession?.isAuthenticated == true)
+                              SaveRecommendationToDocumentsButton(
+                                title:
+                                    message.exportTitle ??
+                                    'Handlungsempfehlung',
+                                patientSummary:
+                                    'Zusammenfassung des Chatverlaufes',
+                                recommendation:
+                                    message.exportRecommendation ??
+                                    message.text,
+                                nextSteps: message.exportNextSteps ?? '',
+                                symptoms: recommendationSymptoms,
+                                userMessages: userMessages,
+                                alreadySaved: message.documentSaved,
+                                onSaved: () async {
+                                  await onRecommendationAction?.call(
+                                    message,
+                                    RecommendationAction.document,
+                                  );
+                                },
+                              ),
                             ExportRecommendationPdfButton(
                               title:
                                   message.exportTitle ?? 'Handlungsempfehlung',
@@ -187,7 +190,8 @@ class ChatBubble extends StatelessWidget {
                                   );
                                 },
                               ),
-                            if (recommendationSymptoms.isNotEmpty)
+                            if (authSession?.isAuthenticated == true &&
+                                recommendationSymptoms.isNotEmpty)
                               _AsyncSymptomButton(
                                 isCompleted: message.symptomsSaved,
                                 onPressed: onSaveSymptoms,

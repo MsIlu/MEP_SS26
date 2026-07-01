@@ -9,7 +9,7 @@ class AppointmentSearchApiService {
 
   Future<AppointmentSearchResponse> search({
     required String sessionId,
-    required int profileId,
+    required int? profileId,
     required String postalCode,
   }) async {
     final data = await client.post('/appointments/search', {
@@ -58,7 +58,7 @@ class AppointmentSearchResponse {
   factory AppointmentSearchResponse.fromJson(Map<String, dynamic> json) {
     return AppointmentSearchResponse(
       sessionId: json['session_id']?.toString() ?? '',
-      profileId: json['profile_id'] as int,
+      profileId: (json['profile_id'] as num?)?.toInt() ?? 0,
       postalCode: json['postal_code']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
       appointments: (json['appointments'] as List<dynamic>? ?? [])

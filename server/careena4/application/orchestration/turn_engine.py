@@ -15,7 +15,13 @@ from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
-from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain import (
+    ActiveQuestion,
+    ClearedSafetyClarification,
+    ConversationState,
+    MedicalCase,
+    RecommendationState,
+)
 from careena4.models.domain.observation import Observation
 from careena4.models.input import SymptomInputDraft
 from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
@@ -275,6 +281,16 @@ class TurnEngine:
                 extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
                 resolved_safety_clarification = current_question.kind == "safety_clarification"
+                if self._is_cleared_safety_resolution(
+                    question=current_question,
+                    resolution=resolution,
+                ):
+                    self._remember_cleared_safety_clarification(
+                        conversation_state=conversation_state,
+                        question=current_question,
+                        medical_case=medical_case,
+                    )
+                    trace_notes.append("safety_clarification:cleared_state_persisted")
                 conversation_state.active_question = None
 
         case_input = None
@@ -360,22 +376,29 @@ class TurnEngine:
             )
             trace_notes.extend(case_safety.trace_notes)
             if case_safety.requires_safety_clarification:
-                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                    safety_state=case_safety
-                )
-                conversation_state.phase = "followup"
-                return self._ask_existing_question(
-                    response_input=turn_input,
-                    medical_case=medical_case,
+                if self._is_cleared_safety_state(
                     conversation_state=conversation_state,
-                    recommendation_state=recommendation_state,
-                    symptom_input_draft=symptom_input_draft,
-                    current_turn_understanding=current_turn_understanding,
-                    trace_notes=trace_notes,
-                    active_question=conversation_state.active_question,
-                    extra_trace_notes=["turn:case_safety_clarification_selected"],
-                    turn_interpretation=turn_interpretation,
-                )
+                    safety_state=case_safety,
+                    medical_case=medical_case,
+                ):
+                    trace_notes.append("safety_clarification:case_candidate_already_cleared")
+                else:
+                    conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                        safety_state=case_safety
+                    )
+                    conversation_state.phase = "followup"
+                    return self._ask_existing_question(
+                        response_input=turn_input,
+                        medical_case=medical_case,
+                        conversation_state=conversation_state,
+                        recommendation_state=recommendation_state,
+                        symptom_input_draft=symptom_input_draft,
+                        current_turn_understanding=current_turn_understanding,
+                        trace_notes=trace_notes,
+                        active_question=conversation_state.active_question,
+                        extra_trace_notes=["turn:case_safety_clarification_selected"],
+                        turn_interpretation=turn_interpretation,
+                    )
 
         if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
             decision = TurnDecision(
@@ -400,22 +423,29 @@ class TurnEngine:
             conversation_state.active_question is None
             or conversation_state.active_question.kind != "safety_clarification"
         ):
-            conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                safety_state=raw_safety
-            )
-            conversation_state.phase = "followup"
-            return self._ask_existing_question(
-                response_input=turn_input,
-                medical_case=medical_case,
+            if self._is_cleared_safety_state(
                 conversation_state=conversation_state,
-                recommendation_state=recommendation_state,
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes,
-                active_question=conversation_state.active_question,
-                extra_trace_notes=["turn:safety_clarification_opened"],
-                turn_interpretation=turn_interpretation,
-            )
+                safety_state=raw_safety,
+                medical_case=medical_case,
+            ):
+                trace_notes.append("safety_clarification:raw_candidate_already_cleared")
+            else:
+                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                    safety_state=raw_safety
+                )
+                conversation_state.phase = "followup"
+                return self._ask_existing_question(
+                    response_input=turn_input,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes,
+                    active_question=conversation_state.active_question,
+                    extra_trace_notes=["turn:safety_clarification_opened"],
+                    turn_interpretation=turn_interpretation,
+                )
 
         conversation_state.followup_needs = self.followup_need_builder.build(
             medical_case=medical_case,
@@ -585,6 +615,163 @@ class TurnEngine:
             draft=symptom_input_draft,
             medical_case=medical_case,
         )
+
+    def _remember_cleared_safety_clarification(
+        self,
+        *,
+        conversation_state: ConversationState,
+        question: ActiveQuestion,
+        medical_case: MedicalCase,
+    ) -> None:
+        safety_key = self._safety_key_from_question(
+            question=question,
+            medical_case=medical_case,
+        )
+        if safety_key is None:
+            return
+
+        question_code = (
+            question.safety_context.question_code
+            if question.safety_context is not None
+            else (question.safety_question_code or "safety_clarification")
+        )
+        conversation_state.cleared_safety_clarifications = [
+            entry
+            for entry in conversation_state.cleared_safety_clarifications
+            if entry.safety_key != safety_key
+        ]
+        conversation_state.cleared_safety_clarifications.append(
+            ClearedSafetyClarification(
+                safety_key=safety_key,
+                question_code=question_code,
+            )
+        )
+
+    @staticmethod
+    def _is_cleared_safety_resolution(*, question: ActiveQuestion, resolution) -> bool:
+        if question.kind != "safety_clarification" or not resolution.clear_active_question:
+            return False
+        return resolution.status == "cleared_red_flag" or resolution.answer_kind == "negated"
+
+    def _is_cleared_safety_state(
+        self,
+        *,
+        conversation_state: ConversationState,
+        safety_state,
+        medical_case: MedicalCase,
+    ) -> bool:
+        if not safety_state.requires_safety_clarification:
+            return False
+
+        safety_key = self._safety_key_from_state(
+            safety_state=safety_state,
+            medical_case=medical_case,
+        )
+        if safety_key is None:
+            return False
+
+        return any(
+            entry.safety_key == safety_key and entry.status == "cleared"
+            for entry in conversation_state.cleared_safety_clarifications
+        )
+
+    def _safety_key_from_question(
+        self,
+        *,
+        question: ActiveQuestion,
+        medical_case: MedicalCase,
+    ) -> str | None:
+        if question.kind != "safety_clarification":
+            return None
+
+        source_stage = (
+            question.safety_context.source_stage
+            if question.safety_context is not None
+            else self._source_stage_from_question_code(question.safety_question_code)
+        )
+        question_code = (
+            question.safety_context.question_code
+            if question.safety_context is not None
+            else (question.safety_question_code or "safety_clarification")
+        )
+        evidence_terms = (
+            question.safety_context.evidence_terms
+            if question.safety_context is not None
+            else question.safety_evidence_terms
+        )
+        return self._build_safety_key(
+            source_stage=source_stage,
+            question_code=question_code,
+            evidence_terms=evidence_terms,
+            medical_case=medical_case,
+        )
+
+    def _safety_key_from_state(
+        self,
+        *,
+        safety_state,
+        medical_case: MedicalCase,
+    ) -> str | None:
+        question_code = safety_state.clarification_question_code or "safety_clarification"
+        return self._build_safety_key(
+            source_stage=self._source_stage_from_checked_sources(safety_state.checked_sources),
+            question_code=question_code,
+            evidence_terms=safety_state.evidence_terms,
+            medical_case=medical_case,
+        )
+
+    def _build_safety_key(
+        self,
+        *,
+        source_stage: str,
+        question_code: str,
+        evidence_terms: list[str],
+        medical_case: MedicalCase,
+    ) -> str:
+        evidence_signature = ",".join(self._normalize_safety_terms(evidence_terms)) or "-"
+        case_signature = ",".join(self._active_case_signature(medical_case)) or "-"
+        return f"{source_stage}|{question_code}|{evidence_signature}|{case_signature}"
+
+    @staticmethod
+    def _normalize_safety_terms(evidence_terms: list[str]) -> list[str]:
+        normalized = {
+            " ".join(term.strip().casefold().split())
+            for term in evidence_terms
+            if term and term.strip()
+        }
+        return sorted(normalized)
+
+    @staticmethod
+    def _source_stage_from_checked_sources(checked_sources: list[str]) -> str:
+        if "raw_message" in checked_sources:
+            return "raw_message"
+        if "medical_case_observations" in checked_sources:
+            return "case_slice"
+        return "structured_claim"
+
+    @staticmethod
+    def _source_stage_from_question_code(question_code: str | None) -> str:
+        if question_code == "raw_red_flag_clarification":
+            return "raw_message"
+        if question_code == "case_safety_clarification":
+            return "case_slice"
+        return "structured_claim"
+
+    @staticmethod
+    def _active_case_signature(medical_case: MedicalCase) -> list[str]:
+        signature: set[str] = set()
+        for observation in medical_case.observations:
+            if observation.type != "symptom" or observation.is_negated():
+                continue
+            if observation.normalized_label_de and observation.normalized_label_de.strip():
+                signature.add(
+                    "lay:" + " ".join(observation.normalized_label_de.strip().casefold().split())
+                )
+            if observation.clinical_term_de and observation.clinical_term_de.strip():
+                signature.add(
+                    "clinical:" + " ".join(observation.clinical_term_de.strip().casefold().split())
+                )
+        return sorted(signature)
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
         medical_case = request_input.persisted_medical_case or MedicalCase()

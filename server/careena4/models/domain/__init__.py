@@ -1,5 +1,11 @@
 from careena4.models.domain.case import MedicalCase
-from careena4.models.domain.dialogue import ActiveQuestion, ConversationState, FollowupNeed, SafetyQuestionContext
+from careena4.models.domain.dialogue import (
+    ActiveQuestion,
+    ClearedSafetyClarification,
+    ConversationState,
+    FollowupNeed,
+    SafetyQuestionContext,
+)
 from careena4.models.domain.guided_input import (
     GuidedInputContract,
     GuidedInputMode,
@@ -14,6 +20,7 @@ from careena4.models.domain.topic import Topic
 
 __all__ = [
     "ActiveQuestion",
+    "ClearedSafetyClarification",
     "ConversationState",
     "FollowupNeed",
     "GuidedInputContract",

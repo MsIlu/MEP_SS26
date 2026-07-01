@@ -43,9 +43,15 @@ void main() {
       expect(controller.messages.value, isEmpty);
     });
 
-    test('warms up LLM status before the first availability check', () async {
+    testWidgets('warms up LLM status and rechecks availability', (
+      tester,
+    ) async {
       final authSession = AuthSession();
-      final chatApi = _FakeChatApi();
+      final chatApi = _FakeChatApi()
+        ..availabilityResponses = [
+          CareenaAvailability.online,
+          CareenaAvailability.offline,
+        ];
       final controller = ChatController(
         chatApi: chatApi,
         chatService: ChatService(),
@@ -64,6 +70,15 @@ void main() {
         'getCareenaAvailability',
         'getInputDraftSymptoms',
       ]);
+      expect(controller.availability.value, CareenaAvailability.online);
+
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pump();
+
+      expect(chatApi.availabilityRequests, 2);
+      expect(controller.availability.value, CareenaAvailability.offline);
+
+      controller.dispose();
     });
 
     test(
@@ -967,6 +982,7 @@ class _FakeChatApi extends ChatApi {
   List<String> symptoms = [];
   Completer<ChatResponse>? responseCompleter;
   CareenaAvailability nextAvailability = CareenaAvailability.online;
+  List<CareenaAvailability> availabilityResponses = [];
   int availabilityRequests = 0;
   bool throwOnSend = false;
   ApiException? sendError;
@@ -994,6 +1010,9 @@ class _FakeChatApi extends ChatApi {
   Future<CareenaAvailability> getCareenaAvailability() async {
     availabilityRequests += 1;
     operationLog.add('getCareenaAvailability');
+    if (availabilityResponses.isNotEmpty) {
+      return availabilityResponses.removeAt(0);
+    }
     return nextAvailability;
   }
 

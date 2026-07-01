@@ -4,6 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('defaults to checking availability instead of online', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(appBar: ChatAppBar(onBackPressed: () {})),
+      ),
+    );
+
+    expect(find.text('Careena'), findsOneWidget);
+    expect(find.text('prüft...'), findsOneWidget);
+    expect(find.byTooltip('Careena prüft die Verbindung.'), findsOneWidget);
+  });
+
   testWidgets('shows limited availability with explanatory tooltip', (
     tester,
   ) async {

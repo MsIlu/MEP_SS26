@@ -14,11 +14,6 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   final bool alreadySearched;
   final Future<void> Function()? onSearched;
 
-  /// Profile resolved by the backend session. Null means the session was not
-  /// profile-bound — the button will block with an info dialog instead of
-  /// silently associating the appointment with the app's active profile.
-  final int? profileId;
-
   const CreateRecommendedAppointmentButton({
     super.key,
     required this.title,
@@ -26,7 +21,6 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     this.sessionId,
     this.alreadySearched = false,
     this.onSearched,
-    this.profileId,
   });
 
   @override
@@ -79,7 +73,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   }
 
   Future<bool> _handlePressed(BuildContext context) async {
-    final profileId = this.profileId;
+    final profileId = authSession?.activeProfileId;
 
     if (profileId == null) {
       await _showInfoDialog(

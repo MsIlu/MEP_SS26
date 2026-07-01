@@ -354,21 +354,9 @@ def test_turn_engine_updates_symptom_input_draft_from_single_call_turn_interpret
     assert "symptom_input_draft:updated_from_understanding" in result.trace_notes
 
 
-def test_turn_engine_resolves_safety_guided_answer_deterministically_ignoring_interpreter():
-    """
-    Safety clarification answers must always be resolved by the deterministic
-    question_resolver, never by the LLM interpreter.
-
-    Previously the engine routed safety answers through the interpreter and only
-    fell back to the resolver when question_resolution was None.  An interpreter
-    that returned status="resolved" (instead of "confirmed_red_flag") would set
-    resolved_safety_clarification=True and continue to followup questions, silently
-    skipping the emergency path.  The test verifies the fixed behaviour:
-    question_resolver is called regardless of what the interpreter returns.
-    """
+def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpreter_without_followup_fallback():
     class _FakeExtractionEngine:
         def extract(self, **kwargs):
-            # Simulates an LLM that misclassifies the safety answer
             return kwargs["output_schema"].model_validate(
                 {
                     "entry_assessment": {
@@ -378,23 +366,19 @@ def test_turn_engine_resolves_safety_guided_answer_deterministically_ignoring_in
                         "contains_new_medical_information": False,
                         "message_kind": "question_answer",
                     },
-                    "question_resolution": {
-                        "status": "resolved",
-                        "answer_kind": "resolved",
-                        "clear_active_question": True,
-                        "resolved_followup_id": None,
-                        "person_update": None,
-                        "observation_patch": None,
-                        "additional_medical_information": False,
-                        "extra_case_input": None,
-                        "next_question_text": None,
+                    "question_resolution": None,
+                    "case_input": None,
+                    "current_turn_understanding": {
+                        "symptoms": [],
                         "trace_notes": [],
                     },
-                    "case_input": None,
-                    "current_turn_understanding": {"symptoms": [], "trace_notes": []},
                     "trace_notes": [],
                 }
             )
+
+    class _FailingResolver:
+        def resolve(self, **_kwargs):
+            raise AssertionError("legacy followup resolver should not be used")
 
     safety_question = SafetyClarificationBuilder().build_active_question(
         safety_state=SafetyState(
@@ -406,9 +390,9 @@ def test_turn_engine_resolves_safety_guided_answer_deterministically_ignoring_in
         )
     )
     conversation_state = ConversationState(active_question=safety_question, phase="followup")
-    # "Nein" matches the option label exactly → fast path, interpreter not called
     engine = TurnEngine(
         turn_interpreter=TurnInterpreter(extraction_engine=_FakeExtractionEngine()),
+        question_resolver=_FailingResolver(),
     )
 
     result = engine.run_turn(
@@ -418,11 +402,9 @@ def test_turn_engine_resolves_safety_guided_answer_deterministically_ignoring_in
         )
     )
 
-    # "Nein" clears the safety question without triggering emergency
     assert result.conversation_state.active_question is None
-    assert result.response_mode != "emergency"
-    # Exact label match → fast path; interpreter LLM was never consulted
-    assert "turn:guided_input_fast_path" in result.trace_notes
+    assert "followup:fallback_resolution_used" not in result.trace_notes
+    assert "turn_interpretation:guided_safety_resolution_applied" in result.trace_notes
 
 
 def test_turn_engine_marks_split_fallbacks_when_turn_interpreter_is_missing():

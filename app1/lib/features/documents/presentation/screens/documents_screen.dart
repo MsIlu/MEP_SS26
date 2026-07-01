@@ -283,6 +283,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       }
     }
 
+    if (!context.mounted) return;
+
     final fileBytes = documentWithFile.fileBytes;
 
     if (fileBytes != null && documentWithFile.mimeType == 'application/pdf') {

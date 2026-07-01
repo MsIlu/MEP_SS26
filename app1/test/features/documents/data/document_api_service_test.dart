@@ -10,7 +10,7 @@ import 'package:http/testing.dart';
 
 void main() {
   group('DocumentApiService', () {
-    test('getDocuments parses document list and sends auth header', () async {
+    test('getDocuments parses metadata list and sends auth header', () async {
       String? authorizationHeader;
 
       final mockHttpClient = MockClient((request) async {
@@ -20,7 +20,7 @@ void main() {
         authorizationHeader = request.headers['Authorization'];
 
         return http.Response(
-          jsonEncode([_apiDocumentJson()]),
+          jsonEncode([_apiDocumentMetadataJson()]),
           200,
           headers: {'content-type': 'application/json'},
         );
@@ -37,7 +37,41 @@ void main() {
       expect(documents.first.id, '42');
       expect(documents.first.profileId, 10);
       expect(documents.first.category, DocumentCategory.findings);
-      expect(documents.first.fileBytes, Uint8List.fromList([1, 2, 3]));
+      expect(documents.first.fileBytes, isNull);
+    });
+
+    test('getDocument parses full document with file data', () async {
+      final mockHttpClient = MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, contains('/profiles/10/documents/42'));
+
+        return http.Response(
+          jsonEncode(_apiDocumentJson()),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final service = DocumentApiService(ApiClient(mockHttpClient));
+      final document = await service.getDocument(10, '42');
+
+      expect(document.id, '42');
+      expect(document.profileId, 10);
+      expect(document.fileBytes, Uint8List.fromList([1, 2, 3]));
+    });
+
+    test('metadata without file data keeps file bytes empty', () {
+      final document = DocumentEntry.fromApiJson(_apiDocumentJson()
+        ..remove('file_data_base64'));
+
+      expect(document.fileBytes, isNull);
+      expect(document.mimeType, 'application/pdf');
+    });
+
+    test('document with file data decodes bytes', () {
+      final document = DocumentEntry.fromApiJson(_apiDocumentJson());
+
+      expect(document.fileBytes, Uint8List.fromList([1, 2, 3]));
     });
 
     test('createDocument sends FastAPI document JSON', () async {
@@ -120,4 +154,8 @@ Map<String, dynamic> _apiDocumentJson({int id = 42}) {
     'created_at': '2026-06-23T10:00:00',
     'updated_at': '2026-06-23T10:00:00',
   };
+}
+
+Map<String, dynamic> _apiDocumentMetadataJson({int id = 42}) {
+  return _apiDocumentJson(id: id)..remove('file_data_base64');
 }

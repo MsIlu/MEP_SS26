@@ -44,6 +44,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     _controller = DocumentController(
       profileId: widget.authSession?.activeProfileId,
     );
+    widget.authSession?.addListener(_handleAuthSessionChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -57,6 +58,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
   @override
   void dispose() {
+    widget.authSession?.removeListener(_handleAuthSessionChanged);
     _searchController.dispose();
     _controller.dispose();
     super.dispose();
@@ -268,28 +270,41 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   Future<void> _showDocumentDetails(DocumentEntry document) async {
-    final fileBytes = document.fileBytes;
+    DocumentEntry documentWithFile = document;
 
-    if (fileBytes != null && document.mimeType == 'application/pdf') {
+    if (documentWithFile.fileBytes == null) {
+      try {
+        documentWithFile = await _controller.loadDocumentFile(document);
+      } catch (_) {
+        if (mounted) {
+          _showMessage('Dokument konnte nicht geladen werden.');
+        }
+        return;
+      }
+    }
+
+    final fileBytes = documentWithFile.fileBytes;
+
+    if (fileBytes != null && documentWithFile.mimeType == 'application/pdf') {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => DocumentPreviewScreen(
-            documentName: document.name,
+            documentName: documentWithFile.name,
             fileBytes: fileBytes,
           ),
         ),
       );
       return;
     }
-    if (fileBytes != null && document.mimeType.startsWith('image/')) {
+    if (fileBytes != null && documentWithFile.mimeType.startsWith('image/')) {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ImagePreviewScreen(
-            documentName: document.name,
+            documentName: documentWithFile.name,
             fileBytes: fileBytes,
-            mimeType: document.mimeType,
+            mimeType: documentWithFile.mimeType,
           ),
         ),
       );
@@ -305,7 +320,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           size: 36,
         ),
         title: Text(
-          document.name,
+          documentWithFile.name,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         content: ConstrainedBox(
@@ -314,10 +329,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _DetailRow(label: 'Kategorie', value: document.category.label),
+              _DetailRow(
+                label: 'Kategorie',
+                value: documentWithFile.category.label,
+              ),
               _DetailRow(
                 label: 'Quelle',
-                value: document.source == DocumentSource.careena
+                value: documentWithFile.source == DocumentSource.careena
                     ? 'Careena'
                     : 'Hochgeladen',
               ),
@@ -410,6 +428,16 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     if (profileId == null) return;
 
     await _controller.loadProfileDocuments(profileId);
+  }
+
+  Future<void> _handleAuthSessionChanged() async {
+    if (!mounted) return;
+
+    final activeProfileId = widget.authSession?.activeProfileId;
+    await _controller.syncActiveProfile(activeProfileId);
+
+    if (!mounted) return;
+    DocumentRepository.instance.markAllAsSeen(activeProfileId);
   }
 }
 

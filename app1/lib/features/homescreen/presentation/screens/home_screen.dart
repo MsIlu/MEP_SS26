@@ -154,6 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : AppColors.headerBackgroundLight,
               appBar: CareenaPageHeader(
                 title: _welcomeTitle,
+                compactTitle: 'Willkommen!',
                 showBack: false,
                 leading: CareenaHeaderAction(
                   tooltip: 'App-Guide testen',

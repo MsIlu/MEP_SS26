@@ -42,4 +42,36 @@ void main() {
     expect(appBar.backgroundColor, AppColors.headerBackgroundLight);
     expect(find.byType(Divider), findsNothing);
   });
+
+  testWidgets('uses compact title when full title does not fit', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: CareenaPageHeader(
+            title: 'Willkommen Alexanderthegreat!',
+            compactTitle: 'Willkommen!',
+            showBack: false,
+            leading: CareenaHeaderAction(
+              tooltip: 'Guide',
+              icon: Icons.help_outline,
+              onPressed: () {},
+            ),
+            trailing: CareenaHeaderAction(
+              tooltip: 'Profil',
+              icon: Icons.person_outline,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Willkommen Alexanderthegreat!'), findsNothing);
+    expect(find.text('Willkommen!'), findsOneWidget);
+  });
 }

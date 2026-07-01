@@ -152,4 +152,35 @@ void main() {
     expect(document.fileBytes, Uint8List.fromList([1, 2, 3]));
     expect(document.mimeType, 'application/pdf');
   });
+
+  test('syncActiveProfile switches visible documents to the new profile', () async {
+    await repository.addDocument(
+      createDocument(id: '1', profileId: 10, name: 'Mutter Befund.pdf'),
+    );
+    await repository.addDocument(
+      createDocument(id: '2', profileId: 20, name: 'Kind Befund.pdf'),
+    );
+
+    await controller.syncActiveProfile(20);
+
+    expect(controller.selectedProfileId, 20);
+    expect(controller.isShowingAllProfiles, isFalse);
+    expect(controller.documents, hasLength(1));
+    expect(controller.documents.first.name, 'Kind Befund.pdf');
+  });
+
+  test('rejects upload when no active profile is selected', () async {
+    final controllerWithoutProfile = DocumentController(repository: repository);
+    addTearDown(controllerWithoutProfile.dispose);
+
+    await expectLater(
+      controllerWithoutProfile.addDocument(
+        name: 'Neuer Befund.pdf',
+        category: DocumentCategory.findings,
+        fileBytes: Uint8List.fromList([1, 2, 3]),
+        mimeType: 'application/pdf',
+      ),
+      throwsStateError,
+    );
+  });
 }

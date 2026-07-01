@@ -189,4 +189,28 @@ void main() {
     expect(find.text('Blutwerte.pdf'), findsOneWidget);
     expect(find.text('Hausarzt Befund.pdf'), findsNothing);
   });
+
+  testWidgets('uses the new active profile after a profile switch', (
+    tester,
+  ) async {
+    await repository.addDocument(
+      createDocument(id: '1', profileId: 10, name: 'Mutter Befund.pdf'),
+    );
+    await repository.addDocument(
+      createDocument(id: '2', profileId: 20, name: 'Kind Befund.pdf'),
+    );
+
+    final session = createSession(activeProfileId: 10);
+
+    await pumpDocumentsScreen(tester, session);
+
+    expect(find.text('Mutter Befund.pdf'), findsOneWidget);
+    expect(find.text('Kind Befund.pdf'), findsNothing);
+
+    session.setActiveProfileById(20);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter Befund.pdf'), findsNothing);
+    expect(find.text('Kind Befund.pdf'), findsOneWidget);
+  });
 }

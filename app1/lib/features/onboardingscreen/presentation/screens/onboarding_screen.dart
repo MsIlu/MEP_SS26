@@ -71,14 +71,7 @@ class OnboardingScreen extends StatelessWidget {
       backgroundColor: isDarkMode
           ? Theme.of(context).scaffoldBackgroundColor
           : AppColors.onboardingBackgroundLight,
-      appBar: CareenaPageHeader(
-        title: 'MedBitAid',
-        showBack: false,
-        trailing: CareenaThemeHeaderAction(
-          onPressed: themeController.toggleTheme,
-          isDarkMode: themeController.isDarkMode,
-        ),
-      ),
+      appBar: CareenaPageHeader(title: 'MedBitAid', showBack: false),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: screenWidth >= 1100 ? 1040 : (useDesktopLayout ? 900 : 490),

@@ -12,6 +12,7 @@ void main() {
 
   setUp(() {
     repository = DocumentRepository.instance;
+    repository.configure(apiService: null);
     repository.documents.value = [];
     repository.unreadCounts.value = {};
   });
@@ -28,10 +29,7 @@ void main() {
       const AuthResponse(
         accessToken: 'test-token',
         tokenType: 'bearer',
-        account: Account(
-          id: 1,
-          email: 'mutter@example.com',
-        ),
+        account: Account(id: 1, email: 'mutter@example.com'),
         profiles: [
           AuthProfile(
             id: 10,
@@ -81,9 +79,7 @@ void main() {
     });
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: DocumentsScreen(authSession: session),
-      ),
+      MaterialApp(home: DocumentsScreen(authSession: session)),
     );
 
     await tester.pumpAndSettle();
@@ -94,7 +90,7 @@ void main() {
 
     await pumpDocumentsScreen(tester, session);
 
-    expect(find.text('Noch keine Dokumente'), findsOneWidget);
+    expect(find.text('Noch keine Dokumente vorhanden'), findsOneWidget);
     expect(find.text('Deine Dokumente'), findsOneWidget);
   });
 
@@ -118,23 +114,15 @@ void main() {
     expect(find.text('Kind'), findsNothing);
   });
 
-  testWidgets('all profiles shows documents from mother and child', (
+  testWidgets('all profiles groups documents by collapsible profile sections', (
     tester,
   ) async {
-    repository.addDocument(
-      createDocument(
-        id: '1',
-        profileId: 10,
-        name: 'Mutter Befund.pdf',
-      ),
+    await repository.addDocument(
+      createDocument(id: '1', profileId: 10, name: 'Mutter Befund.pdf'),
     );
 
-    repository.addDocument(
-      createDocument(
-        id: '2',
-        profileId: 20,
-        name: 'Kind Befund.pdf',
-      ),
+    await repository.addDocument(
+      createDocument(id: '2', profileId: 20, name: 'Kind Befund.pdf'),
     );
 
     final session = createSession(activeProfileId: 10);
@@ -147,7 +135,15 @@ void main() {
     await tester.tap(find.text('Alle Profile'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Hauptprofil'), findsOneWidget);
+    expect(find.text('Kind'), findsWidgets);
     expect(find.text('Mutter Befund.pdf'), findsOneWidget);
+    expect(find.text('Kind Befund.pdf'), findsOneWidget);
+
+    await tester.tap(find.text('Hauptprofil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter Befund.pdf'), findsNothing);
     expect(find.text('Kind Befund.pdf'), findsOneWidget);
   });
 
@@ -167,20 +163,12 @@ void main() {
   });
 
   testWidgets('search filters visible documents', (tester) async {
-    repository.addDocument(
-      createDocument(
-        id: '1',
-        profileId: 10,
-        name: 'Blutwerte.pdf',
-      ),
+    await repository.addDocument(
+      createDocument(id: '1', profileId: 10, name: 'Blutwerte.pdf'),
     );
 
-    repository.addDocument(
-      createDocument(
-        id: '2',
-        profileId: 10,
-        name: 'Hausarzt Befund.pdf',
-      ),
+    await repository.addDocument(
+      createDocument(id: '2', profileId: 10, name: 'Hausarzt Befund.pdf'),
     );
 
     final session = createSession();
@@ -200,5 +188,29 @@ void main() {
 
     expect(find.text('Blutwerte.pdf'), findsOneWidget);
     expect(find.text('Hausarzt Befund.pdf'), findsNothing);
+  });
+
+  testWidgets('uses the new active profile after a profile switch', (
+    tester,
+  ) async {
+    await repository.addDocument(
+      createDocument(id: '1', profileId: 10, name: 'Mutter Befund.pdf'),
+    );
+    await repository.addDocument(
+      createDocument(id: '2', profileId: 20, name: 'Kind Befund.pdf'),
+    );
+
+    final session = createSession(activeProfileId: 10);
+
+    await pumpDocumentsScreen(tester, session);
+
+    expect(find.text('Mutter Befund.pdf'), findsOneWidget);
+    expect(find.text('Kind Befund.pdf'), findsNothing);
+
+    session.setActiveProfileById(20);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter Befund.pdf'), findsNothing);
+    expect(find.text('Kind Befund.pdf'), findsOneWidget);
   });
 }

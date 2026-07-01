@@ -1,4 +1,5 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
 import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
 import 'package:app1/features/calendar_overview/presentation/utils/calendar_overview_date_utils.dart';
 import 'package:app1/features/medication_plan/data/medication_entry.dart';
@@ -30,28 +31,25 @@ class CalendarDayOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasAnyItems =
-        appointments.isNotEmpty || symptoms.isNotEmpty || medications.isNotEmpty;
+        appointments.isNotEmpty ||
+        symptoms.isNotEmpty ||
+        medications.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           calendarDateLabel(date),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         if (!hasAnyItems)
-          const CalendarInfoCard(
+          const CareenaEmptyState(
             icon: Icons.event_available_outlined,
-            title: 'Keine Einträge',
-            lines: [
-              CalendarInfoLine(
-                text: 'Für diesen Tag sind keine Einträge vorhanden.',
-                onTap: noopCalendarAction,
-              ),
-            ],
+            title: 'Keine Einträge vorhanden',
+            message: 'Für diesen Tag sind noch keine Einträge vorhanden.',
           )
         else ...[
           CalendarInfoCard(
@@ -151,7 +149,9 @@ class _CalendarInfoCardState extends State<CalendarInfoCard> {
                           Expanded(
                             child: Text(
                               widget.title,
-                              style: const TextStyle(fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                           Icon(

@@ -1,4 +1,5 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/symptom_entry.dart';
@@ -70,33 +71,12 @@ class _EmptySymptomState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      label: 'Noch keine Symptome für diesen Tag eingetragen.',
-      child: ExcludeSemantics(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.careenaBorder),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                color: AppColors.careenaTeal,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Noch keine Symptome für diesen Tag eingetragen.',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+      label: 'Noch keine Einträge vorhanden.',
+      child: const ExcludeSemantics(
+        child: CareenaEmptyState(
+          icon: Icons.check_circle_outline,
+          title: 'Noch keine Einträge vorhanden',
+          message: 'Trage deinen ersten Eintrag über das Plus "+" hinzu.',
         ),
       ),
     );
@@ -328,31 +308,25 @@ class _SymptomEntryTile extends StatelessWidget {
     if (text.contains('müd') || text.contains('schlaf')) {
       return Icons.bedtime_outlined;
     }
-
     if (text.contains('übel') ||
         text.contains('magen') ||
         text.contains('bauch')) {
       return Icons.sick_outlined;
     }
-
     if (text.contains('schwindel')) {
       return Icons.blur_circular_outlined;
     }
-
     if (text.contains('husten') || text.contains('brust')) {
       return Icons.air_outlined;
     }
-
     if (text.contains('fieber')) {
       return Icons.thermostat_outlined;
     }
-
     if (text.contains('arm') ||
         text.contains('bein') ||
         text.contains('rücken')) {
       return Icons.accessibility_new;
     }
-
     if (text.contains('schmerz') ||
         text.contains('weh') ||
         text.contains('stech') ||

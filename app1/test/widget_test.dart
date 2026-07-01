@@ -23,6 +23,7 @@ void main() {
   // Test case references: documents/Testfaelle_Frontend.md#t11-app-smoke-warning-flow
   late ChatController chatController;
   late ThemeController themeController;
+  late bool chatControllerDisposed;
 
   setUp(() {
     chatController = ChatController(
@@ -32,11 +33,14 @@ void main() {
       chatHistoryRepository: _FakeChatHistoryRepository(),
     );
     themeController = ThemeController();
-  });
+    chatControllerDisposed = false;
 
-  tearDown(() {
-    chatController.dispose();
-    themeController.dispose();
+    addTearDown(() {
+      if (!chatControllerDisposed) {
+        chatController.dispose();
+      }
+    });
+    addTearDown(themeController.dispose);
   });
 
   testWidgets('Home screen renders the authenticated entry point', (
@@ -77,6 +81,8 @@ void main() {
     final authSession = AuthSession();
 
     final dependencies = AppDependencies(authSession: authSession);
+    addTearDown(dependencies.dispose);
+    addTearDown(authSession.dispose);
 
     await tester.pumpWidget(
       AppDependenciesScope(
@@ -94,6 +100,10 @@ void main() {
     expect(find.byType(ChatScreen), findsOneWidget);
     expect(find.text('Careena'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    chatController.dispose();
+    chatControllerDisposed = true;
   });
 
   testWidgets('red flag response replaces chat with warning page', (
@@ -113,9 +123,14 @@ void main() {
       authSession: authSession,
       chatHistoryRepository: _FakeChatHistoryRepository(),
     );
+    var redFlagControllerDisposed = false;
 
     addTearDown(dependencies.dispose);
-    addTearDown(redFlagController.dispose);
+    addTearDown(() {
+      if (!redFlagControllerDisposed) {
+        redFlagController.dispose();
+      }
+    });
     addTearDown(authSession.dispose);
 
     await tester.pumpWidget(
@@ -137,6 +152,10 @@ void main() {
 
     expect(find.byType(WarningPage), findsOneWidget);
     expect(find.byType(ChatScreen), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    redFlagController.dispose();
+    redFlagControllerDisposed = true;
   });
 
   testWidgets('Warning page shows emergency action', (

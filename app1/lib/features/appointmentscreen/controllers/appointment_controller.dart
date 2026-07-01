@@ -21,6 +21,10 @@ class AppointmentController {
         .toList();
   }
 
+  void clear() {
+    appointments.value = [];
+  }
+
   void dispose() {
     // Shared in-memory appointment state is reused across screens.
   }
@@ -71,14 +75,19 @@ class AppointmentController {
     return true;
   }
 
-  void upsertRecommendedAppointments(List<Appointment> remoteAppointments) {
-    if (remoteAppointments.isEmpty) {
-      return;
-    }
-
+  void upsertRecommendedAppointments(
+    List<Appointment> remoteAppointments, {
+    int? profileId,
+  }) {
     final preservedAppointments = appointments.value.where((appointment) {
       if (!appointment.isRecommendation) {
         return true;
+      }
+
+      if (profileId != null &&
+          appointment.profileId == profileId &&
+          appointment.backendId != null) {
+        return false;
       }
 
       return !remoteAppointments.any(
@@ -119,10 +128,7 @@ class AppointmentController {
     return result;
   }
 
-  bool _isSameRecommendedAppointment(
-    Appointment first,
-    Appointment second,
-  ) {
+  bool _isSameRecommendedAppointment(Appointment first, Appointment second) {
     if (!first.isRecommendation || !second.isRecommendation) {
       return false;
     }

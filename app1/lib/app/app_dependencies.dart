@@ -11,6 +11,7 @@ import '../features/chatscreen/services/symptom_draft_service.dart';
 import '../features/documents/data/document_api_service.dart';
 import '../features/documents/data/document_repository.dart';
 import '../features/appointmentscreen/data/appointment_api_service.dart';
+import '../features/appointmentscreen/controllers/appointment_controller.dart';
 import '../features/authscreen/data/auth_api_service.dart';
 import '../features/authscreen/state/auth_session.dart';
 import '../features/symptom_diary/data/symptom_api_service.dart';
@@ -72,6 +73,7 @@ class AppDependencies {
     if (accessToken == null) {
       apiClient.clearAccessToken();
       DocumentRepository.instance.clear();
+      AppointmentController().clear();
       return;
     }
 

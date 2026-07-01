@@ -49,7 +49,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   bool showAllProfiles = false;
   String selectedFilter = 'Alle';
-  final Set<int> _loadedRemoteProfileIds = {};
   final Set<int> _loadingRemoteProfileIds = {};
   AuthSession? _observedAuthSession;
   int? _lastActiveProfileId;
@@ -168,8 +167,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       return;
     }
 
-    if (_loadedRemoteProfileIds.contains(profileId) ||
-        _loadingRemoteProfileIds.contains(profileId)) {
+    if (_loadingRemoteProfileIds.contains(profileId)) {
       return;
     }
 
@@ -178,8 +176,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     try {
       final appointments = await dependencies.appointmentApiService
           .getRecommendedAppointments(profileId: profileId);
-      controller.upsertRecommendedAppointments(appointments);
-      _loadedRemoteProfileIds.add(profileId);
+      controller.upsertRecommendedAppointments(
+        appointments,
+        profileId: profileId,
+      );
     } catch (_) {
       // Loading DB-backed appointment recommendations is best-effort.
     } finally {

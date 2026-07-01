@@ -64,7 +64,6 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   bool _isLoading = true;
   late int? _selectedProfileId;
   bool _showAllProfiles = false;
-  final Set<int> _loadedRemoteAppointmentProfileIds = {};
   final Set<int> _loadingRemoteAppointmentProfileIds = {};
   AuthSession? _observedAuthSession;
   int? _lastActiveProfileId;
@@ -354,7 +353,8 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
       MaterialPageRoute(
         builder: (context) => AppointmentScreen(
           themeController: themeController,
-          authSession: widget.authSession ??
+          authSession:
+              widget.authSession ??
               AppDependenciesScope.maybeOf(context)?.authSession,
           initialAppointmentId: appointment.id,
         ),
@@ -411,7 +411,9 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     final apiClient = widget.apiClient ?? dependencies?.apiClient;
     final authSession = _currentAuthSession();
 
-    if (apiClient == null || authSession == null || !authSession.isAuthenticated) {
+    if (apiClient == null ||
+        authSession == null ||
+        !authSession.isAuthenticated) {
       return _medicationRepository.loadEntries();
     }
 
@@ -438,7 +440,9 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     final dependencies = AppDependenciesScope.maybeOf(context);
     final authSession = _currentAuthSession();
 
-    if (dependencies == null || authSession == null || !authSession.isAuthenticated) {
+    if (dependencies == null ||
+        authSession == null ||
+        !authSession.isAuthenticated) {
       return;
     }
 
@@ -460,7 +464,6 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     final dependencies = AppDependenciesScope.maybeOf(context);
 
     if (dependencies == null ||
-        _loadedRemoteAppointmentProfileIds.contains(profileId) ||
         _loadingRemoteAppointmentProfileIds.contains(profileId)) {
       return;
     }
@@ -470,8 +473,10 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
     try {
       final appointments = await dependencies.appointmentApiService
           .getRecommendedAppointments(profileId: profileId);
-      _appointmentController.upsertRecommendedAppointments(appointments);
-      _loadedRemoteAppointmentProfileIds.add(profileId);
+      _appointmentController.upsertRecommendedAppointments(
+        appointments,
+        profileId: profileId,
+      );
     } catch (_) {
       // Calendar appointments remain readable from local state if the API fails.
     } finally {
@@ -524,7 +529,8 @@ class _CalendarOverviewPageState extends State<CalendarOverviewPage> {
   void _showProfileInCalendar(int profileId) {
     final authSession = _currentAuthSession();
     final profileIsAvailable =
-        authSession?.profiles.any((profile) => profile.id == profileId) ?? false;
+        authSession?.profiles.any((profile) => profile.id == profileId) ??
+        false;
 
     if (authSession != null &&
         profileIsAvailable &&

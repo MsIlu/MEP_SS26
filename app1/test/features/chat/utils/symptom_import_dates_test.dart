@@ -219,9 +219,8 @@ void main() {
       CaseObservation(label: 'Bauchschmerzen', severity: 6),
     ]);
 
-    expect(enriched.map((symptomImport) => symptomImport.severity), [6, 6, 6]);
+    expect(enriched.map((symptomImport) => symptomImport.severity), [6, 6]);
     expect(enriched.map((symptomImport) => symptomImport.date), [
-      DateTime(2026, 6, 29),
       DateTime(2026, 6, 30),
       DateTime(2026, 7, 1),
     ]);

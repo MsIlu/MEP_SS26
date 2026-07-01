@@ -387,6 +387,35 @@ def test_project_symptom_input_draft_skips_empty_projection_for_negated_only_cas
     assert projected is None
 
 
+def test_sync_chips_to_case_writes_readable_user_label_while_deduping_by_identity():
+    engine = TurnEngine()
+    medical_case = MedicalCase()
+    draft = SymptomInputDraft(
+        chips=[
+            SymptomChip(
+                display_label_de="Kopfschmerzen",
+                normalized_label_de="kopfschmerzen",
+                status="user_edited",
+            )
+        ]
+    )
+
+    medical_case, trace = engine._sync_chips_to_case(
+        medical_case=medical_case,
+        symptom_input_draft=draft,
+    )
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=draft,
+        medical_case=medical_case,
+    )
+
+    assert len(medical_case.observations) == 1
+    assert medical_case.observations[0].normalized_label_de == "Kopfschmerzen"
+    assert trace == ["chip_sync:added:Kopfschmerzen"]
+    assert projected is not None
+    assert projected.symptom_labels() == ["Kopfschmerzen"]
+
+
 def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpreter_without_followup_fallback():
     class _FakeExtractionEngine:
         def extract(self, **kwargs):

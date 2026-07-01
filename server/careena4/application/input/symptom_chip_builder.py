@@ -136,9 +136,11 @@ class SymptomChipBuilder:
     @staticmethod
     def _identity_for_chip(chip: SymptomChip) -> str | None:
         if chip.normalized_label_de:
-            return chip.normalized_label_de.casefold().strip()
+            identity = _normalized_identity(chip.normalized_label_de)
+            return identity or None
         if chip.display_label_de:
-            return chip.display_label_de.casefold().strip()
+            identity = _normalized_identity(chip.display_label_de)
+            return identity or None
         return None
 
     @staticmethod

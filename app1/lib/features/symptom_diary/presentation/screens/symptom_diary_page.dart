@@ -8,6 +8,7 @@ import 'package:app1/core/widgets/responsive_frame.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:app1/features/profiles/data/profile_api_service.dart';
 import 'package:app1/features/symptom_diary/data/symptom_api_service.dart';
+import 'package:app1/features/symptom_diary/data/symptom_import_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
@@ -32,6 +33,10 @@ class SymptomDiaryPage extends StatefulWidget {
   final List<SymptomImport>? initialSymptoms;
   final Future<void> Function()? onInitialSymptomsSaved;
 
+  /// When set, diary entries are saved to this profile instead of the active profile.
+  /// Used when opening the diary for a non-active case subject (e.g. Paula from Tester Testi's session).
+  final int? profileId;
+
   const SymptomDiaryPage({
     super.key,
     required this.themeController,
@@ -41,6 +46,7 @@ class SymptomDiaryPage extends StatefulWidget {
     this.initialDate,
     this.initialSymptoms,
     this.onInitialSymptomsSaved,
+    this.profileId,
   });
 
   @override
@@ -68,7 +74,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
-      profileId: widget.authSession?.activeProfileId,
+      profileId: widget.profileId ?? widget.authSession?.activeProfileId,
     );
 
     _controller.loadEntries();
@@ -136,7 +142,11 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }
 
   void _handleBack() {
-    navigateToHomeFallback(context, themeController: widget.themeController);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      navigateToHomeFallback(context, themeController: widget.themeController);
+    }
   }
 
   /// Shows a confirmation dialog to import chat symptoms into the diary.
@@ -145,7 +155,9 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   /// For symptoms without severity, [SymptomEntryForm] opens so the user
   /// can set intensity and body area without re-typing the symptom name.
   Future<void> _showChatImportDialog(List<SymptomImport> imports) async {
+    final groups = groupSymptomImports(imports);
     final selected = List<bool>.filled(imports.length, true);
+    final expandedGroups = <String>{};
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -162,23 +174,43 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                     'Folgende Symptome aus deinem Chat ins Tagebuch übernehmen?',
                   ),
                   const SizedBox(height: 12),
-                  for (var i = 0; i < imports.length; i++)
-                    CheckboxListTile(
-                      value: selected[i],
-                      title: Text(imports[i].name),
-                      subtitle: Text(
-                        [
-                          if (imports[i].severity != null)
-                            'Intensität: ${imports[i].severity}/10 (aus Chat)',
-                          if (imports[i].date != null)
-                            formatSymptomDateTitle(imports[i].date!, _today),
-                        ].join(' · '),
-                        style: const TextStyle(fontSize: 12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 420),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final group in groups)
+                            _buildImportGroupTile(
+                              group: group,
+                              selected: selected,
+                              isExpanded: expandedGroups.contains(group.id),
+                              onExpansionChanged: (expanded) {
+                                setDialogState(() {
+                                  if (expanded) {
+                                    expandedGroups.add(group.id);
+                                  } else {
+                                    expandedGroups.remove(group.id);
+                                  }
+                                });
+                              },
+                              onSelectionChanged: (index, value) {
+                                setDialogState(
+                                  () => selected[index] = value,
+                                );
+                              },
+                              onGroupSelectionChanged: (value) {
+                                setDialogState(() {
+                                  for (final item in group.items) {
+                                    selected[item.index] = value;
+                                  }
+                                });
+                              },
+                            ),
+                        ],
                       ),
-                      contentPadding: EdgeInsets.zero,
-                      onChanged: (v) =>
-                          setDialogState(() => selected[i] = v ?? false),
                     ),
+                  ),
                 ],
               ),
               actions: [
@@ -221,7 +253,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         savedAny = true;
       } else {
         savedAny =
-            await _openSymptomFormForImport(imp.name, biologicalSex) ||
+            await _openSymptomFormForImport(imp, biologicalSex) ||
             savedAny;
       }
 
@@ -242,8 +274,93 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
   }
 
+  Widget _buildImportGroupTile({
+    required SymptomImportGroup group,
+    required List<bool> selected,
+    required bool isExpanded,
+    required ValueChanged<bool> onExpansionChanged,
+    required void Function(int index, bool value) onSelectionChanged,
+    required ValueChanged<bool> onGroupSelectionChanged,
+  }) {
+    if (group.items.length == 1) {
+      final item = group.items.single;
+      return CheckboxListTile(
+        value: selected[item.index],
+        title: Text(item.symptomImport.name),
+        subtitle: Text(
+          _importSubtitle(item.symptomImport),
+          style: const TextStyle(fontSize: 12),
+        ),
+        contentPadding: EdgeInsets.zero,
+        onChanged: (value) => onSelectionChanged(item.index, value ?? false),
+      );
+    }
+
+    final selectedCount = group.items
+        .where((item) => selected[item.index])
+        .length;
+    final groupValue = selectedCount == group.items.length
+        ? true
+        : selectedCount == 0
+        ? false
+        : null;
+
+    return ExpansionTile(
+      initiallyExpanded: isExpanded,
+      onExpansionChanged: onExpansionChanged,
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(left: 16),
+      leading: Checkbox(
+        tristate: true,
+        value: groupValue,
+        onChanged: (value) => onGroupSelectionChanged(value ?? true),
+      ),
+      title: Text(group.name),
+      subtitle: Text(
+        _groupSubtitle(group),
+        style: const TextStyle(fontSize: 12),
+      ),
+      children: [
+        for (final item in group.items)
+          CheckboxListTile(
+            value: selected[item.index],
+            title: Text(_importDateLabel(item.symptomImport)),
+            subtitle: item.symptomImport.bodyArea == null
+                ? null
+                : Text(item.symptomImport.bodyArea!),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            onChanged: (value) =>
+                onSelectionChanged(item.index, value ?? false),
+          ),
+      ],
+    );
+  }
+
+  String _importSubtitle(SymptomImport symptomImport) {
+    return [
+      if (symptomImport.severity != null)
+        'Intensität: ${symptomImport.severity}/10 (aus Chat)',
+      if (symptomImport.date != null) _importDateLabel(symptomImport),
+    ].join(' · ');
+  }
+
+  String _groupSubtitle(SymptomImportGroup group) {
+    return [
+      if (group.severity != null)
+        'Intensität: ${group.severity}/10 (aus Chat)',
+      '${group.items.length} Tage',
+    ].join(' · ');
+  }
+
+  String _importDateLabel(SymptomImport symptomImport) {
+    final date = symptomImport.date;
+    if (date == null) return 'Ohne Datum';
+    return formatSymptomDateTitle(date, _today);
+  }
+
   Future<bool> _openSymptomFormForImport(
-    String symptom,
+    SymptomImport symptomImport,
     String? biologicalSex,
   ) async {
     return await showDialog<bool>(
@@ -256,7 +373,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: SingleChildScrollView(
                   child: SymptomEntryForm(
-                    initialSymptom: symptom,
+                    initialSymptom: symptomImport.name,
                     onSave:
                         ({
                           required String symptom,
@@ -271,6 +388,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
                           temperatureC: temperatureC,
                           note: note,
                           source: 'careena',
+                          date: symptomImport.date,
                         ),
                     onCancel: () => Navigator.pop(dialogContext, false),
                     onSaved: () => Navigator.pop(dialogContext, true),

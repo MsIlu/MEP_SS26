@@ -10,6 +10,7 @@ if str(SERVER_DIR) not in sys.path:
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
 from careena4.application.interpretation.turn_interpreter import TurnInterpreter
 from careena4.application.orchestration.turn_engine import TurnEngine
+from careena4.application.safety.case_safety_evaluator import CaseSafetyEvaluator
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.interpretation import TurnInterpretation, TurnUnderstandingSignal
 from careena4.models.turn import EntryAssessment, ExtractedCaseInput, ExtractedObservationInput, TurnInput
@@ -56,13 +57,13 @@ class _SafetyCaseTurnInterpreter:
                 observations=[
                     ExtractedObservationInput(
                         type="symptom",
-                        label="Atemnot",
+                        normalized_label_de="Atemnot",
                         status="active",
                         person_ref="self",
                     ),
                     ExtractedObservationInput(
                         type="symptom",
-                        label="Brustschmerzen",
+                        normalized_label_de="Brustschmerzen",
                         status="active",
                         person_ref="self",
                     ),
@@ -224,13 +225,96 @@ def test_unsure_to_open_safety_question_keeps_question_open():
     assert second.conversation_state.active_question.safety_context is not None
 
 
+def test_ja_to_safety_question_triggers_emergency_even_when_llm_returns_wrong_resolution():
+    """
+    Regression test for the critical safety bug:
+
+    The LLM interpreter can return question_resolution.status="resolved" for a
+    "Ja" answer to a safety_clarification question (instead of "confirmed_red_flag").
+    Before the fix, that wrong resolution was used verbatim: resolved_safety_clarification
+    was set to True, the safety path was skipped, and a duration followup
+    ("Seit wann hast du die Atemnot?") was asked instead of showing the emergency screen.
+
+    After the fix, safety_clarification questions always use the deterministic
+    question_resolver, so the LLM's wrong resolution is ignored.
+    """
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [_safety_match("atemnot")]
+    cache.scan_labels.return_value = []
+
+    first_engine = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    )
+    first = first_engine.run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+    assert first.response_mode == "ask_safety_question"
+    assert first.conversation_state.active_question is not None
+    assert first.conversation_state.active_question.kind == "safety_clarification"
+
+    class _BadLLMInterpreter:
+        """Simulates an LLM that misclassifies 'Ja' as a regular resolved answer."""
+
+        def interpret(self, *, message, active_question=None, medical_case=None, history_messages=None):
+            from careena4.models.turn import QuestionResolution
+
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=False,
+                    contains_new_medical_information=False,
+                    message_kind="question_answer",
+                ),
+                question_resolution=QuestionResolution(
+                    status="resolved",
+                    answer_kind="resolved",
+                    clear_active_question=True,
+                ),
+                case_input=None,
+                current_turn_understanding=None,
+            )
+
+        def to_current_turn_understanding(self, *, raw_message, interpretation):
+            return None
+
+    second_engine = TurnEngine(
+        turn_interpreter=_BadLLMInterpreter(),
+    )
+    second = second_engine.run_turn(
+        TurnInput(
+            message="Ja",
+            session_id="test-session",
+            turn_id="turn-2",
+            persisted_conversation_state=first.conversation_state,
+            persisted_medical_case=first.medical_case,
+            persisted_recommendation_state=first.recommendation_state,
+        )
+    )
+
+    assert second.response_mode == "emergency", (
+        "Confirming 'Ja' to a safety question must always trigger the emergency path, "
+        "even if the LLM interpreter returns a wrong resolution status."
+    )
+    assert "turn:safety_confirmation_emergency" in second.trace_notes
+
+
 def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text():
     cache = MagicMock()
     cache.is_loaded = True
     cache.scan_text.return_value = [_safety_match("atemnot")]
     cache.scan_labels.return_value = []
+    cache.scan_lay_terms.return_value = [_safety_match("atemnot")]
+    cache.scan_clinical_terms.return_value = []
     first_engine = TurnEngine(
         raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
         turn_interpreter=_SafetyCaseTurnInterpreter(),
     )
     first = first_engine.run_turn(
@@ -285,6 +369,7 @@ def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text()
 
     second_engine = TurnEngine(
         turn_interpreter=TurnInterpreter(extraction_engine=_FakeExtractionEngine()),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
     )
     second = second_engine.run_turn(
         TurnInput(
@@ -300,5 +385,208 @@ def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text()
 
     assert second.symptom_input_draft is not None
     assert second.symptom_input_draft.symptom_labels() == ["Atemnot", "Brustschmerzen"]
-    assert "turn_interpretation:understanding_skipped_for_guided_safety_answer" in second.trace_notes
+    assert "turn:guided_input_fast_path" in second.trace_notes
+    assert "symptom_input_draft:projected_from_case" in second.trace_notes
     assert "symptom_input_draft:updated_from_understanding" not in second.trace_notes
+    assert second.response_mode != "ask_safety_question"
+    assert (
+        second.conversation_state.active_question is None
+        or second.conversation_state.active_question.kind != "safety_clarification"
+    )
+    assert len(second.conversation_state.cleared_safety_clarifications) == 1
+    assert "safety_clarification:case_candidate_already_cleared" in second.trace_notes
+
+
+def test_case_safety_can_reopen_after_case_slice_changes():
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = []
+    cache.scan_labels.return_value = []
+    cache.scan_lay_terms.side_effect = lambda labels: (
+        [_safety_match("atemnot")] if "Atemnot" in labels else []
+    )
+    cache.scan_clinical_terms.return_value = []
+
+    first_engine = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    )
+    first = first_engine.run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+
+    class _ClearingExtractionEngine:
+        def extract(self, **kwargs):
+            return kwargs["output_schema"].model_validate(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": True,
+                        "contains_new_medical_information": False,
+                        "message_kind": "question_answer",
+                    },
+                    "question_resolution": {
+                        "status": "cleared_red_flag",
+                        "answer_kind": "cleared_red_flag",
+                        "clear_active_question": True,
+                        "resolved_followup_id": None,
+                        "person_update": None,
+                        "observation_patch": None,
+                        "additional_medical_information": False,
+                        "extra_case_input": None,
+                        "next_question_text": None,
+                        "trace_notes": [],
+                    },
+                    "case_input": None,
+                    "current_turn_understanding": {"symptoms": [], "trace_notes": []},
+                    "trace_notes": [],
+                }
+            )
+
+    second_engine = TurnEngine(
+        turn_interpreter=TurnInterpreter(extraction_engine=_ClearingExtractionEngine()),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
+    )
+    second = second_engine.run_turn(
+        TurnInput(
+            message="Nein",
+            session_id="test-session",
+            turn_id="turn-2",
+            persisted_conversation_state=first.conversation_state,
+            persisted_medical_case=first.medical_case,
+            persisted_recommendation_state=first.recommendation_state,
+            persisted_symptom_input_draft=first.symptom_input_draft,
+        )
+    )
+
+    class _AdditionalSymptomTurnInterpreter:
+        def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
+            return TurnInterpretation(
+                entry_assessment=EntryAssessment(
+                    in_scope=True,
+                    medical_relevance="medical",
+                    answers_active_question=False,
+                    contains_new_medical_information=True,
+                    message_kind="same_case_update",
+                ),
+                question_resolution=None,
+                case_input=ExtractedCaseInput(
+                    observations=[
+                        ExtractedObservationInput(
+                            type="symptom",
+                            normalized_label_de="Schwindel",
+                            status="active",
+                            person_ref="self",
+                        )
+                    ]
+                ),
+                current_turn_understanding=TurnUnderstandingSignal(
+                    symptoms=[
+                        ExtractedSymptomCandidate(
+                            source_label="Schwindel",
+                            normalized_label_de="Schwindel",
+                            confidence=0.9,
+                        )
+                    ]
+                ),
+            )
+
+    third_state = second.conversation_state.model_copy(deep=True)
+    third_state.active_question = None
+    third_state.followup_needs = []
+    third = TurnEngine(
+        turn_interpreter=_AdditionalSymptomTurnInterpreter(),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
+    ).run_turn(
+        TurnInput(
+            message="Jetzt ist mir auch schwindelig.",
+            session_id="test-session",
+            turn_id="turn-3",
+            persisted_conversation_state=third_state,
+            persisted_medical_case=second.medical_case,
+            persisted_recommendation_state=second.recommendation_state,
+            persisted_symptom_input_draft=second.symptom_input_draft,
+        )
+    )
+
+    assert len(second.conversation_state.cleared_safety_clarifications) == 1
+    assert third.response_mode == "ask_safety_question"
+    assert third.conversation_state.active_question is not None
+    assert third.conversation_state.active_question.kind == "safety_clarification"
+    assert "turn:case_safety_clarification_selected" in third.trace_notes
+
+
+def test_live_style_resolved_negated_safety_answer_persists_cleared_state():
+    cache = MagicMock()
+    cache.is_loaded = True
+    cache.scan_text.return_value = [_safety_match("atemnot")]
+    cache.scan_labels.return_value = []
+    cache.scan_lay_terms.return_value = [_safety_match("atemnot")]
+    cache.scan_clinical_terms.return_value = []
+
+    first = TurnEngine(
+        raw_red_flag_detector=RawRedFlagDetector(catalog_cache=cache),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
+        turn_interpreter=_SafetyCaseTurnInterpreter(),
+    ).run_turn(
+        TurnInput(
+            message="Ich habe Atemnot und Brustschmerzen.",
+            session_id="test-session",
+            turn_id="turn-1",
+        )
+    )
+
+    class _LiveStyleSafetyAnswerEngine:
+        def extract(self, **kwargs):
+            return kwargs["output_schema"].model_validate(
+                {
+                    "entry_assessment": {
+                        "in_scope": True,
+                        "medical_relevance": "medical",
+                        "answers_active_question": True,
+                        "contains_new_medical_information": False,
+                        "message_kind": "question_answer",
+                    },
+                    "question_resolution": {
+                        "status": "resolved",
+                        "answer_kind": "negated",
+                        "clear_active_question": True,
+                        "resolved_followup_id": None,
+                        "person_update": None,
+                        "observation_patch": None,
+                        "additional_medical_information": False,
+                        "extra_case_input": None,
+                        "next_question_text": None,
+                        "trace_notes": [],
+                    },
+                    "case_input": None,
+                    "current_turn_understanding": None,
+                    "trace_notes": [],
+                }
+            )
+
+    second = TurnEngine(
+        turn_interpreter=TurnInterpreter(extraction_engine=_LiveStyleSafetyAnswerEngine()),
+        case_safety_evaluator=CaseSafetyEvaluator(catalog_cache=cache),
+    ).run_turn(
+        TurnInput(
+            message="Nein",
+            session_id="test-session",
+            turn_id="turn-2",
+            persisted_conversation_state=first.conversation_state,
+            persisted_medical_case=first.medical_case,
+            persisted_recommendation_state=first.recommendation_state,
+            persisted_symptom_input_draft=first.symptom_input_draft,
+        )
+    )
+
+    assert second.response_mode != "ask_safety_question"
+    assert len(second.conversation_state.cleared_safety_clarifications) == 1
+    assert "safety_clarification:cleared_state_persisted" in second.trace_notes
+    assert "safety_clarification:case_candidate_already_cleared" in second.trace_notes

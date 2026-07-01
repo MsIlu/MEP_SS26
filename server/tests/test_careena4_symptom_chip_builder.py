@@ -10,12 +10,12 @@ def test_symptom_chip_builder_adds_non_negated_symptom_claims():
         observations=[
             ExtractedObservationInput(
                 type="symptom",
-                label="Kopfschmerzen",
+                normalized_label_de="Kopfschmerzen",
                 status="active",
             ),
             ExtractedObservationInput(
                 type="symptom",
-                label="Husten",
+                normalized_label_de="Husten",
                 status="negated",
             ),
         ]
@@ -36,7 +36,7 @@ def test_symptom_chip_builder_merges_with_existing_user_edited_labels():
         observations=[
             ExtractedObservationInput(
                 type="symptom",
-                label="Schwindel",
+                normalized_label_de="Schwindel",
                 status="active",
             )
         ]
@@ -58,7 +58,7 @@ def test_symptom_chip_builder_deduplicates_existing_labels():
         observations=[
             ExtractedObservationInput(
                 type="symptom",
-                label="kopfschmerzen",
+                normalized_label_de="kopfschmerzen",
                 status="active",
             )
         ]

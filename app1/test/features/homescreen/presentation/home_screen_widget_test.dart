@@ -34,6 +34,54 @@ void main() {
       expect(find.text('Terminplanung'), findsOneWidget);
     });
 
+    testWidgets('omits profile name from welcome title on narrow screens', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(360, 820));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final authSession = AuthSession();
+      authSession.setAuthResponse(
+        AuthResponse(
+          accessToken: 'test-token',
+          tokenType: 'bearer',
+          account: const Account(id: 1, email: 'test@example.com'),
+          profiles: const [
+            AuthProfile(
+              id: 42,
+              displayName: 'Alexanderthegreat Familienprofil',
+              profileType: 'self',
+              role: 'owner',
+            ),
+          ],
+        ),
+      );
+
+      final controller = ChatController(
+        chatApi: ChatApi(ApiClient(http.Client())),
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: const _FakeChatHistoryRepository(),
+      );
+      final themeController = ThemeController();
+      addTearDown(controller.dispose);
+      addTearDown(themeController.dispose);
+      addTearDown(authSession.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            controller: controller,
+            themeController: themeController,
+            authSession: authSession,
+          ),
+        ),
+      );
+
+      expect(find.text('Willkommen Alexanderthegreat!'), findsNothing);
+      expect(find.text('Willkommen!'), findsOneWidget);
+    });
+
     testWidgets('simple view removes distractions and enlarges navigation', (
       tester,
     ) async {
@@ -84,7 +132,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CalendarOverviewPage), findsOneWidget);
-      expect(find.text('Keine Einträge'), findsOneWidget);
+      expect(find.text('Keine Einträge vorhanden'), findsOneWidget);
     });
 
     testWidgets('opens saved chat history from Chathistorie navigation', (

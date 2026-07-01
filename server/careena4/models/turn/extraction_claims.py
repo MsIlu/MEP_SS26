@@ -15,8 +15,10 @@ class ExtractedPersonInput(PipelineModel):
 
 class ExtractedObservationInput(PipelineModel):
     type: ObservationType
-    label: str
-    label_source: Source | None = None
+    normalized_label_de: str
+    normalized_label_source: Source | None = None
+    clinical_term_de: str | None = None
+    clinical_term_source: Source | None = None
     status: ObservationStatus = "active"
     status_source: Source | None = None
     person_ref: SubjectScope | None = None
@@ -33,7 +35,8 @@ class ExtractedObservationInput(PipelineModel):
     @property
     def source_span(self) -> str | None:
         for source in (
-            self.label_source,
+            self.normalized_label_source,
+            self.clinical_term_source,
             self.status_source,
             self.person_ref_source,
             self.onset_source,

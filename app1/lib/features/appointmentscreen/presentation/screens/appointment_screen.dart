@@ -433,6 +433,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       appointmentsListenable: controller.appointments,
       selectedFilter: selectedFilter,
       selectedProfileId: selectedProfileId,
+      profiles: widget.authSession?.profiles ?? const [],
       showAllProfiles: showAllProfiles,
       shrinkWrap: shrinkWrap,
       onDelete: _showDeleteDialog,

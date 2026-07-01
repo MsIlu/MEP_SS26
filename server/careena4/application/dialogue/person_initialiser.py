@@ -33,8 +33,8 @@ _RELATION_HINT_WORDS = {
 
 _GENERIC_ANSWERS = {"jemand anderes", "jemand anderen", "andere person"}
 
-# label -> (relation, age, sex)
-_PersonData = tuple[str, int | None, str | None]
+# label -> (profile_id, relation, age, sex)
+_PersonData = tuple[int | None, str, int | None, str | None]
 
 
 def _map_relation(profile_type: str) -> str:
@@ -109,10 +109,10 @@ class PersonInitialiser:
             return False
 
         person_map: dict[str, _PersonData] = {
-            p.display_name: (_map_relation(p.profile_type), p.age, p.sex)
+            p.display_name: (p.id, _map_relation(p.profile_type), p.age, p.sex)
             for p in profiles
         }
-        person_map["Jemand anderes"] = ("other", None, None)
+        person_map["Jemand anderes"] = (None, "other", None, None)
         self._person_map[session_id] = person_map
 
         if len(profiles) == 1:
@@ -144,17 +144,24 @@ class PersonInitialiser:
         session_id: str,
         careena4_session,
         message: str,
-    ) -> tuple[str | None, list[str], str | None]:
+    ) -> tuple[str | None, list[str], str | None, int | None, bool]:
         """Called after run_turn() and persist.
 
-        Returns (warning_text, reply_options, pending_message).
+        Returns (warning_text, reply_options, pending_message, matched_profile_id,
+        resolved_non_profile).
         - warning_text: non-None when person_clarification must be retried
         - reply_options: button labels for the retry
         - pending_message: the deferred medical message to process next
+        - matched_profile_id: DB id of the profile the user selected, so the
+          caller can re-key the session to that profile (diary/medications)
+        - resolved_non_profile: True when the "Für wen?" step was answered with a
+          person that has no profile ("Jemand anderes" or a free-form relation).
+          The case is then bound to nobody, so the caller must not fall back to
+          the active profile's diary/medication/PDF data.
         """
         person_map = self._person_map.get(session_id)
         if not person_map or careena4_session.medical_case is None:
-            return None, [], None
+            return None, [], None, None, False
 
         mc_person = careena4_session.medical_case.person
         msg_lower = message.strip().casefold()
@@ -173,19 +180,19 @@ class PersonInitialiser:
         pending = self._pending_message.pop(session_id, None)
 
         if matched is not None:
-            rel, age, sex = matched
+            profile_id, rel, age, sex = matched
             mc_person.relation = rel
             if age is not None:
                 mc_person.age = age
             if sex is not None:
                 mc_person.sex = sex
             self._person_map.pop(session_id, None)
-            return None, [], pending
+            return None, [], pending, profile_id, False
 
         if is_generic:
             mc_person.relation = "other"
             self._person_map.pop(session_id, None)
-            return None, [], pending
+            return None, [], pending, None, True
 
         if _is_name_attempt(message):
             mc_person.relation = "unclear"
@@ -208,9 +215,51 @@ class PersonInitialiser:
             # Re-save the pending message — user still hasn't resolved selection
             if pending:
                 self._pending_message[session_id] = pending
-            return warning, reply_options, None
+            return warning, reply_options, None, None, False
 
         # Free-form non-profile person ("meine Oma") — accept silently.
         mc_person.relation = "other"
         self._person_map.pop(session_id, None)
-        return None, [], pending
+        return None, [], pending, None, True
+
+    def inject_deferred_clarification(
+        self,
+        *,
+        session_id: str,
+        careena4_session,
+        profiles: list[ProfileSnapshot],
+    ) -> ActiveQuestion | None:
+        """Injects profile clarification when the safety bypass skipped pre_turn.
+
+        Single profile: applies demographic data to the existing MedicalCase, returns None.
+        Multi-profile: builds person_map, sets active_question, returns the question.
+        Must be called AFTER post_turn() so 'Nein' is not matched as a profile name.
+        """
+        if not profiles:
+            return None
+        if len(profiles) == 1:
+            p = profiles[0]
+            mc = careena4_session.medical_case
+            if mc is not None:
+                mc.person.relation = _map_relation(p.profile_type)
+                if p.age is not None:
+                    mc.person.age = p.age
+                if p.sex is not None:
+                    mc.person.sex = p.sex
+            return None
+        person_map: dict[str, _PersonData] = {
+            p.display_name: (p.id, _map_relation(p.profile_type), p.age, p.sex)
+            for p in profiles
+        }
+        person_map["Jemand anderes"] = (None, "other", None, None)
+        self._person_map[session_id] = person_map
+        known_names = [p.display_name for p in profiles]
+        if careena4_session.conversation_state is None:
+            careena4_session.conversation_state = ConversationState()
+        question = _build_person_clarification(
+            "Für wen ist diese Anfrage?",
+            known_names,
+            allows_additional_medical_info=False,
+        )
+        careena4_session.conversation_state.active_question = question
+        return question

@@ -18,7 +18,7 @@ class _SparseMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Bauchschmerzen",
+                    normalized_label_de="Bauchschmerzen",
                     status="active",
                 )
             ],
@@ -39,7 +39,7 @@ class _ReadyMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Kopfschmerzen",
+                    normalized_label_de="Kopfschmerzen",
                     status="active",
                     person_ref="self",
                     onset="seit gestern",

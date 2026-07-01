@@ -13,6 +13,7 @@ from careena4.models.domain import (
     MedicalCase,
     Observation,
 )
+from careena4.models.input import SymptomChip, SymptomInputDraft
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import (
     EntryAssessment,
@@ -52,7 +53,7 @@ class _StubMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Bauchschmerzen",
+                    normalized_label_de="Bauchschmerzen",
                     status="active",
                     onset="seit gestern" if "seit gestern" in message.casefold() else None,
                 )
@@ -74,7 +75,7 @@ class _ReadyMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Kopfschmerzen",
+                    normalized_label_de="Kopfschmerzen",
                     status="active",
                     person_ref="self",
                     onset="seit gestern",
@@ -110,7 +111,7 @@ class _StubTurnInterpreter:
                 observations=[
                     ExtractedObservationInput(
                         type="symptom",
-                        label="Kopfschmerzen",
+                        normalized_label_de="Kopfschmerzen",
                         status="active",
                         person_ref="self",
                         onset="seit gestern",
@@ -275,7 +276,7 @@ def test_turn_engine_can_resolve_followup_via_single_call_turn_interpreter():
             Observation(
                 observation_id="obs-1",
                 type="symptom",
-                label="Bauchschmerzen",
+                normalized_label_de="Bauchschmerzen",
                 status="active",
             )
         ]
@@ -307,56 +308,129 @@ def test_turn_engine_can_resolve_followup_via_single_call_turn_interpreter():
     assert result.medical_case.observations[0].onset == "seit gestern"
 
 
-def test_turn_engine_updates_symptom_input_draft_from_single_call_turn_interpreter_understanding():
-    class _UnderstandingOnlyTurnInterpreter:
+def test_turn_engine_projects_symptom_input_draft_from_case_after_single_call_turn_interpreter():
+    class _CaseWritingTurnInterpreter:
         def interpret(self, *, message: str, active_question=None, medical_case=None, history_messages=None):
             return TurnInterpretation(
                 entry_assessment=EntryAssessment(
                     in_scope=True,
                     medical_relevance="medical",
                     answers_active_question=False,
-                    contains_new_medical_information=False,
-                    message_kind="dialogue_only",
+                    contains_new_medical_information=True,
+                    message_kind="new_case_report",
                 ),
                 question_resolution=None,
-                case_input=None,
-                current_turn_understanding=TurnUnderstandingSignal(
-                    symptoms=[
-                        ExtractedSymptomCandidate(
-                            source_label="Schwindel",
+                case_input=ExtractedCaseInput(
+                    observations=[
+                        ExtractedObservationInput(
+                            type="symptom",
                             normalized_label_de="Schwindel",
                             clinical_term_de="Vertigo",
-                            confidence=0.88,
+                            status="active",
                         )
-                    ],
-                    trace_notes=["turn_interpretation:understanding_only"],
+                    ]
                 ),
             )
 
-        def to_current_turn_understanding(self, *, raw_message: str, interpretation: TurnInterpretation):
-            from careena4.models.understanding import CurrentTurnUnderstanding
-
-            assert interpretation.current_turn_understanding is not None
-            return CurrentTurnUnderstanding(
-                raw_message=raw_message,
-                symptoms=[symptom.model_copy(deep=True) for symptom in interpretation.current_turn_understanding.symptoms],
-                sts_matches=[],
-                no_match_reason=None,
-                trace_notes=["turn_interpretation:understanding_only"],
-            )
-
-    engine = TurnEngine(turn_interpreter=_UnderstandingOnlyTurnInterpreter())
+    engine = TurnEngine(turn_interpreter=_CaseWritingTurnInterpreter())
 
     result = engine.run_turn(TurnInput(message="Mir ist schwindelig."))
 
     assert result.symptom_input_draft is not None
     assert result.symptom_input_draft.symptom_labels() == ["Schwindel"]
-    assert "symptom_input_draft:updated_from_understanding" in result.trace_notes
+    assert result.trace_notes.count("symptom_input_draft:projected_from_case") == 1
 
 
-def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpreter_without_followup_fallback():
+def test_sync_chips_to_case_dedupes_normalized_umlaut_chip_and_preserves_existing_chip_state():
+    engine = TurnEngine()
+    medical_case = MedicalCase(
+        observations=[Observation(type="symptom", normalized_label_de="mudigkeit", status="active")]
+    )
+    draft = SymptomInputDraft(
+        chips=[
+            SymptomChip(
+                display_label_de="Müdigkeit",
+                normalized_label_de="mudigkeit",
+                status="user_confirmed",
+            )
+        ]
+    )
+
+    medical_case, trace = engine._sync_chips_to_case(
+        medical_case=medical_case,
+        symptom_input_draft=draft,
+    )
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=draft,
+        medical_case=medical_case,
+    )
+
+    assert len(medical_case.observations) == 1
+    assert trace == []
+    assert projected is not None
+    assert len(projected.chips) == 1
+    assert projected.chips[0].status == "user_confirmed"
+    assert projected.chips[0].normalized_label_de == "mudigkeit"
+
+
+def test_project_symptom_input_draft_skips_empty_projection_for_negated_only_case():
+    engine = TurnEngine()
+    medical_case = MedicalCase(
+        observations=[Observation(type="symptom", normalized_label_de="Husten", status="negated")]
+    )
+
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=None,
+        medical_case=medical_case,
+    )
+
+    assert projected is None
+
+
+def test_sync_chips_to_case_writes_readable_user_label_while_deduping_by_identity():
+    engine = TurnEngine()
+    medical_case = MedicalCase()
+    draft = SymptomInputDraft(
+        chips=[
+            SymptomChip(
+                display_label_de="Kopfschmerzen",
+                normalized_label_de="kopfschmerzen",
+                status="user_edited",
+            )
+        ]
+    )
+
+    medical_case, trace = engine._sync_chips_to_case(
+        medical_case=medical_case,
+        symptom_input_draft=draft,
+    )
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=draft,
+        medical_case=medical_case,
+    )
+
+    assert len(medical_case.observations) == 1
+    assert medical_case.observations[0].normalized_label_de == "Kopfschmerzen"
+    assert trace == ["chip_sync:added:Kopfschmerzen"]
+    assert projected is not None
+    assert projected.symptom_labels() == ["Kopfschmerzen"]
+
+
+def test_turn_engine_resolves_safety_guided_answer_deterministically_ignoring_interpreter():
+    """
+    Safety clarification answers must always be resolved by the deterministic
+    question_resolver, never by the LLM interpreter.
+
+    Previously the engine routed safety answers through the interpreter and only
+    fell back to the resolver when question_resolution was None.  An interpreter
+    that returned status="resolved" (instead of "confirmed_red_flag") would set
+    resolved_safety_clarification=True and continue to followup questions, silently
+    skipping the emergency path.  The test verifies the fixed behaviour:
+    question_resolver is called regardless of what the interpreter returns.
+    """
     class _FakeExtractionEngine:
         def extract(self, **kwargs):
+            # Simulates an LLM that misclassifies the safety answer
             return kwargs["output_schema"].model_validate(
                 {
                     "entry_assessment": {
@@ -366,19 +440,23 @@ def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpre
                         "contains_new_medical_information": False,
                         "message_kind": "question_answer",
                     },
-                    "question_resolution": None,
-                    "case_input": None,
-                    "current_turn_understanding": {
-                        "symptoms": [],
+                    "question_resolution": {
+                        "status": "resolved",
+                        "answer_kind": "resolved",
+                        "clear_active_question": True,
+                        "resolved_followup_id": None,
+                        "person_update": None,
+                        "observation_patch": None,
+                        "additional_medical_information": False,
+                        "extra_case_input": None,
+                        "next_question_text": None,
                         "trace_notes": [],
                     },
+                    "case_input": None,
+                    "current_turn_understanding": {"symptoms": [], "trace_notes": []},
                     "trace_notes": [],
                 }
             )
-
-    class _FailingResolver:
-        def resolve(self, **_kwargs):
-            raise AssertionError("legacy followup resolver should not be used")
 
     safety_question = SafetyClarificationBuilder().build_active_question(
         safety_state=SafetyState(
@@ -390,9 +468,9 @@ def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpre
         )
     )
     conversation_state = ConversationState(active_question=safety_question, phase="followup")
+    # "Nein" matches the option label exactly → fast path, interpreter not called
     engine = TurnEngine(
         turn_interpreter=TurnInterpreter(extraction_engine=_FakeExtractionEngine()),
-        question_resolver=_FailingResolver(),
     )
 
     result = engine.run_turn(
@@ -402,32 +480,21 @@ def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpre
         )
     )
 
+    # "Nein" clears the safety question without triggering emergency
     assert result.conversation_state.active_question is None
-    assert "followup:fallback_resolution_used" not in result.trace_notes
-    assert "turn_interpretation:guided_safety_resolution_applied" in result.trace_notes
+    assert result.response_mode != "emergency"
+    # Exact label match → fast path; interpreter LLM was never consulted
+    assert "turn:guided_input_fast_path" in result.trace_notes
 
 
 def test_turn_engine_marks_split_fallbacks_when_turn_interpreter_is_missing():
-    class _StubUnderstandingService:
-        def extract(self, *, message: str):
-            from careena4.models.understanding import CurrentTurnUnderstanding
-
-            return CurrentTurnUnderstanding(
-                raw_message=message,
-                symptoms=[],
-                sts_matches=[],
-                no_match_reason=None,
-            )
-
     engine = TurnEngine(
         medical_extractor=_ReadyMedicalExtractor(),
-        turn_understanding_service=_StubUnderstandingService(),
     )
 
     result = engine.run_turn(TurnInput(message="Ich habe seit gestern dumpfe Kopfschmerzen, etwa 5 von 10."))
 
     assert "entry:fallback_classifier_used" in result.trace_notes
-    assert "turn_understanding:fallback_service_used" in result.trace_notes
     assert "case_input:fallback_medical_extractor_used" in result.trace_notes
 
 

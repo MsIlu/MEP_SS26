@@ -126,8 +126,7 @@ class ApiClient {
                 'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
             break;
           case 401:
-            message =
-                'Du bist nicht angemeldet. Bitte melde dich erneut an.';
+            message = 'Du bist nicht angemeldet. Bitte melde dich erneut an.';
             break;
           case 403:
             message = 'Du hast keine Berechtigung für diese Aktion.';
@@ -139,6 +138,11 @@ class ApiClient {
             message =
                 _mappedErrorDetailFromResponse(response) ??
                 'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
+            break;
+          case 413:
+            message =
+                _mappedErrorDetailFromResponse(response) ??
+                'Die Datei darf maximal 10 MB groß sein.';
             break;
           default:
             message =
@@ -265,8 +269,7 @@ class ApiClient {
               'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
           break;
         case 401:
-          message =
-              'Du bist nicht angemeldet. Bitte melde dich erneut an.';
+          message = 'Du bist nicht angemeldet. Bitte melde dich erneut an.';
           break;
         case 403:
           message = 'Du hast keine Berechtigung für diese Aktion.';
@@ -280,6 +283,11 @@ class ApiClient {
           message =
               _mappedErrorDetailFromResponse(response) ??
               'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
+          break;
+        case 413:
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Die Datei darf maximal 10 MB groß sein.';
           break;
         case 422:
           message =

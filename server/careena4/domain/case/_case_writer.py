@@ -21,15 +21,15 @@ class _CaseWriter:
                 )
             if step.action == "create" and step.observation is not None:
                 medical_case.observations.append(step.observation)
-                trace_notes.append(f"case_write:create:{step.observation.label}")
+                trace_notes.append(f"case_write:create:{step.observation.normalized_label_de}")
             elif step.action == "enrich" and target is not None and step.observation is not None:
                 target.merge_from(other=step.observation)
-                trace_notes.append(f"case_write:enrich:{target.label}")
+                trace_notes.append(f"case_write:enrich:{target.normalized_label_de}")
             elif step.action == "negate" and target is not None:
                 target.status = "negated"
                 if step.observation is not None and step.observation.status_source is not None:
                     target.status_source = step.observation.status_source.model_copy(deep=True)
-                trace_notes.append(f"case_write:negate:{target.label}")
+                trace_notes.append(f"case_write:negate:{target.normalized_label_de}")
             elif step.action == "ignore":
                 trace_notes.append("case_write:ignore_duplicate")
         return medical_case, trace_notes

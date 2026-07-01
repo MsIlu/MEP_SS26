@@ -5,7 +5,6 @@ from careena4.application.dialogue.safety_clarification_builder import SafetyCla
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.input import SymptomChipBuilder
-from careena4.application.input import UnderstandingSymptomDraftAdapter
 from careena4.application.interpretation import TurnInterpreter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
@@ -16,7 +15,13 @@ from careena4.domain.case import CaseManager
 from careena4.domain.quality.followup_need_builder import FollowupNeedBuilder
 from careena4.domain.quality.followup_selector import FollowupSelector
 from careena4.domain.readiness.readiness_evaluator import AssessmentReadinessBuilder, ReadinessEvaluator
-from careena4.models.domain import ActiveQuestion, ConversationState, MedicalCase, RecommendationState
+from careena4.models.domain import (
+    ActiveQuestion,
+    ClearedSafetyClarification,
+    ConversationState,
+    MedicalCase,
+    RecommendationState,
+)
 from careena4.models.domain.observation import Observation
 from careena4.models.input import SymptomInputDraft
 from careena4.models.turn import RecommendationRequestInput, TurnDecision, TurnInput, TurnResult
@@ -44,7 +49,6 @@ class TurnEngine:
         response_builder: ResponseBuilder | None = None,
         turn_interpreter: TurnInterpreter | None = None,
         turn_understanding_service: MedGemmaTurnUnderstandingService | None = None,
-        understanding_symptom_draft_adapter: UnderstandingSymptomDraftAdapter | None = None,
         case_safety_evaluator: CaseSafetyEvaluator | None = None,
     ):
         self.raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
@@ -53,7 +57,7 @@ class TurnEngine:
         self.entry_classifier = entry_classifier or EntryClassifier(case_manager=self.case_manager)
         self.question_resolver = question_resolver or QuestionResolver()
         self.medical_extractor = medical_extractor or MedicalExtractor()
-        self.symptom_chip_builder = SymptomChipBuilder()
+        self.symptom_chip_builder = SymptomChipBuilder(case_manager=self.case_manager)
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
         self.followup_selector = followup_selector or FollowupSelector()
         self.question_builder = question_builder or QuestionBuilder()
@@ -64,9 +68,6 @@ class TurnEngine:
         self.response_builder = response_builder or ResponseBuilder(case_manager=self.case_manager)
         self.turn_interpreter = turn_interpreter
         self.turn_understanding_service = turn_understanding_service
-        self.understanding_symptom_draft_adapter = (
-            understanding_symptom_draft_adapter or UnderstandingSymptomDraftAdapter()
-        )
         self.case_safety_evaluator = case_safety_evaluator or CaseSafetyEvaluator()
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
@@ -114,10 +115,6 @@ class TurnEngine:
             )
 
         is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
-        if is_fast_path and self._should_route_guided_safety_answer_via_turn_interpreter(
-            active_question=conversation_state.active_question
-        ):
-            is_fast_path = False
         if is_fast_path:
             trace_notes.append("turn:guided_input_fast_path")
         elif self.turn_interpreter is not None:
@@ -139,47 +136,6 @@ class TurnEngine:
                     has_case_input=turn_interpretation.case_input is not None,
                     has_understanding=turn_interpretation.current_turn_understanding is not None,
                 )
-                if self._should_apply_interpreter_understanding(
-                    active_question=conversation_state.active_question,
-                    interpretation=turn_interpretation,
-                ):
-                    current_turn_understanding = self.turn_interpreter.to_current_turn_understanding(
-                        raw_message=turn_input.message,
-                        interpretation=turn_interpretation,
-                    )
-                    symptom_input_draft = self._apply_current_turn_understanding(
-                        symptom_input_draft=symptom_input_draft,
-                        current_turn_understanding=current_turn_understanding,
-                        session_id=turn_input.session_id,
-                        trace_notes=trace_notes,
-                    )
-                else:
-                    trace_notes.append("turn_interpretation:understanding_skipped_for_guided_safety_answer")
-
-        if (
-            not is_fast_path
-            and current_turn_understanding is None
-            and self.turn_understanding_service is not None
-            and self._should_use_understanding_fallback(
-                active_question=conversation_state.active_question,
-                interpretation=turn_interpretation,
-            )
-        ):
-            trace_notes.append("turn_understanding:fallback_service_used")
-            log_event(
-                "turn_understanding.fallback_service_used",
-                layer="application",
-                reason="missing_turn_interpretation_understanding",
-            )
-            current_turn_understanding = self.turn_understanding_service.extract(
-                message=turn_input.message,
-            )
-            symptom_input_draft = self._apply_current_turn_understanding(
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                session_id=turn_input.session_id,
-                trace_notes=trace_notes,
-            )
 
         if is_fast_path:
             entry_assessment = EntryAssessment(
@@ -230,18 +186,28 @@ class TurnEngine:
         extra_case_input = None
         if conversation_state.active_question is not None:
             current_question = conversation_state.active_question
-            resolution = (
-                self._normalize_interpreter_question_resolution(
-                    question=current_question,
-                    resolution=turn_interpretation.question_resolution,
-                )
-                if turn_interpretation is not None and turn_interpretation.question_resolution is not None
-                else self.question_resolver.resolve(
+            # Safety clarification is always resolved deterministically: an LLM that
+            # returns status="resolved" instead of "confirmed_red_flag" would silently
+            # skip the emergency path and ask a duration follow-up instead.
+            if current_question.kind == "safety_clarification":
+                resolution = self.question_resolver.resolve(
                     question=current_question,
                     message=turn_input.message,
                     history_messages=turn_input.extraction_history_messages,
                 )
-            )
+            else:
+                resolution = (
+                    self._normalize_interpreter_question_resolution(
+                        question=current_question,
+                        resolution=turn_interpretation.question_resolution,
+                    )
+                    if turn_interpretation is not None and turn_interpretation.question_resolution is not None
+                    else self.question_resolver.resolve(
+                        question=current_question,
+                        message=turn_input.message,
+                        history_messages=turn_input.extraction_history_messages,
+                    )
+                )
             if turn_interpretation is None or turn_interpretation.question_resolution is None:
                 trace_notes.append("followup:fallback_resolution_used")
                 log_event(
@@ -321,6 +287,16 @@ class TurnEngine:
                 extra_case_input = resolution.extra_case_input if resolution.additional_medical_information else None
                 resolved_question = current_question
                 resolved_safety_clarification = current_question.kind == "safety_clarification"
+                if self._is_cleared_safety_resolution(
+                    question=current_question,
+                    resolution=resolution,
+                ):
+                    self._remember_cleared_safety_clarification(
+                        conversation_state=conversation_state,
+                        question=current_question,
+                        medical_case=medical_case,
+                    )
+                    trace_notes.append("safety_clarification:cleared_state_persisted")
                 conversation_state.active_question = None
 
         case_input = None
@@ -337,11 +313,7 @@ class TurnEngine:
                     layer="application",
                     message_kind=entry_assessment.message_kind,
                     contains_new_medical_information=entry_assessment.contains_new_medical_information,
-                    symptom_count=(
-                        len(current_turn_understanding.symptoms)
-                        if current_turn_understanding is not None
-                        else 0
-                    ),
+                    observation_count=len(case_input.observations),
                 )
                 case_input = None
             if case_input is None:
@@ -384,41 +356,39 @@ class TurnEngine:
                 )
 
         if case_input is not None:
-            understanding_has_symptoms = (
-                current_turn_understanding is not None
-                and bool(current_turn_understanding.symptoms)
-            )
-
-            if symptom_input_draft is not None and not understanding_has_symptoms:
-                symptom_input_draft = self.symptom_chip_builder.update_from_claims(
-                    draft=symptom_input_draft,
-                    claims=case_input,
-                )
-                trace_notes.append("symptom_input_draft:updated_from_claims")
-            elif symptom_input_draft is not None and understanding_has_symptoms:
-                trace_notes.append("symptom_input_draft:claims_update_skipped_after_understanding")
-
             medical_case, write_trace = self.case_manager.apply_claims(
                 medical_case=medical_case,
                 claims=case_input,
             )
             trace_notes.extend(write_trace)
 
-            medical_case, chip_trace = self._sync_chips_to_case(
-                medical_case=medical_case,
-                symptom_input_draft=symptom_input_draft,
-            )
-            trace_notes.extend(chip_trace)
+        medical_case, chip_trace = self._sync_chips_to_case(
+            medical_case=medical_case,
+            symptom_input_draft=symptom_input_draft,
+        )
+        trace_notes.extend(chip_trace)
+        symptom_input_draft = self._project_symptom_input_draft(
+            symptom_input_draft=symptom_input_draft,
+            medical_case=medical_case,
+        )
+        if symptom_input_draft is not None:
+            trace_notes.append("symptom_input_draft:projected_from_case")
 
-            if conversation_state.active_question is None or (
-                conversation_state.active_question.kind != "safety_clarification"
-            ):
-                case_safety = self.case_safety_evaluator.evaluate(
+        if conversation_state.active_question is None or (
+            conversation_state.active_question.kind != "safety_clarification"
+        ):
+            case_safety = self.case_safety_evaluator.evaluate(
+                medical_case=medical_case,
+            )
+            trace_notes.extend(case_safety.trace_notes)
+            if case_safety.requires_safety_clarification:
+                if self._is_cleared_safety_state(
+                    conversation_state=conversation_state,
+                    safety_state=case_safety,
                     medical_case=medical_case,
-                    current_turn_understanding=current_turn_understanding,
-                )
-                trace_notes.extend(case_safety.trace_notes)
-                if case_safety.requires_safety_clarification:
+                ):
+                    trace_notes.append("safety_clarification:case_candidate_already_cleared")
+                else:
                     conversation_state.active_question = self.safety_clarification_builder.build_active_question(
                         safety_state=case_safety
                     )
@@ -435,12 +405,6 @@ class TurnEngine:
                         extra_trace_notes=["turn:case_safety_clarification_selected"],
                         turn_interpretation=turn_interpretation,
                     )
-
-        medical_case, chip_trace = self._sync_chips_to_case(
-            medical_case=medical_case,
-            symptom_input_draft=symptom_input_draft,
-        )
-        trace_notes.extend(chip_trace)
 
         if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
             decision = TurnDecision(
@@ -465,22 +429,29 @@ class TurnEngine:
             conversation_state.active_question is None
             or conversation_state.active_question.kind != "safety_clarification"
         ):
-            conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                safety_state=raw_safety
-            )
-            conversation_state.phase = "followup"
-            return self._ask_existing_question(
-                response_input=turn_input,
-                medical_case=medical_case,
+            if self._is_cleared_safety_state(
                 conversation_state=conversation_state,
-                recommendation_state=recommendation_state,
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                trace_notes=trace_notes,
-                active_question=conversation_state.active_question,
-                extra_trace_notes=["turn:safety_clarification_opened"],
-                turn_interpretation=turn_interpretation,
-            )
+                safety_state=raw_safety,
+                medical_case=medical_case,
+            ):
+                trace_notes.append("safety_clarification:raw_candidate_already_cleared")
+            else:
+                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                    safety_state=raw_safety
+                )
+                conversation_state.phase = "followup"
+                return self._ask_existing_question(
+                    response_input=turn_input,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes,
+                    active_question=conversation_state.active_question,
+                    extra_trace_notes=["turn:safety_clarification_opened"],
+                    turn_interpretation=turn_interpretation,
+                )
 
         conversation_state.followup_needs = self.followup_need_builder.build(
             medical_case=medical_case,
@@ -612,24 +583,201 @@ class TurnEngine:
         for chip in symptom_input_draft.chips:
             if chip.status not in _syncable:
                 continue
-            if not chip.normalized_label_de:
+            case_label_de = (chip.display_label_de or chip.normalized_label_de or "").strip()
+            if not case_label_de:
                 continue
 
-            label_cf = chip.normalized_label_de.casefold()
+            chip_identity = self.symptom_chip_builder._identity_for_chip(chip)
+            if chip_identity is None:
+                continue
             already_present = any(
-                obs.label.casefold() == label_cf
+                self.symptom_chip_builder._identity_for_label(obs.normalized_label_de) == chip_identity
                 for obs in medical_case.observations
             )
             if already_present:
                 continue
 
-            new_obs = Observation(type="symptom", label=chip.normalized_label_de)
+            new_obs = Observation(
+                type="symptom",
+                normalized_label_de=case_label_de,
+                clinical_term_de=chip.clinical_term_de,
+            )
             if medical_case.person.relation not in ("unclear",):
                 new_obs.person_ref = medical_case.person.relation
             medical_case.observations.append(new_obs)
-            trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
+            trace_notes.append(f"chip_sync:added:{case_label_de}")
 
         return medical_case, trace_notes
+
+    def _project_symptom_input_draft(
+        self,
+        *,
+        symptom_input_draft: SymptomInputDraft | None,
+        medical_case: MedicalCase,
+    ) -> SymptomInputDraft | None:
+        if symptom_input_draft is None and not self.case_manager.has_active_observations(medical_case=medical_case):
+            return None
+        return self.symptom_chip_builder.update_from_case(
+            draft=symptom_input_draft,
+            medical_case=medical_case,
+        )
+
+    def _remember_cleared_safety_clarification(
+        self,
+        *,
+        conversation_state: ConversationState,
+        question: ActiveQuestion,
+        medical_case: MedicalCase,
+    ) -> None:
+        safety_key = self._safety_key_from_question(
+            question=question,
+            medical_case=medical_case,
+        )
+        if safety_key is None:
+            return
+
+        question_code = (
+            question.safety_context.question_code
+            if question.safety_context is not None
+            else (question.safety_question_code or "safety_clarification")
+        )
+        conversation_state.cleared_safety_clarifications = [
+            entry
+            for entry in conversation_state.cleared_safety_clarifications
+            if entry.safety_key != safety_key
+        ]
+        conversation_state.cleared_safety_clarifications.append(
+            ClearedSafetyClarification(
+                safety_key=safety_key,
+                question_code=question_code,
+            )
+        )
+
+    @staticmethod
+    def _is_cleared_safety_resolution(*, question: ActiveQuestion, resolution) -> bool:
+        if question.kind != "safety_clarification" or not resolution.clear_active_question:
+            return False
+        return resolution.status == "cleared_red_flag" or resolution.answer_kind == "negated"
+
+    def _is_cleared_safety_state(
+        self,
+        *,
+        conversation_state: ConversationState,
+        safety_state,
+        medical_case: MedicalCase,
+    ) -> bool:
+        if not safety_state.requires_safety_clarification:
+            return False
+
+        safety_key = self._safety_key_from_state(
+            safety_state=safety_state,
+            medical_case=medical_case,
+        )
+        if safety_key is None:
+            return False
+
+        return any(
+            entry.safety_key == safety_key and entry.status == "cleared"
+            for entry in conversation_state.cleared_safety_clarifications
+        )
+
+    def _safety_key_from_question(
+        self,
+        *,
+        question: ActiveQuestion,
+        medical_case: MedicalCase,
+    ) -> str | None:
+        if question.kind != "safety_clarification":
+            return None
+
+        source_stage = (
+            question.safety_context.source_stage
+            if question.safety_context is not None
+            else self._source_stage_from_question_code(question.safety_question_code)
+        )
+        question_code = (
+            question.safety_context.question_code
+            if question.safety_context is not None
+            else (question.safety_question_code or "safety_clarification")
+        )
+        evidence_terms = (
+            question.safety_context.evidence_terms
+            if question.safety_context is not None
+            else question.safety_evidence_terms
+        )
+        return self._build_safety_key(
+            source_stage=source_stage,
+            question_code=question_code,
+            evidence_terms=evidence_terms,
+            medical_case=medical_case,
+        )
+
+    def _safety_key_from_state(
+        self,
+        *,
+        safety_state,
+        medical_case: MedicalCase,
+    ) -> str | None:
+        question_code = safety_state.clarification_question_code or "safety_clarification"
+        return self._build_safety_key(
+            source_stage=self._source_stage_from_checked_sources(safety_state.checked_sources),
+            question_code=question_code,
+            evidence_terms=safety_state.evidence_terms,
+            medical_case=medical_case,
+        )
+
+    def _build_safety_key(
+        self,
+        *,
+        source_stage: str,
+        question_code: str,
+        evidence_terms: list[str],
+        medical_case: MedicalCase,
+    ) -> str:
+        evidence_signature = ",".join(self._normalize_safety_terms(evidence_terms)) or "-"
+        case_signature = ",".join(self._active_case_signature(medical_case)) or "-"
+        return f"{source_stage}|{question_code}|{evidence_signature}|{case_signature}"
+
+    @staticmethod
+    def _normalize_safety_terms(evidence_terms: list[str]) -> list[str]:
+        normalized = {
+            " ".join(term.strip().casefold().split())
+            for term in evidence_terms
+            if term and term.strip()
+        }
+        return sorted(normalized)
+
+    @staticmethod
+    def _source_stage_from_checked_sources(checked_sources: list[str]) -> str:
+        if "raw_message" in checked_sources:
+            return "raw_message"
+        if "medical_case_observations" in checked_sources:
+            return "case_slice"
+        return "structured_claim"
+
+    @staticmethod
+    def _source_stage_from_question_code(question_code: str | None) -> str:
+        if question_code == "raw_red_flag_clarification":
+            return "raw_message"
+        if question_code == "case_safety_clarification":
+            return "case_slice"
+        return "structured_claim"
+
+    @staticmethod
+    def _active_case_signature(medical_case: MedicalCase) -> list[str]:
+        signature: set[str] = set()
+        for observation in medical_case.observations:
+            if observation.type != "symptom" or observation.is_negated():
+                continue
+            if observation.normalized_label_de and observation.normalized_label_de.strip():
+                signature.add(
+                    "lay:" + " ".join(observation.normalized_label_de.strip().casefold().split())
+                )
+            if observation.clinical_term_de and observation.clinical_term_de.strip():
+                signature.add(
+                    "clinical:" + " ".join(observation.clinical_term_de.strip().casefold().split())
+                )
+        return sorted(signature)
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
         medical_case = request_input.persisted_medical_case or MedicalCase()
@@ -745,6 +893,8 @@ class TurnEngine:
         if recommendation_state.recommendation_allowed:
             recommendation_result = recommendation_state.recommendation_result or self.recommendation_builder.build(
                 medical_case=medical_case,
+                diary_history=request_input.diary_history,
+                medication_history=request_input.medication_history,
             )
             recommendation_state.recommendation_result = recommendation_result
             recommendation_state.recommendation_allowed = True
@@ -877,75 +1027,6 @@ class TurnEngine:
             turn_interpretation=turn_interpretation,
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes + decision.trace_notes,
-        )
-
-    def _apply_current_turn_understanding(
-        self,
-        *,
-        symptom_input_draft,
-        current_turn_understanding,
-        session_id: str | None,
-        trace_notes: list[str],
-    ):
-        if current_turn_understanding is None:
-            return symptom_input_draft
-
-        trace_notes.extend(current_turn_understanding.trace_notes)
-        updated_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
-            draft=symptom_input_draft,
-            understanding=current_turn_understanding,
-            session_id=session_id,
-        )
-        if current_turn_understanding.symptoms:
-            trace_notes.append("symptom_input_draft:updated_from_understanding")
-        for symptom in current_turn_understanding.symptoms:
-            trace_notes.append(
-                "understanding:symptom:"
-                f"{symptom.normalized_label_de or symptom.source_label}"
-            )
-        for match in current_turn_understanding.sts_matches:
-            trace_notes.append(f"understanding:sts:{match.sts_id}")
-        return updated_draft
-
-    @staticmethod
-    def _should_apply_interpreter_understanding(
-        *,
-        active_question: ActiveQuestion | None,
-        interpretation,
-    ) -> bool:
-        if active_question is None:
-            return True
-        if active_question.kind != "safety_clarification":
-            return True
-        if interpretation.question_resolution is None:
-            return True
-        return not interpretation.entry_assessment.answers_active_question
-
-    @staticmethod
-    def _should_use_understanding_fallback(
-        *,
-        active_question: ActiveQuestion | None,
-        interpretation,
-    ) -> bool:
-        if active_question is None:
-            return True
-        if active_question.kind != "safety_clarification":
-            return True
-        if interpretation is None:
-            return True
-        if interpretation.question_resolution is None:
-            return True
-        return not interpretation.entry_assessment.answers_active_question
-
-    def _should_route_guided_safety_answer_via_turn_interpreter(
-        self,
-        *,
-        active_question: ActiveQuestion | None,
-    ) -> bool:
-        return (
-            self.turn_interpreter is not None
-            and active_question is not None
-            and active_question.kind == "safety_clarification"
         )
 
     def _normalize_interpreter_question_resolution(

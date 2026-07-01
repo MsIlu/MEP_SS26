@@ -4,6 +4,7 @@ import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
 import 'package:app1/core/widgets/careena_info_card.dart';
 import 'package:app1/features/calendar_overview/presentation/screens/calendar_overview_page.dart';
 import 'package:app1/features/homescreen/presentation/widgets/custom_bottom_nav.dart';
@@ -101,14 +102,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CareenaPageHeader(
-        title: 'Chathistorie',
-        onBack: _openHome,
-        trailing: CareenaThemeHeaderAction(
-          onPressed: widget.themeController.toggleTheme,
-          isDarkMode: widget.themeController.isDarkMode,
-        ),
-      ),
+      appBar: CareenaPageHeader(title: 'Chathistorie', onBack: _openHome),
       body: SafeArea(
         child: ResponsivePageBody(
           maxWidth: 720,
@@ -557,30 +551,10 @@ class _EmptyChatHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.mark_chat_unread_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Noch keine gespeicherten Verläufe',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Sobald eine Handlungsempfehlung entsteht, erscheint sie hier.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
+    return const CareenaEmptyState(
+      icon: Icons.mark_chat_unread_outlined,
+      title: 'Noch keine gespeicherten Verläufe',
+      message: 'Sobald eine Handlungsempfehlung entsteht, erscheint sie hier.',
     );
   }
 }

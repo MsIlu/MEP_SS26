@@ -41,11 +41,21 @@ class _StubMedicalExtractor:
             observations=[
                 ExtractedObservationInput(
                     type="symptom",
-                    label="Schwindel",
+                    normalized_label_de="Schwindel",
                     status="active",
                 )
             ]
         )
+
+
+class _SequenceMedicalExtractor:
+    def __init__(self, *results: ExtractedCaseInput):
+        self._results = list(results)
+
+    def extract(self, *, message: str, history_messages=None) -> ExtractedCaseInput:
+        if self._results:
+            return self._results.pop(0)
+        return ExtractedCaseInput()
 
 
 def _create_session(client: TestClient) -> str:
@@ -113,4 +123,67 @@ def test_careena4_chat_merges_extracted_symptoms_with_user_edited_draft(
     draft_response = client.get(f"/input-drafts/{session_id}")
 
     assert draft_response.status_code == 200
-    assert draft_response.json()["symptoms"] == ["Kopfschmerzen", "Schwindel"]
+    assert draft_response.json()["symptoms"] == ["Schwindel", "Kopfschmerzen"]
+
+
+def test_input_draft_deletion_negates_case_observation_and_stays_deleted_on_next_turn(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        main,
+        "careena4_turn_engine",
+        TurnEngine(
+            medical_extractor=_SequenceMedicalExtractor(
+                ExtractedCaseInput(
+                    observations=[
+                        ExtractedObservationInput(
+                            type="symptom",
+                            normalized_label_de="Schwindel",
+                            status="active",
+                        )
+                    ]
+                ),
+                ExtractedCaseInput(),
+            )
+        ),
+    )
+
+    session_id = _create_session(client)
+
+    first_chat = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "Ich habe Schwindel.",
+        },
+    )
+    assert first_chat.status_code == 200
+
+    patch_response = client.patch(
+        f"/input-drafts/{session_id}",
+        json={"symptoms": []},
+    )
+
+    assert patch_response.status_code == 200
+    assert patch_response.json()["symptoms"] == []
+
+    session = main.careena4_session_store.get(session_id)
+    assert session is not None
+    assert len(session.medical_case.observations) == 1
+    assert session.medical_case.observations[0].normalized_label_de == "Schwindel"
+    assert session.medical_case.observations[0].status == "negated"
+
+    second_chat = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "Okay.",
+        },
+    )
+    assert second_chat.status_code == 200
+
+    draft_response = client.get(f"/input-drafts/{session_id}")
+
+    assert draft_response.status_code == 200
+    assert draft_response.json()["symptoms"] == []

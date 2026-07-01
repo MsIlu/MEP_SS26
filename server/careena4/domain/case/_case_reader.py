@@ -58,7 +58,7 @@ class _CaseReader:
         )
         if observation is None:
             return None
-        return observation.label
+        return observation.normalized_label_de
 
     @staticmethod
     def read_has_active_observations(*, medical_case: MedicalCase) -> bool:
@@ -85,7 +85,7 @@ class _CaseReader:
         observations = self.read_active_observations(medical_case=medical_case)
         if not observations:
             return None
-        return observations[0].label
+        return observations[0].normalized_label_de
 
     @staticmethod
     def read_person_relation(*, medical_case: MedicalCase):

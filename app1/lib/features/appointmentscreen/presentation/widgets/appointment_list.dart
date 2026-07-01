@@ -1,4 +1,6 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/careena_empty_state.dart';
+import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +14,7 @@ class AppointmentList extends StatelessWidget {
   final ValueListenable<List<Appointment>> appointmentsListenable;
   final String selectedFilter;
   final int? selectedProfileId;
+  final List<AuthProfile> profiles;
   final bool showAllProfiles;
   final bool shrinkWrap;
   final ValueChanged<Appointment> onDelete;
@@ -22,6 +25,7 @@ class AppointmentList extends StatelessWidget {
     required this.appointmentsListenable,
     required this.selectedFilter,
     this.selectedProfileId,
+    this.profiles = const [],
     this.showAllProfiles = true,
     required this.shrinkWrap,
     required this.onDelete,
@@ -36,8 +40,10 @@ class AppointmentList extends StatelessWidget {
         final scopedAppointments = showAllProfiles
             ? appointments
             : appointments
-                .where((appointment) => appointment.profileId == selectedProfileId)
-                .toList();
+                  .where(
+                    (appointment) => appointment.profileId == selectedProfileId,
+                  )
+                  .toList();
         final visibleAppointments = _deduplicateVisibleAppointments(
           scopedAppointments,
         );
@@ -46,6 +52,17 @@ class AppointmentList extends StatelessWidget {
           return shrinkWrap
               ? const SizedBox(height: 180, child: AppointmentEmptyState())
               : const AppointmentEmptyState();
+        }
+
+        if (showAllProfiles && profiles.length > 1) {
+          return _GroupedAppointmentList(
+            profiles: profiles,
+            appointments: visibleAppointments,
+            selectedFilter: selectedFilter,
+            shrinkWrap: shrinkWrap,
+            onDelete: onDelete,
+            onEdit: onEdit,
+          );
         }
 
         final sections = buildAppointmentSections(
@@ -59,40 +76,11 @@ class AppointmentList extends StatelessWidget {
         return ListView(
           shrinkWrap: shrinkWrap,
           physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
-          children: [
-            if (sections.recommendedAppointments.isNotEmpty) ...[
-              const _AppointmentSectionHeader(
-                icon: Icons.auto_awesome_outlined,
-                title: 'Empfohlene nächste Schritte',
-                subtitle:
-                    'Von Careena vorgeschlagene Termine, die du noch eintragen kannst.',
-              ),
-              const SizedBox(height: 8),
-              for (final appointment in sections.recommendedAppointments)
-                _AppointmentListTile(
-                  appointment: appointment,
-                  onDelete: onDelete,
-                  onEdit: onEdit,
-                ),
-              if (sections.plannedAppointments.isNotEmpty)
-                const SizedBox(height: 12),
-            ],
-            if (sections.plannedAppointments.isNotEmpty) ...[
-              if (sections.recommendedAppointments.isNotEmpty) ...[
-                const _AppointmentSectionHeader(
-                  icon: Icons.event_available_outlined,
-                  title: 'Geplante Termine',
-                ),
-                const SizedBox(height: 8),
-              ],
-              for (final appointment in sections.plannedAppointments)
-                _AppointmentListTile(
-                  appointment: appointment,
-                  onDelete: onDelete,
-                  onEdit: onEdit,
-                ),
-            ],
-          ],
+          children: _AppointmentSectionContent(
+            sections: sections,
+            onDelete: onDelete,
+            onEdit: onEdit,
+          ).children,
         );
       },
     );
@@ -103,40 +91,216 @@ List<Appointment> _deduplicateVisibleAppointments(
   List<Appointment> appointments,
 ) {
   final result = <Appointment>[];
-  final seenKeys = <String>{};
-
   for (final appointment in appointments) {
-    final key = _visibleAppointmentKey(appointment);
-    if (key != null && seenKeys.contains(key)) {
-      continue;
-    }
-
-    if (key != null) {
-      seenKeys.add(key);
-    }
-    result.add(appointment);
+    final isDuplicate =
+        appointment.isRecommendation &&
+        result.any(
+          (existing) => _isSameRecommendedAppointment(existing, appointment),
+        );
+    if (!isDuplicate) result.add(appointment);
   }
-
   return result;
 }
 
-String? _visibleAppointmentKey(Appointment appointment) {
-  if (!appointment.isRecommendation) {
-    return null;
+bool _isSameRecommendedAppointment(Appointment first, Appointment second) {
+  if (!first.isRecommendation ||
+      !second.isRecommendation ||
+      first.profileId != second.profileId) {
+    return false;
+  }
+  if (first.backendId != null &&
+      second.backendId != null &&
+      first.backendId == second.backendId) {
+    return true;
+  }
+  if (first.id.trim().isNotEmpty && first.id == second.id) return true;
+  return first.doctorName.trim().toLowerCase() ==
+          second.doctorName.trim().toLowerCase() &&
+      first.appointmentDate == second.appointmentDate;
+}
+
+class _GroupedAppointmentList extends StatelessWidget {
+  final List<AuthProfile> profiles;
+  final List<Appointment> appointments;
+  final String selectedFilter;
+  final bool shrinkWrap;
+  final ValueChanged<Appointment> onDelete;
+  final ValueChanged<Appointment> onEdit;
+
+  const _GroupedAppointmentList({
+    required this.profiles,
+    required this.appointments,
+    required this.selectedFilter,
+    required this.shrinkWrap,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = <_ProfileAppointmentSectionData>[];
+
+    for (final profile in profiles) {
+      final profileAppointments = appointments
+          .where((appointment) => appointment.profileId == profile.id)
+          .toList();
+      if (profileAppointments.isEmpty) continue;
+
+      final appointmentSections = buildAppointmentSections(
+        profileAppointments,
+        selectedFilter,
+      );
+      if (appointmentSections.isEmpty) continue;
+
+      sections.add(
+        _ProfileAppointmentSectionData(
+          profile: profile,
+          appointmentSections: appointmentSections,
+          totalCount:
+              appointmentSections.recommendedAppointments.length +
+              appointmentSections.plannedAppointments.length,
+        ),
+      );
+    }
+
+    if (sections.isEmpty) {
+      return _EmptyFilterState(shrinkWrap: shrinkWrap);
+    }
+
+    return ListView(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+      children: [
+        for (var index = 0; index < sections.length; index++) ...[
+          _ProfileAppointmentSection(
+            section: sections[index],
+            onDelete: onDelete,
+            onEdit: onEdit,
+          ),
+          if (index < sections.length - 1) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class _ProfileAppointmentSectionData {
+  final AuthProfile profile;
+  final AppointmentSections appointmentSections;
+  final int totalCount;
+
+  const _ProfileAppointmentSectionData({
+    required this.profile,
+    required this.appointmentSections,
+    required this.totalCount,
+  });
+}
+
+class _ProfileAppointmentSection extends StatelessWidget {
+  final _ProfileAppointmentSectionData section;
+  final ValueChanged<Appointment> onDelete;
+  final ValueChanged<Appointment> onEdit;
+
+  const _ProfileAppointmentSection({
+    required this.section,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+        childrenPadding: const EdgeInsets.only(bottom: 12),
+        initiallyExpanded: true,
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        collapsedBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        backgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        title: Text(
+          _profileSectionTitle(section.profile),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          '${section.totalCount} ${section.totalCount == 1 ? 'Termin' : 'Termine'}',
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _AppointmentSectionContent(
+                sections: section.appointmentSections,
+                onDelete: onDelete,
+                onEdit: onEdit,
+              ).children,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  if (appointment.backendId != null) {
-    return 'backend:${appointment.profileId}:${appointment.backendId}';
+  String _profileSectionTitle(AuthProfile profile) {
+    return profile.displayName;
   }
+}
 
-  final trimmedId = appointment.id.trim();
-  if (trimmedId.isNotEmpty) {
-    return 'fhir:${appointment.profileId}:$trimmedId';
+class _AppointmentSectionContent {
+  final AppointmentSections sections;
+  final ValueChanged<Appointment> onDelete;
+  final ValueChanged<Appointment> onEdit;
+
+  const _AppointmentSectionContent({
+    required this.sections,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  List<Widget> get children {
+    return [
+      if (sections.recommendedAppointments.isNotEmpty) ...[
+        const _AppointmentSectionHeader(
+          icon: Icons.auto_awesome_outlined,
+          title: 'Empfohlene nächste Schritte',
+          subtitle:
+              'Von Careena vorgeschlagene Termine, die du noch eintragen kannst.',
+        ),
+        const SizedBox(height: 8),
+        for (final appointment in sections.recommendedAppointments)
+          _AppointmentListTile(
+            appointment: appointment,
+            onDelete: onDelete,
+            onEdit: onEdit,
+          ),
+        if (sections.plannedAppointments.isNotEmpty) const SizedBox(height: 12),
+      ],
+      if (sections.plannedAppointments.isNotEmpty) ...[
+        if (sections.recommendedAppointments.isNotEmpty) ...[
+          const _AppointmentSectionHeader(
+            icon: Icons.event_available_outlined,
+            title: 'Geplante Termine',
+          ),
+          const SizedBox(height: 8),
+        ],
+        for (final appointment in sections.plannedAppointments)
+          _AppointmentListTile(
+            appointment: appointment,
+            onDelete: onDelete,
+            onEdit: onEdit,
+          ),
+      ],
+    ];
   }
-
-  return 'fallback:${appointment.profileId}:'
-      '${appointment.doctorName.trim().toLowerCase()}:'
-      '${appointment.appointmentDate?.toIso8601String()}';
 }
 
 class _AppointmentListTile extends StatelessWidget {
@@ -167,12 +331,14 @@ class _EmptyFilterState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const emptyFilter = Center(child: Text('Keine Termine in diesem Filter.'));
+    const emptyFilter = CareenaEmptyState(
+      icon: Icons.filter_alt_off_outlined,
+      title: 'Keine Termine in diesem Filter',
+      message: 'Passe den Filter an, um weitere Termine zu sehen.',
+    );
+
     return shrinkWrap
-        ? const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: emptyFilter,
-          )
+        ? const SizedBox(height: 180, child: emptyFilter)
         : emptyFilter;
   }
 }

@@ -264,9 +264,7 @@ class ApiClient {
 
       switch (response.statusCode) {
         case 400:
-          message =
-              _mappedErrorDetailFromResponse(response) ??
-              'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
+          message = 'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
           break;
         case 401:
           message = 'Du bist nicht angemeldet. Bitte melde dich erneut an.';
@@ -275,9 +273,7 @@ class ApiClient {
           message = 'Du hast keine Berechtigung für diese Aktion.';
           break;
         case 404:
-          message =
-              _mappedErrorDetailFromResponse(response) ??
-              'Die angefragten Daten wurden nicht gefunden.';
+          message = 'Die angefragten Daten wurden nicht gefunden.';
           break;
         case 409:
           message =
@@ -346,7 +342,22 @@ class ApiClient {
       case 'Email is already registered.':
         return 'Diese E-Mail-Adresse wurde schon registriert.';
       default:
-        return detail;
+        const allowedConflictDetails = [
+          'Chat session belongs to a different profile.',
+          'Last user message is empty',
+          'Only active chat history entries',
+          'Only waiting chat history entries',
+          'does not wait for an assistant response',
+          'Chat session is not linked to a profile.',
+          'Requested profile does not match chat session profile.',
+          'No Careena recommendation available for this session.',
+          'Der HAPI-Termin ist bereits gebucht.',
+        ];
+        return allowedConflictDetails.any(
+              (allowed) => detail?.contains(allowed) ?? false,
+            )
+            ? detail
+            : null;
     }
   }
 

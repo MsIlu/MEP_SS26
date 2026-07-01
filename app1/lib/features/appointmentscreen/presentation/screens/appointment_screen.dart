@@ -50,6 +50,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   String selectedFilter = 'Alle';
   final Set<int> _loadedRemoteProfileIds = {};
   final Set<int> _loadingRemoteProfileIds = {};
+  AuthSession? _observedAuthSession;
+  int? _lastActiveProfileId;
 
   @override
   void initState() {
@@ -61,6 +63,66 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       if (!mounted) return;
       _openInitialAppointment();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncAuthSessionListener();
+  }
+
+  @override
+  void didUpdateWidget(covariant AppointmentScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.authSession, widget.authSession)) {
+      _syncAuthSessionListener();
+    }
+  }
+
+  void _syncAuthSessionListener() {
+    final nextSession = _currentAuthSession();
+
+    if (identical(nextSession, _observedAuthSession)) {
+      return;
+    }
+
+    _observedAuthSession?.removeListener(_handleAuthSessionChanged);
+    _observedAuthSession = nextSession;
+    _lastActiveProfileId = nextSession?.activeProfileId;
+
+    if (!showAllProfiles) {
+      selectedProfileId = _lastActiveProfileId;
+    }
+
+    _observedAuthSession?.addListener(_handleAuthSessionChanged);
+  }
+
+  void _handleAuthSessionChanged() {
+    final nextProfileId = _observedAuthSession?.activeProfileId;
+
+    if (nextProfileId == _lastActiveProfileId) {
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+
+    _lastActiveProfileId = nextProfileId;
+    if (!mounted) return;
+
+    if (showAllProfiles) {
+      setState(() {});
+      return;
+    }
+
+    setState(() {
+      selectedProfileId = nextProfileId;
+    });
+    _loadRecommendedAppointmentsForCurrentView();
+  }
+
+  AuthSession? _currentAuthSession() {
+    return widget.authSession ?? AppDependenciesScope.maybeOf(context)?.authSession;
   }
 
   void _openInitialAppointment() {
@@ -76,8 +138,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   Future<void> _loadRecommendedAppointmentsForCurrentView() async {
+    final authSession = _currentAuthSession();
+
     if (showAllProfiles) {
-      final profiles = widget.authSession?.profiles ?? const [];
+      final profiles = authSession?.profiles ?? const [];
       final profileIds = profiles.map((profile) => profile.id).toSet();
 
       await Future.wait(
@@ -96,9 +160,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   Future<void> _loadRecommendedAppointmentsForProfile(int profileId) async {
     final dependencies = AppDependenciesScope.maybeOf(context);
-    final authSession = widget.authSession;
+    final authSession = _currentAuthSession();
 
-    if (dependencies == null || authSession?.isAuthenticated != true) {
+    if (dependencies == null ||
+        authSession == null ||
+        !authSession.isAuthenticated) {
       return;
     }
 
@@ -231,6 +297,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   @override
   void dispose() {
+    _observedAuthSession?.removeListener(_handleAuthSessionChanged);
     doctorController.dispose();
     noteController.dispose();
     dateController.dispose();
@@ -255,6 +322,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         scrollable: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final authSession = _currentAuthSession();
             final compactHeight = constraints.maxHeight < 360;
             final tightHeight = constraints.maxHeight < 300;
             final smallGap = tightHeight ? 4.0 : (compactHeight ? 8.0 : 16.0);
@@ -263,7 +331,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 : (compactHeight ? 12.0 : 24.0);
             final titleGap = tightHeight ? 4.0 : (compactHeight ? 6.0 : 12.0);
 
-            final activeProfile = widget.authSession?.activeProfile;
+            final activeProfile = authSession?.activeProfile;
             final canViewAllProfiles =
                 activeProfile?.profileType == 'self' ||
                 activeProfile?.role == 'owner';
@@ -287,24 +355,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               SizedBox(height: titleGap),
               if (canViewAllProfiles) ...[
                 AppointmentProfileFilter(
-                  profiles: widget.authSession?.profiles ?? const [],
+                  profiles: authSession?.profiles ?? const [],
                   selectedProfileId: selectedProfileId,
                   showAllProfiles: showAllProfiles,
-                  onShowAll: () {
-                    setState(() {
-                      showAllProfiles = true;
-                    });
-                    _loadRecommendedAppointmentsForCurrentView();
-                  },
-                  onProfileSelected: (profileId) {
-                    setState(() {
-                      selectedProfileId = profileId;
-                      showAllProfiles = false;
-                    });
-                    _loadRecommendedAppointmentsForProfile(profileId);
-                  },
+                  onShowAll: _showAllProfilesInAppointments,
+                  onProfileSelected: _showProfileInAppointments,
                 ),
-                if ((widget.authSession?.profiles.length ?? 0) > 1)
+                if ((authSession?.profiles.length ?? 0) > 1)
                   SizedBox(height: titleGap),
               ],
               AppointmentFilterBar(
@@ -390,6 +447,36 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       onDelete: _showDeleteDialog,
       onEdit: _showEditDialog,
     );
+  }
+
+  void _showAllProfilesInAppointments() {
+    setState(() {
+      showAllProfiles = true;
+    });
+    _loadRecommendedAppointmentsForCurrentView();
+  }
+
+  void _showProfileInAppointments(int profileId) {
+    final authSession = _currentAuthSession();
+    final profileIsAvailable =
+        authSession?.profiles.any((profile) => profile.id == profileId) ?? false;
+
+    if (authSession != null &&
+        profileIsAvailable &&
+        authSession.activeProfileId != profileId) {
+      setState(() {
+        selectedProfileId = profileId;
+        showAllProfiles = false;
+      });
+      authSession.setActiveProfileById(profileId);
+      return;
+    }
+
+    setState(() {
+      selectedProfileId = profileId;
+      showAllProfiles = false;
+    });
+    _loadRecommendedAppointmentsForProfile(profileId);
   }
 
   void _showAddAppointmentDialog() {

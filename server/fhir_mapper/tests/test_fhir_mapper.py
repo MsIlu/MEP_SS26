@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from fhir_mapper.mapper import map_to_fhir_bundle
 from fhir_mapper.validator import validate_fhir_bundle
 from careena4.models.domain import MedicalCase
@@ -8,6 +10,7 @@ from fhir_mapper.careena4_adapter import build_fhir_bundle_from_careena4_session
 from fhir_mapper.hapi_client import (
     BOOKED_BY_ACCOUNT_EXTENSION_URL,
     HapiFhirClient,
+    POSTAL_CODE_EXTENSION_URL,
     PROFILE_EXTENSION_URL,
     SESSION_EXTENSION_URL,
 )
@@ -206,33 +209,100 @@ class FakeHapiResponse:
 
 class FakeHapiHttpClient:
     def __init__(self):
+        self.appointment = {
+            "resourceType": "Appointment",
+            "id": "appointment-1",
+            "status": "proposed",
+            "participant": [
+                {
+                    "actor": {"display": "Hausarztpraxis Dr. Schneider"},
+                    "status": "needs-action",
+                }
+            ],
+            "extension": [
+                {"url": SESSION_EXTENSION_URL, "valueString": "session-1"},
+                {"url": PROFILE_EXTENSION_URL, "valueInteger": 10},
+            ],
+        }
         self.put_payload = None
 
     def request(self, method, url, **kwargs):
         if method == "GET":
-            return FakeHapiResponse(
-                {
-                    "resourceType": "Appointment",
-                    "id": "appointment-1",
-                    "status": "proposed",
-                    "participant": [
-                        {
-                            "actor": {"display": "Hausarztpraxis Dr. Schneider"},
-                            "status": "needs-action",
-                        }
-                    ],
-                    "extension": [
-                        {"url": SESSION_EXTENSION_URL, "valueString": "session-1"},
-                        {"url": PROFILE_EXTENSION_URL, "valueInteger": 10},
-                    ],
-                }
-            )
+            return FakeHapiResponse(self.appointment)
 
         if method == "PUT":
             self.put_payload = kwargs["json"]
-            return FakeHapiResponse(self.put_payload)
+            self.appointment = self.put_payload
+            return FakeHapiResponse({"resourceType": "OperationOutcome"})
 
         raise AssertionError(f"Unexpected method {method}")
+
+
+class SearchLagHapiHttpClient:
+    def __init__(self):
+        self.resources = {}
+        self.collection_searches = 0
+
+    def request(self, method, url, **kwargs):
+        path = url.removeprefix("http://hapi.test/fhir")
+
+        if method == "GET" and path == "/Appointment":
+            self.collection_searches += 1
+            return FakeHapiResponse(
+                {
+                    "resourceType": "Bundle",
+                    "type": "searchset",
+                    "entry": [],
+                }
+            )
+
+        if method == "GET" and path.startswith("/Appointment/"):
+            appointment_id = path.rsplit("/", 1)[-1]
+            return FakeHapiResponse(self.resources[appointment_id])
+
+        if method == "PUT" and path.startswith("/Appointment/"):
+            resource = kwargs["json"]
+            self.resources[resource["id"]] = resource
+            return FakeHapiResponse({"resourceType": "OperationOutcome"})
+
+        raise AssertionError(f"Unexpected HAPI call {method} {url}")
+
+
+def test_hapi_client_returns_written_appointments_when_search_index_lags():
+    http_client = SearchLagHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+
+    appointments = client.ensure_recommendation_appointments(
+        session_id="session-1",
+        profile_id=10,
+        postal_code="68159",
+        recommendation_result=SimpleNamespace(
+            urgency_level="medium",
+            care_level="general_practice",
+            specialty="general_practice",
+            next_step="Bitte hausarztlich abklaren lassen.",
+        ),
+        bundle_id="bundle-1",
+    )
+
+    assert len(appointments) == 3
+    assert http_client.collection_searches == 2
+    assert all(appointment["status"] == "proposed" for appointment in appointments)
+    assert {
+        "url": SESSION_EXTENSION_URL,
+        "valueString": "session-1",
+    } in appointments[0]["extension"]
+    assert {
+        "url": PROFILE_EXTENSION_URL,
+        "valueInteger": 10,
+    } in appointments[0]["extension"]
+    assert {
+        "url": POSTAL_CODE_EXTENSION_URL,
+        "valueString": "68159",
+    } in appointments[0]["extension"]
 
 
 def test_hapi_client_books_appointment_with_account_extension():

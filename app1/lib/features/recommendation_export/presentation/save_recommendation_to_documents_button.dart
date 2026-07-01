@@ -16,11 +16,6 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
   final bool alreadySaved;
   final Future<void> Function()? onSaved;
 
-  /// Profile the recommendation belongs to (resolved by the backend session).
-  /// Null means no profile was bound to the session — the document is stored
-  /// without a profile association instead of falling back to the active profile.
-  final int? profileId;
-
   const SaveRecommendationToDocumentsButton({
     super.key,
     required this.title,
@@ -31,7 +26,6 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
     required this.userMessages,
     this.alreadySaved = false,
     this.onSaved,
-    this.profileId,
   });
 
   @override
@@ -45,10 +39,15 @@ class _SaveRecommendationToDocumentsButtonState
   bool _isSaving = false;
 
   bool _isSavedForCurrentProfile(BuildContext context) {
+    final activeProfileId = AppDependenciesScope.maybeOf(
+      context,
+    )?.authSession.activeProfileId;
+
     final normalizedName = _documentName.toLowerCase();
+
     return _repository.documents.value.any(
       (document) =>
-          document.profileId == widget.profileId &&
+          document.profileId == activeProfileId &&
           document.source == DocumentSource.careena &&
           document.name.toLowerCase() == normalizedName,
     );
@@ -122,14 +121,15 @@ class _SaveRecommendationToDocumentsButtonState
     var documentStored = false;
     try {
       final dependencies = AppDependenciesScope.maybeOf(context);
+      final authSession = dependencies?.authSession;
       final profileApiService = dependencies?.profileApiService;
-      final resolvedProfileId = widget.profileId;
+      final activeProfileId = authSession?.activeProfileId;
 
       Profile? profile;
 
-      if (resolvedProfileId != null && profileApiService != null) {
+      if (activeProfileId != null && profileApiService != null) {
         try {
-          profile = await profileApiService.getProfile(resolvedProfileId);
+          profile = await profileApiService.getProfile(activeProfileId);
         } catch (_) {
           profile = null;
         }
@@ -148,7 +148,7 @@ class _SaveRecommendationToDocumentsButtonState
       final wasAdded = await _repository.addRecommendationIfMissing(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
-          profileId: resolvedProfileId,
+          profileId: activeProfileId,
           name: _documentName,
           category: DocumentCategory.recommendations,
           createdAt: DateTime.now(),

@@ -19,19 +19,6 @@ class DiaryEntry(PipelineModel):
     note: str = ""
 
 
-class MedicationEntry(PipelineModel):
-    """One medication-plan entry from the user's persistent medication diary.
-
-    Carries only plain values so the careena4 application layer stays
-    independent of the medications service and its database types.
-    """
-    name: str
-    dose: str = ""
-    frequency: str = ""
-    schedule: str = ""  # human-readable intake times, e.g. "08:00, 20:00"
-    active_substance: str = ""
-
-
 class ProfileSnapshot(PipelineModel):
     """Minimal profile data passed from the server layer into the chat pipeline.
 
@@ -40,7 +27,6 @@ class ProfileSnapshot(PipelineModel):
     """
     display_name: str
     profile_type: str  # "self" | "child" | "other"
-    id: int | None = None  # DB profile id, used to re-key the session profile
     age: int | None = None
     sex: str | None = None  # "female" | "male" | "diverse" | None
 

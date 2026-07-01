@@ -123,7 +123,7 @@ def test_search_fhir_appointments_submits_bundle_and_reads_hapi_resources():
 
     assert hapi_client.submitted_bundle["resourceType"] == "Bundle"
     assert hapi_client.ensure_calls[0]["bundle_id"] == "bundle-1"
-    assert response.message.startswith("HAPI-FHIR")
+    assert response.message.startswith("Der simulierte 116117-Terminservice")
     assert response.appointments[0].id == "hapi-appointment-1"
     assert response.appointments[0].provider_name == "Hausarztpraxis Dr. Schneider"
     assert response.appointments[0].source == "hapi-fhir"

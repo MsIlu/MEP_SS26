@@ -13,6 +13,7 @@ from fhir_mapper.hapi_client import (
     POSTAL_CODE_EXTENSION_URL,
     PROFILE_EXTENSION_URL,
     SESSION_EXTENSION_URL,
+    build_recommendation_appointment_resources,
 )
 
 
@@ -213,6 +214,7 @@ class FakeHapiHttpClient:
             "resourceType": "Appointment",
             "id": "appointment-1",
             "status": "proposed",
+            "meta": {"versionId": "7"},
             "participant": [
                 {
                     "actor": {"display": "Hausarztpraxis Dr. Schneider"},
@@ -225,6 +227,7 @@ class FakeHapiHttpClient:
             ],
         }
         self.put_payload = None
+        self.put_headers = None
 
     def request(self, method, url, **kwargs):
         if method == "GET":
@@ -232,6 +235,7 @@ class FakeHapiHttpClient:
 
         if method == "PUT":
             self.put_payload = kwargs["json"]
+            self.put_headers = kwargs.get("headers")
             self.appointment = self.put_payload
             return FakeHapiResponse({"resourceType": "OperationOutcome"})
 
@@ -291,14 +295,10 @@ def test_hapi_client_returns_written_appointments_when_search_index_lags():
     assert len(appointments) == 3
     assert http_client.collection_searches == 2
     assert all(appointment["status"] == "proposed" for appointment in appointments)
-    assert {
-        "url": SESSION_EXTENSION_URL,
-        "valueString": "session-1",
-    } in appointments[0]["extension"]
-    assert {
-        "url": PROFILE_EXTENSION_URL,
-        "valueInteger": 10,
-    } in appointments[0]["extension"]
+    assert not any(
+        extension["url"] in {SESSION_EXTENSION_URL, PROFILE_EXTENSION_URL}
+        for extension in appointments[0]["extension"]
+    )
     assert {
         "url": POSTAL_CODE_EXTENSION_URL,
         "valueString": "68159",
@@ -325,3 +325,28 @@ def test_hapi_client_books_appointment_with_account_extension():
         "url": BOOKED_BY_ACCOUNT_EXTENSION_URL,
         "valueInteger": 3,
     } in booked["extension"]
+    assert http_client.put_headers["If-Match"] == 'W/"7"'
+
+
+def test_simulated_slots_are_shared_between_sessions():
+    recommendation = SimpleNamespace(
+        urgency_level="medium",
+        care_level="general_practice",
+        specialty="general_practice",
+    )
+    first = build_recommendation_appointment_resources(
+        session_id="session-1",
+        profile_id=10,
+        postal_code="68159",
+        recommendation_result=recommendation,
+        bundle_id=None,
+    )
+    second = build_recommendation_appointment_resources(
+        session_id="session-2",
+        profile_id=20,
+        postal_code="68159",
+        recommendation_result=recommendation,
+        bundle_id=None,
+    )
+
+    assert [item["id"] for item in first] == [item["id"] for item in second]

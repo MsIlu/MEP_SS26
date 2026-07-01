@@ -89,6 +89,7 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
 
         if existing_appointments:
@@ -98,6 +99,7 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
             allowed_statuses={"proposed", "pending", "booked", "cancelled"},
         )
         existing_by_id = {
@@ -131,6 +133,7 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
         if indexed_appointments:
             return indexed_appointments
@@ -140,6 +143,7 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
         if confirmed_appointments:
             return confirmed_appointments
@@ -153,6 +157,7 @@ class HapiFhirClient:
                     session_id=session_id,
                     profile_id=profile_id,
                     postal_code=postal_code,
+                    specialty=getattr(recommendation_result, "specialty", "unknown"),
                     allowed_statuses={"proposed"},
                 )
             ]
@@ -164,6 +169,7 @@ class HapiFhirClient:
             session_id: str,
             profile_id: int,
             postal_code: str,
+            specialty: str | None = None,
             allowed_statuses: set[str] | None = None,
     ) -> list[dict[str, Any]]:
         allowed_statuses = allowed_statuses or {"proposed"}
@@ -185,6 +191,7 @@ class HapiFhirClient:
                 session_id=session_id,
                 profile_id=profile_id,
                 postal_code=postal_code,
+                specialty=specialty,
                 allowed_statuses=allowed_statuses,
             ):
                 continue
@@ -210,12 +217,6 @@ class HapiFhirClient:
             booked_by_account_id: int,
     ) -> dict[str, Any]:
         appointment = self.get_appointment(appointment_id)
-
-        if _extension_value(appointment, SESSION_EXTENSION_URL) != session_id:
-            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu dieser Session.")
-
-        if _extension_value(appointment, PROFILE_EXTENSION_URL) != profile_id:
-            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu diesem Profil.")
 
         status = str(appointment.get("status") or "")
         if status not in {"proposed", "pending", "booked"}:
@@ -252,7 +253,7 @@ class HapiFhirClient:
             "PUT",
             f"/Appointment/{appointment['id']}",
             json=appointment,
-            headers={"Prefer": "return=representation"},
+            headers=_versioned_update_headers(appointment),
         )
 
         if updated_resource.get("resourceType") == "Appointment":
@@ -268,9 +269,6 @@ class HapiFhirClient:
             booked_by_account_id: int,
     ) -> dict[str, Any]:
         appointment = self.get_appointment(appointment_id)
-
-        if _extension_value(appointment, PROFILE_EXTENSION_URL) != profile_id:
-            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu diesem Profil.")
 
         booked_by_account = _extension_value(
             appointment,
@@ -293,7 +291,7 @@ class HapiFhirClient:
             "PUT",
             f"/Appointment/{appointment['id']}",
             json=appointment,
-            headers={"Prefer": "return=representation"},
+            headers=_versioned_update_headers(appointment),
         )
         if updated_resource.get("resourceType") == "Appointment":
             return updated_resource
@@ -374,6 +372,7 @@ class HapiFhirClient:
             session_id: str,
             profile_id: int,
             postal_code: str,
+            specialty: str | None = None,
     ) -> list[dict[str, Any]]:
         appointments: list[dict[str, Any]] = []
 
@@ -388,6 +387,7 @@ class HapiFhirClient:
                 session_id=session_id,
                 profile_id=profile_id,
                 postal_code=postal_code,
+                specialty=specialty,
                 allowed_statuses={"proposed"},
             ):
                 appointments.append(resource)
@@ -491,7 +491,7 @@ def build_recommendation_appointment_resources(
         end = start + timedelta(minutes=30)
         appointment_id = _stable_id(
             "Appointment",
-            f"{session_id}:{profile_id}:{postal_code}:{index}",
+            f"{postal_code}:{provider_name}:{start.isoformat()}:{care_type}",
         )
         provider_display = f"{provider_type} {provider_name}"
         address = (
@@ -542,8 +542,6 @@ def build_recommendation_appointment_resources(
                     },
                 ],
                 "extension": [
-                    {"url": SESSION_EXTENSION_URL, "valueString": session_id},
-                    {"url": PROFILE_EXTENSION_URL, "valueInteger": profile_id},
                     {"url": POSTAL_CODE_EXTENSION_URL, "valueString": postal_code},
                     {"url": ADDRESS_EXTENSION_URL, "valueString": address},
                     {"url": DISTANCE_EXTENSION_URL, "valueDecimal": distance_km},
@@ -603,6 +601,7 @@ def _appointment_matches_search(
         session_id: str,
         profile_id: int,
         postal_code: str,
+        specialty: str | None,
         allowed_statuses: set[str],
 ) -> bool:
     if resource.get("resourceType") != "Appointment":
@@ -611,16 +610,34 @@ def _appointment_matches_search(
     if str(resource.get("status") or "") not in allowed_statuses:
         return False
 
-    return (
-        str(_extension_value(resource, SESSION_EXTENSION_URL)) == str(session_id)
-        and str(_extension_value(resource, PROFILE_EXTENSION_URL)) == str(profile_id)
-        and str(_extension_value(resource, POSTAL_CODE_EXTENSION_URL))
-        == str(postal_code)
-    )
+    resource_session = _extension_value(resource, SESSION_EXTENSION_URL)
+    resource_profile = _extension_value(resource, PROFILE_EXTENSION_URL)
+    if resource_session is not None and str(resource_session) != str(session_id):
+        return False
+    if resource_profile is not None and str(resource_profile) != str(profile_id):
+        return False
+    if str(_extension_value(resource, POSTAL_CODE_EXTENSION_URL)) != str(postal_code):
+        return False
+
+    if specialty is not None:
+        expected_specialty = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
+        if (_first_text(resource.get("specialty")) or "") != expected_specialty:
+            return False
+
+    start = _parse_datetime(resource.get("start"))
+    return start is not None and start >= datetime.now(timezone.utc)
 
 
 def _sort_appointments(appointments: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(appointments, key=lambda item: item.get("start") or "")
+
+
+def _versioned_update_headers(resource: dict[str, Any]) -> dict[str, str]:
+    headers = {"Prefer": "return=representation"}
+    version_id = resource.get("meta", {}).get("versionId")
+    if version_id:
+        headers["If-Match"] = f'W/"{version_id}"'
+    return headers
 
 
 def _extension_value(resource: dict[str, Any], url: str) -> Any:

@@ -100,6 +100,8 @@ class HapiFhirClient:
         if existing_appointments:
             return existing_appointments
 
+        written_appointments: list[dict[str, Any]] = []
+
         for resource in build_recommendation_appointment_resources(
             session_id=session_id,
             profile_id=profile_id,
@@ -107,16 +109,37 @@ class HapiFhirClient:
             recommendation_result=recommendation_result,
             bundle_id=bundle_id,
         ):
-            self._request(
-                "PUT",
-                f"/Appointment/{resource['id']}",
-                json=resource,
-            )
+            written_appointments.append(self._put_appointment(resource))
 
-        return self.search_appointments(
+        indexed_appointments = self.search_appointments(
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+        )
+        if indexed_appointments:
+            return indexed_appointments
+
+        confirmed_appointments = self._read_appointments_by_id(
+            [appointment["id"] for appointment in written_appointments],
+            session_id=session_id,
+            profile_id=profile_id,
+            postal_code=postal_code,
+        )
+        if confirmed_appointments:
+            return confirmed_appointments
+
+        return _sort_appointments(
+            [
+                appointment
+                for appointment in written_appointments
+                if _appointment_matches_search(
+                    appointment,
+                    session_id=session_id,
+                    profile_id=profile_id,
+                    postal_code=postal_code,
+                    allowed_statuses={"proposed"},
+                )
+            ]
         )
 
     def search_appointments(
@@ -139,21 +162,18 @@ class HapiFhirClient:
 
         for entry in bundle.get("entry", []) or []:
             resource = entry.get("resource", {})
-            if resource.get("resourceType") != "Appointment":
-                continue
-
-            if _extension_value(resource, SESSION_EXTENSION_URL) != session_id:
-                continue
-
-            if _extension_value(resource, PROFILE_EXTENSION_URL) != profile_id:
-                continue
-
-            if _extension_value(resource, POSTAL_CODE_EXTENSION_URL) != postal_code:
+            if not _appointment_matches_search(
+                resource,
+                session_id=session_id,
+                profile_id=profile_id,
+                postal_code=postal_code,
+                allowed_statuses={"proposed"},
+            ):
                 continue
 
             appointments.append(resource)
 
-        return sorted(appointments, key=lambda item: item.get("start") or "")
+        return _sort_appointments(appointments)
 
     def get_appointment(self, appointment_id: str) -> dict[str, Any]:
         resource = self._request("GET", f"/Appointment/{appointment_id}")
@@ -210,11 +230,57 @@ class HapiFhirClient:
         for participant in appointment.get("participant", []) or []:
             participant["status"] = "accepted"
 
-        return self._request(
+        updated_resource = self._request(
             "PUT",
             f"/Appointment/{appointment['id']}",
             json=appointment,
+            headers={"Prefer": "return=representation"},
         )
+
+        if updated_resource.get("resourceType") == "Appointment":
+            return updated_resource
+
+        return self.get_appointment(str(appointment["id"]))
+
+    def _put_appointment(self, resource: dict[str, Any]) -> dict[str, Any]:
+        updated_resource = self._request(
+            "PUT",
+            f"/Appointment/{resource['id']}",
+            json=resource,
+            headers={"Prefer": "return=representation"},
+        )
+
+        if updated_resource.get("resourceType") == "Appointment":
+            return updated_resource
+
+        return resource
+
+    def _read_appointments_by_id(
+            self,
+            appointment_ids: list[str],
+            *,
+            session_id: str,
+            profile_id: int,
+            postal_code: str,
+    ) -> list[dict[str, Any]]:
+        appointments: list[dict[str, Any]] = []
+
+        for appointment_id in appointment_ids:
+            try:
+                resource = self.get_appointment(appointment_id)
+            except HapiFhirError:
+                continue
+
+            if _appointment_matches_search(
+                resource,
+                session_id=session_id,
+                profile_id=profile_id,
+                postal_code=postal_code,
+                allowed_statuses={"proposed"},
+            ):
+                appointments.append(resource)
+
+        return _sort_appointments(appointments)
 
     def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         headers = kwargs.pop("headers", {})
@@ -427,6 +493,32 @@ def appointment_resource_to_result(resource: dict[str, Any]) -> dict[str, Any]:
         ),
         "source": "hapi-fhir",
     }
+
+
+def _appointment_matches_search(
+        resource: dict[str, Any],
+        *,
+        session_id: str,
+        profile_id: int,
+        postal_code: str,
+        allowed_statuses: set[str],
+) -> bool:
+    if resource.get("resourceType") != "Appointment":
+        return False
+
+    if str(resource.get("status") or "") not in allowed_statuses:
+        return False
+
+    return (
+        str(_extension_value(resource, SESSION_EXTENSION_URL)) == str(session_id)
+        and str(_extension_value(resource, PROFILE_EXTENSION_URL)) == str(profile_id)
+        and str(_extension_value(resource, POSTAL_CODE_EXTENSION_URL))
+        == str(postal_code)
+    )
+
+
+def _sort_appointments(appointments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(appointments, key=lambda item: item.get("start") or "")
 
 
 def _extension_value(resource: dict[str, Any], url: str) -> Any:

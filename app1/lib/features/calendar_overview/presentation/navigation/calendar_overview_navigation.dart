@@ -82,12 +82,14 @@ class CalendarOverviewNavigation {
   }
 
   void openAppointment(Appointment appointment) {
+    final dependencies = AppDependenciesScope.maybeOf(context);
     if (!_hasThemeController) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AppointmentScreen(
           themeController: themeController,
+          authSession: authSession ?? dependencies?.authSession,
           initialAppointmentId: appointment.id,
         ),
       ),

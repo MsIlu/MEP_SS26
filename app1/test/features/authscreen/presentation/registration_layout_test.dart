@@ -55,8 +55,8 @@ void main() {
             title: 'Konto erstellen',
             onBack: () {},
             trailing: CareenaHeaderAction(
-              tooltip: 'Darkmode aktivieren',
-              icon: Icons.dark_mode,
+              tooltip: 'Info',
+              icon: Icons.info_outline,
               onPressed: () {},
             ),
           ),
@@ -67,9 +67,12 @@ void main() {
 
     final titleCenter = tester.getCenter(find.text('Konto erstellen'));
     final backCenter = tester.getCenter(find.byIcon(Icons.arrow_back));
-    final themeCenter = tester.getCenter(find.byIcon(Icons.dark_mode));
+    final trailingCenter = tester.getCenter(find.byIcon(Icons.info_outline));
 
-    expect(titleCenter.dx, closeTo((backCenter.dx + themeCenter.dx) / 2, 0.1));
+    expect(
+      titleCenter.dx,
+      closeTo((backCenter.dx + trailingCenter.dx) / 2, 0.1),
+    );
 
     await tester.drag(
       find.byType(SingleChildScrollView),

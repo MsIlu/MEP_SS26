@@ -3,6 +3,7 @@ import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/network/api_client.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
+import 'package:app1/core/widgets/active_profile_header_action.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
@@ -34,7 +35,7 @@ class HomeScreen extends StatefulWidget {
   /// Shared chat controller reused when opening the chat from the home screen.
   final ChatController controller;
 
-  /// Shared theme controller used to switch between light and dark mode.
+  /// Shared theme and display-mode controller.
   final ThemeController themeController;
   final ApiClient? apiClient;
   final AuthSession? authSession;
@@ -60,16 +61,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _careenaKey = GlobalKey();
   final _featuresKey = GlobalKey();
-  final _themeKey = GlobalKey();
+  final _profileKey = GlobalKey();
   final _navigationKey = GlobalKey();
   int? _guideStep;
   int _openChatCount = 0;
   final DocumentRepository _documentRepository = DocumentRepository.instance;
 
-  List<AppGuideStep> get _visibleGuideSteps =>
+   List<AppGuideStep> get _visibleGuideSteps =>
       widget.themeController.isSimpleView
       ? appGuideSteps
-            .where((step) => step.target != AppGuideTarget.theme)
+            .where(
+              (step) =>
+                  step.target != AppGuideTarget.profile,
+            )
             .toList()
       : appGuideSteps;
 
@@ -150,19 +154,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   : AppColors.headerBackgroundLight,
               appBar: CareenaPageHeader(
                 title: _welcomeTitle,
+                compactTitle: 'Willkommen!',
                 showBack: false,
                 leading: CareenaHeaderAction(
                   tooltip: 'App-Guide testen',
                   icon: Icons.help_outline,
                   onPressed: _startGuide,
                 ),
-                trailing: widget.themeController.isSimpleView
-                    ? null
-                    : CareenaThemeHeaderAction(
-                        key: _themeKey,
-                        onPressed: widget.themeController.toggleTheme,
-                        isDarkMode: widget.themeController.isDarkMode,
-                      ),
+                trailing: ActiveProfileHeaderAction(
+                  key: _profileKey,
+                  session: _activeSession,
+                ),
               ),
               body: SafeArea(
                 child: ResponsivePageBody(
@@ -210,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _welcomeTitle {
-    final name = widget.authSession?.activeProfile?.displayName.trim();
+    final name = _activeSession.activeProfile?.displayName.trim();
     if (name == null || name.isEmpty) {
       return 'Willkommen!';
     }
@@ -304,8 +306,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GlobalKey _targetKey(AppGuideTarget target) => switch (target) {
     AppGuideTarget.careena => _careenaKey,
+    AppGuideTarget.search => _featuresKey,
     AppGuideTarget.features => _featuresKey,
-    AppGuideTarget.theme => _themeKey,
+    AppGuideTarget.profile => _profileKey,
     AppGuideTarget.navigation => _navigationKey,
   };
 
@@ -455,4 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ?.widget
         as AppDependenciesScope?;
   }
+
+  AuthSession get _activeSession =>
+      widget.authSession ?? widget.controller.authSession;
 }

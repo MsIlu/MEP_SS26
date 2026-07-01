@@ -4,6 +4,8 @@ import 'package:app1/app/app_dependencies.dart';
 import 'package:app1/features/authscreen/domain/models/account.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:app1/features/authscreen/state/auth_session.dart';
+import 'package:app1/features/documents/data/document_repository.dart';
+import 'package:app1/features/documents/data/models/document_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -77,6 +79,38 @@ void main() {
       await dependencies.apiClient.get('/auth/me');
 
       expect(seenAuthorizationHeaders, ['Bearer restored-token', null]);
+    });
+
+    test('clears cached documents when auth session is cleared', () async {
+      final session = AuthSession();
+      final dependencies = AppDependencies(
+        authSession: session,
+        httpClient: MockClient((request) async => http.Response('{}', 200)),
+      );
+      final repository = DocumentRepository.instance;
+
+      addTearDown(dependencies.dispose);
+      addTearDown(session.dispose);
+      addTearDown(repository.clear);
+
+      session.setAuthResponse(_authResponse());
+      repository.documents.value = [
+        DocumentEntry(
+          id: '1',
+          profileId: 10,
+          name: 'Befund.pdf',
+          category: DocumentCategory.findings,
+          createdAt: DateTime(2026, 6, 23),
+          sizeInBytes: 3,
+          source: DocumentSource.uploaded,
+        ),
+      ];
+      repository.unreadCounts.value = {10: 1};
+
+      await session.clear();
+
+      expect(repository.documents.value, isEmpty);
+      expect(repository.unreadCounts.value, isEmpty);
     });
   });
 }

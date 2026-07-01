@@ -29,6 +29,8 @@ from auth.router import router as auth_router
 from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
+from documents.router import router as documents_router
+from medications.service import list_medications
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
 from appointments.router import router as appointments_router
@@ -107,6 +109,7 @@ app.state.careena4_session_profiles = careena4_session_profiles
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)
+app.include_router(documents_router)
 app.include_router(appointments_router)
 app.include_router(chat_history_router)
 app.include_router(symptoms_router)

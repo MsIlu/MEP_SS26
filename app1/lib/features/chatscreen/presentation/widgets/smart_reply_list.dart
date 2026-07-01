@@ -115,36 +115,38 @@ class _SmartRepliesState extends State<SmartReplyList> {
                 if (expanded) ...[
                   const SizedBox(height: 8),
 
-                  for (final reply in widget.replies) ...[
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Semantics(
-                        button: true,
-                        label: 'Antwortvorschlag: $reply',
-                        hint:
-                            'Doppeltippen, um diesen Vorschlag als Antwort zu verwenden.',
-                        onTap: () => widget.onSelected(reply),
-                        child: ExcludeSemantics(
-                          child: ActionChip(
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                            label: Text(
-                              reply,
-                              style: TextStyle(fontSize: 13, color: textColor),
-                            ),
-                            onPressed: () => widget.onSelected(reply),
-                            backgroundColor: chipColor,
-                            side: BorderSide(color: borderColor),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      for (final reply in widget.replies)
+                        Semantics(
+                          button: true,
+                          label: 'Antwortvorschlag: $reply',
+                          hint:
+                              'Doppeltippen, um diesen Vorschlag als Antwort zu verwenden.',
+                          onTap: () => widget.onSelected(reply),
+                          child: ExcludeSemantics(
+                            child: ActionChip(
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              label: Text(
+                                reply,
+                                style: TextStyle(fontSize: 13, color: textColor),
+                              ),
+                              onPressed: () => widget.onSelected(reply),
+                              backgroundColor: chipColor,
+                              side: BorderSide(color: borderColor),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                  ],
+                    ],
+                  ),
                 ],
               ],
             ),

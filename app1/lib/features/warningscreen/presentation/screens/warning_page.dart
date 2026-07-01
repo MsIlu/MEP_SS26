@@ -162,9 +162,23 @@ class WarningPage extends StatelessWidget {
     // Backend observations carry the severity extracted from the conversation.
     final observations = response.caseObservations;
     if (observations.isNotEmpty) {
-      return observations
-          .map((o) => SymptomImport(name: o.label, severity: o.severity, date: o.date))
-          .toList();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final result = <SymptomImport>[];
+      for (final o in observations) {
+        final startDate = o.date;
+        if (startDate != null && startDate.isBefore(today)) {
+          // Expand onset range: one entry per day from startDate through today.
+          var d = startDate;
+          while (!d.isAfter(today)) {
+            result.add(SymptomImport(name: o.label, severity: o.severity, date: d));
+            d = d.add(const Duration(days: 1));
+          }
+        } else {
+          result.add(SymptomImport(name: o.label, severity: o.severity, date: o.date));
+        }
+      }
+      return result;
     }
     return symptoms.map((s) => SymptomImport(name: s)).toList();
   }
@@ -191,6 +205,7 @@ class WarningPage extends StatelessWidget {
             await _markAction(RecommendationAction.symptoms);
             saved = true;
           },
+          profileId: response.profileId,
         ),
       ),
     );

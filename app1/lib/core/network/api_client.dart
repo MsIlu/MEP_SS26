@@ -140,6 +140,11 @@ class ApiClient {
                 _mappedErrorDetailFromResponse(response) ??
                 'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
             break;
+          case 413:
+            message =
+                _mappedErrorDetailFromResponse(response) ??
+                'Die Datei darf maximal 10 MB groß sein.';
+            break;
           default:
             message =
                 'Es ist ein Serverfehler aufgetreten. Bitte versuche es später erneut.';
@@ -277,6 +282,11 @@ class ApiClient {
           message =
               _mappedErrorDetailFromResponse(response) ??
               'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
+          break;
+        case 413:
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Die Datei darf maximal 10 MB groß sein.';
           break;
         default:
           message =

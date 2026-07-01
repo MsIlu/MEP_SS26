@@ -1,10 +1,12 @@
-﻿import 'package:app1/app/app_page_store.dart';
+import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/core/widgets/careena_page_header.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
+import 'package:app1/core/widgets/careena_snack_bar.dart';
 import 'package:app1/core/widgets/responsive_frame.dart';
+import 'package:app1/features/authscreen/domain/models/auth_response.dart';
 import 'package:flutter/material.dart';
 
 import '../../controllers/document_controller.dart';
@@ -42,16 +44,21 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     _controller = DocumentController(
       profileId: widget.authSession?.activeProfileId,
     );
+    widget.authSession?.addListener(_handleAuthSessionChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       DocumentRepository.instance.markAllAsSeen(
         widget.authSession?.activeProfileId,
       );
+      _loadDocumentsForCurrentView();
     });
   }
 
   @override
   void dispose() {
+    widget.authSession?.removeListener(_handleAuthSessionChanged);
     _searchController.dispose();
     _controller.dispose();
     super.dispose();
@@ -92,6 +99,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               final hasActiveFilter =
                   _controller.searchQuery.trim().isNotEmpty ||
                   _controller.selectedCategory != null;
+              final profiles = widget.authSession?.profiles ?? const [];
 
               return SingleChildScrollView(
                 child: Column(
@@ -147,17 +155,35 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         ),
                       ],
                     ),
+                    if (_controller.isLoading) ...[
+                      const SizedBox(height: 10),
+                      const LinearProgressIndicator(minHeight: 3),
+                    ],
+                    if (_controller.errorMessage != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        _controller.errorMessage!,
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     if (canViewAllProfiles) ...[
                       DocumentProfileFilter(
-                        profiles: widget.authSession?.profiles ?? const [],
+                        profiles: profiles,
                         selectedProfileId: _controller.selectedProfileId,
                         showAllProfiles: _controller.isShowingAllProfiles,
-                        onShowAll: _controller.showAllProfiles,
-                        onProfileSelected: _controller.selectProfile,
+                        onShowAll: () {
+                          _controller.showAllProfiles();
+                          _loadDocumentsForCurrentView();
+                        },
+                        onProfileSelected: (profileId) {
+                          _controller.selectProfile(profileId);
+                        },
                       ),
-                      if ((widget.authSession?.profiles.length ?? 0) > 1)
-                        const SizedBox(height: 14),
+                      if (profiles.length > 1) const SizedBox(height: 14),
                     ],
                     CareenaSearchField(
                       controller: _searchController,
@@ -172,6 +198,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     const SizedBox(height: 18),
                     if (documents.isEmpty)
                       DocumentEmptyState(hasActiveFilter: hasActiveFilter)
+                    else if (_controller.isShowingAllProfiles)
+                      _GroupedDocumentList(
+                        profiles: profiles,
+                        documents: documents,
+                        onAction: _handleAction,
+                      )
                     else
                       ListView.separated(
                         shrinkWrap: true,
@@ -205,13 +237,19 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
     if (draft == null || !mounted) return;
 
-    _controller.addDocument(
-      name: draft.name,
-      category: draft.category,
-      fileBytes: draft.fileBytes,
-      mimeType: draft.mimeType,
-    );
-    _showMessage('Dokument hinzugefügt');
+    try {
+      await _controller.addDocument(
+        name: draft.name,
+        category: draft.category,
+        fileBytes: draft.fileBytes,
+        mimeType: draft.mimeType,
+      );
+      _showMessage('Dokument hinzugefügt');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht gespeichert werden.');
+      }
+    }
   }
 
   Future<void> _handleAction(
@@ -232,28 +270,43 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   Future<void> _showDocumentDetails(DocumentEntry document) async {
-    final fileBytes = document.fileBytes;
+    DocumentEntry documentWithFile = document;
 
-    if (fileBytes != null && document.mimeType == 'application/pdf') {
+    if (documentWithFile.fileBytes == null) {
+      try {
+        documentWithFile = await _controller.loadDocumentFile(document);
+      } catch (_) {
+        if (mounted) {
+          _showMessage('Dokument konnte nicht geladen werden.');
+        }
+        return;
+      }
+    }
+
+    if (!mounted) return;
+
+    final fileBytes = documentWithFile.fileBytes;
+
+    if (fileBytes != null && documentWithFile.mimeType == 'application/pdf') {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => DocumentPreviewScreen(
-            documentName: document.name,
+            documentName: documentWithFile.name,
             fileBytes: fileBytes,
           ),
         ),
       );
       return;
     }
-    if (fileBytes != null && document.mimeType.startsWith('image/')) {
+    if (fileBytes != null && documentWithFile.mimeType.startsWith('image/')) {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ImagePreviewScreen(
-            documentName: document.name,
+            documentName: documentWithFile.name,
             fileBytes: fileBytes,
-            mimeType: document.mimeType,
+            mimeType: documentWithFile.mimeType,
           ),
         ),
       );
@@ -269,7 +322,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           size: 36,
         ),
         title: Text(
-          document.name,
+          documentWithFile.name,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         content: ConstrainedBox(
@@ -278,10 +331,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _DetailRow(label: 'Kategorie', value: document.category.label),
+              _DetailRow(
+                label: 'Kategorie',
+                value: documentWithFile.category.label,
+              ),
               _DetailRow(
                 label: 'Quelle',
-                value: document.source == DocumentSource.careena
+                value: documentWithFile.source == DocumentSource.careena
                     ? 'Careena'
                     : 'Hochgeladen',
               ),
@@ -309,8 +365,14 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
 
     if (name == null || name.isEmpty) return;
-    _controller.renameDocument(document.id, name);
-    _showMessage('Dokument umbenannt');
+    try {
+      await _controller.renameDocument(document.id, name);
+      _showMessage('Dokument umbenannt');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht umbenannt werden.');
+      }
+    }
   }
 
   Future<void> _deleteDocument(DocumentEntry document) async {
@@ -339,24 +401,160 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
 
     if (confirmed != true) return;
-    _controller.deleteDocument(document.id);
-    _showMessage('Dokument gelöscht');
+    try {
+      await _controller.deleteDocument(document.id);
+      _showMessage('Dokument gelöscht');
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Dokument konnte nicht gelöscht werden.');
+      }
+    }
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.careenaTeal,
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+    showCareenaSnackBar(context, message);
+  }
+
+  Future<void> _loadDocumentsForCurrentView() async {
+    if (_controller.isShowingAllProfiles) {
+      final profileIds = widget.authSession?.profiles
+          .map((profile) => profile.id)
+          .toSet();
+
+      if (profileIds == null) return;
+      await Future.wait(profileIds.map(_controller.loadProfileDocuments));
+      return;
+    }
+
+    final profileId = _controller.selectedProfileId;
+    if (profileId == null) return;
+
+    await _controller.loadProfileDocuments(profileId);
+  }
+
+  Future<void> _handleAuthSessionChanged() async {
+    if (!mounted) return;
+
+    final activeProfileId = widget.authSession?.activeProfileId;
+    await _controller.syncActiveProfile(activeProfileId);
+
+    if (!mounted) return;
+    DocumentRepository.instance.markAllAsSeen(activeProfileId);
+  }
+}
+
+class _GroupedDocumentList extends StatelessWidget {
+  final List<AuthProfile> profiles;
+  final List<DocumentEntry> documents;
+  final Future<void> Function(DocumentEntry, DocumentAction) onAction;
+
+  const _GroupedDocumentList({
+    required this.profiles,
+    required this.documents,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedDocuments = _documentsByProfileId;
+    final sections = profiles
+        .where((profile) => groupedDocuments[profile.id]?.isNotEmpty == true)
+        .toList();
+
+    return Column(
+      children: [
+        for (var index = 0; index < sections.length; index++) ...[
+          _ProfileDocumentSection(
+            profile: sections[index],
+            documents: groupedDocuments[sections[index].id] ?? const [],
+            onAction: onAction,
+          ),
+          if (index < sections.length - 1) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Map<int, List<DocumentEntry>> get _documentsByProfileId {
+    final groupedDocuments = <int, List<DocumentEntry>>{};
+
+    for (final document in documents) {
+      final profileId = document.profileId;
+      if (profileId == null) continue;
+
+      groupedDocuments.putIfAbsent(profileId, () => []).add(document);
+    }
+
+    return groupedDocuments;
+  }
+}
+
+class _ProfileDocumentSection extends StatelessWidget {
+  final AuthProfile profile;
+  final List<DocumentEntry> documents;
+  final Future<void> Function(DocumentEntry, DocumentAction) onAction;
+
+  const _ProfileDocumentSection({
+    required this.profile,
+    required this.documents,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+        childrenPadding: const EdgeInsets.only(bottom: 12),
+        initiallyExpanded: true,
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        collapsedBackgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        backgroundColor: AppColors.careenaTeal.withValues(alpha: 0.08),
+        title: Text(
+          _profileSectionTitle(profile),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
           ),
         ),
+        subtitle: Text(
+          '${documents.length} ${documents.length == 1 ? 'Dokument' : 'Dokumente'}',
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: documents.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final document = documents[index];
+
+                return DocumentListItem(
+                  document: document,
+                  onAction: (action) => onAction(document, action),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _profileSectionTitle(AuthProfile profile) {
+    if (profile.profileType == 'self') {
+      return 'Hauptprofil';
+    }
+
+    return profile.displayName;
   }
 }
 

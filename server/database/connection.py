@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlmodel import SQLModel, Session, create_engine
 from . import models
-from sqlmodel import Session
-from sqlalchemy import text
 from .catalog import models as catalog_models
+
+_REGISTERED_MODEL_MODULES = (models, catalog_models)
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -237,6 +237,23 @@ def _migrate_chat_history_schema():
         )
 
 
+def _migrate_document_entries_schema():
+    if engine.dialect.name != "postgresql":
+        return
+
+    migration_path = (
+        Path(__file__).resolve().parent
+        / "migrations"
+        / "20260701_create_document_entries.sql"
+    )
+
+    with engine.begin() as connection:
+        for statement in migration_path.read_text(encoding="utf-8").split(";"):
+            statement = statement.strip()
+            if statement:
+                connection.execute(text(statement))
+
+
 def _ensure_postgres_schema():
     if engine.dialect.name != "postgresql":
         return
@@ -320,6 +337,7 @@ def create_db_and_tables():
         session.commit()
     _migrate_legacy_user_schema()
     _migrate_chat_history_schema()
+    _migrate_document_entries_schema()
 
 #creates database-session
 def get_db_session():

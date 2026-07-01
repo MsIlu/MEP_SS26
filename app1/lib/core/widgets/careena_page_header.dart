@@ -1,8 +1,10 @@
-﻿import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/active_profile_header_action.dart';
 import 'package:flutter/material.dart';
 
 class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final String? compactTitle;
   final bool showBack;
   final VoidCallback? onBack;
   final Widget? leading;
@@ -11,6 +13,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
   const CareenaPageHeader({
     super.key,
     required this.title,
+    this.compactTitle,
     this.showBack = true,
     this.onBack,
     this.leading,
@@ -26,6 +29,20 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
     final backgroundColor = isDark
         ? AppColors.headerBackgroundDark
         : AppColors.headerBackgroundLight;
+    final trailingWidget = trailing ?? const ActiveProfileHeaderAction();
+    final reservesWideTrailing =
+        trailing != null || ActiveProfileHeaderAction.hasActiveProfile(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final titlePadding = reservesWideTrailing
+        ? EdgeInsets.only(
+            left: screenWidth < 390
+                ? 56.0
+                : (screenWidth >= 700 ? 228.0 : 156.0),
+            right: screenWidth < 390
+                ? 104.0
+                : (screenWidth >= 700 ? 228.0 : 156.0),
+          )
+        : const EdgeInsets.symmetric(horizontal: 64);
 
     return AppBar(
       automaticallyImplyLeading: false,
@@ -51,32 +68,93 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
                     : const SizedBox.square(dimension: 48)),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 64),
-            child: Semantics(
-              header: true,
-              label: title,
-              child: ExcludeSemantics(
+            padding: titlePadding,
+            child: _ResponsiveHeaderTitle(
+              title: title,
+              compactTitle: compactTitle,
+            ),
+          ),
+          Align(alignment: Alignment.centerRight, child: trailingWidget),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResponsiveHeaderTitle extends StatelessWidget {
+  final String title;
+  final String? compactTitle;
+
+  const _ResponsiveHeaderTitle({required this.title, this.compactTitle});
+
+  static const _fontSizes = [20.0, 18.0, 16.0, 14.0];
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    final textDirection = Directionality.of(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final fullTitleFits = _fits(
+          title,
+          _fontSizes.first,
+          maxWidth,
+          textDirection,
+        );
+        final visibleTitle = fullTitleFits ? title : compactTitle ?? title;
+        final fontSize = _fontSizes.firstWhere(
+          (size) => _fits(visibleTitle, size, maxWidth, textDirection),
+          orElse: () => _fontSizes.last,
+        );
+
+        return Tooltip(
+          message: title,
+          child: Semantics(
+            header: true,
+            label: visibleTitle,
+            child: ExcludeSemantics(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
-                  title,
+                  visibleTitle,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 20,
+                    color: color,
+                    fontSize: fontSize,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: trailing ?? const SizedBox.square(dimension: 48),
-          ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  bool _fits(
+    String value,
+    double fontSize,
+    double maxWidth,
+    TextDirection textDirection,
+  ) {
+    if (maxWidth <= 0) return false;
+
+    final painter = TextPainter(
+      text: TextSpan(
+        text: value,
+        style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800),
+      ),
+      maxLines: 1,
+      textDirection: textDirection,
+    )..layout();
+
+    return painter.width <= maxWidth;
   }
 }
 
@@ -109,26 +187,6 @@ class CareenaHeaderAction extends StatelessWidget {
       ),
       onPressed: onPressed,
       icon: Icon(icon),
-    );
-  }
-}
-
-class CareenaThemeHeaderAction extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool isDarkMode;
-
-  const CareenaThemeHeaderAction({
-    super.key,
-    required this.onPressed,
-    required this.isDarkMode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CareenaHeaderAction(
-      tooltip: isDarkMode ? 'Lightmode aktivieren' : 'Darkmode aktivieren',
-      icon: isDarkMode ? Icons.light_mode : Icons.dark_mode,
-      onPressed: onPressed,
     );
   }
 }

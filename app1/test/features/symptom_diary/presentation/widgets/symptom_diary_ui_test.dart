@@ -58,7 +58,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Symptomtagebuch'), findsOneWidget);
-      expect(find.text('Noch nichts eingetragen'), findsOneWidget);
+      expect(find.text('Noch keine Einträge vorhanden'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Symptom eintragen'));
       await tester.pumpAndSettle();
@@ -186,8 +186,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Noch nichts eingetragen'), findsOneWidget);
-      expect(find.textContaining('Noch keine Symptome'), findsOneWidget);
+      expect(find.text('Noch keine Einträge vorhanden'), findsOneWidget);
+      expect(find.textContaining('Trage deinen ersten Eintrag'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Symptom eintragen'));
       await tester.pump();

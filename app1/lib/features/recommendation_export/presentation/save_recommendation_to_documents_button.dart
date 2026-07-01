@@ -145,7 +145,7 @@ class _SaveRecommendationToDocumentsButtonState
         profile: profile,
       );
 
-      final wasAdded = _repository.addRecommendationIfMissing(
+      final wasAdded = await _repository.addRecommendationIfMissing(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           profileId: activeProfileId,

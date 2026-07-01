@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/app/app_navigation_fallbacks.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -13,6 +13,7 @@ import '../../../../core/widgets/careena_snack_bar.dart';
 import '../../../../core/widgets/responsive_frame.dart';
 import '../../../authscreen/data/auth_api_service.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../../../onboardingscreen/presentation/screens/onboarding_screen.dart';
 import '../../../profiles/data/profile_api_service.dart';
 import '../settings_icons.dart';
 import '../widgets/display_settings_section.dart';
@@ -65,10 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
         widget.authApiService ?? dependencies?.authApiService;
 
     return AnimatedBuilder(
-      animation: Listenable.merge([
-        widget.themeController,
-        ?authSession,
-      ]),
+      animation: Listenable.merge([widget.themeController, ?authSession]),
       builder: (context, _) {
         final simpleView = widget.themeController.isSimpleView;
         final visibleItems = _items(
@@ -76,14 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ).where((item) => item.matches(_query)).toList();
 
         return Scaffold(
-          appBar: CareenaPageHeader(
-            title: 'Einstellungen',
-            onBack: _openHome,
-            trailing: CareenaThemeHeaderAction(
-              onPressed: widget.themeController.toggleTheme,
-              isDarkMode: widget.themeController.isDarkMode,
-            ),
-          ),
+          appBar: CareenaPageHeader(title: 'Einstellungen', onBack: _openHome),
           body: ResponsivePageBody(
             maxWidth: 620,
             scrollable: true,
@@ -312,10 +303,32 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _logout(BuildContext context) async {
-    widget.authApiService?.logout();
-    await widget.authSession?.clear();
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    final authApiService =
+        widget.authApiService ?? dependencies?.authApiService;
+    final authSession = widget.authSession ?? dependencies?.authSession;
+
+    authApiService?.logout();
+    await authSession?.clear();
     await AppPageStore.clearCurrentPage();
     if (!context.mounted) return;
+
+    if (dependencies != null && authSession != null && authApiService != null) {
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => OnboardingScreen(
+            chatController: dependencies.chatController,
+            themeController: widget.themeController,
+            authSession: authSession,
+            authApiService: authApiService,
+            symptomRepository: dependencies.symptomRepository,
+          ),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
     Navigator.of(
       context,
       rootNavigator: true,

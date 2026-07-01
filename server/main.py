@@ -30,6 +30,7 @@ from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
 from documents.router import router as documents_router
+from medications.service import list_medications
 from symptoms.router import router as symptoms_router
 from symptoms.service import list_symptom_entries
 from appointments.router import router as appointments_router

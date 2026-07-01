@@ -35,6 +35,11 @@ class RecommendationResult {
   final String? nextStep;
   final List<String> limitations;
 
+  /// Human-readable provenance of the data the recommendation drew on,
+  /// e.g. "Symptom-Tagebuch (3 Einträge)". Computed deterministically by the
+  /// backend so it can be shown to the user as a trustworthy source list.
+  final List<String> dataSources;
+
   const RecommendationResult({
     required this.allowed,
     this.summary,
@@ -45,6 +50,7 @@ class RecommendationResult {
     this.reasons = const [],
     this.nextStep,
     this.limitations = const [],
+    this.dataSources = const [],
   });
 
   factory RecommendationResult.fromJson(Map<String, dynamic> json) {
@@ -63,6 +69,11 @@ class RecommendationResult {
       nextStep: json['next_step']?.toString(),
       limitations:
           (json['limitations'] as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          const [],
+      dataSources:
+          (json['data_sources'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
           const [],
@@ -113,6 +124,10 @@ class ChatResponse {
   /// Active observations from the medical case, including their severity when known.
   final List<CaseObservation> caseObservations;
 
+  /// Profile the session resolved to on the backend. May differ from the app's
+  /// active profile after in-chat person resolution; used for the PDF export.
+  final int? profileId;
+
   const ChatResponse({
     required this.text,
     required this.redFlag,
@@ -129,6 +144,7 @@ class ChatResponse {
     this.replyOptions = const [],
     this.replySuggestions = const [],
     this.caseObservations = const [],
+    this.profileId,
   });
 
   /// Maps raw JSON from the backend into a typed chat response.
@@ -172,6 +188,9 @@ class ChatResponse {
               .where((o) => o.label.isNotEmpty)
               .toList() ??
           const [],
+      profileId: json['profile_id'] is int
+          ? json['profile_id'] as int
+          : int.tryParse(json['profile_id']?.toString() ?? ''),
     );
   }
 }

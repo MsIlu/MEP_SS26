@@ -559,10 +559,11 @@ class TurnEngine:
         for chip in symptom_input_draft.chips:
             if chip.status not in _syncable:
                 continue
-            if not chip.normalized_label_de:
+            normalized_label_de = (chip.display_label_de or chip.normalized_label_de or "").strip()
+            if not normalized_label_de:
                 continue
 
-            label_cf = chip.normalized_label_de.casefold()
+            label_cf = normalized_label_de.casefold()
             already_present = any(
                 obs.normalized_label_de.casefold() == label_cf
                 for obs in medical_case.observations
@@ -572,13 +573,13 @@ class TurnEngine:
 
             new_obs = Observation(
                 type="symptom",
-                normalized_label_de=chip.normalized_label_de,
+                normalized_label_de=normalized_label_de,
                 clinical_term_de=chip.clinical_term_de,
             )
             if medical_case.person.relation not in ("unclear",):
                 new_obs.person_ref = medical_case.person.relation
             medical_case.observations.append(new_obs)
-            trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
+            trace_notes.append(f"chip_sync:added:{normalized_label_de}")
 
         return medical_case, trace_notes
 

@@ -113,4 +113,4 @@ def test_careena4_chat_merges_extracted_symptoms_with_user_edited_draft(
     draft_response = client.get(f"/input-drafts/{session_id}")
 
     assert draft_response.status_code == 200
-    assert draft_response.json()["symptoms"] == ["Kopfschmerzen", "Schwindel"]
+    assert draft_response.json()["symptoms"] == ["Schwindel", "Kopfschmerzen"]

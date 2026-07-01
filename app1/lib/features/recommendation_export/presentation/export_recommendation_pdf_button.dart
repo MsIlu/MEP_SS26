@@ -66,13 +66,13 @@ class ExportRecommendationPdfButton extends StatelessWidget {
       label: const Text('PDF exportieren'),
       onPressed: () async {
         final dependencies = AppDependenciesScope.maybeOf(context);
-        final authSession = dependencies?.authSession;
         final profileApiService = dependencies?.profileApiService;
         final symptomApiService = dependencies?.symptomApiService;
         final apiClient = dependencies?.apiClient;
-        // Prefer the session's resolved profile; fall back to the app's active
-        // profile only when the backend did not report one.
-        final activeProfileId = profileId ?? authSession?.activeProfileId;
+        // Use only the session-resolved profile. If the session has no profile
+        // (profile_id == null), do not pull the app's active profile — that
+        // could expose data of a different person.
+        final activeProfileId = profileId;
 
         Profile? profile;
         var diaryLines = const <String>[];

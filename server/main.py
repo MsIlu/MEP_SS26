@@ -564,6 +564,12 @@ def chat(
         )
     )
     if needs_profile_pre_turn:
+        # Safety-critical messages (catalog match) bypass profile selection so the
+        # safety question fires immediately without making the user pick a person first.
+        raw_safety_precheck = careena4_turn_engine.raw_red_flag_detector.detect(req.message)
+        if raw_safety_precheck.requires_safety_clarification or raw_safety_precheck.requires_emergency_response:
+            needs_profile_pre_turn = False
+    if needs_profile_pre_turn:
         try:
             from profiles.service import list_profiles
             snapshots = [_snapshot_from_profile(p) for p in list_profiles(current_user=current_user, session=session)]

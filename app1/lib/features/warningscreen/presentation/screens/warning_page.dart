@@ -113,12 +113,14 @@ class WarningPage extends StatelessWidget {
                   onSaved: () async {
                     await _markAction(RecommendationAction.document);
                   },
+                  profileId: response.profileId,
                 ),
               ],
 
               if ((symptoms.isNotEmpty ||
                       response.caseObservations.isNotEmpty) &&
-                  themeController != null) ...[
+                  themeController != null &&
+                  response.profileId != null) ...[
                 const SizedBox(height: 8),
                 _WarningSymptomButton(
                   isCompleted: recommendationMessage?.symptomsSaved == true,
@@ -140,6 +142,7 @@ class WarningPage extends StatelessWidget {
                   onSearched: () async {
                     await _markAction(RecommendationAction.appointment);
                   },
+                  profileId: response.profileId,
                 ),
               ],
 
@@ -273,11 +276,12 @@ class _WarningSymptomButtonState extends State<_WarningSymptomButton> {
 
 bool _showEmergencyActions(ChatResponse response) {
   if (response.redFlag) return true;
-  // Use the structured urgency field from the recommendation result — the
-  // backend classifier is the source of truth. Text keyword scanning is
-  // unreliable because routine advisory language includes words like "sofort"
-  // and "112" even for non-emergency recommendations.
-  return response.recommendationResult?.urgency == 'emergency';
+  final result = response.recommendationResult;
+  if (result == null) return false;
+  // urgency is the primary signal; care_level is the fallback so that
+  // '112' and 'emergency_department' are never shown as normal recommendations.
+  if (result.urgency == 'emergency') return true;
+  return result.careLevel == '112' || result.careLevel == 'emergency_department';
 }
 
 String _recommendationTextFor(ChatResponse response) {

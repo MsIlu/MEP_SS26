@@ -43,16 +43,7 @@ class _SaveRecommendationToDocumentsButtonState
     extends State<SaveRecommendationToDocumentsButton> {
   final DocumentRepository _repository = DocumentRepository.instance;
   bool _isSaving = false;
-
-  bool _isSavedForCurrentProfile(BuildContext context) {
-    final normalizedName = _documentName.toLowerCase();
-    return _repository.documents.value.any(
-      (document) =>
-          document.profileId == widget.profileId &&
-          document.source == DocumentSource.careena &&
-          document.name.toLowerCase() == normalizedName,
-    );
-  }
+  bool _savedLocally = false;
 
   String get _documentName {
     final title = widget.title.trim();
@@ -65,26 +56,8 @@ class _SaveRecommendationToDocumentsButtonState
   }
 
   @override
-  void initState() {
-    super.initState();
-    _repository.documents.addListener(_repositoryChanged);
-  }
-
-  @override
-  void dispose() {
-    _repository.documents.removeListener(_repositoryChanged);
-    super.dispose();
-  }
-
-  void _repositoryChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isSaved = widget.alreadySaved || _isSavedForCurrentProfile(context);
+    final isSaved = widget.alreadySaved || _savedLocally;
 
     return Tooltip(
       message: isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
@@ -145,7 +118,7 @@ class _SaveRecommendationToDocumentsButtonState
         profile: profile,
       );
 
-      final wasAdded = await _repository.addRecommendationIfMissing(
+      await _repository.addDocument(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           profileId: resolvedProfileId,
@@ -160,6 +133,10 @@ class _SaveRecommendationToDocumentsButtonState
       );
       documentStored = true;
 
+      if (mounted) {
+        setState(() => _savedLocally = true);
+      }
+
       await widget.onSaved?.call();
 
       if (!mounted) return;
@@ -167,11 +144,9 @@ class _SaveRecommendationToDocumentsButtonState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.careenaTeal,
-          content: Text(
-            wasAdded
-                ? 'Handlungsempfehlung gespeichert'
-                : 'Handlungsempfehlung bereits vorhanden',
-            style: const TextStyle(
+          content: const Text(
+            'Handlungsempfehlung gespeichert',
+            style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 16,

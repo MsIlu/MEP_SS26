@@ -712,10 +712,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AppointmentScreen(
-                      authSession: authSession,
-                      initialAppointmentId: appointment.id,
-                    ),
+                    builder: (context) =>
+                        AppointmentScreen(authSession: authSession),
                   ),
                 );
               },

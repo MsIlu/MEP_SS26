@@ -22,7 +22,7 @@ void main() {
   });
 
   testWidgets(
-    'Dokument existiert in Repository für profileId=42 — Button zeigt Gespeichert',
+    'Gleichnamiges Dokument im Repository markiert neue Empfehlung nicht als gespeichert',
     (tester) async {
       DocumentRepository.instance.addRecommendationIfMissing(
         DocumentEntry(
@@ -52,8 +52,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Gespeichert'), findsOneWidget);
-      expect(find.text('Dokument speichern'), findsNothing);
+      expect(find.text('Dokument speichern'), findsOneWidget);
+      expect(find.text('Gespeichert'), findsNothing);
+      expect(DocumentRepository.instance.documents.value, hasLength(1));
     },
   );
 
@@ -118,7 +119,7 @@ void main() {
   );
 
   testWidgets(
-    'Nicht-profilgebundene Session zeigt Gespeichert wenn profilloses Dokument vorhanden',
+    'Gleichnamiges profilloses Dokument markiert neue Empfehlung nicht als gespeichert',
     (tester) async {
       DocumentRepository.instance.addRecommendationIfMissing(
         DocumentEntry(
@@ -147,7 +148,30 @@ void main() {
         ),
       );
 
-      expect(find.text('Gespeichert'), findsOneWidget);
+      expect(find.text('Dokument speichern'), findsOneWidget);
+      expect(find.text('Gespeichert'), findsNothing);
     },
   );
+
+  testWidgets('Gespeichert wird nur durch den Aktionsstatus angezeigt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        const SaveRecommendationToDocumentsButton(
+          title: 'Handlungsempfehlung',
+          patientSummary: '',
+          recommendation: '',
+          nextSteps: '',
+          symptoms: [],
+          userMessages: [],
+          profileId: 42,
+          alreadySaved: true,
+        ),
+      ),
+    );
+
+    expect(find.text('Gespeichert'), findsOneWidget);
+    expect(find.text('Dokument speichern'), findsNothing);
+  });
 }

@@ -40,6 +40,7 @@ from appointments.service import AppointmentProviderUnavailable, search_fhir_app
 from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
+from careena4.domain.case import CaseManager
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.turn.input import DiaryEntry, ProfileSnapshot
 from careena4.application.dialogue.person_initialiser import PersonInitialiser
@@ -850,10 +851,7 @@ def _removed_symptom_labels(
 
 
 def _normalized_symptom_label(label: str | None) -> str | None:
-    if label is None:
-        return None
-    normalized = " ".join(label.casefold().split())
-    return normalized or None
+    return CaseManager._normalized_label(label)
 
 
 @app.post("/session")

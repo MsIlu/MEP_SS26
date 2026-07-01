@@ -13,6 +13,7 @@ from careena4.models.domain import (
     MedicalCase,
     Observation,
 )
+from careena4.models.input import SymptomChip, SymptomInputDraft
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import (
     EntryAssessment,
@@ -337,7 +338,53 @@ def test_turn_engine_projects_symptom_input_draft_from_case_after_single_call_tu
 
     assert result.symptom_input_draft is not None
     assert result.symptom_input_draft.symptom_labels() == ["Schwindel"]
-    assert "symptom_input_draft:projected_from_case" in result.trace_notes
+    assert result.trace_notes.count("symptom_input_draft:projected_from_case") == 1
+
+
+def test_sync_chips_to_case_dedupes_normalized_umlaut_chip_and_preserves_existing_chip_state():
+    engine = TurnEngine()
+    medical_case = MedicalCase(
+        observations=[Observation(type="symptom", normalized_label_de="mudigkeit", status="active")]
+    )
+    draft = SymptomInputDraft(
+        chips=[
+            SymptomChip(
+                display_label_de="Müdigkeit",
+                normalized_label_de="mudigkeit",
+                status="user_confirmed",
+            )
+        ]
+    )
+
+    medical_case, trace = engine._sync_chips_to_case(
+        medical_case=medical_case,
+        symptom_input_draft=draft,
+    )
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=draft,
+        medical_case=medical_case,
+    )
+
+    assert len(medical_case.observations) == 1
+    assert trace == []
+    assert projected is not None
+    assert len(projected.chips) == 1
+    assert projected.chips[0].status == "user_confirmed"
+    assert projected.chips[0].normalized_label_de == "mudigkeit"
+
+
+def test_project_symptom_input_draft_skips_empty_projection_for_negated_only_case():
+    engine = TurnEngine()
+    medical_case = MedicalCase(
+        observations=[Observation(type="symptom", normalized_label_de="Husten", status="negated")]
+    )
+
+    projected = engine._project_symptom_input_draft(
+        symptom_input_draft=None,
+        medical_case=medical_case,
+    )
+
+    assert projected is None
 
 
 def test_turn_engine_resolves_safety_guided_answer_via_single_call_turn_interpreter_without_followup_fallback():

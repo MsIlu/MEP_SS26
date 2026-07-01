@@ -340,43 +340,6 @@ class TurnEngine:
             )
             trace_notes.extend(write_trace)
 
-            medical_case, chip_trace = self._sync_chips_to_case(
-                medical_case=medical_case,
-                symptom_input_draft=symptom_input_draft,
-            )
-            trace_notes.extend(chip_trace)
-            symptom_input_draft = self._project_symptom_input_draft(
-                symptom_input_draft=symptom_input_draft,
-                medical_case=medical_case,
-            )
-            if symptom_input_draft is not None:
-                trace_notes.append("symptom_input_draft:projected_from_case")
-
-            if conversation_state.active_question is None or (
-                conversation_state.active_question.kind != "safety_clarification"
-            ):
-                case_safety = self.case_safety_evaluator.evaluate(
-                    medical_case=medical_case,
-                )
-                trace_notes.extend(case_safety.trace_notes)
-                if case_safety.requires_safety_clarification:
-                    conversation_state.active_question = self.safety_clarification_builder.build_active_question(
-                        safety_state=case_safety
-                    )
-                    conversation_state.phase = "followup"
-                    return self._ask_existing_question(
-                        response_input=turn_input,
-                        medical_case=medical_case,
-                        conversation_state=conversation_state,
-                        recommendation_state=recommendation_state,
-                        symptom_input_draft=symptom_input_draft,
-                        current_turn_understanding=current_turn_understanding,
-                        trace_notes=trace_notes,
-                        active_question=conversation_state.active_question,
-                        extra_trace_notes=["turn:case_safety_clarification_selected"],
-                        turn_interpretation=turn_interpretation,
-                    )
-
         medical_case, chip_trace = self._sync_chips_to_case(
             medical_case=medical_case,
             symptom_input_draft=symptom_input_draft,
@@ -388,6 +351,31 @@ class TurnEngine:
         )
         if symptom_input_draft is not None:
             trace_notes.append("symptom_input_draft:projected_from_case")
+
+        if conversation_state.active_question is None or (
+            conversation_state.active_question.kind != "safety_clarification"
+        ):
+            case_safety = self.case_safety_evaluator.evaluate(
+                medical_case=medical_case,
+            )
+            trace_notes.extend(case_safety.trace_notes)
+            if case_safety.requires_safety_clarification:
+                conversation_state.active_question = self.safety_clarification_builder.build_active_question(
+                    safety_state=case_safety
+                )
+                conversation_state.phase = "followup"
+                return self._ask_existing_question(
+                    response_input=turn_input,
+                    medical_case=medical_case,
+                    conversation_state=conversation_state,
+                    recommendation_state=recommendation_state,
+                    symptom_input_draft=symptom_input_draft,
+                    current_turn_understanding=current_turn_understanding,
+                    trace_notes=trace_notes,
+                    active_question=conversation_state.active_question,
+                    extra_trace_notes=["turn:case_safety_clarification_selected"],
+                    turn_interpretation=turn_interpretation,
+                )
 
         if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
             decision = TurnDecision(
@@ -559,13 +547,15 @@ class TurnEngine:
         for chip in symptom_input_draft.chips:
             if chip.status not in _syncable:
                 continue
-            normalized_label_de = (chip.display_label_de or chip.normalized_label_de or "").strip()
+            normalized_label_de = (chip.normalized_label_de or "").strip()
             if not normalized_label_de:
                 continue
 
-            label_cf = normalized_label_de.casefold()
+            chip_identity = self.symptom_chip_builder._identity_for_label(normalized_label_de)
+            if chip_identity is None:
+                continue
             already_present = any(
-                obs.normalized_label_de.casefold() == label_cf
+                self.symptom_chip_builder._identity_for_label(obs.normalized_label_de) == chip_identity
                 for obs in medical_case.observations
             )
             if already_present:
@@ -589,7 +579,7 @@ class TurnEngine:
         symptom_input_draft: SymptomInputDraft | None,
         medical_case: MedicalCase,
     ) -> SymptomInputDraft | None:
-        if symptom_input_draft is None and not self.case_manager.has_observations(medical_case=medical_case):
+        if symptom_input_draft is None and not self.case_manager.has_active_observations(medical_case=medical_case):
             return None
         return self.symptom_chip_builder.update_from_case(
             draft=symptom_input_draft,

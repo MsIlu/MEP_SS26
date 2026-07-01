@@ -3,7 +3,7 @@ from __future__ import annotations
 from careena4.domain.case import CaseManager
 from careena4.models.domain import MedicalCase, Observation
 from careena4.application.input.symptom_mapping_service import SymptomMappingService
-from careena4.models.input import SymptomChip, SymptomInputDraft
+from careena4.models.input.symptom_input_draft import SymptomChip, SymptomInputDraft, _normalized_identity
 from careena4.models.turn import ExtractedCaseInput, ExtractedObservationInput
 
 
@@ -145,5 +145,5 @@ class SymptomChipBuilder:
     def _identity_for_label(label: str | None) -> str | None:
         if label is None:
             return None
-        identity = label.casefold().strip()
+        identity = _normalized_identity(label)
         return identity or None

@@ -144,19 +144,24 @@ class PersonInitialiser:
         session_id: str,
         careena4_session,
         message: str,
-    ) -> tuple[str | None, list[str], str | None, int | None]:
+    ) -> tuple[str | None, list[str], str | None, int | None, bool]:
         """Called after run_turn() and persist.
 
-        Returns (warning_text, reply_options, pending_message, matched_profile_id).
+        Returns (warning_text, reply_options, pending_message, matched_profile_id,
+        resolved_non_profile).
         - warning_text: non-None when person_clarification must be retried
         - reply_options: button labels for the retry
         - pending_message: the deferred medical message to process next
         - matched_profile_id: DB id of the profile the user selected, so the
           caller can re-key the session to that profile (diary/medications)
+        - resolved_non_profile: True when the "Für wen?" step was answered with a
+          person that has no profile ("Jemand anderes" or a free-form relation).
+          The case is then bound to nobody, so the caller must not fall back to
+          the active profile's diary/medication/PDF data.
         """
         person_map = self._person_map.get(session_id)
         if not person_map or careena4_session.medical_case is None:
-            return None, [], None, None
+            return None, [], None, None, False
 
         mc_person = careena4_session.medical_case.person
         msg_lower = message.strip().casefold()
@@ -182,12 +187,12 @@ class PersonInitialiser:
             if sex is not None:
                 mc_person.sex = sex
             self._person_map.pop(session_id, None)
-            return None, [], pending, profile_id
+            return None, [], pending, profile_id, False
 
         if is_generic:
             mc_person.relation = "other"
             self._person_map.pop(session_id, None)
-            return None, [], pending, None
+            return None, [], pending, None, True
 
         if _is_name_attempt(message):
             mc_person.relation = "unclear"
@@ -210,9 +215,9 @@ class PersonInitialiser:
             # Re-save the pending message — user still hasn't resolved selection
             if pending:
                 self._pending_message[session_id] = pending
-            return warning, reply_options, None, None
+            return warning, reply_options, None, None, False
 
         # Free-form non-profile person ("meine Oma") — accept silently.
         mc_person.relation = "other"
         self._person_map.pop(session_id, None)
-        return None, [], pending, None
+        return None, [], pending, None, True

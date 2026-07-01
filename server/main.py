@@ -69,6 +69,11 @@ careena4_session_profiles: dict[str, int | None] = {}
 # still belongs to the authenticated active profile (cross-profile guard),
 # while diary, medications and the reported profile follow the chosen person.
 careena4_session_case_profiles: dict[str, int] = {}
+# session_ids whose "Für wen?" answer resolved to a person with no diary profile
+# ("Jemand anderes" or a free-form relation like "meine Oma"). For these the case
+# is deliberately *not* bound to any profile, so diary, medications and the
+# reported profile must NOT fall back to the active session profile.
+careena4_session_unbound_cases: set[str] = set()
 careena4_person_initialiser = PersonInitialiser()
 careena4_simulation_runner = build_simulation_runner(system_llm_mode="env")
 
@@ -240,6 +245,21 @@ _MEDICATION_FREQUENCY_LABELS = {
     "weekly": "wöchentlich",
     "monthly": "monatlich",
 }
+
+
+def _resolve_subject_profile_id(session_id: str, session_profile_id):
+    """Profile the case is *about*, used to load diary/medications and report to
+    the client (PDF export).
+
+    Order of precedence:
+      1. Non-profile subject ("Jemand anderes"/free-form) -> None, so no data of
+         the active profile leaks into a case that is not about that person.
+      2. A profile explicitly chosen in the "Für wen?" step.
+      3. Fallback to the session's owning (active) profile.
+    """
+    if session_id in careena4_session_unbound_cases:
+        return None
+    return careena4_session_case_profiles.get(session_id) or session_profile_id
 
 
 def _load_diary_history(profile_id, current_user, session) -> list[DiaryEntry]:
@@ -588,9 +608,7 @@ def chat(
                 "case_observations": [],
             }
 
-    subject_profile_id = (
-        careena4_session_case_profiles.get(req.session_id) or session_profile_id
-    )
+    subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
     diary_history = _load_diary_history(subject_profile_id, current_user, session)
 
     turn_result = careena4_turn_engine.run_turn(
@@ -625,7 +643,13 @@ def chat(
 
     response = build_careena4_chat_response(turn_result)
 
-    profile_warning, profile_reply_options, pending_message, matched_profile_id = careena4_person_initialiser.post_turn(
+    (
+        profile_warning,
+        profile_reply_options,
+        pending_message,
+        matched_profile_id,
+        resolved_non_profile,
+    ) = careena4_person_initialiser.post_turn(
         session_id=req.session_id,
         careena4_session=careena4_session,
         message=req.message,
@@ -636,9 +660,18 @@ def chat(
     # authenticated active profile and keeps the cross-profile guard intact).
     if matched_profile_id is not None:
         careena4_session_case_profiles[req.session_id] = matched_profile_id
+        careena4_session_unbound_cases.discard(req.session_id)
         if matched_profile_id != subject_profile_id:
             subject_profile_id = matched_profile_id
             diary_history = _load_diary_history(subject_profile_id, current_user, session)
+    elif resolved_non_profile:
+        # Case is explicitly about a person without a profile. Unbind it so the
+        # deferred medical message (and later the recommendation/PDF) does not
+        # pull the active profile's diary, medications or reported profile_id.
+        careena4_session_unbound_cases.add(req.session_id)
+        careena4_session_case_profiles.pop(req.session_id, None)
+        subject_profile_id = None
+        diary_history = []
     if profile_warning:
         response["response"] = profile_warning
         response["reply_options"] = profile_reply_options
@@ -734,10 +767,9 @@ def request_recommendation(
 
     session_profile_id = careena4_session_profiles.get(req.session_id)
     # Diary, medications and the reported profile follow the case subject (the
-    # "Für wen?" answer) when it differs from the session's owning profile.
-    subject_profile_id = (
-        careena4_session_case_profiles.get(req.session_id) or session_profile_id
-    )
+    # "Für wen?" answer) when it differs from the session's owning profile, and
+    # are dropped entirely when the case is about a person without a profile.
+    subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
     diary_history = _load_diary_history(subject_profile_id, current_user, session)
     medication_history = _load_medication_history(subject_profile_id, current_user, session)
 

@@ -44,13 +44,13 @@ void main() {
     expect(fields, hasLength(3));
 
     for (final field in fields) {
-      expect(field.decoration, isNotNull);
-      final decoration = field.decoration!;
-      expect(decoration.border, InputBorder.none);
-      expect(decoration.enabledBorder, InputBorder.none);
-      expect(decoration.focusedBorder, InputBorder.none);
-      expect(decoration.errorBorder, InputBorder.none);
-      expect(decoration.focusedErrorBorder, InputBorder.none);
+      final decoration = field.decoration;
+      expect(decoration, isNotNull);
+      expect(decoration?.border, InputBorder.none);
+      expect(decoration?.enabledBorder, InputBorder.none);
+      expect(decoration?.focusedBorder, InputBorder.none);
+      expect(decoration?.errorBorder, InputBorder.none);
+      expect(decoration?.focusedErrorBorder, InputBorder.none);
     }
   });
 }

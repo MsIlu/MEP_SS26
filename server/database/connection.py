@@ -244,7 +244,6 @@ def _migrate_document_entries_schema():
     migration_path = (
         Path(__file__).resolve().parent
         / "migrations"
-        / "_create_document_entries.sql"
     )
 
     with engine.begin() as connection:

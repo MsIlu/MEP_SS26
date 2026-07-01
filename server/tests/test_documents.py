@@ -6,6 +6,9 @@ from sqlmodel import select
 
 from database.models import DocumentEntry
 
+VALID_PDF_BYTES = b"%PDF-1.4\n%Careena test document\n%%EOF"
+VALID_PDF_BASE64 = base64.b64encode(VALID_PDF_BYTES).decode("ascii")
+
 
 def register_user(client, email="document@example.com"):
     """Register a user and return token, headers and initial profile id."""
@@ -37,9 +40,9 @@ def create_document(client, auth, **overrides):
         "name": "Befund.pdf",
         "category": "findings",
         "source": "uploaded",
-        "size_in_bytes": 4,
+        "size_in_bytes": len(VALID_PDF_BYTES),
         "mime_type": "application/pdf",
-        "file_data_base64": "AQIDBA==",
+        "file_data_base64": VALID_PDF_BASE64,
         "created_at": "2026-06-23T10:00:00",
     }
     payload.update(overrides)
@@ -63,9 +66,9 @@ def test_create_document_persists_profile_scoped_entry(client, db_session):
     assert data["name"] == "Befund.pdf"
     assert data["category"] == "findings"
     assert data["source"] == "uploaded"
-    assert data["size_in_bytes"] == 4
+    assert data["size_in_bytes"] == len(VALID_PDF_BYTES)
     assert data["mime_type"] == "application/pdf"
-    assert data["file_data_base64"] == "AQIDBA=="
+    assert data["file_data_base64"] == VALID_PDF_BASE64
 
     entry = db_session.get(DocumentEntry, data["id"])
     assert entry is not None
@@ -115,13 +118,15 @@ def test_get_document_returns_file_data(client):
     )
 
     assert response.status_code == 200
-    assert response.json()["file_data_base64"] == "AQIDBA=="
+    assert response.json()["file_data_base64"] == VALID_PDF_BASE64
 
 
 def test_create_document_rejects_files_larger_than_ten_mb(client):
     auth = register_user(client)
     too_large_size = 10 * 1024 * 1024 + 1
-    too_large_payload = base64.b64encode(b"0" * too_large_size).decode("ascii")
+    too_large_payload = base64.b64encode(
+        b"%PDF-" + (b"0" * (too_large_size - 5))
+    ).decode("ascii")
 
     response = create_document(
         client,
@@ -148,6 +153,21 @@ def test_create_document_rejects_invalid_file_data(client):
     assert response.json()["detail"] == "Die Datei enthält keine gültigen Daten."
 
 
+def test_create_document_rejects_file_data_that_does_not_match_mime_type(client):
+    auth = register_user(client)
+
+    response = create_document(
+        client,
+        auth,
+        size_in_bytes=4,
+        mime_type="application/pdf",
+        file_data_base64="AQIDBA==",
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Die Datei enthält keine gültigen Daten."
+
+
 def test_create_document_rejects_mismatched_file_size(client):
     auth = register_user(client)
 
@@ -155,7 +175,7 @@ def test_create_document_rejects_mismatched_file_size(client):
         client,
         auth,
         size_in_bytes=99,
-        file_data_base64="AQIDBA==",
+        file_data_base64=VALID_PDF_BASE64,
     )
 
     assert response.status_code == 400

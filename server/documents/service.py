@@ -19,6 +19,7 @@ from profiles.service import EDIT_ROLES, get_profile_access_role, require_profil
 
 MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"application/pdf", "image/jpeg", "image/png"}
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 def list_documents(
@@ -246,6 +247,12 @@ def _validate_file_payload(request: DocumentCreateRequest) -> tuple[str, int]:
             detail="Die Datei enthält keine gültigen Daten.",
         )
 
+    if not _matches_mime_type(decoded, mime_type):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Die Datei enthält keine gültigen Daten.",
+        )
+
     if decoded_size > MAX_DOCUMENT_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
@@ -259,3 +266,13 @@ def _validate_file_payload(request: DocumentCreateRequest) -> tuple[str, int]:
         )
 
     return file_data_base64, decoded_size
+
+
+def _matches_mime_type(decoded: bytes, mime_type: str) -> bool:
+    if mime_type == "application/pdf":
+        return decoded.startswith(b"%PDF-")
+    if mime_type == "image/jpeg":
+        return decoded.startswith(b"\xff\xd8\xff")
+    if mime_type == "image/png":
+        return decoded.startswith(PNG_SIGNATURE)
+    return False

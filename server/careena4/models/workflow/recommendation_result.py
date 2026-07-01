@@ -13,7 +13,3 @@ class RecommendationResult(PipelineModel):
     reasons: list[str] = Field(default_factory=list)
     next_step: str | None = None
     limitations: list[str] = Field(default_factory=list)
-    # Human-readable provenance: which data the recommendation actually drew on
-    # (e.g. "Chat-Verlauf", "Symptom-Tagebuch (3 Einträge)", "Medikamentenplan").
-    # Computed deterministically, never by the LLM, so it stays trustworthy.
-    data_sources: list[str] = Field(default_factory=list)

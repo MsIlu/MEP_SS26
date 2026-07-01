@@ -38,11 +38,6 @@ class RecommendationPdfService {
     required List<String> symptoms,
     required List<String> userMessages,
     Profile? profile,
-    String? careLevelLabel,
-    List<String> reasons = const [],
-    List<String> dataSources = const [],
-    List<String> diaryLines = const [],
-    List<String> medicationLines = const [],
   }) async {
     final pdf = pw.Document();
     final logo = await _loadOptionalLogo();
@@ -75,15 +70,17 @@ class RecommendationPdfService {
                     pw.SizedBox(height: 14),
                   ],
 
-                  if (careLevelLabel != null &&
-                      careLevelLabel.trim().isNotEmpty) ...[
-                    _buildSectionCard(
-                      title: 'Empfohlene Versorgung',
-                      text: careLevelLabel.trim(),
-                      highlighted: true,
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
+                  _buildSectionCard(
+                    title: 'Im Chat angegebene bzw. erkannte Beschwerden',
+                    text: _formatSymptoms(symptoms),
+                  ),
+                  pw.SizedBox(height: 14),
+
+                  _buildSectionCard(
+                    title: 'Vom Nutzer im Chat angegebene Informationen',
+                    text: _formatUserMessages(userMessages),
+                  ),
+                  pw.SizedBox(height: 14),
 
                   if (patientSummary.trim().isNotEmpty &&
                       patientSummary.trim() !=
@@ -106,53 +103,7 @@ class RecommendationPdfService {
                     title: 'Nächster Schritt',
                     text: _formatNextSteps(nextSteps),
                   ),
-                  pw.SizedBox(height: 14),
-
-                  if (_cleanLines(reasons).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Begründung der Einschätzung',
-                      items: _cleanLines(reasons),
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  _buildSectionCard(
-                    title: 'Im Chat angegebene bzw. erkannte Beschwerden',
-                    text: _formatSymptoms(symptoms),
-                  ),
-                  pw.SizedBox(height: 14),
-
-                  _buildSectionCard(
-                    title: 'Vom Nutzer im Chat angegebene Informationen',
-                    text: _formatUserMessages(userMessages),
-                  ),
-                  pw.SizedBox(height: 14),
-
-                  if (_cleanLines(diaryLines).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Aus dem Symptom-Tagebuch',
-                      items: _cleanLines(diaryLines),
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  if (_cleanLines(medicationLines).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Aus dem Medikamentenplan',
-                      items: _cleanLines(medicationLines),
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  if (_cleanLines(dataSources).isNotEmpty) ...[
-                    _buildSectionCard(
-                      title: 'Berücksichtigte Datenquellen',
-                      text: _cleanLines(dataSources)
-                          .map((source) => '- $source')
-                          .join('\n'),
-                    ),
-                    pw.SizedBox(height: 18),
-                  ],
+                  pw.SizedBox(height: 18),
 
                   _buildEmergencyNotice(),
                   pw.SizedBox(height: 20),
@@ -313,64 +264,6 @@ class RecommendationPdfService {
         ],
       ),
     );
-  }
-
-  pw.Widget _buildBulletSectionCard({
-    required String title,
-    required List<String> items,
-  }) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(18),
-      decoration: pw.BoxDecoration(
-        color: _cardBackground,
-        borderRadius: pw.BorderRadius.circular(14),
-        border: pw.Border.all(color: _borderColor),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            title,
-            style: pw.TextStyle(
-              color: _textColor,
-              fontSize: 15,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-          pw.SizedBox(height: 10),
-          for (final item in items)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 5),
-              child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    '•  ',
-                    style: pw.TextStyle(color: _primaryColor, fontSize: 11),
-                  ),
-                  pw.Expanded(
-                    child: pw.Text(
-                      item,
-                      style: pw.TextStyle(
-                        color: _textColor,
-                        fontSize: 11,
-                        lineSpacing: 4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  List<String> _cleanLines(List<String> lines) {
-    return lines
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList();
   }
 
   pw.Widget _buildEmergencyNotice() {

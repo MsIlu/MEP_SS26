@@ -21,6 +21,7 @@ class ChatBubble extends StatelessWidget {
   final bool showLongProcessingHint;
   final AuthSession? authSession;
   final String? recommendationSessionId;
+  final int? recommendationProfileId;
   final Future<void> Function(Message, RecommendationAction)?
   onRecommendationAction;
   final Future<void> Function()? onSaveSymptoms;
@@ -33,6 +34,7 @@ class ChatBubble extends StatelessWidget {
     this.showLongProcessingHint = false,
     this.authSession,
     this.recommendationSessionId,
+    this.recommendationProfileId,
     this.onRecommendationAction,
     this.onSaveSymptoms,
   });
@@ -157,6 +159,9 @@ class ChatBubble extends StatelessWidget {
                                 symptoms: recommendationSymptoms,
                                 userMessages: userMessages,
                                 alreadySaved: message.documentSaved,
+                                profileId:
+                                    recommendationProfileId ??
+                                    authSession?.activeProfileId,
                                 onSaved: () async {
                                   await onRecommendationAction?.call(
                                     message,
@@ -182,6 +187,9 @@ class ChatBubble extends StatelessWidget {
                                     'Arzttermin vereinbaren',
                                 authSession: authSession,
                                 sessionId: recommendationSessionId,
+                                profileId:
+                                    recommendationProfileId ??
+                                    authSession?.activeProfileId,
                                 alreadySearched: message.appointmentSearched,
                                 onSearched: () async {
                                   await onRecommendationAction?.call(

@@ -609,6 +609,7 @@ class _ChatHistoryDetailScreenState extends State<ChatHistoryDetailScreen> {
                   userMessages: userMessages,
                   authSession: widget.chatController?.authSession,
                   recommendationSessionId: widget.entry.sessionId,
+                  recommendationProfileId: widget.entry.profileId,
                   onRecommendationAction: _markAction,
                   onSaveSymptoms: () => _openSymptoms(message),
                   showLongProcessingHint: false,

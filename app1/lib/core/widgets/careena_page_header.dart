@@ -33,9 +33,12 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
     final reservesWideTrailing =
         trailing != null || ActiveProfileHeaderAction.hasActiveProfile(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final titleSidePadding = reservesWideTrailing
-        ? (screenWidth >= 700 ? 228.0 : (screenWidth < 390 ? 112.0 : 156.0))
-        : 64.0;
+    final titlePadding = reservesWideTrailing
+        ? EdgeInsets.only(
+            left: screenWidth < 390 ? 56.0 : (screenWidth >= 700 ? 228.0 : 156.0),
+            right: screenWidth < 390 ? 104.0 : (screenWidth >= 700 ? 228.0 : 156.0),
+          )
+        : const EdgeInsets.symmetric(horizontal: 64);
 
     return AppBar(
       automaticallyImplyLeading: false,
@@ -61,7 +64,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
                     : const SizedBox.square(dimension: 48)),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: titleSidePadding),
+            padding: titlePadding,
             child: _ResponsiveHeaderTitle(
               title: title,
               compactTitle: compactTitle,

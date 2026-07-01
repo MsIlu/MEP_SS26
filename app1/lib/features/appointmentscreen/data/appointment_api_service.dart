@@ -20,6 +20,33 @@ class AppointmentApiService {
         .map((appointment) => appointment.toAppointment())
         .toList();
   }
+
+  Future<void> cancelRecommendedAppointment({
+    required int profileId,
+    required int appointmentId,
+  }) async {
+    await client.delete(
+      '/profiles/$profileId/appointments/recommended/$appointmentId',
+    );
+  }
+
+  Future<Appointment> rescheduleRecommendedAppointment({
+    required int profileId,
+    required int appointmentId,
+    required String sessionId,
+    required String replacementFhirAppointmentId,
+    String? note,
+  }) async {
+    final data = await client.patch(
+      '/profiles/$profileId/appointments/recommended/$appointmentId/reschedule',
+      {
+        'session_id': sessionId,
+        'replacement_fhir_appointment_id': replacementFhirAppointmentId,
+        'note': ?note,
+      },
+    );
+    return RecommendedAppointmentResult.fromJson(data).toAppointment();
+  }
 }
 
 class RecommendedAppointmentResult {
@@ -74,7 +101,9 @@ class RecommendedAppointmentResult {
   Appointment toAppointment() {
     return Appointment(
       id: fhirAppointmentId.isNotEmpty ? fhirAppointmentId : id.toString(),
+      backendId: id,
       profileId: profileId,
+      sessionId: sessionId,
       doctorName: providerName,
       appointmentDate: startsAt,
       note: _displayNote,

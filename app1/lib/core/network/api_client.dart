@@ -261,6 +261,7 @@ class ApiClient {
       switch (response.statusCode) {
         case 400:
           message =
+              _mappedErrorDetailFromResponse(response) ??
               'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
           break;
         case 401:
@@ -271,12 +272,25 @@ class ApiClient {
           message = 'Du hast keine Berechtigung für diese Aktion.';
           break;
         case 404:
-          message = 'Die angefragten Daten wurden nicht gefunden.';
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Die angefragten Daten wurden nicht gefunden.';
           break;
         case 409:
           message =
               _mappedErrorDetailFromResponse(response) ??
               'Die Anfrage steht im Konflikt mit dem aktuellen Zustand.';
+          break;
+        case 422:
+          message =
+              'Die Eingaben konnten nicht verarbeitet werden. Bitte überprüfe insbesondere die Postleitzahl.';
+          break;
+        case 502:
+        case 503:
+        case 504:
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Ein benötigter Dienst ist gerade nicht erreichbar.';
           break;
         default:
           message =

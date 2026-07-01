@@ -18,6 +18,7 @@ import '../widgets/appointment_info_card.dart';
 import '../widgets/appointment_list.dart';
 import '../widgets/appointment_profile_filter.dart';
 import '../../../authscreen/state/auth_session.dart';
+import '../../../recommendation_export/data/appointment_search_api_service.dart';
 
 class AppointmentScreen extends StatefulWidget {
   final ThemeController? themeController;
@@ -122,7 +123,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   AuthSession? _currentAuthSession() {
-    return widget.authSession ?? AppDependenciesScope.maybeOf(context)?.authSession;
+    return widget.authSession ??
+        AppDependenciesScope.maybeOf(context)?.authSession;
   }
 
   void _openInitialAppointment() {
@@ -144,9 +146,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       final profiles = authSession?.profiles ?? const [];
       final profileIds = profiles.map((profile) => profile.id).toSet();
 
-      await Future.wait(
-        profileIds.map(_loadRecommendedAppointmentsForProfile),
-      );
+      await Future.wait(profileIds.map(_loadRecommendedAppointmentsForProfile));
       return;
     }
 
@@ -435,14 +435,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       selectedProfileId: selectedProfileId,
       showAllProfiles: showAllProfiles,
       shrinkWrap: shrinkWrap,
-      onToggleCompleted: (appointment) {
-        controller.toggleAppointment(appointment.id);
-        _announce(
-          appointment.isCompleted
-              ? 'Termin ${appointment.doctorName} als offen markiert'
-              : 'Termin ${appointment.doctorName} als erledigt markiert',
-        );
-      },
       onDelete: _showDeleteDialog,
       onEdit: _showEditDialog,
     );
@@ -458,7 +450,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   void _showProfileInAppointments(int profileId) {
     final authSession = _currentAuthSession();
     final profileIsAvailable =
-        authSession?.profiles.any((profile) => profile.id == profileId) ?? false;
+        authSession?.profiles.any((profile) => profile.id == profileId) ??
+        false;
 
     if (authSession != null &&
         profileIsAvailable &&
@@ -578,11 +571,32 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: AppColors.red),
-              onPressed: () {
+              onPressed: () async {
+                final backendId = appointment.backendId;
+                final profileId = appointment.profileId;
+                if (backendId != null && profileId != null) {
+                  try {
+                    await AppDependenciesScope.of(
+                      this.context,
+                    ).appointmentApiService.cancelRecommendedAppointment(
+                      profileId: profileId,
+                      appointmentId: backendId,
+                    );
+                  } catch (_) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    _showSuccessMessage('Termin konnte nicht storniert werden');
+                    return;
+                  }
+                }
                 controller.removeAppointment(appointment.id);
+                if (!context.mounted) return;
                 Navigator.pop(context);
-                _showSuccessMessage('Termin gelöscht');
-                _announce('Termin gelöscht');
+                final message = backendId == null
+                    ? 'Termin gelöscht'
+                    : 'Termin storniert';
+                _showSuccessMessage(message);
+                _announce(message);
               },
               child: const Text('Löschen'),
             ),
@@ -593,6 +607,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   void _showEditDialog(Appointment appointment) {
+    if (appointment.isRecommendation &&
+        appointment.backendId != null &&
+        appointment.profileId != null &&
+        appointment.sessionId != null) {
+      _showFhirRescheduleDialog(appointment);
+      return;
+    }
+
     final appointmentDate = appointment.appointmentDate;
     final isPendingRecommendation =
         appointment.isRecommendation && appointmentDate == null;
@@ -678,7 +700,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 controller.updateAppointment(
                   Appointment(
                     id: appointment.id,
+                    backendId: appointment.backendId,
                     profileId: appointment.profileId,
+                    sessionId: appointment.sessionId,
                     doctorName: doctorController.text.trim(),
                     appointmentDate: updatedAppointmentDate,
                     note: noteController.text.trim(),
@@ -698,6 +722,104 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         );
       },
     );
+  }
+
+  Future<void> _showFhirRescheduleDialog(Appointment appointment) async {
+    final postalCodeController = TextEditingController();
+    final postalCode = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Termin umbuchen'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Gib die PLZ für die erneute 116117-Terminsuche ein.'),
+            const SizedBox(height: 8),
+            const Text(
+              'ⓘ Simulierter 116117-Terminservice – keine echten Arzttermine',
+              style: TextStyle(fontSize: 11, color: AppColors.careenaTeal),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: postalCodeController,
+              keyboardType: TextInputType.number,
+              maxLength: 5,
+              decoration: const InputDecoration(
+                labelText: 'PLZ',
+                counterText: '',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = postalCodeController.text.trim();
+              if (RegExp(r'^\d{5}$').hasMatch(value)) {
+                Navigator.pop(dialogContext, value);
+              }
+            },
+            child: const Text('Termine suchen'),
+          ),
+        ],
+      ),
+    );
+    postalCodeController.dispose();
+    if (postalCode == null || !mounted) return;
+
+    final searchService = AppointmentSearchApiService(
+      AppDependenciesScope.of(context).apiClient,
+    );
+    try {
+      final response = await searchService.search(
+        sessionId: appointment.sessionId!,
+        profileId: appointment.profileId!,
+        postalCode: postalCode,
+      );
+      if (!mounted) return;
+      final replacement = await showDialog<FhirAppointmentResult>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const Text('Neuen Termin auswählen'),
+          children: [
+            for (final candidate in response.appointments)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, candidate),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    '${candidate.providerName}\n${candidate.specialty} · '
+                    '${candidate.date}, ${candidate.time} Uhr',
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+      if (replacement == null || !mounted) return;
+
+      final updated = await AppDependenciesScope.of(context)
+          .appointmentApiService
+          .rescheduleRecommendedAppointment(
+            profileId: appointment.profileId!,
+            appointmentId: appointment.backendId!,
+            sessionId: appointment.sessionId!,
+            replacementFhirAppointmentId: replacement.id,
+            note: appointment.note,
+          );
+      controller.updateAppointment(updated);
+      if (!mounted) return;
+      _showSuccessMessage('Termin wurde erfolgreich umgebucht');
+      _announce('Termin wurde umgebucht');
+    } catch (_) {
+      if (!mounted) return;
+      _showSuccessMessage('Termin konnte nicht umgebucht werden');
+    }
   }
 
   DateTime? _buildAppointmentDate(DateTime? fallbackDate) {

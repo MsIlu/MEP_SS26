@@ -14,7 +14,6 @@ class AppointmentList extends StatelessWidget {
   final int? selectedProfileId;
   final bool showAllProfiles;
   final bool shrinkWrap;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
@@ -25,7 +24,6 @@ class AppointmentList extends StatelessWidget {
     this.selectedProfileId,
     this.showAllProfiles = true,
     required this.shrinkWrap,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -35,11 +33,14 @@ class AppointmentList extends StatelessWidget {
     return ValueListenableBuilder<List<Appointment>>(
       valueListenable: appointmentsListenable,
       builder: (context, appointments, child) {
-        final visibleAppointments = showAllProfiles
+        final scopedAppointments = showAllProfiles
             ? appointments
             : appointments
                 .where((appointment) => appointment.profileId == selectedProfileId)
                 .toList();
+        final visibleAppointments = _deduplicateVisibleAppointments(
+          scopedAppointments,
+        );
 
         if (visibleAppointments.isEmpty) {
           return shrinkWrap
@@ -70,7 +71,6 @@ class AppointmentList extends StatelessWidget {
               for (final appointment in sections.recommendedAppointments)
                 _AppointmentListTile(
                   appointment: appointment,
-                  onToggleCompleted: onToggleCompleted,
                   onDelete: onDelete,
                   onEdit: onEdit,
                 ),
@@ -88,7 +88,6 @@ class AppointmentList extends StatelessWidget {
               for (final appointment in sections.plannedAppointments)
                 _AppointmentListTile(
                   appointment: appointment,
-                  onToggleCompleted: onToggleCompleted,
                   onDelete: onDelete,
                   onEdit: onEdit,
                 ),
@@ -100,15 +99,53 @@ class AppointmentList extends StatelessWidget {
   }
 }
 
+List<Appointment> _deduplicateVisibleAppointments(
+  List<Appointment> appointments,
+) {
+  final result = <Appointment>[];
+  final seenKeys = <String>{};
+
+  for (final appointment in appointments) {
+    final key = _visibleAppointmentKey(appointment);
+    if (key != null && seenKeys.contains(key)) {
+      continue;
+    }
+
+    if (key != null) {
+      seenKeys.add(key);
+    }
+    result.add(appointment);
+  }
+
+  return result;
+}
+
+String? _visibleAppointmentKey(Appointment appointment) {
+  if (!appointment.isRecommendation) {
+    return null;
+  }
+
+  if (appointment.backendId != null) {
+    return 'backend:${appointment.profileId}:${appointment.backendId}';
+  }
+
+  final trimmedId = appointment.id.trim();
+  if (trimmedId.isNotEmpty) {
+    return 'fhir:${appointment.profileId}:$trimmedId';
+  }
+
+  return 'fallback:${appointment.profileId}:'
+      '${appointment.doctorName.trim().toLowerCase()}:'
+      '${appointment.appointmentDate?.toIso8601String()}';
+}
+
 class _AppointmentListTile extends StatelessWidget {
   final Appointment appointment;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
   const _AppointmentListTile({
     required this.appointment,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -117,7 +154,6 @@ class _AppointmentListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppointmentTile(
       appointment: appointment,
-      onToggleCompleted: () => onToggleCompleted(appointment),
       onDelete: () => onDelete(appointment),
       onEdit: () => onEdit(appointment),
     );

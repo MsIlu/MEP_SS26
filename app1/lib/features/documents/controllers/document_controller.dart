@@ -102,16 +102,33 @@ class DocumentController extends ChangeNotifier {
     await loadProfileDocuments(profileId);
   }
 
+  Future<void> syncActiveProfile(int? profileId) async {
+    if (_selectedProfileId == profileId && !_showAllProfiles) return;
+
+    _showAllProfiles = false;
+    _selectedProfileId = profileId;
+    notifyListeners();
+
+    if (profileId != null) {
+      await loadProfileDocuments(profileId);
+    }
+  }
+
   Future<void> addDocument({
     required String name,
     required DocumentCategory category,
     required Uint8List fileBytes,
     required String mimeType,
   }) async {
+    final profileId = _selectedProfileId;
+    if (profileId == null) {
+      throw StateError('No active profile selected for document upload.');
+    }
+
     await repository.addDocument(
       DocumentEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
-        profileId: _selectedProfileId,
+        profileId: profileId,
         name: name.trim(),
         category: category,
         createdAt: DateTime.now(),
@@ -132,6 +149,10 @@ class DocumentController extends ChangeNotifier {
 
   Future<void> deleteDocument(String id) async {
     await repository.deleteDocument(id);
+  }
+
+  Future<DocumentEntry> loadDocumentFile(DocumentEntry document) {
+    return repository.loadDocumentFile(document);
   }
 
   void _notifyRepositoryChanged() {

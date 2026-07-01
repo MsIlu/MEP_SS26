@@ -16,6 +16,12 @@ class DocumentApiService {
         .toList();
   }
 
+  Future<DocumentEntry> getDocument(int profileId, String documentId) async {
+    final response = await _apiClient.get('${_path(profileId)}/$documentId');
+
+    return DocumentEntry.fromApiJson(response);
+  }
+
   Future<DocumentEntry> createDocument(
     int profileId,
     DocumentEntry document,

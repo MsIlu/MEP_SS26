@@ -71,6 +71,7 @@ class AppDependencies {
     // Restored sessions bypass AuthApiService, so keep ApiClient in sync here.
     if (accessToken == null) {
       apiClient.clearAccessToken();
+      DocumentRepository.instance.clear();
       return;
     }
 

@@ -23,6 +23,11 @@ class DocumentRepository {
     _apiService = apiService;
   }
 
+  void clear() {
+    documents.value = [];
+    unreadCounts.value = {};
+  }
+
   Future<void> loadProfileDocuments(int profileId) async {
     final apiService = _apiService;
     if (apiService == null) return;
@@ -32,6 +37,25 @@ class DocumentRepository {
       ...remoteDocuments,
       ...documents.value.where((document) => document.profileId != profileId),
     ];
+  }
+
+  Future<DocumentEntry> loadDocumentFile(DocumentEntry document) async {
+    if (document.fileBytes != null) {
+      return document;
+    }
+
+    final profileId = document.profileId;
+    final apiService = _apiService;
+
+    if (profileId == null || apiService == null) {
+      return document;
+    }
+
+    final remoteDocument = await apiService.getDocument(profileId, document.id);
+    documents.value = documents.value.map((entry) {
+      return entry.id == document.id ? remoteDocument : entry;
+    }).toList();
+    return remoteDocument;
   }
 
   /// Adds a Careena recommendation unless the same profile already owns one

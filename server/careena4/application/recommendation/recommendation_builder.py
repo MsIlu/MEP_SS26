@@ -68,7 +68,7 @@ def _serialize_case(medical_case: MedicalCase, case_manager: CaseManager) -> str
     if observations:
         symptom_lines = []
         for obs in observations:
-            line = obs.label
+            line = obs.normalized_label_de
             if obs.onset:
                 line += f" (seit {obs.onset})"
             if obs.severity:

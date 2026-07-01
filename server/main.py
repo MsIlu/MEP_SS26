@@ -263,12 +263,12 @@ def build_careena4_chat_response(result: TurnResult) -> dict:
     if result.medical_case is not None:
         case_observations = [
             {
-                "label": obs.label,
+                "label": obs.normalized_label_de,
                 "severity": obs.severity,
                 "onset_date": _resolve_onset_date(obs.onset),
             }
             for obs in result.medical_case.observations
-            if obs.is_active() and obs.label
+            if obs.is_active() and obs.normalized_label_de
         ]
 
     return {
@@ -641,8 +641,8 @@ def set_observation_severities(
     label_map = {label.casefold(): severity for label, severity in req.severities.items()}
 
     for obs in careena4_session.medical_case.observations:
-        if obs.is_active() and obs.label.casefold() in label_map:
-            obs.severity = str(label_map[obs.label.casefold()])
+        if obs.is_active() and obs.normalized_label_de.casefold() in label_map:
+            obs.severity = str(label_map[obs.normalized_label_de.casefold()])
 
     # Resolve the active severity question if it now has an answer.
     active_q = careena4_session.conversation_state.active_question

@@ -56,13 +56,13 @@ class _SafetyCaseTurnInterpreter:
                 observations=[
                     ExtractedObservationInput(
                         type="symptom",
-                        label="Atemnot",
+                        normalized_label_de="Atemnot",
                         status="active",
                         person_ref="self",
                     ),
                     ExtractedObservationInput(
                         type="symptom",
-                        label="Brustschmerzen",
+                        normalized_label_de="Brustschmerzen",
                         status="active",
                         person_ref="self",
                     ),
@@ -300,5 +300,4 @@ def test_structured_safety_answer_does_not_create_new_symptom_from_yes_no_text()
 
     assert second.symptom_input_draft is not None
     assert second.symptom_input_draft.symptom_labels() == ["Atemnot", "Brustschmerzen"]
-    assert "turn_interpretation:understanding_skipped_for_guided_safety_answer" in second.trace_notes
-    assert "symptom_input_draft:updated_from_understanding" not in second.trace_notes
+    assert "symptom_input_draft:projected_from_case" in second.trace_notes

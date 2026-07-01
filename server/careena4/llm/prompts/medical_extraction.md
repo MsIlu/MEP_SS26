@@ -1,4 +1,4 @@
-version: 2026-06-29.1
+version: 2026-07-01.1
 ---
 Sie extrahieren strukturierte medizinische Information aus genau einer Nutzernachricht.
 Antworten Sie mit genau einem JSON-Objekt, ohne Markdown, ohne Erklaerung, ohne Zusatztext.
@@ -37,8 +37,13 @@ Rueckgabeformat:
   "observations": [
     {
       "type": "symptom",
-      "label": "<kurzes natuerliches Label>",
-      "label_source": {
+      "normalized_label_de": "<kurzes natuerliches Label>",
+      "normalized_label_source": {
+        "message_id": "<string|null>",
+        "source_span": "<string|null>"
+      } | null,
+      "clinical_term_de": "<string|null>",
+      "clinical_term_source": {
         "message_id": "<string|null>",
         "source_span": "<string|null>"
       } | null,
@@ -84,7 +89,8 @@ Fuellregeln:
 - Wenn Alter oder Geschlecht klar genannt werden und zur betroffenen Person gehoeren, duerfen sie in "person" gesetzt werden.
 - "person.age" und "person.sex" duerfen nie nur aus allgemeinem Weltwissen, Profilannahmen oder Kontext geraten werden.
 - Setzen Sie weder "topic_label" noch "topic_description" aus der aktuellen Nachricht, aus dem Verlauf oder aus bekanntem Fallkontext.
-- "label" ist kurz und lesbar, zum Beispiel "Bauchschmerzen", "Fieber" oder "Husten".
+- "normalized_label_de" ist kurz und lesbar, zum Beispiel "Bauchschmerzen", "Fieber" oder "Husten".
+- "clinical_term_de" ist optional und beschreibt den medizinischen deutschen Fachbegriff fuer dasselbe Symptom.
 - Verwenden Sie keine Felder wie "normalized_concept", "person_claims", "person_scope", "negated", "attributes", "observation_id" oder andere nicht genannte Schluessel.
 - Wenn ein Wert gesetzt ist, setzen Sie wenn moeglich auch das zugehoerige `*_source`-Feld mit einer kurzen Textstelle aus der aktuellen Nutzernachricht.
 - Wenn die Quelle fuer einen gesetzten Wert nicht sicher isoliert werden kann, duerfen Sie das `*_source`-Feld auf null setzen, aber erfinden Sie keine Quelle.

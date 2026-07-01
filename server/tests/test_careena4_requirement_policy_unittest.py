@@ -13,7 +13,7 @@ class RequirementPolicyTests(unittest.TestCase):
             observations=[
                 Observation(
                     type="symptom",
-                    label="Bauchschmerzen",
+                    normalized_label_de="Bauchschmerzen",
                 )
             ]
         )
@@ -37,7 +37,7 @@ class RequirementPolicyTests(unittest.TestCase):
             observations=[
                 Observation(
                     type="symptom",
-                    label="Bauchschmerzen",
+                    normalized_label_de="Bauchschmerzen",
                 )
             ]
         )

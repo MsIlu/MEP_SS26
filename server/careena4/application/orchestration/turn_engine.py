@@ -5,7 +5,6 @@ from careena4.application.dialogue.safety_clarification_builder import SafetyCla
 from careena4.application.entry.entry_classifier import EntryClassifier
 from careena4.application.extraction.medical_extractor import MedicalExtractor
 from careena4.application.input import SymptomChipBuilder
-from careena4.application.input import UnderstandingSymptomDraftAdapter
 from careena4.application.interpretation import TurnInterpreter
 from careena4.application.recommendation.recommendation_builder import RecommendationBuilder
 from careena4.application.response.response_builder import ResponseBuilder
@@ -44,7 +43,6 @@ class TurnEngine:
         response_builder: ResponseBuilder | None = None,
         turn_interpreter: TurnInterpreter | None = None,
         turn_understanding_service: MedGemmaTurnUnderstandingService | None = None,
-        understanding_symptom_draft_adapter: UnderstandingSymptomDraftAdapter | None = None,
         case_safety_evaluator: CaseSafetyEvaluator | None = None,
     ):
         self.raw_red_flag_detector = raw_red_flag_detector or RawRedFlagDetector()
@@ -53,7 +51,7 @@ class TurnEngine:
         self.entry_classifier = entry_classifier or EntryClassifier(case_manager=self.case_manager)
         self.question_resolver = question_resolver or QuestionResolver()
         self.medical_extractor = medical_extractor or MedicalExtractor()
-        self.symptom_chip_builder = SymptomChipBuilder()
+        self.symptom_chip_builder = SymptomChipBuilder(case_manager=self.case_manager)
         self.followup_need_builder = followup_need_builder or FollowupNeedBuilder(case_manager=self.case_manager)
         self.followup_selector = followup_selector or FollowupSelector()
         self.question_builder = question_builder or QuestionBuilder()
@@ -64,9 +62,6 @@ class TurnEngine:
         self.response_builder = response_builder or ResponseBuilder(case_manager=self.case_manager)
         self.turn_interpreter = turn_interpreter
         self.turn_understanding_service = turn_understanding_service
-        self.understanding_symptom_draft_adapter = (
-            understanding_symptom_draft_adapter or UnderstandingSymptomDraftAdapter()
-        )
         self.case_safety_evaluator = case_safety_evaluator or CaseSafetyEvaluator()
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
@@ -139,47 +134,6 @@ class TurnEngine:
                     has_case_input=turn_interpretation.case_input is not None,
                     has_understanding=turn_interpretation.current_turn_understanding is not None,
                 )
-                if self._should_apply_interpreter_understanding(
-                    active_question=conversation_state.active_question,
-                    interpretation=turn_interpretation,
-                ):
-                    current_turn_understanding = self.turn_interpreter.to_current_turn_understanding(
-                        raw_message=turn_input.message,
-                        interpretation=turn_interpretation,
-                    )
-                    symptom_input_draft = self._apply_current_turn_understanding(
-                        symptom_input_draft=symptom_input_draft,
-                        current_turn_understanding=current_turn_understanding,
-                        session_id=turn_input.session_id,
-                        trace_notes=trace_notes,
-                    )
-                else:
-                    trace_notes.append("turn_interpretation:understanding_skipped_for_guided_safety_answer")
-
-        if (
-            not is_fast_path
-            and current_turn_understanding is None
-            and self.turn_understanding_service is not None
-            and self._should_use_understanding_fallback(
-                active_question=conversation_state.active_question,
-                interpretation=turn_interpretation,
-            )
-        ):
-            trace_notes.append("turn_understanding:fallback_service_used")
-            log_event(
-                "turn_understanding.fallback_service_used",
-                layer="application",
-                reason="missing_turn_interpretation_understanding",
-            )
-            current_turn_understanding = self.turn_understanding_service.extract(
-                message=turn_input.message,
-            )
-            symptom_input_draft = self._apply_current_turn_understanding(
-                symptom_input_draft=symptom_input_draft,
-                current_turn_understanding=current_turn_understanding,
-                session_id=turn_input.session_id,
-                trace_notes=trace_notes,
-            )
 
         if is_fast_path:
             entry_assessment = EntryAssessment(
@@ -337,11 +291,7 @@ class TurnEngine:
                     layer="application",
                     message_kind=entry_assessment.message_kind,
                     contains_new_medical_information=entry_assessment.contains_new_medical_information,
-                    symptom_count=(
-                        len(current_turn_understanding.symptoms)
-                        if current_turn_understanding is not None
-                        else 0
-                    ),
+                    observation_count=len(case_input.observations),
                 )
                 case_input = None
             if case_input is None:
@@ -384,20 +334,6 @@ class TurnEngine:
                 )
 
         if case_input is not None:
-            understanding_has_symptoms = (
-                current_turn_understanding is not None
-                and bool(current_turn_understanding.symptoms)
-            )
-
-            if symptom_input_draft is not None and not understanding_has_symptoms:
-                symptom_input_draft = self.symptom_chip_builder.update_from_claims(
-                    draft=symptom_input_draft,
-                    claims=case_input,
-                )
-                trace_notes.append("symptom_input_draft:updated_from_claims")
-            elif symptom_input_draft is not None and understanding_has_symptoms:
-                trace_notes.append("symptom_input_draft:claims_update_skipped_after_understanding")
-
             medical_case, write_trace = self.case_manager.apply_claims(
                 medical_case=medical_case,
                 claims=case_input,
@@ -409,13 +345,18 @@ class TurnEngine:
                 symptom_input_draft=symptom_input_draft,
             )
             trace_notes.extend(chip_trace)
+            symptom_input_draft = self._project_symptom_input_draft(
+                symptom_input_draft=symptom_input_draft,
+                medical_case=medical_case,
+            )
+            if symptom_input_draft is not None:
+                trace_notes.append("symptom_input_draft:projected_from_case")
 
             if conversation_state.active_question is None or (
                 conversation_state.active_question.kind != "safety_clarification"
             ):
                 case_safety = self.case_safety_evaluator.evaluate(
                     medical_case=medical_case,
-                    current_turn_understanding=current_turn_understanding,
                 )
                 trace_notes.extend(case_safety.trace_notes)
                 if case_safety.requires_safety_clarification:
@@ -441,6 +382,12 @@ class TurnEngine:
             symptom_input_draft=symptom_input_draft,
         )
         trace_notes.extend(chip_trace)
+        symptom_input_draft = self._project_symptom_input_draft(
+            symptom_input_draft=symptom_input_draft,
+            medical_case=medical_case,
+        )
+        if symptom_input_draft is not None:
+            trace_notes.append("symptom_input_draft:projected_from_case")
 
         if not self.case_manager.has_active_observations(medical_case=medical_case) and resolved_safety_clarification:
             decision = TurnDecision(
@@ -617,19 +564,36 @@ class TurnEngine:
 
             label_cf = chip.normalized_label_de.casefold()
             already_present = any(
-                obs.label.casefold() == label_cf
+                obs.normalized_label_de.casefold() == label_cf
                 for obs in medical_case.observations
             )
             if already_present:
                 continue
 
-            new_obs = Observation(type="symptom", label=chip.normalized_label_de)
+            new_obs = Observation(
+                type="symptom",
+                normalized_label_de=chip.normalized_label_de,
+                clinical_term_de=chip.clinical_term_de,
+            )
             if medical_case.person.relation not in ("unclear",):
                 new_obs.person_ref = medical_case.person.relation
             medical_case.observations.append(new_obs)
             trace_notes.append(f"chip_sync:added:{chip.normalized_label_de}")
 
         return medical_case, trace_notes
+
+    def _project_symptom_input_draft(
+        self,
+        *,
+        symptom_input_draft: SymptomInputDraft | None,
+        medical_case: MedicalCase,
+    ) -> SymptomInputDraft | None:
+        if symptom_input_draft is None and not self.case_manager.has_observations(medical_case=medical_case):
+            return None
+        return self.symptom_chip_builder.update_from_case(
+            draft=symptom_input_draft,
+            medical_case=medical_case,
+        )
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
         medical_case = request_input.persisted_medical_case or MedicalCase()
@@ -878,64 +842,6 @@ class TurnEngine:
             current_turn_understanding=current_turn_understanding,
             trace_notes=trace_notes + decision.trace_notes,
         )
-
-    def _apply_current_turn_understanding(
-        self,
-        *,
-        symptom_input_draft,
-        current_turn_understanding,
-        session_id: str | None,
-        trace_notes: list[str],
-    ):
-        if current_turn_understanding is None:
-            return symptom_input_draft
-
-        trace_notes.extend(current_turn_understanding.trace_notes)
-        updated_draft = self.understanding_symptom_draft_adapter.update_from_understanding(
-            draft=symptom_input_draft,
-            understanding=current_turn_understanding,
-            session_id=session_id,
-        )
-        if current_turn_understanding.symptoms:
-            trace_notes.append("symptom_input_draft:updated_from_understanding")
-        for symptom in current_turn_understanding.symptoms:
-            trace_notes.append(
-                "understanding:symptom:"
-                f"{symptom.normalized_label_de or symptom.source_label}"
-            )
-        for match in current_turn_understanding.sts_matches:
-            trace_notes.append(f"understanding:sts:{match.sts_id}")
-        return updated_draft
-
-    @staticmethod
-    def _should_apply_interpreter_understanding(
-        *,
-        active_question: ActiveQuestion | None,
-        interpretation,
-    ) -> bool:
-        if active_question is None:
-            return True
-        if active_question.kind != "safety_clarification":
-            return True
-        if interpretation.question_resolution is None:
-            return True
-        return not interpretation.entry_assessment.answers_active_question
-
-    @staticmethod
-    def _should_use_understanding_fallback(
-        *,
-        active_question: ActiveQuestion | None,
-        interpretation,
-    ) -> bool:
-        if active_question is None:
-            return True
-        if active_question.kind != "safety_clarification":
-            return True
-        if interpretation is None:
-            return True
-        if interpretation.question_resolution is None:
-            return True
-        return not interpretation.entry_assessment.answers_active_question
 
     def _should_route_guided_safety_answer_via_turn_interpreter(
         self,

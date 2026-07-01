@@ -79,9 +79,9 @@ class TurnInterpreter:
             message_kind=result.entry_assessment.message_kind,
             has_question_resolution=result.question_resolution is not None,
             has_case_input=result.case_input is not None,
-            symptom_count=(
-                len(result.current_turn_understanding.symptoms)
-                if result.current_turn_understanding is not None
+            observation_count=(
+                len(result.case_input.observations)
+                if result.case_input is not None
                 else 0
             ),
         )
@@ -348,7 +348,8 @@ class TurnInterpreter:
         for observation in (medical_case.observations if medical_case is not None else []):
             observations.append(
                 {
-                    "label": observation.label,
+                    "normalized_label_de": observation.normalized_label_de,
+                    "clinical_term_de": observation.clinical_term_de,
                     "status": observation.status,
                     "person_ref": observation.person_ref,
                     "onset": observation.onset,

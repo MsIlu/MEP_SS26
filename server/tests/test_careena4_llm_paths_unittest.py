@@ -155,8 +155,10 @@ class Careena4LlmPathTests(unittest.TestCase):
                         "observations": [
                             {
                                 "type": "symptom",
-                                "label": "Uebelkeit",
-                                "label_source": {"message_id": None, "source_span": "Uebelkeit"},
+                                "normalized_label_de": "Uebelkeit",
+                                "normalized_label_source": {"message_id": None, "source_span": "Uebelkeit"},
+                                "clinical_term_de": "Uebelkeit",
+                                "clinical_term_source": {"message_id": None, "source_span": "Uebelkeit"},
                                 "status": "active",
                                 "status_source": {"message_id": None, "source_span": "Uebelkeit"},
                                 "person_ref": "self",
@@ -191,7 +193,7 @@ class Careena4LlmPathTests(unittest.TestCase):
 
         self.assertTrue(result.additional_medical_information)
         assert result.extra_case_input is not None
-        self.assertEqual(result.extra_case_input.observations[0].label, "Uebelkeit")
+        self.assertEqual(result.extra_case_input.observations[0].normalized_label_de, "Uebelkeit")
         self.assertEqual(result.extra_case_input.topic_label, "Bauchschmerzen mit Uebelkeit")
 
     def test_question_resolver_accepts_severity_resolution_from_llm(self):
@@ -277,8 +279,10 @@ class Careena4LlmPathTests(unittest.TestCase):
                     "observations": [
                         {
                             "type": "symptom",
-                            "label": "Bauchschmerzen",
-                            "label_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                            "normalized_label_de": "Bauchschmerzen",
+                            "normalized_label_source": {"message_id": None, "source_span": "Bauchschmerzen"},
+                            "clinical_term_de": "Bauchschmerzen",
+                            "clinical_term_source": {"message_id": None, "source_span": "Bauchschmerzen"},
                             "status": "active",
                             "status_source": {"message_id": None, "source_span": "Bauchschmerzen"},
                             "person_ref": "self",
@@ -301,7 +305,7 @@ class Careena4LlmPathTests(unittest.TestCase):
         result = extractor.extract(message="Ich habe seit gestern Bauchschmerzen.")
 
         self.assertIsInstance(result, ExtractedCaseInput)
-        self.assertEqual(result.observations[0].label, "Bauchschmerzen")
+        self.assertEqual(result.observations[0].normalized_label_de, "Bauchschmerzen")
         self.assertIsNone(result.topic_label)
         self.assertIsNone(result.topic_description)
         assert result.person is not None
@@ -316,7 +320,7 @@ class Careena4LlmPathTests(unittest.TestCase):
         self.assertIn('"topic_label": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('"topic_description": "<string|null>"', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertIn('bleibt immer null', load_prompt(EXTRACTION_CALL).system_prompt)
-        self.assertIn('"label_source": {', load_prompt(EXTRACTION_CALL).system_prompt)
+        self.assertIn('"normalized_label_source": {', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertNotIn('"topic_signal"', load_prompt(EXTRACTION_CALL).system_prompt)
         self.assertNotIn("Aktuelles Chat-Thema", extractor.extraction_engine.calls[0]["text"])
 
@@ -367,8 +371,10 @@ class Careena4LlmPathTests(unittest.TestCase):
                         "observations": [
                             {
                                 "type": "symptom",
-                                "label": "Kopfschmerzen",
-                                "label_source": {"message_id": None, "source_span": "Kopfschmerzen"},
+                                "normalized_label_de": "Kopfschmerzen",
+                                "normalized_label_source": {"message_id": None, "source_span": "Kopfschmerzen"},
+                                "clinical_term_de": "Kopfschmerz",
+                                "clinical_term_source": {"message_id": None, "source_span": "Kopfschmerzen"},
                                 "status": "active",
                                 "status_source": {"message_id": None, "source_span": "Kopfschmerzen"},
                                 "person_ref": "self",

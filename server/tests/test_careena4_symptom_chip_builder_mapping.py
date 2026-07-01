@@ -10,7 +10,7 @@ def test_symptom_chip_builder_enriches_extracted_chip_with_mapping_candidate():
         observations=[
             ExtractedObservationInput(
                 type="symptom",
-                label="Schwindel",
+                normalized_label_de="Schwindel",
                 status="active",
             )
         ]

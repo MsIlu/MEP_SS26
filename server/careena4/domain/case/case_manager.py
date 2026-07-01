@@ -193,8 +193,10 @@ class CaseManager:
     def _observation_from_input(*, observation_input: ExtractedObservationInput) -> Observation:
         return Observation(
             type=observation_input.type,
-            label=observation_input.label,
-            label_source=CaseManager._copy_source(observation_input.label_source),
+            normalized_label_de=observation_input.normalized_label_de,
+            normalized_label_source=CaseManager._copy_source(observation_input.normalized_label_source),
+            clinical_term_de=observation_input.clinical_term_de,
+            clinical_term_source=CaseManager._copy_source(observation_input.clinical_term_source),
             status=observation_input.status,
             status_source=CaseManager._copy_source(observation_input.status_source),
             person_ref=observation_input.person_ref or "unclear",

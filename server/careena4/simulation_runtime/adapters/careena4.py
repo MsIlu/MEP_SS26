@@ -91,7 +91,7 @@ def _build_summary(
 def _observation_summary(*, observation) -> dict[str, object]:
     summary: dict[str, object] = {
         "type": observation.type,
-        "label": observation.label,
+        "normalized_label_de": observation.normalized_label_de,
         "status": observation.status,
         "person_ref": observation.person_ref,
     }

@@ -4,28 +4,14 @@ from careena4.application.safety import CaseSafetyEvaluator
 from careena4.models.domain import MedicalCase, Observation
 from careena4.models.domain.safety_catalog import SafetyCatalogMatch
 from careena4.models.turn import SafetyAction, SafetyRedFlagStatus
-from careena4.models.understanding import CurrentTurnUnderstanding, ExtractedSymptomCandidate
 
 
 def _make_case(*labels: str) -> MedicalCase:
     case = MedicalCase()
     for label in labels:
-        obs = Observation(label=label, type="symptom", status="active")
+        obs = Observation(normalized_label_de=label, type="symptom", status="active")
         case.observations.append(obs)
     return case
-
-
-def _make_understanding(
-    *,
-    normalized: list[str] | None = None,
-    clinical: list[str] | None = None,
-) -> CurrentTurnUnderstanding:
-    symptoms = []
-    for lay in (normalized or []):
-        symptoms.append(ExtractedSymptomCandidate(source_label=lay, normalized_label_de=lay, is_medical=True))
-    for clin in (clinical or []):
-        symptoms.append(ExtractedSymptomCandidate(source_label=clin, clinical_term_de=clin, is_medical=True))
-    return CurrentTurnUnderstanding(raw_message="test", symptoms=symptoms)
 
 
 def _make_match(criterion_key: str, urgency: str = "requires_safety_clarification") -> SafetyCatalogMatch:
@@ -45,10 +31,7 @@ def _make_match(criterion_key: str, urgency: str = "requires_safety_clarificatio
 
 class TestCaseSafetyEvaluatorNoCache:
     def test_no_cache_returns_no_flag(self):
-        understanding = _make_understanding(normalized=["Atemnot"])
-        result = CaseSafetyEvaluator(catalog_cache=None).evaluate(
-            medical_case=_make_case(), current_turn_understanding=understanding
-        )
+        result = CaseSafetyEvaluator(catalog_cache=None).evaluate(medical_case=_make_case())
         assert not result.red_flag_detected
         assert result.red_flag_status == SafetyRedFlagStatus.NONE
 
@@ -67,9 +50,8 @@ class TestCaseSafetyEvaluatorCheck2LayTerms:
 
     def test_lay_term_match_triggers_suspected(self):
         cache = self._mock_cache(lay_matches=[_make_match("dyspnea_01")])
-        understanding = _make_understanding(normalized=["Atemnot"])
         result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
-            medical_case=_make_case(), current_turn_understanding=understanding
+            medical_case=_make_case("Atemnot")
         )
         assert result.red_flag_detected is True
         assert result.red_flag_status == SafetyRedFlagStatus.SUSPECTED
@@ -78,18 +60,16 @@ class TestCaseSafetyEvaluatorCheck2LayTerms:
 
     def test_no_lay_match_falls_through_to_check3(self):
         cache = self._mock_cache(lay_matches=[], clinical_matches=[_make_match("dyspnea_01")])
-        understanding = _make_understanding(normalized=["Atemnot"], clinical=["Dyspnoe"])
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
-            medical_case=_make_case(), current_turn_understanding=understanding
-        )
+        medical_case = _make_case("Atemnot")
+        medical_case.observations[0].clinical_term_de = "Dyspnoe"
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(medical_case=medical_case)
         assert result.red_flag_detected is True
         assert "check3_clinical_terms" in " ".join(result.trace_notes)
 
     def test_no_match_in_either_db_check_returns_no_flag_without_llm(self):
         cache = self._mock_cache(lay_matches=[], clinical_matches=[])
-        understanding = _make_understanding(normalized=["Kopfschmerzen"])
         result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
-            medical_case=_make_case("Kopfschmerzen"), current_turn_understanding=understanding
+            medical_case=_make_case("Kopfschmerzen")
         )
         assert not result.red_flag_detected
 
@@ -97,25 +77,14 @@ class TestCaseSafetyEvaluatorCheck2LayTerms:
         cache = self._mock_cache(
             lay_matches=[_make_match("some_crit", urgency="supporting_context_only")]
         )
-        understanding = _make_understanding(normalized=["Atemnot"])
         result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
-            medical_case=_make_case(), current_turn_understanding=understanding
+            medical_case=_make_case("Atemnot")
         )
         assert not result.red_flag_detected
 
-    def test_non_medical_symptom_excluded_from_check2(self):
+    def test_empty_case_does_not_scan_lay_terms(self):
         cache = self._mock_cache(lay_matches=[_make_match("dyspnea_01")])
-        understanding = CurrentTurnUnderstanding(
-            raw_message="test",
-            symptoms=[
-                ExtractedSymptomCandidate(
-                    source_label="Atemnot", normalized_label_de="Atemnot", is_medical=False
-                )
-            ],
-        )
-        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(
-            medical_case=_make_case(), current_turn_understanding=understanding
-        )
+        result = CaseSafetyEvaluator(catalog_cache=cache).evaluate(medical_case=_make_case())
         cache.scan_lay_terms.assert_not_called()
         assert not result.red_flag_detected
 
@@ -134,7 +103,6 @@ class TestCaseSafetyEvaluatorCheck4MedGemma:
         cache = self._mock_cache_no_match()
         result = CaseSafetyEvaluator(catalog_cache=cache, llm_client=llm_client).evaluate(
             medical_case=_make_case("Atemnot"),
-            current_turn_understanding=_make_understanding(normalized=["Atemnot"]),
         )
         llm_client.complete.assert_called_once()
         assert result.red_flag_detected is True

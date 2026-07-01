@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Chat history differs between active, waiting, completed and failed chats.
 ChatHistoryStatus = Literal[
@@ -20,6 +20,12 @@ class ChatHistoryMessage(BaseModel):
     export_title: Optional[str] = None
     export_recommendation: Optional[str] = None
     export_next_steps: Optional[str] = None
+    can_create_appointment: bool = False
+    appointment_title: Optional[str] = None
+    recommendation_symptoms: list[str] = Field(default_factory=list)
+    document_saved: bool = False
+    symptoms_saved: bool = False
+    appointment_searched: bool = False
 
 
 class ChatHistoryCreateRequest(BaseModel):

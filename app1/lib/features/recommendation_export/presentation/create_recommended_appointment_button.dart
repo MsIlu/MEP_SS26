@@ -1,4 +1,4 @@
-﻿import 'package:app1/app/app_dependencies_scope.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/features/appointmentscreen/controllers/appointment_controller.dart';
 import 'package:app1/features/appointmentscreen/data/models/appointment.dart';
@@ -11,38 +11,68 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   final AuthSession? authSession;
   final String title;
   final String? sessionId;
+  final bool alreadySearched;
+  final Future<void> Function()? onSearched;
 
   const CreateRecommendedAppointmentButton({
     super.key,
     required this.title,
     this.authSession,
     this.sessionId,
+    this.alreadySearched = false,
+    this.onSearched,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final buttonColor = isDarkMode
-        ? AppColors.toolbarButtonBackgroundDark
-        : AppColors.careenaTeal;
-    final textColor = isDarkMode
-        ? AppColors.toolbarButtonForegroundDark
-        : AppColors.white;
-
-    return FilledButton.icon(
-      style: FilledButton.styleFrom(
-        backgroundColor: buttonColor,
-        foregroundColor: textColor,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      ),
-      icon: const Icon(Icons.event_available_outlined),
-      label: Text(sessionId == null ? 'Termin erstellen' : 'Termin finden'),
+    return _AsyncAppointmentButton(
+      isCompleted: alreadySearched,
       onPressed: () => _handlePressed(context),
+      builder: _buildButton,
     );
   }
 
-  Future<void> _handlePressed(BuildContext context) async {
+  Widget _buildButton(
+    bool isLoading,
+    bool isCompleted,
+    VoidCallback? onPressed,
+  ) {
+    return Tooltip(
+      message: isCompleted
+          ? 'Termin bereits gebucht – siehe Terminplanung'
+          : 'Termin suchen und buchen',
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.careenaTeal,
+          side: const BorderSide(color: AppColors.careenaTeal),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        icon: isLoading
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                isCompleted
+                    ? Icons.check_circle_outline
+                    : Icons.event_available_outlined,
+              ),
+        label: Text(
+          isCompleted
+              ? 'Bereits gebucht'
+              : sessionId == null
+              ? 'Termin erstellen'
+              : 'Termin finden',
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Future<bool> _handlePressed(BuildContext context) async {
     final profileId = authSession?.activeProfileId;
 
     if (profileId == null) {
@@ -52,30 +82,29 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         message:
             'Bitte wähle zuerst ein Profil aus, damit der Termin korrekt zugeordnet werden kann.',
       );
-      return;
+      return false;
     }
 
     if (sessionId == null) {
-      await _createFallbackAppointment(context, profileId);
-      return;
+      return _createFallbackAppointment(context, profileId);
     }
 
     final postalCode = await _askForPostalCode(context);
 
     if (postalCode == null) {
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
-    await _searchAndSelectAppointment(
+    return _searchAndSelectAppointment(
       context: context,
       profileId: profileId,
       postalCode: postalCode,
     );
   }
 
-  Future<void> _searchAndSelectAppointment({
+  Future<bool> _searchAndSelectAppointment({
     required BuildContext context,
     required int profileId,
     required String postalCode,
@@ -104,10 +133,10 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
               'Bitte prüfe, ob der lokale HAPI-FHIR-Server läuft.',
         );
       }
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
     Navigator.pop(context);
 
     if (response.appointments.isEmpty) {
@@ -116,10 +145,10 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
         title: 'Keine regulären Termine',
         message: response.message,
       );
-      return;
+      return false;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     final selectedAppointment = await _showAppointmentSelectionDialog(
       context,
@@ -127,7 +156,7 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     );
 
     if (selectedAppointment == null) {
-      return;
+      return false;
     }
 
     final note = _buildAppointmentNote(selectedAppointment);
@@ -150,8 +179,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
               'Der FHIR-Termin wurde gefunden, konnte aber nicht in der Terminplanung gespeichert werden.',
         );
       }
-      return;
+      return false;
     }
+
+    // Persist the completed action only after HAPI booking and backend save.
+    await onSearched?.call();
 
     final controller = AppointmentController();
     final wasCreated = controller.addRecommendedAppointmentIfMissing(
@@ -162,16 +194,17 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       controller.upsertRecommendedAppointments([appointment]);
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     await _showAppointmentSavedDialog(
       context: context,
       appointment: appointment,
       wasCreated: wasCreated,
     );
+    return true;
   }
 
-  Future<void> _createFallbackAppointment(
+  Future<bool> _createFallbackAppointment(
     BuildContext context,
     int profileId,
   ) async {
@@ -186,13 +219,16 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
     final wasCreated = AppointmentController()
         .addRecommendedAppointmentIfMissing(appointment);
 
-    if (!context.mounted) return;
+    await onSearched?.call();
+
+    if (!context.mounted) return false;
 
     await _showAppointmentSavedDialog(
       context: context,
       appointment: appointment,
       wasCreated: wasCreated,
     );
+    return true;
   }
 
   Future<String?> _askForPostalCode(BuildContext context) async {
@@ -236,11 +272,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                     child: Text(
                       'Termin finden',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: isDarkMode
-                                ? AppColors.darkTextPrimary
-                                : AppColors.careenaTitle,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: isDarkMode
+                            ? AppColors.darkTextPrimary
+                            : AppColors.careenaTitle,
+                      ),
                     ),
                   ),
                 ],
@@ -253,11 +289,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                     'Gib deine Postleitzahl ein. Careena fragt dann passende '
                     'FHIR-Termine aus HAPI ab.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          height: 1.35,
-                          color: isDarkMode
-                              ? AppColors.darkTextSecondary
-                              : AppColors.careenaBody,
-                        ),
+                      height: 1.35,
+                      color: isDarkMode
+                          ? AppColors.darkTextSecondary
+                          : AppColors.careenaBody,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -265,8 +301,8 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     maxLength: 5,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'PLZ',
                       hintText: 'z. B. 68159',
@@ -378,11 +414,11 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
           title: Text(
             'Passende Termine',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: isDarkMode
-                      ? AppColors.darkTextPrimary
-                      : AppColors.careenaTitle,
-                ),
+              fontWeight: FontWeight.w900,
+              color: isDarkMode
+                  ? AppColors.darkTextPrimary
+                  : AppColors.careenaTitle,
+            ),
           ),
           content: SizedBox(
             width: 460,
@@ -564,22 +600,22 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
                 ? 'Termin hinzugefügt'
                 : 'Terminempfehlung bereits vorhanden',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: isDarkMode
-                      ? AppColors.darkTextPrimary
-                      : AppColors.careenaTitle,
-                ),
+              fontWeight: FontWeight.w900,
+              color: isDarkMode
+                  ? AppColors.darkTextPrimary
+                  : AppColors.careenaTitle,
+            ),
           ),
           content: Text(
             wasCreated
                 ? 'Der Termin wurde deiner Terminplanung hinzugefügt.'
                 : 'Diese Empfehlung ist bereits in deiner Terminplanung vorhanden.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  height: 1.35,
-                  color: isDarkMode
-                      ? AppColors.darkTextSecondary
-                      : AppColors.careenaBody,
-                ),
+              height: 1.35,
+              color: isDarkMode
+                  ? AppColors.darkTextSecondary
+                  : AppColors.careenaBody,
+            ),
           ),
           actions: [
             TextButton(
@@ -633,19 +669,17 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
           ),
           content: Row(
             children: [
-              const CircularProgressIndicator(
-                color: AppColors.careenaTeal,
-              ),
+              const CircularProgressIndicator(color: AppColors.careenaTeal),
               const SizedBox(width: 18),
               Expanded(
                 child: Text(
                   'Careena fragt HAPI-FHIR nach passenden Terminen...',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: isDarkMode
-                            ? AppColors.darkTextPrimary
-                            : AppColors.careenaBody,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: isDarkMode
+                        ? AppColors.darkTextPrimary
+                        : AppColors.careenaBody,
+                  ),
                 ),
               ),
             ],
@@ -654,7 +688,6 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
       },
     );
   }
-
 
   Future<void> _showInfoDialog(
     BuildContext context, {
@@ -677,20 +710,20 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
           title: Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: isDarkMode
-                      ? AppColors.darkTextPrimary
-                      : AppColors.careenaTitle,
-                ),
+              fontWeight: FontWeight.w900,
+              color: isDarkMode
+                  ? AppColors.darkTextPrimary
+                  : AppColors.careenaTitle,
+            ),
           ),
           content: Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  height: 1.35,
-                  color: isDarkMode
-                      ? AppColors.darkTextSecondary
-                      : AppColors.careenaBody,
-                ),
+              height: 1.35,
+              color: isDarkMode
+                  ? AppColors.darkTextSecondary
+                  : AppColors.careenaBody,
+            ),
           ),
           actions: [
             FilledButton(
@@ -720,14 +753,75 @@ class CreateRecommendedAppointmentButton extends StatelessWidget {
   }
 }
 
+class _AsyncAppointmentButton extends StatefulWidget {
+  final bool isCompleted;
+  final Future<bool> Function() onPressed;
+  final Widget Function(
+    bool isLoading,
+    bool isCompleted,
+    VoidCallback? onPressed,
+  )
+  builder;
+
+  const _AsyncAppointmentButton({
+    required this.isCompleted,
+    required this.onPressed,
+    required this.builder,
+  });
+
+  @override
+  State<_AsyncAppointmentButton> createState() =>
+      _AsyncAppointmentButtonState();
+}
+
+class _AsyncAppointmentButtonState extends State<_AsyncAppointmentButton> {
+  bool _isLoading = false;
+  late bool _isCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCompleted = widget.isCompleted;
+  }
+
+  @override
+  void didUpdateWidget(covariant _AsyncAppointmentButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCompleted) _isCompleted = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(
+      _isLoading,
+      _isCompleted,
+      _isCompleted || _isLoading ? null : _run,
+    );
+  }
+
+  Future<void> _run() async {
+    setState(() => _isLoading = true);
+    try {
+      final completed = await widget.onPressed();
+      if (mounted && completed) setState(() => _isCompleted = true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Der Aktionsstatus konnte nicht gespeichert werden'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+}
+
 class _CareenaAppointmentChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _CareenaAppointmentChip({
-    required this.icon,
-    required this.text,
-  });
+  const _CareenaAppointmentChip({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -754,11 +848,11 @@ class _CareenaAppointmentChip extends StatelessWidget {
           Text(
             text,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: isDarkMode
-                      ? AppColors.darkTextPrimary
-                      : AppColors.careenaTitle,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: isDarkMode
+                  ? AppColors.darkTextPrimary
+                  : AppColors.careenaTitle,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),

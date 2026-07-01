@@ -51,106 +51,122 @@ class _SmartRepliesState extends State<SmartReplyList> {
         ? AppColors.smartReplyMutedTextDark
         : AppColors.careenaDark.withValues(alpha: expanded ? 1 : 0.5);
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: IntrinsicWidth(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: containerColor,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: borderColor.withValues(alpha: isDarkMode ? 0.35 : 0.15),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Semantics(
-                  button: true,
-                  label: expanded
-                      ? 'Antwortvorschläge ausblenden'
-                      : 'Antwortvorschläge anzeigen',
-                  onTap: () {
-                    setState(() {
-                      expanded = !expanded;
-                    });
-                  },
-                  child: ExcludeSemantics(
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = (constraints.maxWidth - 20).clamp(0.0, 720.0);
+        return Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: SizedBox(
+              width: availableWidth,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: containerColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: borderColor.withValues(
+                      alpha: isDarkMode ? 0.35 : 0.15,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: expanded
+                          ? 'Antwortvorschläge ausblenden'
+                          : 'Antwortvorschläge anzeigen',
                       onTap: () {
                         setState(() {
                           expanded = !expanded;
                         });
                       },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Vorschläge',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: textColor,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.expand_more,
-                            size: 20,
-                            color: mutedIconColor.withValues(
-                              alpha: expanded ? 1 : 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                if (expanded) ...[
-                  const SizedBox(height: 8),
-
-                  for (final reply in widget.replies) ...[
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Semantics(
-                        button: true,
-                        label: 'Antwortvorschlag: $reply',
-                        hint:
-                            'Doppeltippen, um diesen Vorschlag als Antwort zu verwenden.',
-                        onTap: () => widget.onSelected(reply),
-                        child: ExcludeSemantics(
-                          child: ActionChip(
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                            label: Text(
-                              reply,
-                              style: TextStyle(fontSize: 13, color: textColor),
-                            ),
-                            onPressed: () => widget.onSelected(reply),
-                            backgroundColor: chipColor,
-                            side: BorderSide(color: borderColor),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                      child: ExcludeSemantics(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            setState(() {
+                              expanded = !expanded;
+                            });
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Vorschläge',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.expand_more,
+                                size: 20,
+                                color: mutedIconColor.withValues(
+                                  alpha: expanded ? 1 : 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+
+                    if (expanded) ...[
+                      const SizedBox(height: 8),
+
+                      Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final reply in widget.replies)
+                            Semantics(
+                              button: true,
+                              label: 'Antwortvorschlag: $reply',
+                              hint:
+                                  'Doppeltippen, um diesen Vorschlag als Antwort zu verwenden.',
+                              onTap: () => widget.onSelected(reply),
+                              child: ExcludeSemantics(
+                                child: ActionChip(
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                  label: Text(
+                                    reply,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  onPressed: () => widget.onSelected(reply),
+                                  backgroundColor: chipColor,
+                                  side: BorderSide(color: borderColor),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
-              ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

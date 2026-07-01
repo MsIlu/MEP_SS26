@@ -74,4 +74,34 @@ void main() {
     expect(find.text('Willkommen Alexanderthegreat!'), findsNothing);
     expect(find.text('Willkommen!'), findsOneWidget);
   });
+
+  testWidgets('hides first name on narrow home header', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: CareenaPageHeader(
+            title: 'Willkommen Emilia!',
+            compactTitle: 'Willkommen!',
+            showBack: false,
+            leading: CareenaHeaderAction(
+              tooltip: 'Guide',
+              icon: Icons.help_outline,
+              onPressed: () {},
+            ),
+            trailing: CareenaHeaderAction(
+              tooltip: 'Profil',
+              icon: Icons.person_outline,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Willkommen Emilia!'), findsNothing);
+    expect(find.text('Willkommen!'), findsOneWidget);
+  });
 }

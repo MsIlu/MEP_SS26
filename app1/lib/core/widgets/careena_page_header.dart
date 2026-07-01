@@ -110,15 +110,17 @@ class _ResponsiveHeaderTitle extends StatelessWidget {
             header: true,
             label: visibleTitle,
             child: ExcludeSemantics(
-              child: Text(
-                visibleTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: color,
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.w800,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  visibleTitle,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -143,9 +145,9 @@ class _ResponsiveHeaderTitle extends StatelessWidget {
       ),
       maxLines: 1,
       textDirection: textDirection,
-    )..layout(maxWidth: maxWidth);
+    )..layout();
 
-    return !painter.didExceedMaxLines && painter.width <= maxWidth;
+    return painter.width <= maxWidth;
   }
 }
 

@@ -33,8 +33,8 @@ _RELATION_HINT_WORDS = {
 
 _GENERIC_ANSWERS = {"jemand anderes", "jemand anderen", "andere person"}
 
-# label -> (relation, age, sex)
-_PersonData = tuple[str, int | None, str | None]
+# label -> (profile_id, relation, age, sex)
+_PersonData = tuple[int | None, str, int | None, str | None]
 
 
 def _map_relation(profile_type: str) -> str:
@@ -109,10 +109,10 @@ class PersonInitialiser:
             return False
 
         person_map: dict[str, _PersonData] = {
-            p.display_name: (_map_relation(p.profile_type), p.age, p.sex)
+            p.display_name: (p.id, _map_relation(p.profile_type), p.age, p.sex)
             for p in profiles
         }
-        person_map["Jemand anderes"] = ("other", None, None)
+        person_map["Jemand anderes"] = (None, "other", None, None)
         self._person_map[session_id] = person_map
 
         if len(profiles) == 1:
@@ -144,17 +144,19 @@ class PersonInitialiser:
         session_id: str,
         careena4_session,
         message: str,
-    ) -> tuple[str | None, list[str], str | None]:
+    ) -> tuple[str | None, list[str], str | None, int | None]:
         """Called after run_turn() and persist.
 
-        Returns (warning_text, reply_options, pending_message).
+        Returns (warning_text, reply_options, pending_message, matched_profile_id).
         - warning_text: non-None when person_clarification must be retried
         - reply_options: button labels for the retry
         - pending_message: the deferred medical message to process next
+        - matched_profile_id: DB id of the profile the user selected, so the
+          caller can re-key the session to that profile (diary/medications)
         """
         person_map = self._person_map.get(session_id)
         if not person_map or careena4_session.medical_case is None:
-            return None, [], None
+            return None, [], None, None
 
         mc_person = careena4_session.medical_case.person
         msg_lower = message.strip().casefold()
@@ -173,19 +175,19 @@ class PersonInitialiser:
         pending = self._pending_message.pop(session_id, None)
 
         if matched is not None:
-            rel, age, sex = matched
+            profile_id, rel, age, sex = matched
             mc_person.relation = rel
             if age is not None:
                 mc_person.age = age
             if sex is not None:
                 mc_person.sex = sex
             self._person_map.pop(session_id, None)
-            return None, [], pending
+            return None, [], pending, profile_id
 
         if is_generic:
             mc_person.relation = "other"
             self._person_map.pop(session_id, None)
-            return None, [], pending
+            return None, [], pending, None
 
         if _is_name_attempt(message):
             mc_person.relation = "unclear"
@@ -208,9 +210,9 @@ class PersonInitialiser:
             # Re-save the pending message — user still hasn't resolved selection
             if pending:
                 self._pending_message[session_id] = pending
-            return warning, reply_options, None
+            return warning, reply_options, None, None
 
         # Free-form non-profile person ("meine Oma") — accept silently.
         mc_person.relation = "other"
         self._person_map.pop(session_id, None)
-        return None, [], pending
+        return None, [], pending, None

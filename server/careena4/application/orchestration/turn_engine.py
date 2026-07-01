@@ -745,6 +745,8 @@ class TurnEngine:
         if recommendation_state.recommendation_allowed:
             recommendation_result = recommendation_state.recommendation_result or self.recommendation_builder.build(
                 medical_case=medical_case,
+                diary_history=request_input.diary_history,
+                medication_history=request_input.medication_history,
             )
             recommendation_state.recommendation_result = recommendation_result
             recommendation_state.recommendation_allowed = True

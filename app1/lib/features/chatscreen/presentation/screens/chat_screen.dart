@@ -227,10 +227,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final recommendationSymptoms =
           _preRecommendationSymptoms ?? List<String>.from(widget.controller.symptoms.value);
       _preRecommendationSymptoms = null;
+      final profileNames = recommendationAuthSession.profiles
+          .map((profile) => profile.displayName.trim().toLowerCase())
+          .toSet();
       final recommendationUserMessages = widget.controller.messages.value
           .where((message) => message.isUser)
           .map((message) => message.text.trim())
           .where((text) => text.isNotEmpty)
+          .where((text) => _isInformativeUserMessage(text, profileNames))
           .toList(growable: false);
 
       await widget.controller.resetChat();
@@ -761,4 +765,33 @@ class _CompletedChatNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Whether a user chat message carries case information worth showing in the
+/// recommendation and PDF, as opposed to an answer to a system question
+/// (profile pick, safety yes/no, a bare severity number, the "give me a
+/// recommendation" request). Filters out that noise so the exported document
+/// and the reasons list stay clinically relevant.
+bool _isInformativeUserMessage(String text, Set<String> profileNames) {
+  final normalized = text.toLowerCase().trim();
+
+  const systemAnswers = {
+    'ja', 'nein', 'nö', 'noe', 'ok', 'okay', 'jo', 'joa', 'jap', 'klar',
+    'ich bin unsicher', 'ich brauche sofort hilfe', 'nicht zutreffend',
+    'weiß nicht', 'weiss nicht', 'keine angabe', 'ja, möglicherweise',
+  };
+  if (systemAnswers.contains(normalized)) return false;
+
+  // Profile-selection answer (e.g. "Paula").
+  if (profileNames.contains(normalized)) return false;
+
+  // Bare severity answer like "5" or "5/10".
+  if (RegExp(r'^\d{1,2}\s*(/\s*10)?$').hasMatch(normalized)) return false;
+
+  // Meta request for the recommendation itself.
+  if (normalized.contains('handlungsempfehlung') || normalized == 'empfehlung') {
+    return false;
+  }
+
+  return true;
 }

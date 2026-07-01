@@ -6,6 +6,11 @@ from uuid import NAMESPACE_URL, uuid5
 
 import httpx
 
+from appointments.simulator_catalog import (
+    SPECIALTY_LABELS,
+    providers_for,
+    simulated_location,
+)
 from config import FHIR_BASE_URL, FHIR_TIMEOUT_SECONDS
 
 
@@ -36,17 +41,6 @@ BUNDLE_REFERENCE_EXTENSION_URL = (
 BOOKED_BY_ACCOUNT_EXTENSION_URL = (
     "https://careena.local/fhir/StructureDefinition/careena-booked-by-account-id"
 )
-
-SPECIALTY_LABELS = {
-    "general_practice": "Allgemeinmedizin",
-    "dermatology": "Dermatologie",
-    "orthopedics": "Orthopaedie",
-    "neurology": "Neurologie",
-    "ent": "HNO",
-    "emergency_medicine": "Notfallmedizin",
-    "unknown": "Allgemeinmedizin",
-}
-
 
 class HapiFhirError(RuntimeError):
     """Raised when the local HAPI FHIR adapter cannot be reached or parsed."""
@@ -100,7 +94,17 @@ class HapiFhirClient:
         if existing_appointments:
             return existing_appointments
 
+        existing_resources = self.search_appointments(
+            session_id=session_id,
+            profile_id=profile_id,
+            postal_code=postal_code,
+            allowed_statuses={"proposed", "pending", "booked", "cancelled"},
+        )
+        existing_by_id = {
+            str(resource.get("id")): resource for resource in existing_resources
+        }
         written_appointments: list[dict[str, Any]] = []
+        new_resources: list[dict[str, Any]] = []
 
         for resource in build_recommendation_appointment_resources(
             session_id=session_id,
@@ -109,7 +113,19 @@ class HapiFhirClient:
             recommendation_result=recommendation_result,
             bundle_id=bundle_id,
         ):
-            written_appointments.append(self._put_appointment(resource))
+            existing = existing_by_id.get(str(resource["id"]))
+            if existing is not None and existing.get("status") in {
+                "proposed",
+                "pending",
+                "booked",
+            }:
+                written_appointments.append(existing)
+                continue
+            new_resources.append(resource)
+
+        if new_resources:
+            self._put_appointments_transaction(new_resources)
+            written_appointments.extend(new_resources)
 
         indexed_appointments = self.search_appointments(
             session_id=session_id,
@@ -148,14 +164,16 @@ class HapiFhirClient:
             session_id: str,
             profile_id: int,
             postal_code: str,
+            allowed_statuses: set[str] | None = None,
     ) -> list[dict[str, Any]]:
+        allowed_statuses = allowed_statuses or {"proposed"}
+        params: dict[str, str] = {"_count": "500"}
+        if len(allowed_statuses) == 1:
+            params["status"] = next(iter(allowed_statuses))
         bundle = self._request(
             "GET",
             "/Appointment",
-            params={
-                "status": "proposed",
-                "_count": "50",
-            },
+            params=params,
         )
 
         appointments: list[dict[str, Any]] = []
@@ -167,7 +185,7 @@ class HapiFhirClient:
                 session_id=session_id,
                 profile_id=profile_id,
                 postal_code=postal_code,
-                allowed_statuses={"proposed"},
+                allowed_statuses=allowed_statuses,
             ):
                 continue
 
@@ -242,6 +260,45 @@ class HapiFhirClient:
 
         return self.get_appointment(str(appointment["id"]))
 
+    def cancel_appointment(
+            self,
+            *,
+            appointment_id: str,
+            profile_id: int,
+            booked_by_account_id: int,
+    ) -> dict[str, Any]:
+        appointment = self.get_appointment(appointment_id)
+
+        if _extension_value(appointment, PROFILE_EXTENSION_URL) != profile_id:
+            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu diesem Profil.")
+
+        booked_by_account = _extension_value(
+            appointment,
+            BOOKED_BY_ACCOUNT_EXTENSION_URL,
+        )
+        if str(booked_by_account) != str(booked_by_account_id):
+            raise HapiFhirError("Der HAPI-Termin wurde von einem anderen Account gebucht.")
+
+        if appointment.get("status") == "cancelled":
+            return appointment
+        if appointment.get("status") != "booked":
+            raise HapiFhirError("Nur ein gebuchter HAPI-Termin kann storniert werden.")
+
+        appointment["status"] = "cancelled"
+        appointment["comment"] = "Vom Careena-Account stornierter lokaler HAPI-Termin."
+        for participant in appointment.get("participant", []) or []:
+            participant["status"] = "declined"
+
+        updated_resource = self._request(
+            "PUT",
+            f"/Appointment/{appointment['id']}",
+            json=appointment,
+            headers={"Prefer": "return=representation"},
+        )
+        if updated_resource.get("resourceType") == "Appointment":
+            return updated_resource
+        return self.get_appointment(str(appointment["id"]))
+
     def _put_appointment(self, resource: dict[str, Any]) -> dict[str, Any]:
         updated_resource = self._request(
             "PUT",
@@ -254,6 +311,61 @@ class HapiFhirClient:
             return updated_resource
 
         return resource
+
+    def _put_appointments_transaction(
+            self,
+            resources: list[dict[str, Any]],
+    ) -> None:
+        """Write simulator slots with one atomic FHIR transaction request."""
+        self._request(
+            "POST",
+            "",
+            json={
+                "resourceType": "Bundle",
+                "type": "transaction",
+                "entry": [
+                    {
+                        "resource": resource,
+                        "request": {
+                            "method": "PUT",
+                            "url": f"Appointment/{resource['id']}",
+                        },
+                    }
+                    for resource in resources
+                ],
+            },
+        )
+
+    def list_all_appointments(self) -> list[dict[str, Any]]:
+        bundle = self._request(
+            "GET",
+            "/Appointment",
+            params={"_count": "500"},
+        )
+        return [
+            entry.get("resource", {})
+            for entry in bundle.get("entry", []) or []
+            if entry.get("resource", {}).get("resourceType") == "Appointment"
+        ]
+
+    def _put_appointment_without_reopening_booking(
+            self,
+            resource: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Create a candidate without overwriting an existing booked slot."""
+        try:
+            existing = self.get_appointment(str(resource["id"]))
+        except (HapiFhirError, KeyError):
+            existing = None
+
+        if existing is not None and existing.get("status") in {
+            "proposed",
+            "pending",
+            "booked",
+        }:
+            return existing
+
+        return self._put_appointment(resource)
 
     def _read_appointments_by_id(
             self,
@@ -341,35 +453,25 @@ def build_recommendation_appointment_resources(
 
     specialty_label = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
     provider_type = _provider_type_for_care_level(care_level)
-    location = _location_for_postal_code(postal_code)
+    location = simulated_location(postal_code)
     offsets = _appointment_offsets_for_urgency(urgency)
+    providers = providers_for(postal_code, specialty)
+    slot_times = (time(8, 30), time(10, 15), time(14, 0), time(16, 30))
 
-    appointment_templates = [
-        (
-            "Dr. Schneider",
-            "Musterstrasse 12",
-            2.4,
-            offsets[0],
-            time(9, 30),
-            "Vor-Ort-Termin",
-        ),
-        (
-            "Care Praxiszentrum",
-            "Bahnhofstrasse 8",
-            4.1,
-            offsets[1],
-            time(14, 0),
-            "Vor-Ort-Termin",
-        ),
-        (
-            "Videosprechstunde CareConnect",
-            "Online",
-            0.0,
-            offsets[2],
-            time(16, 30),
-            "Videosprechstunde",
-        ),
-    ]
+    appointment_templates: list[tuple[str, str, float, int, time, str]] = []
+    for provider_index, provider in enumerate(providers):
+        for slot_index in range(3):
+            is_video = provider.supports_video and slot_index == 2
+            appointment_templates.append(
+                (
+                    provider.name,
+                    "Online" if is_video else provider.street,
+                    0.0 if is_video else provider.base_distance_km + slot_index * 0.4,
+                    offsets[(provider_index + slot_index) % len(offsets)] + provider_index,
+                    slot_times[(provider_index + slot_index) % len(slot_times)],
+                    "Videosprechstunde" if is_video else "Vor-Ort-Termin",
+                )
+            )
 
     resources: list[dict[str, Any]] = []
 

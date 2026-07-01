@@ -18,14 +18,15 @@ import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select
 from auth.security import get_optional_current_account, get_session
-from database.models import User
+from database.models import ChatHistory, User
 from profiles.service import get_profile_access_role
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
 from auth.router import router as auth_router
+from appointments.simulator_router import router as fhir_simulator_router
 from chat_history.router import router as chat_history_router
 from profiles.router import router as profiles_router
 from medications.router import router as medications_router
@@ -42,6 +43,7 @@ from uuid import uuid4 #for turn_id
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.turn.input import DiaryEntry, ProfileSnapshot
+from careena4.models.workflow.recommendation_result import RecommendationResult
 from careena4.application.dialogue.person_initialiser import PersonInitialiser
 from careena4.models.input import (
     CancelDraftResponse,
@@ -108,6 +110,7 @@ app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(medications_router)
 app.include_router(appointments_router)
+app.include_router(fhir_simulator_router)
 app.include_router(chat_history_router)
 app.include_router(symptoms_router)
 
@@ -336,11 +339,20 @@ def search_appointments(
         current_user: User | None = Depends(get_optional_current_account),
         db_session: Session = Depends(get_session),
 ):
-    careena4_session = require_careena4_session_access(
-        session_id=request.session_id,
-        current_user=current_user,
-        db_session=db_session,
-    )
+    try:
+        careena4_session = require_careena4_session_access(
+            session_id=request.session_id,
+            current_user=current_user,
+            db_session=db_session,
+        )
+    except HTTPException as exc:
+        if exc.status_code != status.HTTP_404_NOT_FOUND:
+            raise
+        return _search_appointments_from_persisted_history(
+            request=request,
+            current_user=current_user,
+            db_session=db_session,
+        )
 
     session_profile_id = careena4_session_profiles.get(request.session_id)
 
@@ -387,6 +399,112 @@ def search_appointments(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
+
+
+def _search_appointments_from_persisted_history(
+        *,
+        request: AppointmentSearchRequest,
+        current_user: User | None,
+        db_session: Session,
+) -> AppointmentSearchResponse:
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is required for appointment searches.",
+        )
+
+    history = db_session.exec(
+        select(ChatHistory)
+        .where(ChatHistory.session_id == request.session_id)
+        .where(ChatHistory.profile_id == request.profile_id)
+    ).first()
+    if history is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Der gespeicherte Chatverlauf wurde nicht gefunden.",
+        )
+
+    get_profile_access_role(
+        account_id=current_user.id,
+        profile_id=request.profile_id,
+        session=db_session,
+    )
+    recommendation = (history.recommendation or "").strip()
+    next_steps = (history.next_steps or "").strip()
+    if not recommendation and not next_steps:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Im gespeicherten Verlauf ist keine Handlungsempfehlung vorhanden.",
+        )
+
+    recommendation_result = _recommendation_from_history(
+        recommendation=recommendation,
+        next_steps=next_steps,
+    )
+    history_bundle = {
+        "resourceType": "Bundle",
+        "type": "collection",
+        "identifier": {
+            "system": "https://careena.local/fhir/chat-history",
+            "value": str(history.id),
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "entry": [],
+    }
+    try:
+        return search_fhir_appointments(
+            session_id=request.session_id,
+            profile_id=request.profile_id,
+            postal_code=request.postal_code,
+            recommendation_result=recommendation_result,
+            fhir_bundle=history_bundle,
+        )
+    except AppointmentProviderUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
+
+def _recommendation_from_history(
+        *,
+        recommendation: str,
+        next_steps: str,
+) -> RecommendationResult:
+    text = f"{recommendation} {next_steps}".casefold()
+    specialty = "general_practice"
+    care_level = "general_practice"
+    for marker, mapped_specialty in (
+        (("orthop", "bewegungsapparat"), "orthopedics"),
+        (("haut", "dermat"), "dermatology"),
+        (("neurolog",), "neurology"),
+        (("hno", "hals-nasen-ohren"), "ent"),
+        (("zahn", "kiefer"), "dentistry"),
+        (("auge", "augenarzt", "ophthalm"), "ophthalmology"),
+        (("gyn", "frauenarzt"), "gynecology"),
+        (("kinderarzt", "pädiatr"), "pediatrics"),
+        (("urolog",), "urology"),
+    ):
+        if any(value in text for value in marker):
+            specialty = mapped_specialty
+            care_level = "specialist"
+            break
+    if "116117" in text or "bereitschaftsdienst" in text:
+        care_level = "116117"
+
+    urgency_level = "low"
+    if any(value in text for value in ("sofort", "heute", "dringend", "hoch")):
+        urgency_level = "high"
+    elif any(value in text for value in ("zeitnah", "mittel", "bald")):
+        urgency_level = "medium"
+
+    return RecommendationResult(
+        summary=recommendation or next_steps,
+        urgency_level=urgency_level,
+        care_level=care_level,
+        specialty=specialty,
+        next_step=next_steps or recommendation,
+    )
 
 app.state.careena4_turn_engine = careena4_turn_engine
 app.state.careena4_response_builder = build_careena4_chat_response

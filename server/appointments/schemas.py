@@ -44,6 +44,12 @@ class RecommendedAppointmentCreateRequest(BaseModel):
     note: str | None = Field(default=None, max_length=1000)
 
 
+class RecommendedAppointmentRescheduleRequest(BaseModel):
+    session_id: str = Field(min_length=1, max_length=100)
+    replacement_fhir_appointment_id: str = Field(min_length=1, max_length=120)
+    note: str | None = Field(default=None, max_length=1000)
+
+
 class RecommendedAppointmentResponse(BaseModel):
     id: int
     profile_id: int

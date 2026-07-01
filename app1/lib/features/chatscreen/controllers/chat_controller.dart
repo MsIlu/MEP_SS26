@@ -39,6 +39,8 @@ class ChatController {
   int _profileChangeGeneration = 0;
   Timer? _availabilityRetryTimer;
   Future<void>? _availabilityRefreshFuture;
+  bool _isAvailabilityPollingActive = false;
+  int _availabilityPollingGeneration = 0;
   bool _isDisposed = false;
   static const Duration _availabilityRetryDelay = Duration(seconds: 5);
   static const Duration _availabilityOnlineRecheckDelay = Duration(seconds: 10);
@@ -103,6 +105,7 @@ class ChatController {
   Future<void>? _initFuture;
 
   Future<void> init() async {
+    resumeAvailabilityPolling();
     final wasAlreadyInitialized = _initFuture != null;
     _initFuture ??= _initialize();
     await _initFuture;
@@ -187,6 +190,7 @@ class ChatController {
     required bool showChecking,
     required bool refreshLlmStatus,
   }) async {
+    final pollingGeneration = _availabilityPollingGeneration;
     _availabilityRetryTimer?.cancel();
     _availabilityRetryTimer = null;
 
@@ -210,6 +214,11 @@ class ChatController {
     }
     availability.value = nextAvailability;
 
+    if (!_isAvailabilityPollingActive ||
+        pollingGeneration != _availabilityPollingGeneration) {
+      return;
+    }
+
     final nextDelay =
         nextAvailability.status == CareenaAvailabilityStatus.online
         ? _availabilityOnlineRecheckDelay
@@ -217,6 +226,23 @@ class ChatController {
     _availabilityRetryTimer = Timer(nextDelay, () {
       unawaited(refreshAvailability(showChecking: false));
     });
+  }
+
+  /// Enables periodic availability checks while a chat screen is visible.
+  void resumeAvailabilityPolling() {
+    if (_isDisposed || _isAvailabilityPollingActive) return;
+    _isAvailabilityPollingActive = true;
+    _availabilityPollingGeneration++;
+  }
+
+  /// Stops periodic checks without disposing the app-scoped chat state.
+  /// Any request already in flight may finish, but cannot schedule a new timer.
+  void pauseAvailabilityPolling() {
+    if (!_isAvailabilityPollingActive) return;
+    _isAvailabilityPollingActive = false;
+    _availabilityPollingGeneration++;
+    _availabilityRetryTimer?.cancel();
+    _availabilityRetryTimer = null;
   }
 
   Future<ChatResponse?> sendMessage(String text) async {
@@ -1229,9 +1255,9 @@ class ChatController {
     if (_isDisposed) {
       return;
     }
+    pauseAvailabilityPolling();
     _isDisposed = true;
     authSession.removeListener(_handleAuthSessionChanged);
-    _availabilityRetryTimer?.cancel();
     messages.dispose();
     symptoms.dispose();
     isCompleted.dispose();

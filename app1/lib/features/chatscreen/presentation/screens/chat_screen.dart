@@ -105,7 +105,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      widget.controller.resumeAvailabilityPolling();
       unawaited(widget.controller.refreshAvailability(refreshLlmStatus: true));
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      widget.controller.pauseAvailabilityPolling();
     }
   }
 
@@ -527,6 +532,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    widget.controller.pauseAvailabilityPolling();
     WidgetsBinding.instance.removeObserver(this);
     widget.controller.messages.removeListener(_onMessagesChanged);
     _longProcessingTimer?.cancel();

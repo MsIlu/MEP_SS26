@@ -44,6 +44,20 @@ class DocumentResponse(BaseModel):
     updated_at: datetime
 
 
+class DocumentMetadataResponse(BaseModel):
+    """Document metadata returned in list views without file payload."""
+
+    id: int
+    profile_id: int
+    name: str
+    category: DocumentCategory
+    source: DocumentSource
+    size_in_bytes: int
+    mime_type: str
+    created_at: datetime
+    updated_at: datetime
+
+
 class DocumentDeleteResponse(BaseModel):
     """Response body returned after a document has been soft-deleted."""
 

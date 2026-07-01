@@ -1,5 +1,7 @@
 """Business logic and authorization checks for profile-scoped documents."""
 
+import base64
+import binascii
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -9,17 +11,21 @@ from database.models import DocumentEntry, User
 from documents.schemas import (
     DocumentCreateRequest,
     DocumentDeleteResponse,
+    DocumentMetadataResponse,
     DocumentResponse,
     DocumentUpdateRequest,
 )
 from profiles.service import EDIT_ROLES, get_profile_access_role, require_profile_role
+
+MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024
+ALLOWED_MIME_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 
 
 def list_documents(
         profile_id: int,
         current_user: User,
         session: Session,
-) -> list[DocumentResponse]:
+) -> list[DocumentMetadataResponse]:
     """Return all non-deleted documents for an accessible profile."""
     get_profile_access_role(
         account_id=current_user.id,
@@ -34,7 +40,7 @@ def list_documents(
         .order_by(DocumentEntry.created_at.desc(), DocumentEntry.id.desc())
     ).all()
 
-    return [_to_response(entry) for entry in entries]
+    return [_to_metadata_response(entry) for entry in entries]
 
 
 def create_document(
@@ -50,15 +56,16 @@ def create_document(
         allowed_roles=EDIT_ROLES,
         session=session,
     )
+    file_data_base64, decoded_size = _validate_file_payload(request)
 
     entry = DocumentEntry(
         profile_id=profile_id,
         name=request.name.strip(),
         category=request.category,
         source=request.source,
-        size_in_bytes=request.size_in_bytes,
+        size_in_bytes=decoded_size,
         mime_type=request.mime_type.strip(),
-        file_data_base64=request.file_data_base64,
+        file_data_base64=file_data_base64,
         created_at=request.created_at or datetime.utcnow(),
     )
 
@@ -190,3 +197,65 @@ def _to_response(entry: DocumentEntry) -> DocumentResponse:
         created_at=entry.created_at,
         updated_at=entry.updated_at,
     )
+
+
+def _to_metadata_response(entry: DocumentEntry) -> DocumentMetadataResponse:
+    """Map the database row to metadata without the stored file body."""
+    return DocumentMetadataResponse(
+        id=entry.id,
+        profile_id=entry.profile_id,
+        name=entry.name,
+        category=entry.category,
+        source=entry.source,
+        size_in_bytes=entry.size_in_bytes,
+        mime_type=entry.mime_type,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
+
+
+def _validate_file_payload(request: DocumentCreateRequest) -> tuple[str, int]:
+    """Validate base64 payload and enforce backend file size rules."""
+    mime_type = request.mime_type.strip().lower()
+
+    if mime_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Dieser Dateityp wird nicht unterstützt.",
+        )
+
+    file_data_base64 = request.file_data_base64.strip()
+    if not file_data_base64:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Die Datei enthält keine gültigen Daten.",
+        )
+
+    try:
+        decoded = base64.b64decode(file_data_base64, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Die Datei enthält keine gültigen Daten.",
+        ) from None
+
+    decoded_size = len(decoded)
+    if decoded_size == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Die Datei enthält keine gültigen Daten.",
+        )
+
+    if decoded_size > MAX_DOCUMENT_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Die Datei darf maximal 10 MB groß sein.",
+        )
+
+    if request.size_in_bytes != decoded_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Die angegebene Dateigröße stimmt nicht mit den Dateidaten überein.",
+        )
+
+    return file_data_base64, decoded_size

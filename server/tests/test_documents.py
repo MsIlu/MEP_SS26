@@ -1,5 +1,7 @@
 """Tests document creation, listing, updates, access protection, and deletion."""
 
+import base64
+
 from sqlmodel import select
 
 from database.models import DocumentEntry
@@ -99,6 +101,67 @@ def test_list_documents_returns_newest_first(client):
         "Neuer Befund.pdf",
         "Alter Befund.pdf",
     ]
+    assert "file_data_base64" not in response.json()[0]
+
+
+def test_get_document_returns_file_data(client):
+    auth = register_user(client)
+    create_response = create_document(client, auth)
+    document_id = create_response.json()["id"]
+
+    response = client.get(
+        f"/profiles/{auth['profile_id']}/documents/{document_id}",
+        headers=auth["headers"],
+    )
+
+    assert response.status_code == 200
+    assert response.json()["file_data_base64"] == "AQIDBA=="
+
+
+def test_create_document_rejects_files_larger_than_ten_mb(client):
+    auth = register_user(client)
+    too_large_size = 10 * 1024 * 1024 + 1
+    too_large_payload = base64.b64encode(b"0" * too_large_size).decode("ascii")
+
+    response = create_document(
+        client,
+        auth,
+        size_in_bytes=too_large_size,
+        file_data_base64=too_large_payload,
+    )
+
+    assert response.status_code == 413
+    assert response.json()["detail"] == "Die Datei darf maximal 10 MB groß sein."
+
+
+def test_create_document_rejects_invalid_file_data(client):
+    auth = register_user(client)
+
+    response = create_document(
+        client,
+        auth,
+        size_in_bytes=4,
+        file_data_base64="not valid base64",
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Die Datei enthält keine gültigen Daten."
+
+
+def test_create_document_rejects_mismatched_file_size(client):
+    auth = register_user(client)
+
+    response = create_document(
+        client,
+        auth,
+        size_in_bytes=99,
+        file_data_base64="AQIDBA==",
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Die angegebene Dateigröße stimmt nicht mit den Dateidaten überein."
+    )
 
 
 def test_patch_document_updates_editable_metadata(client):

@@ -8,6 +8,7 @@ from database.models import User
 from documents.schemas import (
     DocumentCreateRequest,
     DocumentDeleteResponse,
+    DocumentMetadataResponse,
     DocumentResponse,
     DocumentUpdateRequest,
 )
@@ -26,7 +27,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[DocumentResponse])
+@router.get("", response_model=list[DocumentMetadataResponse])
 def get_profile_documents(
         profile_id: int,
         current_user: User = Depends(get_current_account),

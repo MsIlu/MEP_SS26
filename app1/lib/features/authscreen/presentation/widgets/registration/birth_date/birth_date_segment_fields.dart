@@ -127,7 +127,16 @@ class _BirthDateSegmentField extends StatelessWidget {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(maxLength),
       ],
-      decoration: InputDecoration.collapsed(
+      decoration: InputDecoration(
+        isCollapsed: true,
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        filled: false,
         hintText: hint,
         hintStyle: TextStyle(
           color: Theme.of(context).colorScheme.onSurfaceVariant,

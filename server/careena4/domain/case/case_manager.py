@@ -126,6 +126,34 @@ class CaseManager:
             observation_id=observation_id,
         )
 
+    def negate_observations_by_labels(
+        self,
+        *,
+        medical_case: MedicalCase,
+        labels: list[str],
+    ) -> MedicalCase:
+        target_labels = {
+            normalized
+            for label in labels
+            if (normalized := self._normalized_label(label)) is not None
+        }
+        if not target_labels:
+            return medical_case
+
+        for observation in self.case_reader.read_active_observations(
+            medical_case=medical_case
+        ):
+            if observation.type != "symptom":
+                continue
+            if self._normalized_label(observation.normalized_label_de) not in target_labels:
+                continue
+            medical_case = self.case_writer.write_observation_negated(
+                medical_case=medical_case,
+                observation_id=observation.observation_id,
+            )
+
+        return medical_case
+
     def update_person(
         self,
         *,
@@ -220,3 +248,10 @@ class CaseManager:
         if source is None:
             return None
         return source.model_copy(deep=True)
+
+    @staticmethod
+    def _normalized_label(label: str | None) -> str | None:
+        if label is None:
+            return None
+        normalized = " ".join(label.casefold().split())
+        return normalized or None

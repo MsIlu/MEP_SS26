@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlmodel import SQLModel, Session, create_engine
 from . import models
-from sqlmodel import Session
-from sqlalchemy import text
 from .catalog import models as catalog_models
+
+_REGISTERED_MODEL_MODULES = (models, catalog_models)
 
 #determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -244,6 +244,7 @@ def _migrate_document_entries_schema():
     migration_path = (
         Path(__file__).resolve().parent
         / "migrations"
+        / "20260701_create_document_entries.sql"
     )
 
     with engine.begin() as connection:

@@ -10,7 +10,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar({
     super.key,
     required this.onBackPressed,
-    this.availability = CareenaAvailability.online,
+    this.availability = CareenaAvailability.checking,
   });
 
   @override

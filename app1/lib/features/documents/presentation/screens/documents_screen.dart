@@ -283,7 +283,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       }
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     final fileBytes = documentWithFile.fileBytes;
 

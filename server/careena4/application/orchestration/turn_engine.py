@@ -114,10 +114,6 @@ class TurnEngine:
             )
 
         is_fast_path = self._is_guided_input_answer(turn_input.message, conversation_state.active_question)
-        if is_fast_path and self._should_route_guided_safety_answer_via_turn_interpreter(
-            active_question=conversation_state.active_question
-        ):
-            is_fast_path = False
         if is_fast_path:
             trace_notes.append("turn:guided_input_fast_path")
         elif self.turn_interpreter is not None:
@@ -230,18 +226,28 @@ class TurnEngine:
         extra_case_input = None
         if conversation_state.active_question is not None:
             current_question = conversation_state.active_question
-            resolution = (
-                self._normalize_interpreter_question_resolution(
-                    question=current_question,
-                    resolution=turn_interpretation.question_resolution,
-                )
-                if turn_interpretation is not None and turn_interpretation.question_resolution is not None
-                else self.question_resolver.resolve(
+            # Safety clarification is always resolved deterministically: an LLM that
+            # returns status="resolved" instead of "confirmed_red_flag" would silently
+            # skip the emergency path and ask a duration follow-up instead.
+            if current_question.kind == "safety_clarification":
+                resolution = self.question_resolver.resolve(
                     question=current_question,
                     message=turn_input.message,
                     history_messages=turn_input.extraction_history_messages,
                 )
-            )
+            else:
+                resolution = (
+                    self._normalize_interpreter_question_resolution(
+                        question=current_question,
+                        resolution=turn_interpretation.question_resolution,
+                    )
+                    if turn_interpretation is not None and turn_interpretation.question_resolution is not None
+                    else self.question_resolver.resolve(
+                        question=current_question,
+                        message=turn_input.message,
+                        history_messages=turn_input.extraction_history_messages,
+                    )
+                )
             if turn_interpretation is None or turn_interpretation.question_resolution is None:
                 trace_notes.append("followup:fallback_resolution_used")
                 log_event(
@@ -745,6 +751,8 @@ class TurnEngine:
         if recommendation_state.recommendation_allowed:
             recommendation_result = recommendation_state.recommendation_result or self.recommendation_builder.build(
                 medical_case=medical_case,
+                diary_history=request_input.diary_history,
+                medication_history=request_input.medication_history,
             )
             recommendation_state.recommendation_result = recommendation_result
             recommendation_state.recommendation_allowed = True

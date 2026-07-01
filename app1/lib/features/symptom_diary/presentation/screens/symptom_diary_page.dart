@@ -32,6 +32,10 @@ class SymptomDiaryPage extends StatefulWidget {
   final List<SymptomImport>? initialSymptoms;
   final Future<void> Function()? onInitialSymptomsSaved;
 
+  /// When set, diary entries are saved to this profile instead of the active profile.
+  /// Used when opening the diary for a non-active case subject (e.g. Paula from Tester Testi's session).
+  final int? profileId;
+
   const SymptomDiaryPage({
     super.key,
     required this.themeController,
@@ -41,6 +45,7 @@ class SymptomDiaryPage extends StatefulWidget {
     this.initialDate,
     this.initialSymptoms,
     this.onInitialSymptomsSaved,
+    this.profileId,
   });
 
   @override
@@ -68,7 +73,7 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
 
     _controller = SymptomDiaryController(
       apiService: widget.symptomApiService,
-      profileId: widget.authSession?.activeProfileId,
+      profileId: widget.profileId ?? widget.authSession?.activeProfileId,
     );
 
     _controller.loadEntries();
@@ -136,7 +141,11 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
   }
 
   void _handleBack() {
-    navigateToHomeFallback(context, themeController: widget.themeController);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      navigateToHomeFallback(context, themeController: widget.themeController);
+    }
   }
 
   /// Shows a confirmation dialog to import chat symptoms into the diary.

@@ -79,7 +79,12 @@ class WarningPage extends StatelessWidget {
               ExportRecommendationPdfButton(
                 title: WarningCopy.pageTitle,
                 patientSummary:
-                    'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                    (response.recommendationResult?.summary?.trim().isNotEmpty ??
+                            false)
+                        ? _normalizeGermanText(
+                            response.recommendationResult!.summary!.trim(),
+                          )
+                        : 'Aus dem Chatverlauf generierte Handlungsempfehlung.',
                 recommendation: _recommendationTextFor(response),
                 nextSteps:
                     response.recommendationResult?.nextStep ??
@@ -87,6 +92,8 @@ class WarningPage extends StatelessWidget {
                     'Bitte folge den angezeigten Handlungsschritten. Bei akuter Gefahr kontaktiere den Notruf 112.',
                 symptoms: symptoms,
                 userMessages: userMessages,
+                recommendationResult: response.recommendationResult,
+                profileId: response.profileId,
               ),
 
               if (!showEmergencyActions) ...[
@@ -106,12 +113,14 @@ class WarningPage extends StatelessWidget {
                   onSaved: () async {
                     await _markAction(RecommendationAction.document);
                   },
+                  profileId: response.profileId,
                 ),
               ],
 
               if ((symptoms.isNotEmpty ||
                       response.caseObservations.isNotEmpty) &&
-                  themeController != null) ...[
+                  themeController != null &&
+                  response.profileId != null) ...[
                 const SizedBox(height: 8),
                 _WarningSymptomButton(
                   isCompleted: recommendationMessage?.symptomsSaved == true,
@@ -133,6 +142,7 @@ class WarningPage extends StatelessWidget {
                   onSearched: () async {
                     await _markAction(RecommendationAction.appointment);
                   },
+                  profileId: response.profileId,
                 ),
               ],
 
@@ -152,9 +162,23 @@ class WarningPage extends StatelessWidget {
     // Backend observations carry the severity extracted from the conversation.
     final observations = response.caseObservations;
     if (observations.isNotEmpty) {
-      return observations
-          .map((o) => SymptomImport(name: o.label, severity: o.severity, date: o.date))
-          .toList();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final result = <SymptomImport>[];
+      for (final o in observations) {
+        final startDate = o.date;
+        if (startDate != null && startDate.isBefore(today)) {
+          // Expand onset range: one entry per day from startDate through today.
+          var d = startDate;
+          while (!d.isAfter(today)) {
+            result.add(SymptomImport(name: o.label, severity: o.severity, date: d));
+            d = d.add(const Duration(days: 1));
+          }
+        } else {
+          result.add(SymptomImport(name: o.label, severity: o.severity, date: o.date));
+        }
+      }
+      return result;
     }
     return symptoms.map((s) => SymptomImport(name: s)).toList();
   }
@@ -181,6 +205,7 @@ class WarningPage extends StatelessWidget {
             await _markAction(RecommendationAction.symptoms);
             saved = true;
           },
+          profileId: response.profileId,
         ),
       ),
     );
@@ -266,11 +291,12 @@ class _WarningSymptomButtonState extends State<_WarningSymptomButton> {
 
 bool _showEmergencyActions(ChatResponse response) {
   if (response.redFlag) return true;
-  // Use the structured urgency field from the recommendation result — the
-  // backend classifier is the source of truth. Text keyword scanning is
-  // unreliable because routine advisory language includes words like "sofort"
-  // and "112" even for non-emergency recommendations.
-  return response.recommendationResult?.urgency == 'emergency';
+  final result = response.recommendationResult;
+  if (result == null) return false;
+  // urgency is the primary signal; care_level is the fallback so that
+  // '112' and 'emergency_department' are never shown as normal recommendations.
+  if (result.urgency == 'emergency') return true;
+  return result.careLevel == '112' || result.careLevel == 'emergency_department';
 }
 
 String _recommendationTextFor(ChatResponse response) {
@@ -296,17 +322,19 @@ class _RecommendationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final recommendation = response.recommendationResult;
     final colorScheme = Theme.of(context).colorScheme;
+    final care = _CareLevelPresentation.fromResponse(response);
     final reasons = _recommendationReasonsFor(
       response,
       symptoms: symptoms,
       userMessages: userMessages,
     );
+    final summary = recommendation?.summary?.trim() ?? '';
     final nextStep =
         recommendation?.nextStep ??
         response.action ??
         _legacySectionFromChatText(response.text, 'Nächster Schritt');
+    final dataSources = recommendation?.dataSources ?? const <String>[];
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final accent = AppColors.primary;
 
     return Container(
       padding: WarningLayout.cardPadding,
@@ -315,8 +343,8 @@ class _RecommendationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDarkMode
-              ? accent.withValues(alpha: 0.72)
-              : accent.withValues(alpha: 0.42),
+              ? care.color.withValues(alpha: 0.72)
+              : care.color.withValues(alpha: 0.42),
           width: 1.4,
         ),
         boxShadow: [
@@ -335,12 +363,8 @@ class _RecommendationCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 42,
-                backgroundColor: accent.withValues(alpha: 0.14),
-                child: Icon(
-                  Icons.warning_amber_rounded,
-                  color: accent,
-                  size: 40,
-                ),
+                backgroundColor: care.color.withValues(alpha: 0.14),
+                child: Icon(care.icon, color: care.color, size: 40),
               ),
               const SizedBox(width: 22),
               Expanded(
@@ -348,15 +372,15 @@ class _RecommendationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Kein Notfall erkannt',
+                      care.headline,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                      ),
+                            color: care.color,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Auf Grundlage deiner Angaben besteht derzeit kein Hinweis auf einen akuten Notfall.',
+                      care.subtitle,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         height: 1.35,
@@ -367,8 +391,21 @@ class _RecommendationCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 22),
-          _RecommendationDivider(color: accent),
+          const SizedBox(height: 18),
+          _CareLevelBadge(presentation: care),
+          if (summary.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            _RecommendationDivider(color: care.color),
+            const SizedBox(height: 16),
+            _RecommendationActionRow(
+              icon: Icons.summarize_outlined,
+              text: _normalizeGermanText(summary),
+              color: care.color,
+              title: 'Einschätzung',
+            ),
+          ],
+          const SizedBox(height: 18),
+          _RecommendationDivider(color: care.color),
           const SizedBox(height: 18),
           Text(
             'Was solltest du jetzt tun?',
@@ -381,22 +418,227 @@ class _RecommendationCard extends StatelessWidget {
             _RecommendationActionRow(
               icon: Icons.event_available_outlined,
               text: nextStep,
-              color: accent,
+              color: care.color,
             ),
           ],
           if (reasons.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _RecommendationDivider(color: accent),
+            _RecommendationDivider(color: care.color),
             const SizedBox(height: 16),
             _RecommendationActionRow(
               icon: Icons.fact_check_outlined,
               text: reasons.join('\n'),
-              color: accent,
+              color: care.color,
               title: 'Gründe',
             ),
           ],
+          if (dataSources.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            _RecommendationDivider(color: care.color),
+            const SizedBox(height: 14),
+            _DataSourcesSection(sources: dataSources, color: care.color),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Visual presentation (label, color, icon, copy) derived from the backend
+/// `care_level` so the recommendation header reflects the actual escalation
+/// stage instead of a hardcoded "Kein Notfall erkannt".
+class _CareLevelPresentation {
+  final String label;
+  final String headline;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+
+  const _CareLevelPresentation({
+    required this.label,
+    required this.headline,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
+
+  static _CareLevelPresentation fromResponse(ChatResponse response) {
+    final careLevel = response.recommendationResult?.careLevel ?? 'unknown';
+    switch (careLevel) {
+      case 'self_care':
+        return const _CareLevelPresentation(
+          label: 'Selbstbehandlung',
+          headline: 'Selbstbehandlung möglich',
+          subtitle:
+              'Deine Angaben sprechen für Beschwerden, die du voraussichtlich '
+              'selbst zu Hause lindern kannst.',
+          icon: Icons.self_improvement_outlined,
+          color: Color(0xFF2E7D32),
+        );
+      case 'pharmacy':
+        return const _CareLevelPresentation(
+          label: 'Apotheke',
+          headline: 'Rat in der Apotheke',
+          subtitle:
+              'Eine Beratung in der Apotheke und rezeptfreie Mittel sind hier '
+              'voraussichtlich ausreichend.',
+          icon: Icons.local_pharmacy_outlined,
+          color: Color(0xFF00897B),
+        );
+      case 'general_practice':
+        return const _CareLevelPresentation(
+          label: 'Hausarztpraxis',
+          headline: 'Hausärztliche Abklärung',
+          subtitle:
+              'Deine Beschwerden sollten in einer Hausarztpraxis abgeklärt '
+              'werden – nicht dringend, aber zeitnah.',
+          icon: Icons.medical_services_outlined,
+          color: Color(0xFF1565C0),
+        );
+      case 'specialist':
+        return const _CareLevelPresentation(
+          label: 'Facharztpraxis',
+          headline: 'Fachärztliche Abklärung',
+          subtitle:
+              'Für deine Beschwerden ist eine gezielte fachärztliche '
+              'Abklärung sinnvoll.',
+          icon: Icons.medical_services_outlined,
+          color: Color(0xFF3949AB),
+        );
+      case '116117':
+        return const _CareLevelPresentation(
+          label: 'Bereitschaftsdienst 116117',
+          headline: 'Ärztlicher Bereitschaftsdienst',
+          subtitle:
+              'Außerhalb der Praxiszeiten hilft der ärztliche '
+              'Bereitschaftsdienst unter 116117 weiter.',
+          icon: Icons.phone_in_talk_outlined,
+          color: Color(0xFFEF6C00),
+        );
+      case 'emergency_department':
+        return const _CareLevelPresentation(
+          label: 'Notaufnahme',
+          headline: 'Notaufnahme aufsuchen',
+          subtitle:
+              'Deine Angaben sprechen dafür, zeitnah eine Notaufnahme '
+              'aufzusuchen.',
+          icon: Icons.local_hospital_outlined,
+          color: Color(0xFFD84315),
+        );
+      case '112':
+        return const _CareLevelPresentation(
+          label: 'Notruf 112',
+          headline: 'Notruf 112 wählen',
+          subtitle:
+              'Deine Angaben deuten auf eine akute Notfallsituation hin – '
+              'wähle umgehend den Notruf 112.',
+          icon: Icons.emergency_outlined,
+          color: Color(0xFFC62828),
+        );
+      default:
+        return _CareLevelPresentation(
+          label: 'Ärztliche Einschätzung',
+          headline: 'Kein Notfall erkannt',
+          subtitle:
+              'Auf Grundlage deiner Angaben besteht derzeit kein Hinweis auf '
+              'einen akuten Notfall.',
+          icon: Icons.check_circle_outline,
+          color: AppColors.primary,
+        );
+    }
+  }
+}
+
+/// Pill that names the recommended point of care prominently.
+class _CareLevelBadge extends StatelessWidget {
+  final _CareLevelPresentation presentation;
+
+  const _CareLevelBadge({required this.presentation});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: presentation.color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: presentation.color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        children: [
+          Icon(presentation.icon, color: presentation.color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: DefaultTextStyle.of(context).style.copyWith(height: 1.3),
+                children: [
+                  const TextSpan(
+                    text: 'Empfohlene Anlaufstelle: ',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(
+                    text: presentation.label,
+                    style: TextStyle(
+                      color: presentation.color,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lists which data the recommendation was based on so the user can see the
+/// provenance (chat, symptom diary, medication plan, profile).
+class _DataSourcesSection extends StatelessWidget {
+  final List<String> sources;
+  final Color color;
+
+  const _DataSourcesSection({required this.sources, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.source_outlined, color: color, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              'Berücksichtigte Daten',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final source in sources)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: color.withValues(alpha: 0.30)),
+                ),
+                child: Text(
+                  _normalizeGermanText(source),
+                  style: const TextStyle(fontSize: 12.5),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -406,13 +648,22 @@ List<String> _recommendationReasonsFor(
   required List<String> symptoms,
   required List<String> userMessages,
 }) {
+  // Prefer the backend's structured reasons — they are now concrete and
+  // clinically phrased. Mixing in raw user messages here leaked noise like the
+  // profile name or "Ich möchte eine Empfehlung" into the reasons list.
+  final backendReasons = (response.recommendationResult?.reasons ?? const <String>[])
+      .where((reason) => !_isGenericReason(reason))
+      .map(_normalizeGermanText)
+      .toList();
+  if (backendReasons.isNotEmpty) {
+    return _summarizeReasons(backendReasons);
+  }
+
+  // Legacy fallback only when the backend provided no structured reasons.
   final chatReason = _chatReasonFromRecommendationText(response.text);
   final concreteReasons = <String>[
     ?chatReason,
     ...userMessages.map(_userMessageReason),
-    ...(response.recommendationResult?.reasons ?? const <String>[])
-        .where((reason) => !_isGenericReason(reason))
-        .map(_normalizeGermanText),
     ...symptoms.map(_normalizeGermanText),
   ];
 

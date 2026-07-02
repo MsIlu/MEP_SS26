@@ -14,6 +14,7 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final bool alreadySaved;
+  final DateTime? recommendationCreatedAt;
   final Future<void> Function()? onSaved;
 
   /// Profile the recommendation belongs to (resolved by the backend session).
@@ -30,6 +31,7 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
     required this.symptoms,
     required this.userMessages,
     this.alreadySaved = false,
+    this.recommendationCreatedAt,
     this.onSaved,
     this.profileId,
   });
@@ -45,6 +47,18 @@ class _SaveRecommendationToDocumentsButtonState
   bool _isSaving = false;
   bool _savedLocally = false;
 
+  bool _isSavedForCurrentRecommendation() {
+    final recommendationCreatedAt = widget.recommendationCreatedAt;
+    if (recommendationCreatedAt == null) return false;
+    final key = recommendationCreatedAt.toUtc().millisecondsSinceEpoch;
+    return _repository.documents.value.any(
+      (document) =>
+          document.profileId == widget.profileId &&
+          document.source == DocumentSource.careena &&
+          document.createdAt.toUtc().millisecondsSinceEpoch == key,
+    );
+  }
+
   String get _documentName {
     final title = widget.title.trim();
 
@@ -56,8 +70,27 @@ class _SaveRecommendationToDocumentsButtonState
   }
 
   @override
+  void initState() {
+    super.initState();
+    _repository.documents.addListener(_repositoryChanged);
+  }
+
+  @override
+  void dispose() {
+    _repository.documents.removeListener(_repositoryChanged);
+    super.dispose();
+  }
+
+  void _repositoryChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isSaved = widget.alreadySaved || _savedLocally;
+    final isSaved =
+        widget.alreadySaved ||
+        _savedLocally ||
+        _isSavedForCurrentRecommendation();
 
     return Tooltip(
       message: isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
@@ -118,13 +151,13 @@ class _SaveRecommendationToDocumentsButtonState
         profile: profile,
       );
 
-      await _repository.addDocument(
+      final wasAdded = await _repository.addRecommendationIfMissing(
         DocumentEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           profileId: resolvedProfileId,
           name: _documentName,
           category: DocumentCategory.recommendations,
-          createdAt: DateTime.now(),
+          createdAt: widget.recommendationCreatedAt ?? DateTime.now(),
           sizeInBytes: pdfBytes.lengthInBytes,
           source: DocumentSource.careena,
           fileBytes: pdfBytes,
@@ -144,9 +177,11 @@ class _SaveRecommendationToDocumentsButtonState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.careenaTeal,
-          content: const Text(
-            'Handlungsempfehlung gespeichert',
-            style: TextStyle(
+          content: Text(
+            wasAdded
+                ? 'Handlungsempfehlung gespeichert'
+                : 'Handlungsempfehlung bereits vorhanden',
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 16,

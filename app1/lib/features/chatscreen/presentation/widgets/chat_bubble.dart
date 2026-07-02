@@ -159,6 +159,7 @@ class ChatBubble extends StatelessWidget {
                                 symptoms: recommendationSymptoms,
                                 userMessages: userMessages,
                                 alreadySaved: message.documentSaved,
+                                recommendationCreatedAt: message.timestamp,
                                 profileId:
                                     recommendationProfileId ??
                                     authSession?.activeProfileId,

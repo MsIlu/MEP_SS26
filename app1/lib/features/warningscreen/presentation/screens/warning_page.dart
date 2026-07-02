@@ -113,6 +113,7 @@ class WarningPage extends StatelessWidget {
                   symptoms: symptoms,
                   userMessages: userMessages,
                   alreadySaved: recommendationMessage?.documentSaved ?? false,
+                  recommendationCreatedAt: recommendationMessage?.timestamp,
                   onSaved: () async {
                     await _markAction(RecommendationAction.document);
                   },

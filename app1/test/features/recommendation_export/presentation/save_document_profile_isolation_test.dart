@@ -48,6 +48,7 @@ void main() {
             symptoms: const [],
             userMessages: const [],
             profileId: 42,
+            recommendationCreatedAt: DateTime(2026, 7, 1, 1),
           ),
         ),
       );
@@ -55,6 +56,42 @@ void main() {
       expect(find.text('Dokument speichern'), findsOneWidget);
       expect(find.text('Gespeichert'), findsNothing);
       expect(DocumentRepository.instance.documents.value, hasLength(1));
+    },
+  );
+
+  testWidgets(
+    'Passender Empfehlungszeitstempel zeigt Gespeichert',
+    (tester) async {
+      final recommendationCreatedAt = DateTime(2026, 7, 1, 10, 30);
+      await DocumentRepository.instance.addRecommendationIfMissing(
+        DocumentEntry(
+          id: 'matching',
+          profileId: 42,
+          name: 'handlungsempfehlung.pdf',
+          category: DocumentCategory.recommendations,
+          createdAt: recommendationCreatedAt,
+          sizeInBytes: 100,
+          source: DocumentSource.careena,
+        ),
+      );
+
+      await tester.pumpWidget(
+        wrap(
+          SaveRecommendationToDocumentsButton(
+            title: 'Handlungsempfehlung',
+            patientSummary: '',
+            recommendation: '',
+            nextSteps: '',
+            symptoms: const [],
+            userMessages: const [],
+            profileId: 42,
+            recommendationCreatedAt: recommendationCreatedAt,
+          ),
+        ),
+      );
+
+      expect(find.text('Gespeichert'), findsOneWidget);
+      expect(find.text('Dokument speichern'), findsNothing);
     },
   );
 

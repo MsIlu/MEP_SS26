@@ -7,6 +7,7 @@ from appointments.schemas import AppointmentSearchResponse, FhirAppointment
 from careena4.models.domain.case import MedicalCase
 from careena4.models.domain.dialogue import ActiveQuestion, ConversationState
 from careena4.models.domain.recommendation import RecommendationState
+from careena4.models.turn.input import DiaryEntry
 import main
 from main import (
     app,
@@ -224,6 +225,16 @@ def test_self_message_replays_with_active_profile_without_profile_question(
     app.dependency_overrides[main.get_optional_current_account] = (
         lambda: SimpleNamespace(id=7)
     )
+
+
+def _fake_diary_entry() -> DiaryEntry:
+    return DiaryEntry(
+        date="2026-07-01",
+        symptom="Kopfschmerzen",
+        body_area="Kopf",
+        intensity=4,
+        note="seit gestern",
+    )
     monkeypatch.setattr(main, "get_profile_access_role", lambda **kwargs: "owner")
 
     def fake_list_profiles(*, current_user, session):
@@ -249,7 +260,7 @@ def test_self_message_replays_with_active_profile_without_profile_question(
     monkeypatch.setattr(
         main,
         "_load_diary_history",
-        lambda profile_id, current_user, session: ["diary"] if profile_id == 1 else [],
+        lambda profile_id, current_user, session: [_fake_diary_entry()] if profile_id == 1 else [],
     )
 
     def _turn_result(
@@ -509,7 +520,7 @@ def test_safety_bypass_self_message_replays_without_profile_question(
     monkeypatch.setattr(
         main,
         "_load_diary_history",
-        lambda profile_id, current_user, session: ["diary"] if profile_id == 1 else [],
+        lambda profile_id, current_user, session: [_fake_diary_entry()] if profile_id == 1 else [],
     )
 
     replay_inputs: list[tuple[str, int, str, int | None, str | None]] = []

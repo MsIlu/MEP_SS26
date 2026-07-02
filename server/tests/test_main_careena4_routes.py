@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from appointments.schemas import AppointmentSearchResponse, FhirAppointment
 from careena4.models.domain.case import MedicalCase
 from careena4.models.domain.dialogue import ActiveQuestion, ConversationState
+from careena4.models.domain.recommendation import RecommendationState
 import main
 from main import (
     app,
@@ -66,7 +67,7 @@ def _fake_turn_result(response_text: str = "Okay."):
         conversation_state=SimpleNamespace(
             active_question=None,
         ),
-        recommendation_state=SimpleNamespace(
+        recommendation_state=RecommendationState(
             recommendation_allowed=False,
         ),
     )
@@ -267,7 +268,7 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
             symptom_input_draft=None,
             medical_case=medical_case,
             conversation_state=ConversationState(active_question=active_question),
-            recommendation_state=SimpleNamespace(recommendation_allowed=False),
+            recommendation_state=RecommendationState(recommendation_allowed=False),
             turn_interpretation=None,
         )
 

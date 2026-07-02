@@ -28,7 +28,7 @@ class _UserManualPageState extends State<UserManualPage> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return DocumentPreviewScreen(
-            documentName: 'Careena_Benutzerhandbuch.pdf',
+            documentName: 'Benutzerhandbuch.pdf',
             fileBytes: snapshot.data!,
           );
         }

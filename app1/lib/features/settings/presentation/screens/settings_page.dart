@@ -221,11 +221,11 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       _SettingsItem(
         icon: SettingsIcons.simpleView,
-        title: 'Einfache Ansicht',
+        title: 'Größere Ansicht',
         description: widget.themeController.isSimpleView
-            ? 'Große Elemente und reduzierte Navigation'
+            ? 'Größere Elemente und ruhigere Darstellung'
             : 'Für bessere Lesbarkeit und Bedienung',
-        keywords: const ['barrierefreiheit', 'einfach', 'groß', 'sehen'],
+        keywords: const ['barrierefreiheit', 'größer', 'groß', 'sehen'],
         trailing: Switch.adaptive(
           value: widget.themeController.isSimpleView,
           onChanged: widget.themeController.setSimpleView,
@@ -277,9 +277,16 @@ class _SettingsPageState extends State<SettingsPage> {
       _SettingsItem(
         icon: SettingsIcons.privacy,
         title: 'Datenschutz und Sicherheit',
-        description: 'Umgang mit deinen Daten',
+        description: 'Datenverarbeitung und Kontakt',
         keywords: const ['datenschutz', 'privacy', 'sicherheit'],
         onTap: () => _open(context, const SettingsTextPage.privacy()),
+      ),
+      _SettingsItem(
+        icon: Icons.assignment_outlined,
+        title: 'Nutzungsbedingungen',
+        description: 'Regeln für die Nutzung von Careena',
+        keywords: const ['nutzungsbedingungen', 'bedingungen', 'regeln'],
+        onTap: () => _open(context, const SettingsTextPage.terms()),
       ),
       _SettingsItem(
         icon: SettingsIcons.help,
@@ -416,14 +423,20 @@ class _AboutSettingsPage extends StatelessWidget {
           SettingsLinkTile(
             icon: Icons.accessible_forward,
             title: 'Barrierefreiheit',
-            description: 'Bedienung und Rückmeldung',
+            description: 'Lesbarkeit und größere Ansicht',
             page: const SettingsTextPage.accessibility(),
           ),
           SettingsLinkTile(
             icon: Icons.info_outline,
             title: 'Impressum',
-            description: 'Angaben zum Anbieter',
+            description: 'MedBitAid und Kontakt',
             page: const SettingsTextPage.imprint(),
+          ),
+          SettingsLinkTile(
+            icon: Icons.assignment_outlined,
+            title: 'Nutzungsbedingungen',
+            description: 'Regeln für die Nutzung',
+            page: const SettingsTextPage.terms(),
           ),
           SettingsLinkTile(
             icon: Icons.phone_android,

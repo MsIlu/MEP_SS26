@@ -1,4 +1,5 @@
 import 'package:app1/core/themes/app_colors.dart';
+import 'package:app1/core/widgets/simple_view.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/app_dependencies_scope.dart';
 import '../../../authscreen/domain/models/auth_response.dart';
@@ -22,34 +23,10 @@ class ActiveProfileOverview extends StatelessWidget {
 
     return SettingsPanel(
       children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          leading: SettingsIconBadge(
-            icon: profileIcon(activeProfile.profileType),
-            isActive: true,
-            large: true,
-          ),
-          title: Text(
-            activeProfile.displayName,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(profileDescription(activeProfile)),
-          trailing: FilledButton.icon(
-            onPressed: session.profiles.length < 2
-                ? null
-                : () => _showProfileSwitcher(context, activeProfile),
-            icon: const Icon(Icons.swap_horiz),
-            label: const Text('Wechseln'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.careenaDark,
-              foregroundColor: AppColors.white,
-              disabledBackgroundColor: AppColors.careenaBorder,
-              disabledForegroundColor: AppColors.careenaMuted,
-            ),
-          ),
+        _ActiveProfileTile(
+          profile: activeProfile,
+          canSwitchProfile: session.profiles.length >= 2,
+          onSwitchProfile: () => _showProfileSwitcher(context, activeProfile),
         ),
       ],
     );
@@ -124,6 +101,129 @@ class ActiveProfileOverview extends StatelessWidget {
     } catch (_) {
       // Profile switch should still work even if symptom reload fails.
     }
+  }
+}
+
+class _ActiveProfileTile extends StatelessWidget {
+  final AuthProfile profile;
+  final bool canSwitchProfile;
+  final VoidCallback onSwitchProfile;
+
+  const _ActiveProfileTile({
+    required this.profile,
+    required this.canSwitchProfile,
+    required this.onSwitchProfile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final simpleView = SimpleViewScope.isEnabled(context);
+    final switchButton = _SwitchProfileButton(
+      enabled: canSwitchProfile,
+      onPressed: onSwitchProfile,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactLayout = simpleView || constraints.maxWidth < 520;
+
+        if (compactLayout) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SettingsIconBadge(
+                      icon: profileIcon(profile.profileType),
+                      isActive: true,
+                      large: true,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(child: _ProfileText(profile: profile)),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                switchButton,
+              ],
+            ),
+          );
+        }
+
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          leading: SettingsIconBadge(
+            icon: profileIcon(profile.profileType),
+            isActive: true,
+            large: true,
+          ),
+          title: _ProfileText(profile: profile, titleOnly: true),
+          subtitle: Text(profileDescription(profile)),
+          // Keep the action bounded so Material ListTile never receives a
+          // trailing control that consumes the whole tile width.
+          trailing: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
+            child: switchButton,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ProfileText extends StatelessWidget {
+  final AuthProfile profile;
+  final bool titleOnly;
+
+  const _ProfileText({required this.profile, this.titleOnly = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = Text(
+      profile.displayName,
+      style: const TextStyle(fontWeight: FontWeight.bold),
+    );
+
+    if (titleOnly) return title;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        title,
+        const SizedBox(height: 4),
+        Text(profileDescription(profile)),
+      ],
+    );
+  }
+}
+
+class _SwitchProfileButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const _SwitchProfileButton({
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: enabled ? onPressed : null,
+      icon: const Icon(Icons.swap_horiz),
+      label: const Text('Wechseln'),
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.careenaDark,
+        foregroundColor: AppColors.white,
+        disabledBackgroundColor: AppColors.careenaBorder,
+        disabledForegroundColor: AppColors.careenaMuted,
+      ),
+    );
   }
 }
 

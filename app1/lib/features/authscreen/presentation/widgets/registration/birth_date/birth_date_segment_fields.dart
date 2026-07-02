@@ -99,7 +99,7 @@ class BirthDateSegmentFields extends StatelessWidget {
   }
 }
 
-class _BirthDateSegmentField extends StatelessWidget {
+class _BirthDateSegmentField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hint;
@@ -117,15 +117,41 @@ class _BirthDateSegmentField extends StatelessWidget {
   });
 
   @override
+  State<_BirthDateSegmentField> createState() => _BirthDateSegmentFieldState();
+}
+
+class _BirthDateSegmentFieldState extends State<_BirthDateSegmentField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_normalizeOnBlur);
+  }
+
+  @override
+  void didUpdateWidget(_BirthDateSegmentField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode.removeListener(_normalizeOnBlur);
+      widget.focusNode.addListener(_normalizeOnBlur);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_normalizeOnBlur);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
+      controller: widget.controller,
+      focusNode: widget.focusNode,
       keyboardType: TextInputType.number,
       textAlign: TextAlign.center,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(maxLength),
+        LengthLimitingTextInputFormatter(widget.maxLength),
       ],
       decoration: InputDecoration(
         isCollapsed: true,
@@ -137,19 +163,37 @@ class _BirthDateSegmentField extends StatelessWidget {
         focusedErrorBorder: InputBorder.none,
         contentPadding: EdgeInsets.zero,
         filled: false,
-        hintText: hint,
+        hintText: widget.hint,
         hintStyle: TextStyle(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
       style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       onChanged: (value) {
-        onChanged();
-        if (value.length == maxLength) {
-          onCompleted?.call();
+        widget.onChanged();
+        if (value.length == widget.maxLength) {
+          widget.onCompleted?.call();
         }
       },
     );
+  }
+
+  void _normalizeOnBlur() {
+    if (widget.focusNode.hasFocus || widget.maxLength != 2) {
+      return;
+    }
+
+    final value = widget.controller.text.trim();
+    if (value.length != 1) {
+      return;
+    }
+
+    final paddedValue = value.padLeft(2, '0');
+    widget.controller.value = TextEditingValue(
+      text: paddedValue,
+      selection: TextSelection.collapsed(offset: paddedValue.length),
+    );
+    widget.onChanged();
   }
 }
 

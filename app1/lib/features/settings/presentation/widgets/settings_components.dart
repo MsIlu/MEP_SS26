@@ -1,5 +1,6 @@
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/careena_search_field.dart';
+import 'package:app1/core/widgets/simple_view.dart';
 import 'package:flutter/material.dart';
 
 class SettingsSectionHeader extends StatelessWidget {
@@ -51,6 +52,7 @@ class SettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final simpleView = SimpleViewScope.isEnabled(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
@@ -63,7 +65,7 @@ class SettingsPanel extends StatelessWidget {
         children: [
           for (var index = 0; index < children.length; index++) ...[
             children[index],
-            if (index < children.length - 1)
+            if (!simpleView && index < children.length - 1)
               Divider(
                 height: 1,
                 indent: 58,
@@ -94,10 +96,13 @@ class SettingsLinkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final simpleView = SimpleViewScope.isEnabled(context);
+
     return ListTile(
-      leading: SettingsIconBadge(icon: icon),
+      minTileHeight: simpleView ? 82 : null,
+      leading: SettingsIconBadge(icon: icon, large: simpleView),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(description),
+      subtitle: Text(description, maxLines: simpleView ? 2 : 1),
       trailing: const Icon(Icons.chevron_right, color: AppColors.careenaTeal),
       onTap: () => Navigator.push(
         context,
@@ -121,18 +126,20 @@ class SettingsIconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = large ? 60.0 : 44.0;
+    final simpleView = SimpleViewScope.isEnabled(context);
+    final useLarge = large || simpleView;
+    final size = useLarge ? 60.0 : 44.0;
 
     return SizedBox.square(
       dimension: size,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: isActive ? AppColors.careenaTeal : AppColors.careenaInfoBorder,
-          borderRadius: BorderRadius.circular(large ? 18 : 14),
+          borderRadius: BorderRadius.circular(useLarge ? 18 : 14),
         ),
         child: Icon(
           icon,
-          size: large ? 32 : 24,
+          size: useLarge ? 32 : 24,
           color: isActive
               ? AppColors.toolbarButtonForeground
               : AppColors.careenaDark,
@@ -162,18 +169,23 @@ class SettingsMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final simpleView = isSimpleView || SimpleViewScope.isEnabled(context);
+
     return ListTile(
-      minTileHeight: isSimpleView ? 76 : 62,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      minTileHeight: simpleView ? 82 : 62,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: simpleView ? 20 : 16,
+        vertical: simpleView ? 8 : 2,
+      ),
       leading: Icon(
         icon,
         color: AppColors.careenaTeal,
-        size: isSimpleView ? 30 : 25,
+        size: simpleView ? 32 : 25,
       ),
       title: Text(
         title,
         style: TextStyle(
-          fontSize: isSimpleView ? 19 : 16,
+          fontSize: simpleView ? 19 : 16,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -181,7 +193,7 @@ class SettingsMenuTile extends StatelessWidget {
           ? null
           : Text(
               description!,
-              maxLines: 1,
+              maxLines: simpleView ? 2 : 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

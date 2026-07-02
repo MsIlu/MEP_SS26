@@ -1,3 +1,4 @@
+import 'package:app1/core/widgets/simple_view.dart';
 import 'package:flutter/material.dart';
 
 /// Centers page content and caps it at a readable width on larger screens.
@@ -15,10 +16,14 @@ class ResponsiveFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveMaxWidth = SimpleViewScope.isEnabled(context)
+        ? maxWidth.clamp(0, 640).toDouble()
+        : maxWidth;
+
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: effectiveMaxWidth),
         child: Padding(padding: padding, child: child),
       ),
     );
@@ -77,8 +82,17 @@ class ResponsivePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final simpleView = SimpleViewScope.isEnabled(context);
+
     // Keeps visible page text selectable without touching every Text widget.
-    final selectableChild = SelectionArea(child: child);
+    final selectableChild = SelectionArea(
+      child: simpleView
+          ? DefaultTextStyle.merge(
+              style: const TextStyle(height: 1.35),
+              child: child,
+            )
+          : child,
+    );
 
     if (scrollable) {
       return ResponsiveScrollableFrame(

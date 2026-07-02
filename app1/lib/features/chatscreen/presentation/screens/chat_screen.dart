@@ -36,6 +36,7 @@ class ChatScreen extends StatefulWidget {
   final ThemeController themeController;
   final String leaveDialogMessage;
   final String leaveDialogConfirmLabel;
+  final bool returnToPreviousOnLeave;
 
   const ChatScreen({
     super.key,
@@ -45,6 +46,7 @@ class ChatScreen extends StatefulWidget {
         'Wenn du fortfährst, gelangst du zurück zur Startseite. '
         'Der aktuelle Chat wird im Verlauf gespeichert.',
     this.leaveDialogConfirmLabel = 'Zur Startseite',
+    this.returnToPreviousOnLeave = false,
   });
 
   @override
@@ -453,6 +455,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// Leaves Chat reliably even after reload, when there is no route to pop.
   Future<void> _openHomeAfterLeave() async {
+    if (widget.returnToPreviousOnLeave && Navigator.canPop(context)) {
+      await AppPageStore.saveCurrentPage(AppPage.history);
+      if (!mounted) return;
+      _allowPopAfterConfirmation = true;
+      Navigator.of(context).pop();
+      return;
+    }
+
     await AppPageStore.saveCurrentPage(AppPage.home);
     if (!mounted) return;
 

@@ -43,20 +43,38 @@ class ChatHistoryScreen extends StatefulWidget {
 
 class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   late Future<List<ChatHistoryEntry>> _entriesFuture;
+  late int _profileId;
   _HistorySortOrder _sortOrder = _HistorySortOrder.descending;
 
   @override
   void initState() {
     super.initState();
     AppPageStore.saveCurrentPage(AppPage.history);
-    _entriesFuture = widget.repository.loadEntries(profileId: widget.profileId);
+    _profileId = widget.profileId;
+    widget.chatController?.authSession.addListener(_handleProfileChanged);
+    _entriesFuture = widget.repository.loadEntries(profileId: _profileId);
+  }
+
+  @override
+  void dispose() {
+    widget.chatController?.authSession.removeListener(_handleProfileChanged);
+    super.dispose();
+  }
+
+  void _handleProfileChanged() {
+    final nextProfileId = widget.chatController?.authSession.activeProfileId;
+    if (nextProfileId == null || nextProfileId == _profileId || !mounted) {
+      return;
+    }
+    setState(() {
+      _profileId = nextProfileId;
+      _entriesFuture = widget.repository.loadEntries(profileId: _profileId);
+    });
   }
 
   void _reloadEntries() {
     setState(() {
-      _entriesFuture = widget.repository.loadEntries(
-        profileId: widget.profileId,
-      );
+      _entriesFuture = widget.repository.loadEntries(profileId: _profileId);
     });
   }
 
@@ -389,8 +407,10 @@ class _ChatHistoryTile extends StatelessWidget {
                   controller: controller,
                   themeController: themeController,
                   leaveDialogMessage:
-                      'Wenn du fortfährst, gelangst du zurück zum Homescreen. '
+                      'Wenn du fortfährst, gelangst du zurück zum Verlauf. '
                       'Der aktuelle Chat wurde gespeichert.',
+                  leaveDialogConfirmLabel: 'Zum Verlauf',
+                  returnToPreviousOnLeave: true,
                 ),
               ),
             );

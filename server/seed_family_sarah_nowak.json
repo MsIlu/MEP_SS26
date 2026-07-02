@@ -1,0 +1,41 @@
+{
+  "_comment": "Testfamilie fuer Persona 'Sarah Nowak' (sorgende Mutter / Erstentscheiderin). Laden via seed_test_family.py-Variante oder manuell ueber /auth/register + /profiles.",
+  "account": {
+    "email": "sarah.nowak@careena.dev",
+    "password": "Test1234!",
+    "display_name": "Sarah Nowak",
+    "date_of_birth": "1990-02-14",
+    "biological_sex": "female",
+    "profile_type": "self",
+    "relevant_preconditions_summary": "Keine bekannten Vorerkrankungen.",
+    "relevant_medications_summary": "Keine regelmaessige Medikation."
+  },
+  "extra_profiles": [
+    {
+      "display_name": "Marek Nowak",
+      "date_of_birth": "1987-09-02",
+      "biological_sex": "male",
+      "profile_type": "other",
+      "relevant_preconditions_summary": "Keine bekannten Vorerkrankungen.",
+      "relevant_medications_summary": "Keine regelmaessige Medikation."
+    },
+    {
+      "display_name": "Julia Nowak",
+      "date_of_birth": "2020-05-30",
+      "biological_sex": "female",
+      "profile_type": "child",
+      "relevant_preconditions_summary": "Keine bekannten Vorerkrankungen. Kindergarten- bzw. Schulkind, selten krank.",
+      "relevant_medications_summary": "Keine regelmaessige Medikation.",
+      "symptom_diary_summary": "Vereinzelte leichte Erkaeltungen, bisher unauffaelliger Verlauf."
+    },
+    {
+      "display_name": "Kacper Nowak",
+      "date_of_birth": "2023-01-18",
+      "biological_sex": "male",
+      "profile_type": "child",
+      "relevant_preconditions_summary": "Haeufige fieberhafte Atemwegsinfekte seit Kita-Eintritt, bisher keine chronischen Erkrankungen.",
+      "relevant_medications_summary": "Fiebersaft (Paracetamol) bei Bedarf, kein Dauermedikament.",
+      "symptom_diary_summary": "Wiederkehrende Episoden mit Fieber und Husten, Symptome verschlechtern sich typischerweise nachts; bisher stets folgenlos ausgeheilt."
+    }
+  ]
+}

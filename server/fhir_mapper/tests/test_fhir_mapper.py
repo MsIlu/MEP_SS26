@@ -133,14 +133,14 @@ class DummyCareena4Session:
             observations=[
                 Observation(
                     type="symptom",
-                    label="Kopfschmerzen",
+                    normalized_label_de="Kopfschmerzen",
                     status="active",
                     person_ref="self",
                     onset="seit gestern",
                 ),
                 Observation(
                     type="symptom",
-                    label="Kein Fieber",
+                    normalized_label_de="Kein Fieber",
                     status="negated",
                     person_ref="self",
                 ),
@@ -310,8 +310,8 @@ def test_hapi_client_returns_written_appointments_when_search_index_lags():
         bundle_id="bundle-1",
     )
 
-    assert len(appointments) == 3
-    assert http_client.collection_searches == 2
+    assert len(appointments) == 12
+    assert http_client.collection_searches == 3
     assert all(appointment["status"] == "proposed" for appointment in appointments)
     assert not any(
         extension["url"] in {SESSION_EXTENSION_URL, PROFILE_EXTENSION_URL}

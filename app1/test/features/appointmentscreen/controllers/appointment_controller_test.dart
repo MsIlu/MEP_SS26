@@ -61,19 +61,6 @@ void main() {
     expect(controller.appointments.value.first.note, equals('Kontrolle'));
   });
 
-  test('toggles completed state', () {
-    final appointment = Appointment(id: '1', doctorName: 'Hausarzt', note: '');
-
-    controller.addAppointment(appointment);
-    controller.toggleAppointment('1');
-
-    expect(controller.appointments.value.first.isCompleted, isTrue);
-
-    controller.toggleAppointment('1');
-
-    expect(controller.appointments.value.first.isCompleted, isFalse);
-  });
-
   test('does not add the same recommendation twice', () {
     final firstRecommendation = Appointment(
       id: '1',

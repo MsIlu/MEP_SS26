@@ -30,6 +30,14 @@ services:
     container_name: careena_fhir_server
     restart: unless-stopped
 
+    # Store HAPI's database on the mounted volume. The image default is an
+    # in-memory H2 database, which loses every booking on container restart.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/hapi/careena;DB_CLOSE_ON_EXIT=FALSE
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.h2.Driver
+
     # FHIR server web UI and REST API
     ports:
       - "8080:8080"

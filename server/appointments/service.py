@@ -156,8 +156,6 @@ def save_recommended_appointment(
     try:
         booked_resource = client.book_appointment(
             appointment_id=request.fhir_appointment_id.strip(),
-            session_id=request.session_id.strip(),
-            profile_id=profile_id,
             booked_by_account_id=current_user.id,
         )
     except HapiFhirError as exc:
@@ -213,7 +211,8 @@ def cancel_recommended_appointment(
     )
     client = fhir_client or HapiFhirClient()
     try:
-        client.cancel_appointment(
+        _cancel_fhir_appointment(
+            client=client,
             appointment_id=entry.fhir_appointment_id,
             profile_id=profile_id,
             booked_by_account_id=entry.booked_by_account_id,
@@ -257,25 +256,43 @@ def reschedule_recommended_appointment(
     try:
         replacement = client.book_appointment(
             appointment_id=replacement_id,
-            session_id=request.session_id.strip(),
-            profile_id=profile_id,
             booked_by_account_id=current_user.id,
         )
         try:
-            client.cancel_appointment(
+            _cancel_fhir_appointment(
+                client=client,
                 appointment_id=entry.fhir_appointment_id,
                 profile_id=profile_id,
                 booked_by_account_id=entry.booked_by_account_id,
             )
-        except HapiFhirError:
+        except HapiFhirError as original_cancellation_error:
             # Best-effort compensation: keep the original booking when its
             # cancellation failed and release the newly selected slot.
-            client.cancel_appointment(
-                appointment_id=replacement_id,
-                profile_id=profile_id,
-                booked_by_account_id=current_user.id,
-            )
-            raise
+            try:
+                _cancel_fhir_appointment(
+                    client=client,
+                    appointment_id=replacement_id,
+                    profile_id=profile_id,
+                    booked_by_account_id=current_user.id,
+                )
+            except HapiFhirError as compensation_error:
+                # Never leave a successfully booked replacement invisible.
+                # If both remote cancellations fail, persist it as a second
+                # manageable appointment so the user can cancel either slot.
+                _persist_replacement_booking(
+                    profile_id=profile_id,
+                    session_id=request.session_id.strip(),
+                    current_user=current_user,
+                    replacement=replacement,
+                    note=request.note,
+                    session=session,
+                )
+                raise HapiFhirError(
+                    "Alter und neuer Termin sind weiterhin gebucht und werden "
+                    "beide in der Terminplanung angezeigt. Bitte storniere "
+                    "den nicht gewünschten Termin erneut."
+                ) from compensation_error
+            raise original_cancellation_error
     except HapiFhirError as exc:
         raise _hapi_booking_exception(exc) from exc
 
@@ -301,6 +318,72 @@ def reschedule_recommended_appointment(
     session.commit()
     session.refresh(entry)
     return _to_recommended_response(entry)
+
+
+def _cancel_fhir_appointment(
+        *,
+        client: HapiFhirClient,
+        appointment_id: str,
+        profile_id: int,
+        booked_by_account_id: int,
+        attempts: int = 2,
+) -> dict[str, Any]:
+    """Retry a cancellation once to absorb short-lived HAPI conflicts."""
+    last_error: HapiFhirError | None = None
+    for _ in range(attempts):
+        try:
+            return client.cancel_appointment(
+                appointment_id=appointment_id,
+                profile_id=profile_id,
+                booked_by_account_id=booked_by_account_id,
+            )
+        except HapiFhirError as exc:
+            last_error = exc
+
+    assert last_error is not None
+    raise last_error
+
+
+def _persist_replacement_booking(
+        *,
+        profile_id: int,
+        session_id: str,
+        current_user: User,
+        replacement: dict[str, Any],
+        note: str | None,
+        session: Session,
+) -> None:
+    data = appointment_resource_to_result(replacement)
+    existing = session.exec(
+        select(RecommendedAppointment)
+        .where(RecommendedAppointment.profile_id == profile_id)
+        .where(RecommendedAppointment.fhir_appointment_id == data["id"])
+        .where(RecommendedAppointment.deleted_at.is_(None))
+    ).first()
+    if existing is not None:
+        return
+
+    session.add(
+        RecommendedAppointment(
+            profile_id=profile_id,
+            booked_by_account_id=current_user.id,
+            session_id=session_id,
+            fhir_appointment_id=data["id"],
+            provider_name=data["provider_name"].strip(),
+            specialty=data["specialty"].strip(),
+            address=data["address"].strip(),
+            distance_km=data["distance_km"],
+            starts_at=_parse_hapi_appointment_start(
+                replacement,
+                date_value=data["date"],
+                time_value=data["time"],
+            ),
+            care_type=data["care_type"].strip(),
+            note=(note or "").strip() or None,
+            status="booked",
+        )
+    )
+    session.commit()
 
 
 def _active_recommended_appointment(

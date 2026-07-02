@@ -8,8 +8,6 @@ class Appointment {
   final String note;
   final bool isRecommendation;
 
-  bool isCompleted;
-
   Appointment({
     required this.id,
     this.backendId,
@@ -19,6 +17,5 @@ class Appointment {
     this.appointmentDate,
     required this.note,
     this.isRecommendation = false,
-    this.isCompleted = false,
   });
 }

@@ -44,9 +44,7 @@ class AppointmentList extends StatelessWidget {
                     (appointment) => appointment.profileId == selectedProfileId,
                   )
                   .toList();
-        final visibleAppointments = _deduplicateVisibleAppointments(
-          scopedAppointments,
-        );
+        final visibleAppointments = scopedAppointments;
 
         if (visibleAppointments.isEmpty) {
           return shrinkWrap
@@ -85,38 +83,6 @@ class AppointmentList extends StatelessWidget {
       },
     );
   }
-}
-
-List<Appointment> _deduplicateVisibleAppointments(
-  List<Appointment> appointments,
-) {
-  final result = <Appointment>[];
-  for (final appointment in appointments) {
-    final isDuplicate =
-        appointment.isRecommendation &&
-        result.any(
-          (existing) => _isSameRecommendedAppointment(existing, appointment),
-        );
-    if (!isDuplicate) result.add(appointment);
-  }
-  return result;
-}
-
-bool _isSameRecommendedAppointment(Appointment first, Appointment second) {
-  if (!first.isRecommendation ||
-      !second.isRecommendation ||
-      first.profileId != second.profileId) {
-    return false;
-  }
-  if (first.backendId != null &&
-      second.backendId != null &&
-      first.backendId == second.backendId) {
-    return true;
-  }
-  if (first.id.trim().isNotEmpty && first.id == second.id) return true;
-  return first.doctorName.trim().toLowerCase() ==
-          second.doctorName.trim().toLowerCase() &&
-      first.appointmentDate == second.appointmentDate;
 }
 
 class _GroupedAppointmentList extends StatelessWidget {

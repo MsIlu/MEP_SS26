@@ -136,5 +136,10 @@ Specialty = Literal[
     "dermatology",
     "neurology",
     "ent",
+    "dentistry",
+    "ophthalmology",
+    "gynecology",
+    "pediatrics",
+    "urology",
     "emergency_medicine",
 ]

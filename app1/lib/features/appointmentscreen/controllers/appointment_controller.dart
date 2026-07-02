@@ -29,16 +29,6 @@ class AppointmentController {
     // Shared in-memory appointment state is reused across screens.
   }
 
-  void toggleAppointment(String id) {
-    final updatedAppointments = appointments.value.map((appointment) {
-      if (appointment.id == id) {
-        appointment.isCompleted = !appointment.isCompleted;
-      }
-      return appointment;
-    }).toList();
-    appointments.value = updatedAppointments;
-  }
-
   void updateAppointment(Appointment updatedAppointment) {
     appointments.value = appointments.value.map((appointment) {
       if (appointment.id == updatedAppointment.id) {

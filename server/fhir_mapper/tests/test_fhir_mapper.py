@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import httpx
+
 from fhir_mapper.mapper import map_to_fhir_bundle
 from fhir_mapper.validator import validate_fhir_bundle
 from careena4.models.domain import MedicalCase
@@ -13,8 +15,16 @@ from fhir_mapper.hapi_client import (
     POSTAL_CODE_EXTENSION_URL,
     PROFILE_EXTENSION_URL,
     SESSION_EXTENSION_URL,
+    _parse_datetime,
     build_recommendation_appointment_resources,
 )
+
+
+def test_parse_datetime_treats_missing_offset_as_utc():
+    parsed = _parse_datetime("2026-07-10T08:30:00")
+
+    assert parsed is not None
+    assert parsed.utcoffset().total_seconds() == 0
 
 
 def _sample_internal_data():
@@ -269,6 +279,14 @@ class SearchLagHapiHttpClient:
             self.resources[resource["id"]] = resource
             return FakeHapiResponse({"resourceType": "OperationOutcome"})
 
+        if method == "POST" and path == "":
+            for entry in kwargs["json"].get("entry", []):
+                resource = entry["resource"]
+                self.resources[resource["id"]] = resource
+            return FakeHapiResponse(
+                {"resourceType": "Bundle", "type": "transaction-response"}
+            )
+
         raise AssertionError(f"Unexpected HAPI call {method} {url}")
 
 
@@ -314,8 +332,6 @@ def test_hapi_client_books_appointment_with_account_extension():
 
     booked = client.book_appointment(
         appointment_id="appointment-1",
-        session_id="session-1",
-        profile_id=10,
         booked_by_account_id=3,
     )
 
@@ -336,8 +352,6 @@ def test_hapi_client_releases_cancelled_appointment_for_rebooking():
     )
     client.book_appointment(
         appointment_id="appointment-1",
-        session_id="session-1",
-        profile_id=10,
         booked_by_account_id=3,
     )
 
@@ -353,6 +367,45 @@ def test_hapi_client_releases_cancelled_appointment_for_rebooking():
         extension["url"] == BOOKED_BY_ACCOUNT_EXTENSION_URL
         for extension in released["extension"]
     )
+
+
+def test_hapi_client_cancel_is_idempotent_after_slot_was_released():
+    http_client = FakeHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="appointment-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "proposed"
+
+
+def test_hapi_client_cancel_succeeds_when_resource_was_lost():
+    class MissingAppointmentHttpClient:
+        def request(self, method, url, **kwargs):
+            return httpx.Response(
+                404,
+                request=httpx.Request(method, url),
+                json={"resourceType": "OperationOutcome"},
+            )
+
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=MissingAppointmentHttpClient(),
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="lost-appointment",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "cancelled"
 
 
 def test_simulated_slots_are_shared_between_sessions():

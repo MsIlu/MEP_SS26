@@ -710,7 +710,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     isRecommendation:
                         appointment.isRecommendation &&
                         updatedAppointmentDate == null,
-                    isCompleted: appointment.isCompleted,
                   ),
                 );
                 _clearAppointmentForm();

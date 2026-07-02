@@ -45,6 +45,10 @@ BOOKED_BY_ACCOUNT_EXTENSION_URL = (
 class HapiFhirError(RuntimeError):
     """Raised when the local HAPI FHIR adapter cannot be reached or parsed."""
 
+    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
 
 class HapiFhirClient:
     """
@@ -212,10 +216,15 @@ class HapiFhirClient:
             self,
             *,
             appointment_id: str,
-            session_id: str,
-            profile_id: int,
             booked_by_account_id: int,
     ) -> dict[str, Any]:
+        """Book one global simulator slot for the authenticated account.
+
+        Free slots intentionally have no session/profile owner, mirroring a
+        shared 116117 catalog. Profile authorization and persistence happen in
+        the appointment service before this HAPI operation; the booked account
+        extension protects the slot after booking.
+        """
         appointment = self.get_appointment(appointment_id)
 
         status = str(appointment.get("status") or "")
@@ -268,12 +277,32 @@ class HapiFhirClient:
             profile_id: int,
             booked_by_account_id: int,
     ) -> dict[str, Any]:
-        appointment = self.get_appointment(appointment_id)
+        try:
+            appointment = self.get_appointment(appointment_id)
+        except HapiFhirError as exc:
+            if exc.status_code == 404:
+                # PostgreSQL can outlive a non-persistent/recreated HAPI
+                # instance. Nothing remains to release remotely, so allow the
+                # owned local booking to be marked as cancelled.
+                return {
+                    "resourceType": "Appointment",
+                    "id": appointment_id,
+                    "status": "cancelled",
+                }
+            raise
 
         booked_by_account = _extension_value(
             appointment,
             BOOKED_BY_ACCOUNT_EXTENSION_URL,
         )
+        if (
+            appointment.get("status") == "proposed"
+            and booked_by_account is None
+        ):
+            # A previous cancellation may have released the FHIR slot before
+            # the local database row could be marked as cancelled. Treat that
+            # retry as successful so the local record can still be removed.
+            return appointment
         if str(booked_by_account) != str(booked_by_account_id):
             raise HapiFhirError("Der HAPI-Termin wurde von einem anderen Account gebucht.")
 
@@ -404,25 +433,6 @@ class HapiFhirClient:
         if resources_to_write:
             self._put_appointments_transaction(resources_to_write)
 
-    def _put_appointment_without_reopening_booking(
-            self,
-            resource: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Create a candidate without overwriting an existing booked slot."""
-        try:
-            existing = self.get_appointment(str(resource["id"]))
-        except (HapiFhirError, KeyError):
-            existing = None
-
-        if existing is not None and existing.get("status") in {
-            "proposed",
-            "pending",
-            "booked",
-        }:
-            return existing
-
-        return self._put_appointment(resource)
-
     def _read_appointments_by_id(
             self,
             appointment_ids: list[str],
@@ -477,6 +487,11 @@ class HapiFhirClient:
 
             response.raise_for_status()
             data = response.json()
+        except httpx.HTTPStatusError as exc:
+            raise HapiFhirError(
+                "Der lokale HAPI-FHIR-Server hat die FHIR-Anfrage abgelehnt.",
+                status_code=exc.response.status_code,
+            ) from exc
         except httpx.HTTPError as exc:
             raise HapiFhirError(
                 "Der lokale HAPI-FHIR-Server ist nicht erreichbar oder hat die "
@@ -753,7 +768,12 @@ def _parse_datetime(value: Any) -> datetime | None:
         return None
 
     try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return (
+            parsed
+            if parsed.tzinfo is not None
+            else parsed.replace(tzinfo=timezone.utc)
+        )
     except ValueError:
         return None
 
@@ -780,22 +800,6 @@ def _provider_type_for_specialty(specialty: str) -> str:
         "pediatrics": "Kinderarztpraxis",
         "ent": "HNO-Praxis",
     }.get(specialty, "Facharztpraxis")
-
-
-def _location_for_postal_code(postal_code: str) -> str:
-    if postal_code.startswith("68"):
-        return "Mannheim"
-
-    if postal_code.startswith("69"):
-        return "Heidelberg"
-
-    if postal_code.startswith("70"):
-        return "Stuttgart"
-
-    if postal_code.startswith("10"):
-        return "Berlin"
-
-    return "Ihre Umgebung"
 
 
 def _stable_id(prefix: str, value: str) -> str:

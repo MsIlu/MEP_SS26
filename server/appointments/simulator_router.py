@@ -82,7 +82,7 @@ _DASHBOARD_HTML = r"""<!doctype html>
   </style>
 </head>
 <body>
-  <header><h1>116117 FHIR-Simulator</h1><p>Lokale Entwicklungsoberfläche für synthetische Ärzte und FHIR-Termine. Keine echten Praxen, Verfügbarkeiten oder 116117-Daten.</p></header>
+  <header><h1>116117 FHIR-Simulator</h1><p>Lokale Entwicklungsoberfläche für simulierte Ärzte und FHIR-Termine. Keine echten Praxen, Verfügbarkeiten oder 116117-Daten.</p></header>
   <main>
     <div class="notice"><strong>Simulationsmodus:</strong> Die Übersicht erzeugt einen gemischten Grundkatalog; Careena-Suchen und Buchungen aktualisieren diese FHIR-Termine im lokalen Server.</div>
     <section class="stats">
@@ -95,7 +95,7 @@ _DASHBOARD_HTML = r"""<!doctype html>
       <button id="refresh">Aktualisieren</button>
     </div>
     <section class="panel"><h2>FHIR-Termine in HAPI</h2><div class="table-wrap" id="appointments">Lade…</div></section>
-    <section class="panel"><h2>Synthetischer Arztkatalog</h2><div class="table-wrap" id="providers">Lade…</div></section>
+    <section class="panel"><h2>Simulierter Arztkatalog</h2><div class="table-wrap" id="providers">Lade…</div></section>
   </main>
 <script>
 let slots=[], providers=[];

@@ -39,10 +39,17 @@ BOOKED_BY_ACCOUNT_EXTENSION_URL = (
 
 SPECIALTY_LABELS = {
     "general_practice": "Allgemeinmedizin",
+    "pediatrics": "Kinderheilkunde",
+    "gynecology": "Gynaekologie",
     "dermatology": "Dermatologie",
     "orthopedics": "Orthopaedie",
     "neurology": "Neurologie",
     "ent": "HNO",
+    "ophthalmology": "Augenheilkunde",
+    "urology": "Urologie",
+    "cardiology": "Kardiologie",
+    "gastroenterology": "Gastroenterologie",
+    "psychiatry": "Psychiatrie",
     "emergency_medicine": "Notfallmedizin",
     "unknown": "Allgemeinmedizin",
 }

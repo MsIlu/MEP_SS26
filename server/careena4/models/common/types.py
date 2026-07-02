@@ -132,9 +132,16 @@ CareLevel = Literal[
 Specialty = Literal[
     "unknown",
     "general_practice",
+    "pediatrics",
+    "gynecology",
     "orthopedics",
     "dermatology",
     "neurology",
     "ent",
+    "ophthalmology",
+    "urology",
+    "cardiology",
+    "gastroenterology",
+    "psychiatry",
     "emergency_medicine",
 ]

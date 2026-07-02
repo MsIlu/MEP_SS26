@@ -29,9 +29,32 @@ Wähle care_level nach folgender Eskalationslogik (niedrigste vertretbare Stufe)
   (z.B. Erkältung, leichte Schmerzen, Sodbrennen). next_step: Apotheke aufsuchen.
 - general_practice: anhaltende, unklare oder mittelschwere Beschwerden, die ärztlich
   abgeklärt werden sollten, aber nicht dringend sind.
-- specialist: Beschwerden mit klarem Fachbezug (z.B. Hautbefund -> dermatology).
+- specialist: Beschwerden mit klarem Fachbezug — wähle zusätzlich das passende specialty-Feld
+  (siehe Zuordnung unten).
 - 116117: ärztlich abklärungsbedürftig außerhalb der Praxiszeiten, aber kein Notfall.
 - emergency_department / 112: Warnzeichen, akute schwere Symptome, Hinweise auf Notfall.
+
+Wichtige Ausnahme: Bei Säuglingen, Kleinkindern und Kindern (z.B. hohes Fieber ab ca. 39°C,
+starke Schläfrigkeit/Trinkschwäche, deutliches Krankheitsgefühl) reicht "pharmacy" NICHT aus —
+wähle mindestens general_practice, bei Warnzeichen 116117 oder emergency_department/112.
+Bei Kindern generell eher eine Stufe höher eskalieren als bei Erwachsenen mit vergleichbaren
+Symptomen, da sich der Zustand schneller verschlechtern kann.
+
+Zuordnung Symptom -> specialty (nur wenn care_level = specialist):
+- Haut, Ausschlag, Muttermal-Veränderung -> dermatology
+- anhaltende oder wiederkehrende Rücken-/Gelenk-/Muskel-Beschwerden, Sportverletzungen -> orthopedics
+- Sehstörungen, Augenrötung/-schmerz, Fremdkörpergefühl im Auge -> ophthalmology
+- Ohren-, Nasen-, Hals-, Stimm- oder Schluckbeschwerden -> ent
+- neurologische Symptome (Taubheit, Kribbeln, Koordinationsstörung, Schwindel mit
+  neurologischem Verdacht, wiederkehrende Migräne) -> neurology
+- Beschwerden beim Wasserlassen, im Genitalbereich (männlich) -> urology
+- Unterleibsbeschwerden, Zyklus-/Schwangerschaftsfragen -> gynecology
+- Herzrasen, Herzstolpern, Brustschmerzen ohne Notfallzeichen -> cardiology
+- anhaltende Verdauungsbeschwerden, Sodbrennen über längere Zeit, Bauchschmerzen -> gastroenterology
+- psychische Belastung, Angst, Schlafstörung, depressive Symptome -> psychiatry
+- Kinder/Säuglinge ohne spezifischen Facharztbezug -> pediatrics
+- kein klarer Fachbezug erkennbar -> general_practice
+
 Begründe in "reasons" konkret anhand der genannten Symptome, des Schweregrads und —
 falls vorhanden — des Verlaufs und der Medikamente, warum diese Stufe gewählt wurde.
 """
@@ -41,7 +64,7 @@ _JSON_SCHEMA = """
   "urgency": "<unknown|self_observation|routine|soon|today|emergency>",
   "urgency_level": "<low|medium|high|emergency|unclear>",
   "care_level": "<self_care|pharmacy|general_practice|specialist|116117|emergency_department|112|unknown>",
-  "specialty": "<unknown|general_practice|orthopedics|dermatology|neurology|ent|emergency_medicine>",
+  "specialty": "<unknown|general_practice|pediatrics|gynecology|orthopedics|dermatology|neurology|ent|ophthalmology|urology|cardiology|gastroenterology|psychiatry|emergency_medicine>",
   "summary": "<1-2 Sätze Zusammenfassung der klinischen Situation>",
   "next_step": "<konkrete Handlungsempfehlung für den Patienten, 1-2 Sätze>",
   "reasons": ["<konkreter Grund 1>", "<konkreter Grund 2>"]
@@ -69,7 +92,11 @@ _FALLBACK_RESULT = RecommendationResult(
 _VALID_URGENCY = {"unknown", "self_observation", "routine", "soon", "today", "emergency"}
 _VALID_LEVEL = {"low", "medium", "high", "emergency", "unclear"}
 _VALID_CARE = {"self_care", "pharmacy", "general_practice", "specialist", "116117", "emergency_department", "112", "unknown"}
-_VALID_SPECIALTY = {"unknown", "general_practice", "orthopedics", "dermatology", "neurology", "ent", "emergency_medicine"}
+_VALID_SPECIALTY = {
+    "unknown", "general_practice", "pediatrics", "gynecology", "orthopedics",
+    "dermatology", "neurology", "ent", "ophthalmology", "urology", "cardiology",
+    "gastroenterology", "psychiatry", "emergency_medicine",
+}
 
 
 def _serialize_case(medical_case: MedicalCase, case_manager: CaseManager) -> str:

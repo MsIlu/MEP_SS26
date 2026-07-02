@@ -5,6 +5,8 @@ import 'account.dart';
 
 class AuthProfile {
   /// Profile summary returned after login or registration.
+  static const Object _unset = Object();
+
   final int id;
   final String displayName;
   final String profileType;
@@ -45,14 +47,16 @@ class AuthProfile {
 
   AuthProfile copyWith({
     String? displayName,
-    String? biologicalSex,
+    Object? biologicalSex = _unset,
     String? aiDisclaimerAcceptedAt,
   }) {
     return AuthProfile(
       id: id,
       displayName: displayName ?? this.displayName,
       profileType: profileType,
-      biologicalSex: biologicalSex ?? this.biologicalSex,
+      biologicalSex: identical(biologicalSex, _unset)
+          ? this.biologicalSex
+          : biologicalSex as String?,
       aiDisclaimerAcceptedAt:
           aiDisclaimerAcceptedAt ?? this.aiDisclaimerAcceptedAt,
       role: role,

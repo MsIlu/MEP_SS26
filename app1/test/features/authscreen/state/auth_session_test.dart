@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app1/features/authscreen/domain/models/account.dart';
 import 'package:app1/features/authscreen/domain/models/auth_response.dart';
@@ -153,6 +153,62 @@ void main() {
       expect(restoredSession.account?.email, 'test@example.com');
       expect(restoredSession.activeProfileId, 11);
     });
+
+    test('persists profile list changes after initial login', () async {
+      final session = AuthSession();
+      session.setAuthResponse(_authResponse());
+
+      session.setProfiles(const [
+        AuthProfile(
+          id: 10,
+          displayName: 'Anna Aktualisiert',
+          profileType: 'self',
+          role: 'owner',
+        ),
+      ]);
+      await Future<void>.delayed(Duration.zero);
+
+      final restoredSession = AuthSession();
+      final restored = await restoredSession.restorePersistedSession();
+
+      expect(restored, true);
+      expect(restoredSession.profiles, hasLength(1));
+      expect(restoredSession.activeProfile?.displayName, 'Anna Aktualisiert');
+    });
+
+    test(
+      'clears biological sex locally and in the persisted session',
+      () async {
+        final session = AuthSession();
+        session.setAuthResponse(
+          const AuthResponse(
+            accessToken: 'test-token',
+            tokenType: 'bearer',
+            account: Account(id: 1, email: 'test@example.com'),
+            profiles: [
+              AuthProfile(
+                id: 10,
+                displayName: 'Anna',
+                profileType: 'self',
+                biologicalSex: 'female',
+                role: 'owner',
+              ),
+            ],
+          ),
+        );
+
+        session.setActiveProfileBiologicalSex(null);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(session.activeProfile?.biologicalSex, isNull);
+
+        final restoredSession = AuthSession();
+        final restored = await restoredSession.restorePersistedSession();
+
+        expect(restored, true);
+        expect(restoredSession.activeProfile?.biologicalSex, isNull);
+      },
+    );
 
     test('clear removes persisted auth session', () async {
       final session = AuthSession();

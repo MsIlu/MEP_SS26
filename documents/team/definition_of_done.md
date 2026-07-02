@@ -4,4 +4,5 @@
 3.	Separation of Concerns
 4.	Checkstyle
 
-To be continued…
+Diese Definition of Done beschreibt den aktuellen Mindeststandard. Erweiterungen
+werden im Team abgestimmt und hier ergänzt.

@@ -11,4 +11,4 @@ Wir, MedBitAid, haben beschlossen, folgende Punkte einzuhalten, um ein gutes Tea
 9.	Bemühung um Anwesenheit (ab 10:00 Uhr)
 10.	Verlässlichkeit (Deadlines ernst nehmen!)
 
-To be continued…
+Änderungen an diesem Verhaltenskodex werden im Team abgestimmt und dokumentiert.

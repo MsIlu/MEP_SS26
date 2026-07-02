@@ -56,7 +56,7 @@ class _AppBoot extends StatefulWidget {
 }
 
 class _AppBootState extends State<_AppBoot> {
-  late final AppDependencies? _ownedDependencies;
+  late final AppDependencies _ownedDependencies;
   late final ChatController _chatController;
   late final ThemeController _themeController;
   late final AuthSession _authSession;
@@ -73,20 +73,16 @@ class _AppBootState extends State<_AppBoot> {
     _themeController = ThemeController();
     _symptomRepository = SymptomRepository();
 
-    _ownedDependencies =
-        widget.externalChatController == null &&
-            widget.externalAuthApiService == null
-        ? AppDependencies(
-            authSession: _authSession,
-            symptomRepository: _symptomRepository,
-          )
-        : null;
+    _ownedDependencies = AppDependencies(
+      authSession: _authSession,
+      symptomRepository: _symptomRepository,
+    );
 
     _chatController =
-        widget.externalChatController ?? _ownedDependencies!.chatController;
+        widget.externalChatController ?? _ownedDependencies.chatController;
 
     _authApiService =
-        widget.externalAuthApiService ?? _ownedDependencies!.authApiService;
+        widget.externalAuthApiService ?? _ownedDependencies.authApiService;
 
     _authSession.addListener(_handleAuthSessionChanged);
     _initialState = _loadInitialState();
@@ -97,14 +93,14 @@ class _AppBootState extends State<_AppBoot> {
     _themeController.dispose();
     _authSession.removeListener(_handleAuthSessionChanged);
     _authSession.dispose();
-    _ownedDependencies?.dispose();
+    _ownedDependencies.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AppDependenciesScope(
-      dependencies: _ownedDependencies!,
+      dependencies: _ownedDependencies,
       child: AnimatedBuilder(
         animation: Listenable.merge([_themeController, _authSession]),
         builder: (context, _) {
@@ -191,7 +187,7 @@ class _AppBootState extends State<_AppBoot> {
       case AppPage.calendar:
         return CalendarOverviewPage(
           themeController: _themeController,
-          apiClient: _ownedDependencies?.apiClient,
+          apiClient: _ownedDependencies.apiClient,
           authSession: _authSession,
           symptomRepository: _symptomRepository,
         );
@@ -229,13 +225,13 @@ class _AppBootState extends State<_AppBoot> {
         return SymptomDiaryPage(
           themeController: _themeController,
           authSession: _authSession,
-          symptomApiService: _ownedDependencies?.symptomApiService,
-          profileApiService: _ownedDependencies?.profileApiService,
+          symptomApiService: _ownedDependencies.symptomApiService,
+          profileApiService: _ownedDependencies.profileApiService,
         );
       case AppPage.medicationPlan:
         return MedicationPlanPage(
           themeController: _themeController,
-          apiClient: _ownedDependencies?.apiClient,
+          apiClient: _ownedDependencies.apiClient,
           authSession: _authSession,
         );
       case AppPage.home:
@@ -289,10 +285,10 @@ class _AppBootState extends State<_AppBoot> {
     return HomeScreen(
       controller: _chatController,
       themeController: _themeController,
-      apiClient: _ownedDependencies?.apiClient,
+      apiClient: _ownedDependencies.apiClient,
       authSession: _authSession,
       authApiService: _authApiService,
-      symptomApiService: _ownedDependencies?.symptomApiService,
+      symptomApiService: _ownedDependencies.symptomApiService,
     );
   }
 }

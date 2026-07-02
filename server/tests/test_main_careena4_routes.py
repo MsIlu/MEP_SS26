@@ -452,6 +452,19 @@ def test_appointment_search_uses_fhir_bundle_and_hapi_layer(
     assert patient["identifier"][0]["value"] == "1"
 
 
+def test_appointment_search_rejects_non_numeric_postal_code(client):
+    response = client.post(
+        "/appointments/search",
+        json={
+            "session_id": "session-id",
+            "profile_id": 1,
+            "postal_code": "68A59",
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_fhir_export_valid_session_returns_bundle(client):
     session_response = client.post("/session", json={})
     session_id = session_response.json()["session_id"]

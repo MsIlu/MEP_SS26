@@ -20,7 +20,7 @@ und Abgabe.
 
 ### Added
 
-- Der App-Guide erklÃ¤rt nun auch den Light-/Darkmode-Schalter oben rechts.
+- Der App-Guide erklärt nun auch den Light-/Darkmode-Schalter oben rechts.
 
 - `app/app_dependencies.dart` als zentraler Composition Root für langlebige
   Frontend-Abhängigkeiten ergänzt.
@@ -64,26 +64,26 @@ und Abgabe.
 
 ### Changed
 
-- Der Abschluss des App-Guides wird fÃ¼r nicht eingeloggte Nutzer unter einem
+- Der Abschluss des App-Guides wird für nicht eingeloggte Nutzer unter einem
   expliziten Guest-Key statt unter einer impliziten Account-ID `0` gespeichert.
-  Bestehende numerische Account-SchlÃ¼ssel bleiben dabei kompatibel.
+  Bestehende numerische Account-Schlüssel bleiben dabei kompatibel.
 - Das App-Guide-Overlay wurde nach Verantwortung in Overlay-Orchestrierung,
   Spotlight-Painter, Careena-Companion und Guide-Aktionen aufgeteilt. Die
   Homescreen-Widget-Tests wurden entsprechend in Darstellung, Guide-Ablauf und
   eine gemeinsame Test-Fixture getrennt.
-- Der Guide erklÃ¤rt den Light-/Darkmode-Schalter nun vor dem
+- Der Guide erklärt den Light-/Darkmode-Schalter nun vor dem
   Funktionsbereich.
-- Der Guide-ZurÃ¼ck-Button verwendet nun eine kontrastreiche Careena-FlÃ¤che;
+- Der Guide-Zurück-Button verwendet nun eine kontrastreiche Careena-Fläche;
   die Aktion zum Beenden der Tour nutzt einen passenden Careena-Farbton.
-- Die Speechbubble von ErklÃ¤r-Careena verwendet im Dark-Mode nun eine dunkle
-  Careena-FlÃ¤che mit heller Schrift; das Onboarding-Design bleibt unverÃ¤ndert.
+- Die Speechbubble von Erklär-Careena verwendet im Dark-Mode nun eine dunkle
+  Careena-Fläche mit heller Schrift; das Onboarding-Design bleibt unverändert.
 - Direkte Farben in den vom Guide wiederverwendeten Home-, Avatar- und
   Speechbubble-Komponenten wurden durch zentrale `AppColors`-Tokens ersetzt.
   Das ungenutzte Icon-Feld der Guide-Schritte wurde entfernt.
 - Der Funktionsschritt des App-Guides hebt nun den gesamten sichtbaren
   Funktionsbereich statt nur der ersten Funktionskarte hervor.
 - Der Guide verwendet den vorhandenen winkenden Careena-Avatar ohne
-  kreisfÃ¶rmigen Hintergrund.
+  kreisförmigen Hintergrund.
 - Der App-Guide verwendet im Dark-Mode einen dunklen Schleier und richtet
   seine abgerundeten Spotlight-Ausschnitte direkt an den sichtbaren
   Home-Karten statt an deren umgebenden Layout-Flächen aus. Innerhalb des

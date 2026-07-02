@@ -73,10 +73,7 @@ def test_register_rejects_duplicate_email(client):
     }
 
     first_response = client.post("/auth/register", json=payload)
-    #print(first_response.status_code, first_response.json())
-
     second_response = client.post("/auth/register", json=payload)
-    #print(second_response.status_code, second_response.json())
 
     assert first_response.status_code == 200
     assert second_response.status_code == 409

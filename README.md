@@ -111,6 +111,9 @@ GitHub Actions automatically run the frontend and backend checks for pushes and 
 
 - [Backend test cases](documents/testing/Testfaelle_Backend.md)
 - [Frontend test cases](documents/testing/Testfaelle_Frontend.md)
+- [Backend guide](server/README.md)
+- [Frontend guide](app1/README.md)
+- [Current handoff notes](documents/HANDOFF_NOTES.md)
 - [Local FHIR test server](documents/integration/fhir_server_documentation.md)
 - [Team documentation](documents/team/)
 

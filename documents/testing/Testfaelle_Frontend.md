@@ -110,6 +110,12 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 - `T03.3.3`: Mehr als drei Symptome werden in einer zusammengefassten Gruppe dargestellt.
 - `T03.3.4`: Lange Symptom-Labels werden visuell gekürzt.
 
+### T03.4 `app1/test/features/chat/utils/symptom_import_dates_test.dart`
+
+- `T03.4.1`: Chat-Dauerangaben werden in tägliche Tagebuch-Importe umgewandelt.
+- `T03.4.2`: Monats- und Jahreszeiträume werden auf höchstens ein Jahr begrenzt.
+- `T03.4.3`: Kalenderdaten bleiben bei Sommerzeitwechseln auf dem erwarteten lokalen Datum.
+
 ## T04 Auth Und Registrierung
 
 ### T04.1 `app1/test/features/authscreen/data/auth_api_service_test.dart`
@@ -135,6 +141,8 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 - `T04.4.4`: Logout/Reset leert Session-Daten.
 - `T04.4.5`: Das zuletzt aktive Profil wird für die nächste Anmeldung gespeichert.
 - `T04.4.6`: Das eigene Profil steht vor allen betreuten Profiltypen, deren Erstellungsreihenfolge erhalten bleibt.
+- `T04.4.7`: Profiländerungen nach dem Login werden in der lokalen Session-Persistenz aktualisiert.
+- `T04.4.8`: `Keine Angabe` beim biologischen Geschlecht kann einen gespeicherten Wert lokal und persistent löschen.
 
 ### T04.5 `app1/test/features/authscreen/utils/auth_error_message_test.dart`
 
@@ -266,5 +274,5 @@ Diese Datei ordnet die Frontend-Tests des Projekts nach Themen, Testdateien und 
 
 - Separation of Concerns: API-Endpunkte, Services, Modelle, Repository, Controller und Widgets werden getrennt getestet.
 - KISS: Tests prüfen beobachtbares Verhalten über öffentliche Schnittstellen.
-- Refactoring-Sicherheit: Testdaten nutzen kleine Helper/Fakes und vermeiden Produktivcode-Aenderungen.
+- Refactoring-Sicherheit: Testdaten nutzen kleine Helper/Fakes und vermeiden Produktivcode-Änderungen.
 - Nachvollziehbarkeit: Jede Frontend-Testdatei verweist auf diese Matrix.

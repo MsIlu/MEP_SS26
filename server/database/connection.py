@@ -1,6 +1,4 @@
-﻿# Author: Ilu
-# This file handles the database connection.
-# It connects FastAPI to PostgreSQL, creates tables, and provides database sessions.
+"""Database engine, schema bootstrap, and session helpers for FastAPI."""
 
 from pathlib import Path
 import os
@@ -12,19 +10,13 @@ from .catalog import models as catalog_models
 
 _REGISTERED_MODEL_MODULES = (models, catalog_models)
 
-#determines the projects main folder
 BASE_DIR = Path(__file__).resolve().parents[2]
-
-#path to .env-file in main folder
 ENV_PATH = BASE_DIR / ".env"
 
-#loads enviromentvariable from .env-File
 load_dotenv(dotenv_path=ENV_PATH)
 
-#loads databse-URL from .env-File
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-#prints error-message if there is no database-URL
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is missing. Please check .env-File in MEP_SS26.")
 
@@ -35,7 +27,6 @@ def _env_flag(name: str, *, default: bool = False) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-#connects to postgresSQL-Database
 engine_options = {"echo": _env_flag("SQL_ECHO")}
 
 if DATABASE_URL.startswith(("postgresql://", "postgresql+")):
@@ -267,77 +258,78 @@ def _ensure_postgres_schema():
 def create_db_and_tables():
     _ensure_postgres_schema()
     SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        session.exec(
-            text(
-                "ALTER TABLE profiles "
-                "ADD COLUMN IF NOT EXISTS height_cm INTEGER"
+    if engine.dialect.name == "postgresql":
+        with Session(engine) as session:
+            session.exec(
+                text(
+                    "ALTER TABLE profiles "
+                    "ADD COLUMN IF NOT EXISTS height_cm INTEGER"
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE profiles "
-                "ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION"
+            session.exec(
+                text(
+                    "ALTER TABLE profiles "
+                    "ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION"
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE profiles "
-                "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
+            session.exec(
+                text(
+                    "ALTER TABLE profiles "
+                    "ADD COLUMN IF NOT EXISTS ai_disclaimer_accepted_at TIMESTAMP "
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE recommended_appointments "
-                "ADD COLUMN IF NOT EXISTS booked_by_account_id INTEGER"
+            session.exec(
+                text(
+                    "ALTER TABLE recommended_appointments "
+                    "ADD COLUMN IF NOT EXISTS booked_by_account_id INTEGER"
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE symptom_diary_entries "
-                "ADD COLUMN IF NOT EXISTS temperature_c DOUBLE PRECISION"
+            session.exec(
+                text(
+                    "ALTER TABLE symptom_diary_entries "
+                    "ADD COLUMN IF NOT EXISTS temperature_c DOUBLE PRECISION"
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE symptom_diary_entries "
-                "ADD COLUMN IF NOT EXISTS source VARCHAR(30) DEFAULT 'manual'"
+            session.exec(
+                text(
+                    "ALTER TABLE symptom_diary_entries "
+                    "ADD COLUMN IF NOT EXISTS source VARCHAR(30) DEFAULT 'manual'"
+                )
             )
-        )
-        session.exec(
-            text(
-                "ALTER TABLE symptom_diary_entries "
-                "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW()"
+            session.exec(
+                text(
+                    "ALTER TABLE symptom_diary_entries "
+                    "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW()"
+                )
             )
-        )
-        session.exec(
-            text(
-                "UPDATE symptom_diary_entries SET source = 'manual' "
-                "WHERE source IS NULL"
+            session.exec(
+                text(
+                    "UPDATE symptom_diary_entries SET source = 'manual' "
+                    "WHERE source IS NULL"
+                )
             )
-        )
-        session.exec(
-            text(
-                "UPDATE symptom_diary_entries SET updated_at = created_at "
-                "WHERE updated_at IS NULL"
+            session.exec(
+                text(
+                    "UPDATE symptom_diary_entries SET updated_at = created_at "
+                    "WHERE updated_at IS NULL"
+                )
             )
-        )
-        session.exec(
-            text(
-                """
-                UPDATE recommended_appointments AS appointment
-                SET booked_by_account_id = access.account_id
-                FROM acc_profile_access AS access
-                WHERE appointment.booked_by_account_id IS NULL
-                  AND access.profile_id = appointment.profile_id
-                  AND access.role = 'owner'
-                """
+            session.exec(
+                text(
+                    """
+                    UPDATE recommended_appointments AS appointment
+                    SET booked_by_account_id = access.account_id
+                    FROM acc_profile_access AS access
+                    WHERE appointment.booked_by_account_id IS NULL
+                      AND access.profile_id = appointment.profile_id
+                      AND access.role = 'owner'
+                    """
+                )
             )
-        )
-        session.commit()
-    _migrate_legacy_user_schema()
-    _migrate_chat_history_schema()
-    _migrate_document_entries_schema()
+            session.commit()
+        _migrate_legacy_user_schema()
+        _migrate_chat_history_schema()
+        _migrate_document_entries_schema()
 
 #creates database-session
 def get_db_session():

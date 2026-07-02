@@ -252,6 +252,31 @@ def test_delete_main_profile_requires_account_deletion(client, db_session):
     assert profile.deleted_at is None
 
 
+def test_patch_cannot_reclassify_main_profile_for_deletion(client, db_session):
+    auth = register_user(client)
+
+    patch_response = client.patch(
+        f"/profiles/{auth['profile_id']}",
+        headers=auth["headers"],
+        json={"profile_type": "other"},
+    )
+
+    assert patch_response.status_code == 200
+    assert patch_response.json()["profile_type"] == "self"
+
+    delete_response = client.delete(
+        f"/profiles/{auth['profile_id']}",
+        headers=auth["headers"],
+    )
+
+    assert delete_response.status_code == 409
+
+    profile = db_session.get(Profile, auth["profile_id"])
+    assert profile is not None
+    assert profile.profile_type == "self"
+    assert profile.deleted_at is None
+
+
 def test_deleted_profile_returns_404(client):
     auth = register_user(client)
 

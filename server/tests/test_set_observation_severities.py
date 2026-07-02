@@ -199,6 +199,20 @@ def test_set_severities_returns_404_for_unknown_session(client):
     assert response.status_code == 404
 
 
+@pytest.mark.parametrize("severity", [0, 11])
+def test_set_severities_rejects_out_of_range_values(client, severity):
+    session_id, session = _make_session()
+    obs = _add_observation(session, "Kopfschmerzen")
+
+    response = client.post("/chatscreen/set-severities", json={
+        "session_id": session_id,
+        "severities": {"Kopfschmerzen": severity},
+    })
+
+    assert response.status_code == 422
+    assert obs.severity is None
+
+
 def test_set_severities_is_noop_when_no_medical_case(client):
     session_id, _ = _make_session(with_case=False)
 

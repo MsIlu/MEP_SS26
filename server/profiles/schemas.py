@@ -37,7 +37,6 @@ class ProfileUpdateRequest(BaseModel):
     biological_sex: Optional[str] = None
     height_cm: Optional[int] = None
     weight_kg: Optional[float] = None
-    profile_type: Optional[str] = None
     relevant_preconditions_summary: Optional[str] = None
     relevant_medications_summary: Optional[str] = None
     symptom_diary_summary: Optional[str] = None

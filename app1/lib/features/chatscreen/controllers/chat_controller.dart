@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/config/app_config.dart';
 import '../../authscreen/state/auth_session.dart';
@@ -237,7 +237,7 @@ class ChatController {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
 
-    if (trimmed.toLowerCase() == '/hp') {
+    if (kDebugMode && trimmed.toLowerCase() == '/hp') {
       _addTestRecommendation();
       return null;
     }

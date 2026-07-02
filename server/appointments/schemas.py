@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class AppointmentSearchRequest(BaseModel):
     session_id: str
     profile_id: int
-    postal_code: str = Field(min_length=5, max_length=5)
+    postal_code: str = Field(pattern=r"^\d{5}$")
 
 
 class AppointmentRecommendationSummary(BaseModel):

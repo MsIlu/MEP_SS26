@@ -14,15 +14,17 @@
 # or
 # <bash> python -m uvicorn main:app --reload
 
+import logging
 import re
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlmodel import Session
 from auth.security import get_optional_current_account, get_session
 from database.models import User
 from profiles.service import get_profile_access_role
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import create_db_and_tables
 from auth.router import router as auth_router
@@ -136,6 +138,7 @@ app.add_middleware(
 )
 
 configure_logging()
+logger = logging.getLogger(__name__)
 
 class ChatRequest(BaseModel):
     message: str
@@ -166,7 +169,7 @@ class RecommendationRequest(BaseModel):
 
 class SetObservationSeveritiesRequest(BaseModel):
     session_id: str
-    severities: dict[str, int]  # symptom label -> severity (1-10)
+    severities: dict[str, Annotated[int, Field(ge=1, le=10)]]
 
 
 def require_careena4_session(session_id: str):
@@ -1075,7 +1078,7 @@ def create_session(
     session_id = careena4_session_store.create_session()
     careena4_session_profiles[session_id] = profile_id
 
-    print("Created Careena4 session:", session_id)
+    logger.info("Created Careena4 session %s", session_id)
     return {"session_id": session_id}
 
 # Editor: Ilu
@@ -1093,9 +1096,9 @@ def _seed_catalog() -> None:
         r1 = seed_consultation_reasons()
         r2 = seed_assessment_criteria()
         r3 = seed_consultation_reason_criteria_links()
-        print(f"Catalog seeded: reasons={r1}, criteria={r2}, links={r3}")
+        logger.info("Catalog seeded: reasons=%s, criteria=%s, links=%s", r1, r2, r3)
     except Exception as exc:
-        print(f"Warning: Catalog seeding skipped ({exc})")
+        logger.warning("Catalog seeding skipped: %s", exc)
 
 
 @app.on_event("startup")
@@ -1106,5 +1109,5 @@ def on_startup():
     create_db_and_tables()
     _seed_catalog()
     n = careena4_services.safety_catalog_cache.load()
-    print(f"SafetyCatalogCache loaded: {n} entries")
+    logger.info("SafetyCatalogCache loaded: %s entries", n)
     _refresh_llm_health_status()

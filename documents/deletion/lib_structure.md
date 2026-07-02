@@ -13,7 +13,9 @@ Verantwortlichkeiten der einzelnen Bereiche.
 eine Chat-Session über Onboarding, Home und Chat hinweg und öffnet bei einer
 medizinischen Red-Flag-Antwort des Backends einen eigenen Warning-Flow. Über
 das Home ist außerdem `Meine Medikamente` mit lokalen täglichen Erinnerungen
-und `Symptomtagebuch` für tägliches Symptomtracking erreichbar.
+und `Symptomtagebuch` für tägliches Symptomtracking erreichbar. Weitere
+Hauptbereiche sind Terminverwaltung, Dokumente, Kalenderübersicht,
+Profilverwaltung und PDF-/Terminexport aus Empfehlungen.
 
 ## Ordnerstruktur
 
@@ -35,21 +37,28 @@ app1/lib/
     |-- app_guide/
     |   |-- data/
     |   `-- presentation/
+    |-- appointmentscreen/
+    |   |-- controllers/
+    |   |-- data/
+    |   `-- presentation/
+    |-- authscreen/
+    |   |-- data/
+    |   |-- domain/
+    |   |-- presentation/
+    |   |-- state/
+    |   `-- utils/
+    |-- calendar_overview/
+    |   `-- presentation/
     |-- chatscreen/
     |   |-- controllers/
     |   |-- data/
     |   |-- presentation/
     |   |-- services/
     |   `-- utils/
-    |-- authscreen/
+    |-- documents/
+    |   |-- controllers/
     |   |-- data/
-    |   |-- presentation/
-    |   |   |-- models/
-    |   |   |-- screens/
-    |   |   |-- theme/
-    |   |   |-- view_models/
-    |   |   `-- widgets/
-    |   `-- utils/
+    |   `-- presentation/
     |-- homescreen/
     |   |-- data/
     |   `-- presentation/
@@ -82,6 +91,12 @@ app1/lib/
     |       `-- widgets/
     |-- onboardingscreen/
     |   `-- presentation/
+    |-- profiles/
+    |   |-- data/
+    |   `-- domain/
+    |-- recommendation_export/
+    |   |-- data/
+    |   `-- presentation/
     `-- warningscreen/
         `-- presentation/
 ```
@@ -106,7 +121,7 @@ Objekte einmal erstellt und gemeinsam verwendet:
 
 Die sichtbaren Home-Komponenten stellen ihre exakten Guide-Ziele bereit. Das
 Overlay übernimmt ausschließlich Positionierung und themeabhängige
-Darstellung. Guide-Schritte kÃ¶nnen dadurch sowohl Inhaltskarten als auch
+Darstellung. Guide-Schritte können dadurch sowohl Inhaltskarten als auch
 gemeinsame Header-Aktionen hervorheben.
 
 Die Guide-Presentation trennt Overlay-Orchestrierung, Spotlight-Painter,
@@ -116,13 +131,9 @@ Homescreen-Darstellung werden getrennt getestet.
 
 `features/app_guide` enthält den einmaligen Guide nach einer erfolgreichen
 Registrierung. Die Guide-Schritte liegen als einfache Datenobjekte vor, die
-Presentation hebt vorhandene Home-Bereiche mit einem Coachmark-Overlay hervor
-  und `AppGuideStore` speichert den Abschluss getrennt je Konto sowie unter
-  einem expliziten SchlÃ¼ssel fÃ¼r GÃ¤ste.
-- `ApiClient`
-- `ChatApi`
-- `ChatService`
-- `ChatController`
+Presentation hebt vorhandene Home-Bereiche mit einem Coachmark-Overlay hervor.
+`AppGuideStore` speichert den Abschluss getrennt je Konto sowie unter einem
+expliziten Schlüssel für Gäste.
 
 Der Ordner `app` darf `core` und Features kennen, weil er die App verdrahtet.
 `core` bleibt dadurch frei von Feature-Imports und kann als gemeinsame

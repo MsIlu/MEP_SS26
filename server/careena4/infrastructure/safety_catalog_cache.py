@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
 
 from careena4.models.domain import SafetyCatalogMatch
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -49,7 +52,7 @@ class SafetyCatalogCache:
             from database.connection import get_db_session
             from sqlmodel import select
         except Exception as exc:
-            print(f"Warning: SafetyCatalogCache could not import DB models ({exc})")
+            logger.warning("SafetyCatalogCache could not import DB models: %s", exc)
             return 0
 
         entries: list[_CatalogEntry] = []
@@ -104,7 +107,7 @@ class SafetyCatalogCache:
                     )
                     entries.append(entry)
         except Exception as exc:
-            print(f"Warning: SafetyCatalogCache load failed ({exc})")
+            logger.warning("SafetyCatalogCache load failed: %s", exc)
             return 0
 
         self._entries = entries

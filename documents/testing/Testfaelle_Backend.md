@@ -49,6 +49,7 @@ Diese Datei ordnet die Backend-Tests des Projekts nach Themen, Testdateien und e
 - `T02.1.6`: Gelöschtes Profil liefert `404`.
 - `T02.1.7`: Familienmitglieder und andere betreute Personen erhalten Guardian-Zugriff und können per Soft-Delete gelöscht werden.
 - `T02.1.8`: Die Profil-Liste enthält zuerst das Hauptprofil und danach betreute Profile in Erstellungsreihenfolge.
+- `T02.1.9`: Ein Profil-Patch kann das Hauptprofil nicht in ein löschbares Fremdprofil umklassifizieren.
 
 ## T03 Chat History
 
@@ -99,6 +100,17 @@ Diese Datei ordnet die Backend-Tests des Projekts nach Themen, Testdateien und e
 
 - `T05.1.1`: ChatLogic merged LLM-extrahierte Symptome in den Draft.
 - `T05.1.2`: Manuell bearbeitete Symptome werden in den LLM-Kontext aufgenommen.
+
+### T05.2 `server/tests/test_set_observation_severities.py`
+
+- `T05.2.1`: Schweregrade aus dem Chat-Editor werden auf passende aktive Beobachtungen geschrieben.
+- `T05.2.2`: Offene Schweregrad-Rückfragen werden nur für die passende Beobachtung geschlossen.
+- `T05.2.3`: Schweregrade außerhalb von 1 bis 10 werden als ungültige Anfrage abgelehnt.
+
+### T05.3 `server/tests/test_main_careena4_routes.py`
+
+- `T05.3.1`: `/appointments/search` erzeugt ein FHIR-Bundle und nutzt die HAPI-FHIR-Schicht.
+- `T05.3.2`: `/appointments/search` akzeptiert nur fünfstellige numerische Postleitzahlen.
 
 ## T06 Safety Und Red Flags
 

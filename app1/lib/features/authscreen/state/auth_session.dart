@@ -1,6 +1,7 @@
 ﻿// Created as part of the authentication and profile management implementation.
 // Holds the current frontend authentication and active-profile session state.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -16,6 +17,7 @@ class AuthSession extends ChangeNotifier {
 
   /// Access token returned by the backend after login or registration.
   String? _accessToken;
+  String _tokenType = 'bearer';
 
   /// Currently authenticated account.
   Account? _account;
@@ -40,14 +42,15 @@ class AuthSession extends ChangeNotifier {
   /// The first available profile is selected unless a remembered profile fits.
   void setAuthResponse(AuthResponse response, {int? preferredProfileId}) {
     _accessToken = response.accessToken;
+    _tokenType = response.tokenType;
     _account = response.account;
     _profiles = _withMainProfileFirst(response.profiles);
     _activeProfile =
         _profileById(preferredProfileId) ??
         (_profiles.isNotEmpty ? _profiles.first : null);
 
-    _rememberActiveProfile();
-    _persistAuthResponse(response);
+    unawaited(_rememberActiveProfile());
+    unawaited(_persistCurrentSession());
     notifyListeners();
   }
 
@@ -96,7 +99,7 @@ class AuthSession extends ChangeNotifier {
     }
 
     _activeProfile = matchingProfiles.first;
-    _rememberActiveProfile();
+    unawaited(_rememberActiveProfile());
     notifyListeners();
   }
 
@@ -111,7 +114,8 @@ class AuthSession extends ChangeNotifier {
       _activeProfile = _profiles.isNotEmpty ? _profiles.first : null;
     }
 
-    _rememberActiveProfile();
+    unawaited(_rememberActiveProfile());
+    unawaited(_persistCurrentSession());
     notifyListeners();
   }
 
@@ -132,6 +136,7 @@ class AuthSession extends ChangeNotifier {
         .toList();
     _activeProfile = updatedProfile;
 
+    unawaited(_persistCurrentSession());
     notifyListeners();
   }
 
@@ -152,6 +157,7 @@ class AuthSession extends ChangeNotifier {
         .toList();
     _activeProfile = updatedProfile;
 
+    unawaited(_persistCurrentSession());
     notifyListeners();
   }
 
@@ -175,12 +181,14 @@ class AuthSession extends ChangeNotifier {
         .toList();
     _activeProfile = updatedProfile;
 
+    unawaited(_persistCurrentSession());
     notifyListeners();
   }
 
   /// Clears all frontend authentication and profile session data.
   Future<void> clear() async {
     _accessToken = null;
+    _tokenType = 'bearer';
     _account = null;
     _profiles = [];
     _activeProfile = null;
@@ -220,6 +228,24 @@ class AuthSession extends ChangeNotifier {
   Future<void> _persistAuthResponse(AuthResponse response) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_persistedSessionKey, jsonEncode(response.toJson()));
+  }
+
+  Future<void> _persistCurrentSession() async {
+    final accessToken = _accessToken;
+    final account = _account;
+
+    if (accessToken == null || account == null) {
+      return;
+    }
+
+    await _persistAuthResponse(
+      AuthResponse(
+        accessToken: accessToken,
+        tokenType: _tokenType,
+        account: account,
+        profiles: _profiles,
+      ),
+    );
   }
 
   Future<void> _clearPersistedSession() async {

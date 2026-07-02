@@ -18,6 +18,7 @@ import '../widgets/chat_input_field.dart';
 import '../widgets/chat_warning_dialog.dart';
 import '../widgets/latest_message_button.dart';
 import '../widgets/symptom_chat_editor_sheet.dart';
+import '../../utils/symptom_import_dates.dart';
 import '../../../symptom_diary/data/symptom_import.dart';
 import '../../../symptom_diary/presentation/screens/symptom_diary_page.dart';
 import '../widgets/symptom_list.dart';
@@ -246,6 +247,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           .where((text) => text.isNotEmpty)
           .where((text) => _isInformativeUserMessage(text, profileNames))
           .toList(growable: false);
+      final datedRecommendationSymptoms =
+          buildDatedSymptomImportsFromMessages(
+            symptoms: recommendationSymptoms,
+            userMessages: recommendationUserMessages,
+          );
+      final enrichedRecommendationSymptoms = _enrichedChatSymptoms.isNotEmpty
+          ? _enrichedChatSymptoms
+          : withObservationSeverity(
+              datedRecommendationSymptoms,
+              recommendationResponse.caseObservations,
+            );
 
       await widget.controller.resetChat();
 
@@ -259,9 +271,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             symptoms: recommendationSymptoms,
             userMessages: recommendationUserMessages,
             themeController: widget.themeController,
-            enrichedSymptoms: _enrichedChatSymptoms.isNotEmpty
-                ? _enrichedChatSymptoms
-                : null,
+            enrichedSymptoms: enrichedRecommendationSymptoms,
             sessionId: recommendationSessionId,
             authSession: recommendationAuthSession,
             recommendationMessage: recommendationMessage,
@@ -494,9 +504,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           authSession: dependencies.authSession,
           symptomApiService: dependencies.symptomApiService,
           profileApiService: dependencies.profileApiService,
-          initialSymptoms: symptoms
-              .map((symptom) => SymptomImport(name: symptom))
-              .toList(),
+          initialSymptoms: _enrichedChatSymptoms.isNotEmpty
+              ? _enrichedChatSymptoms
+              : buildDatedSymptomImportsFromMessages(
+                  symptoms: symptoms,
+                  userMessages: widget.controller.messages.value
+                      .where((message) => message.isUser)
+                      .map((message) => message.text)
+                      .toList(growable: false),
+                ),
           onInitialSymptomsSaved: () async {
             await widget.controller.markRecommendationAction(
               message,

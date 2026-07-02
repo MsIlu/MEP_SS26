@@ -240,6 +240,7 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
         ]
 
     monkeypatch.setattr("profiles.service.list_profiles", fake_list_profiles)
+    monkeypatch.setattr(main, "_load_diary_history", lambda profile_id, current_user, session: [])
 
     def fake_detect(message):
         return SimpleNamespace(

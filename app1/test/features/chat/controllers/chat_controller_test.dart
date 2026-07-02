@@ -81,6 +81,39 @@ void main() {
       controller.dispose();
     });
 
+    testWidgets('pauses polling outside chat and resumes when reopened', (
+      tester,
+    ) async {
+      final authSession = AuthSession();
+      final chatApi = _FakeChatApi();
+      final controller = ChatController(
+        chatApi: chatApi,
+        chatService: ChatService(),
+        authSession: authSession,
+        chatHistoryRepository: _FakeChatHistoryRepository(),
+      );
+
+      addTearDown(controller.dispose);
+      addTearDown(authSession.dispose);
+
+      await controller.init();
+      expect(chatApi.availabilityRequests, 1);
+
+      controller.pauseAvailabilityPolling();
+      await tester.pump(const Duration(seconds: 20));
+      await tester.pump();
+      expect(chatApi.availabilityRequests, 1);
+
+      await controller.init();
+      expect(chatApi.availabilityRequests, 2);
+
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pump();
+      expect(chatApi.availabilityRequests, 3);
+
+      controller.pauseAvailabilityPolling();
+    });
+
     test(
       'refreshes LLM status when an initialized chat is opened again',
       () async {

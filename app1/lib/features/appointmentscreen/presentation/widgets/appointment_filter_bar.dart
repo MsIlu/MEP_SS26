@@ -20,7 +20,6 @@ class AppointmentFilterBar extends StatelessWidget {
           _buildFilterChip('Alle'),
           _buildFilterChip('Kommend'),
           _buildFilterChip('Vergangen'),
-          _buildFilterChip('Erledigt'),
         ],
       ),
     );

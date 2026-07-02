@@ -1,6 +1,9 @@
 import 'package:app1/core/themes/theme_controller.dart';
 import 'package:app1/features/chatscreen/data/models/chat_response_model.dart';
 import 'package:app1/features/warningscreen/presentation/screens/warning_page.dart';
+import 'package:app1/features/authscreen/domain/models/account.dart';
+import 'package:app1/features/authscreen/domain/models/auth_response.dart';
+import 'package:app1/features/authscreen/state/auth_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -92,29 +95,26 @@ void main() {
       },
     );
 
-    testWidgets(
-      'routine-Empfehlung zeigt KEINE EmergencyCard',
-      (tester) async {
-        const response = ChatResponse(
-          text: 'Keine akute Gefahr erkannt.',
-          redFlag: false,
-          recommendationResult: RecommendationResult(
-            allowed: true,
-            urgency: 'routine',
-            urgencyLevel: 'low',
-            careLevel: 'general_practice',
-            specialty: 'general_practice',
-          ),
-        );
+    testWidgets('routine-Empfehlung zeigt KEINE EmergencyCard', (tester) async {
+      const response = ChatResponse(
+        text: 'Keine akute Gefahr erkannt.',
+        redFlag: false,
+        recommendationResult: RecommendationResult(
+          allowed: true,
+          urgency: 'routine',
+          urgencyLevel: 'low',
+          careLevel: 'general_practice',
+          specialty: 'general_practice',
+        ),
+      );
 
-        await tester.pumpWidget(
-          const MaterialApp(home: WarningPage(response: response)),
-        );
+      await tester.pumpWidget(
+        const MaterialApp(home: WarningPage(response: response)),
+      );
 
-        expect(find.text('Achtung: Möglicher Notfall'), findsNothing);
-        expect(find.text('Hausärztliche Abklärung'), findsOneWidget);
-      },
-    );
+      expect(find.text('Achtung: Möglicher Notfall'), findsNothing);
+      expect(find.text('Hausärztliche Abklärung'), findsOneWidget);
+    });
 
     testWidgets(
       'redFlag=true zeigt EmergencyCard unabhängig von care_level und urgency',
@@ -156,42 +156,58 @@ void main() {
       themeController.dispose();
     });
 
-    testWidgets(
-      'Symptom-Button ist NICHT sichtbar wenn profileId null ist',
-      (tester) async {
-        // Non-profile-bound session: profileId = null.
-        // Before the fix the button appeared and would save to whatever active
-        // profile was set in the app — wrong person's diary.
-        const response = ChatResponse(
-          text: 'Kein Profil gebunden.',
-          redFlag: false,
-          recommendationResult: RecommendationResult(
-            allowed: true,
-            urgency: 'routine',
-            urgencyLevel: 'low',
-            careLevel: 'self_care',
-            specialty: 'general_practice',
-          ),
-          // profileId deliberately omitted (null)
-        );
+    testWidgets('Symptom-Button ist NICHT sichtbar wenn profileId null ist', (
+      tester,
+    ) async {
+      // Non-profile-bound session: profileId = null.
+      // Before the fix the button appeared and would save to whatever active
+      // profile was set in the app — wrong person's diary.
+      const response = ChatResponse(
+        text: 'Kein Profil gebunden.',
+        redFlag: false,
+        recommendationResult: RecommendationResult(
+          allowed: true,
+          urgency: 'routine',
+          urgencyLevel: 'low',
+          careLevel: 'self_care',
+          specialty: 'general_practice',
+        ),
+        // profileId deliberately omitted (null)
+      );
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: WarningPage(
-              response: response,
-              symptoms: const ['Kopfschmerzen'],
-              themeController: themeController,
-            ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WarningPage(
+            response: response,
+            symptoms: const ['Kopfschmerzen'],
+            themeController: themeController,
           ),
-        );
+        ),
+      );
 
-        expect(find.text('Symptome speichern'), findsNothing);
-      },
-    );
+      expect(find.text('Symptome speichern'), findsNothing);
+    });
 
     testWidgets(
       'Symptom-Button erscheint wenn profileId gesetzt ist und Symptome vorhanden',
       (tester) async {
+        final authSession = AuthSession()
+          ..setAuthResponse(
+            const AuthResponse(
+              accessToken: 'token',
+              tokenType: 'bearer',
+              account: Account(id: 1, email: 'test@example.com'),
+              profiles: [
+                AuthProfile(
+                  id: 42,
+                  displayName: 'Testprofil',
+                  profileType: 'self',
+                  role: 'owner',
+                ),
+              ],
+            ),
+          );
+        addTearDown(authSession.dispose);
         const response = ChatResponse(
           text: 'Empfehlung für Profil 42.',
           redFlag: false,
@@ -211,6 +227,7 @@ void main() {
               response: response,
               symptoms: const ['Kopfschmerzen'],
               themeController: themeController,
+              authSession: authSession,
             ),
           ),
         );

@@ -9,7 +9,10 @@ class AppointmentController {
   final ValueNotifier<List<Appointment>> appointments = _sharedAppointments;
 
   void addAppointment(Appointment appointment) {
-    appointments.value = [...appointments.value, appointment];
+    appointments.value = _deduplicateRecommendedAppointments([
+      ...appointments.value,
+      appointment,
+    ]);
   }
 
   void removeAppointment(String id) {
@@ -18,18 +21,12 @@ class AppointmentController {
         .toList();
   }
 
-  void dispose() {
-    // Shared in-memory appointment state is reused across screens.
+  void clear() {
+    appointments.value = [];
   }
 
-  void toggleAppointment(String id) {
-    final updatedAppointments = appointments.value.map((appointment) {
-      if (appointment.id == id) {
-        appointment.isCompleted = !appointment.isCompleted;
-      }
-      return appointment;
-    }).toList();
-    appointments.value = updatedAppointments;
+  void dispose() {
+    // Shared in-memory appointment state is reused across screens.
   }
 
   void updateAppointment(Appointment updatedAppointment) {
@@ -43,17 +40,22 @@ class AppointmentController {
   }
 
   bool addRecommendedAppointmentIfMissing(Appointment appointment) {
-    final normalizedDoctorName = appointment.doctorName.trim().toLowerCase();
+    if (!appointment.isRecommendation) {
+      addAppointment(appointment);
+      return true;
+    }
 
-    final alreadyExists = appointments.value.any((existingAppointment) {
-      return existingAppointment.isRecommendation &&
-          existingAppointment.profileId == appointment.profileId &&
-          (existingAppointment.id == appointment.id ||
-              (existingAppointment.doctorName.trim().toLowerCase() ==
-                      normalizedDoctorName &&
-                  existingAppointment.appointmentDate ==
-                      appointment.appointmentDate));
-    });
+    var alreadyExists = false;
+    appointments.value = _deduplicateRecommendedAppointments(
+      appointments.value.map((existingAppointment) {
+        if (_isSameRecommendedAppointment(existingAppointment, appointment)) {
+          alreadyExists = true;
+          return appointment;
+        }
+
+        return existingAppointment;
+      }).toList(),
+    );
 
     if (alreadyExists) {
       return false;
@@ -63,27 +65,80 @@ class AppointmentController {
     return true;
   }
 
-  void upsertRecommendedAppointments(List<Appointment> remoteAppointments) {
-    if (remoteAppointments.isEmpty) {
-      return;
-    }
-
-    final remoteKeys = remoteAppointments
-        .map(_recommendedAppointmentKey)
-        .toSet();
-
+  void upsertRecommendedAppointments(
+    List<Appointment> remoteAppointments, {
+    int? profileId,
+  }) {
     final preservedAppointments = appointments.value.where((appointment) {
       if (!appointment.isRecommendation) {
         return true;
       }
 
-      return !remoteKeys.contains(_recommendedAppointmentKey(appointment));
+      if (profileId != null &&
+          appointment.profileId == profileId &&
+          appointment.backendId != null) {
+        return false;
+      }
+
+      return !remoteAppointments.any(
+        (remoteAppointment) =>
+            _isSameRecommendedAppointment(appointment, remoteAppointment),
+      );
     }).toList();
 
-    appointments.value = [...preservedAppointments, ...remoteAppointments];
+    appointments.value = _deduplicateRecommendedAppointments([
+      ...preservedAppointments,
+      ...remoteAppointments,
+    ]);
   }
 
-  String _recommendedAppointmentKey(Appointment appointment) {
-    return '${appointment.profileId ?? 'none'}:${appointment.id}';
+  List<Appointment> _deduplicateRecommendedAppointments(
+    List<Appointment> source,
+  ) {
+    final result = <Appointment>[];
+
+    for (final appointment in source) {
+      if (!appointment.isRecommendation) {
+        result.add(appointment);
+        continue;
+      }
+
+      final existingIndex = result.indexWhere(
+        (existingAppointment) =>
+            _isSameRecommendedAppointment(existingAppointment, appointment),
+      );
+
+      if (existingIndex == -1) {
+        result.add(appointment);
+      } else {
+        result[existingIndex] = appointment;
+      }
+    }
+
+    return result;
+  }
+
+  bool _isSameRecommendedAppointment(Appointment first, Appointment second) {
+    if (!first.isRecommendation || !second.isRecommendation) {
+      return false;
+    }
+
+    if (first.profileId != second.profileId) {
+      return false;
+    }
+
+    if (first.backendId != null &&
+        second.backendId != null &&
+        first.backendId == second.backendId) {
+      return true;
+    }
+
+    if (first.id.trim().isNotEmpty && first.id == second.id) {
+      return true;
+    }
+
+    return first.doctorName.trim().toLowerCase() ==
+            second.doctorName.trim().toLowerCase() &&
+        first.appointmentDate == second.appointmentDate;
   }
 }

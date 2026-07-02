@@ -452,6 +452,28 @@ def test_appointment_search_uses_fhir_bundle_and_hapi_layer(
     assert patient["identifier"][0]["value"] == "1"
 
 
+@pytest.mark.parametrize(
+    "marker, expected_specialty",
+    [
+        ("Zahnarzt", "dentistry"),
+        ("Augenarzt", "ophthalmology"),
+        ("Frauenarzt", "gynecology"),
+        ("Kinderarzt", "pediatrics"),
+        ("Urologie", "urology"),
+    ],
+)
+def test_persisted_recommendation_supports_extended_specialties(
+        marker,
+        expected_specialty,
+):
+    recommendation = main._recommendation_from_history(
+        recommendation=f"Bitte in einer {marker}-Praxis abklären lassen.",
+        next_steps=f"Termin bei {marker} vereinbaren.",
+    )
+
+    assert recommendation.specialty == expected_specialty
+
+
 def test_fhir_export_valid_session_returns_bundle(client):
     session_response = client.post("/session", json={})
     session_id = session_response.json()["session_id"]

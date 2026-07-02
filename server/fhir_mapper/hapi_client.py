@@ -6,6 +6,11 @@ from uuid import NAMESPACE_URL, uuid5
 
 import httpx
 
+from appointments.simulator_catalog import (
+    SPECIALTY_LABELS,
+    providers_for,
+    simulated_location,
+)
 from config import FHIR_BASE_URL, FHIR_TIMEOUT_SECONDS
 
 
@@ -37,26 +42,13 @@ BOOKED_BY_ACCOUNT_EXTENSION_URL = (
     "https://careena.local/fhir/StructureDefinition/careena-booked-by-account-id"
 )
 
-SPECIALTY_LABELS = {
-    "general_practice": "Allgemeinmedizin",
-    "pediatrics": "Kinderheilkunde",
-    "gynecology": "Gynaekologie",
-    "dermatology": "Dermatologie",
-    "orthopedics": "Orthopaedie",
-    "neurology": "Neurologie",
-    "ent": "HNO",
-    "ophthalmology": "Augenheilkunde",
-    "urology": "Urologie",
-    "cardiology": "Kardiologie",
-    "gastroenterology": "Gastroenterologie",
-    "psychiatry": "Psychiatrie",
-    "emergency_medicine": "Notfallmedizin",
-    "unknown": "Allgemeinmedizin",
-}
-
 
 class HapiFhirError(RuntimeError):
     """Raised when the local HAPI FHIR adapter cannot be reached or parsed."""
+
+    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class HapiFhirClient:
@@ -102,12 +94,24 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
 
         if existing_appointments:
             return existing_appointments
 
+        existing_resources = self.search_appointments(
+            session_id=session_id,
+            profile_id=profile_id,
+            postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
+            allowed_statuses={"proposed", "pending", "booked", "cancelled"},
+        )
+        existing_by_id = {
+            str(resource.get("id")): resource for resource in existing_resources
+        }
         written_appointments: list[dict[str, Any]] = []
+        new_resources: list[dict[str, Any]] = []
 
         for resource in build_recommendation_appointment_resources(
             session_id=session_id,
@@ -116,12 +120,25 @@ class HapiFhirClient:
             recommendation_result=recommendation_result,
             bundle_id=bundle_id,
         ):
-            written_appointments.append(self._put_appointment(resource))
+            existing = existing_by_id.get(str(resource["id"]))
+            if existing is not None and existing.get("status") in {
+                "proposed",
+                "pending",
+                "booked",
+            }:
+                written_appointments.append(existing)
+                continue
+            new_resources.append(resource)
+
+        if new_resources:
+            self._put_appointments_transaction(new_resources)
+            written_appointments.extend(new_resources)
 
         indexed_appointments = self.search_appointments(
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
         if indexed_appointments:
             return indexed_appointments
@@ -131,6 +148,7 @@ class HapiFhirClient:
             session_id=session_id,
             profile_id=profile_id,
             postal_code=postal_code,
+            specialty=getattr(recommendation_result, "specialty", "unknown"),
         )
         if confirmed_appointments:
             return confirmed_appointments
@@ -144,6 +162,7 @@ class HapiFhirClient:
                     session_id=session_id,
                     profile_id=profile_id,
                     postal_code=postal_code,
+                    specialty=getattr(recommendation_result, "specialty", "unknown"),
                     allowed_statuses={"proposed"},
                 )
             ]
@@ -155,14 +174,17 @@ class HapiFhirClient:
             session_id: str,
             profile_id: int,
             postal_code: str,
+            specialty: str | None = None,
+            allowed_statuses: set[str] | None = None,
     ) -> list[dict[str, Any]]:
+        allowed_statuses = allowed_statuses or {"proposed"}
+        params: dict[str, str] = {"_count": "500"}
+        if len(allowed_statuses) == 1:
+            params["status"] = next(iter(allowed_statuses))
         bundle = self._request(
             "GET",
             "/Appointment",
-            params={
-                "status": "proposed",
-                "_count": "50",
-            },
+            params=params,
         )
 
         appointments: list[dict[str, Any]] = []
@@ -174,7 +196,8 @@ class HapiFhirClient:
                 session_id=session_id,
                 profile_id=profile_id,
                 postal_code=postal_code,
-                allowed_statuses={"proposed"},
+                specialty=specialty,
+                allowed_statuses=allowed_statuses,
             ):
                 continue
 
@@ -194,17 +217,16 @@ class HapiFhirClient:
             self,
             *,
             appointment_id: str,
-            session_id: str,
-            profile_id: int,
             booked_by_account_id: int,
     ) -> dict[str, Any]:
+        """Book one global simulator slot for the authenticated account.
+
+        Free slots intentionally have no session/profile owner, mirroring a
+        shared 116117 catalog. Profile authorization and persistence happen in
+        the appointment service before this HAPI operation; the booked account
+        extension protects the slot after booking.
+        """
         appointment = self.get_appointment(appointment_id)
-
-        if _extension_value(appointment, SESSION_EXTENSION_URL) != session_id:
-            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu dieser Session.")
-
-        if _extension_value(appointment, PROFILE_EXTENSION_URL) != profile_id:
-            raise HapiFhirError("Der HAPI-Termin gehoert nicht zu diesem Profil.")
 
         status = str(appointment.get("status") or "")
         if status not in {"proposed", "pending", "booked"}:
@@ -241,12 +263,76 @@ class HapiFhirClient:
             "PUT",
             f"/Appointment/{appointment['id']}",
             json=appointment,
-            headers={"Prefer": "return=representation"},
+            headers=_versioned_update_headers(appointment),
         )
 
         if updated_resource.get("resourceType") == "Appointment":
             return updated_resource
 
+        return self.get_appointment(str(appointment["id"]))
+
+    def cancel_appointment(
+            self,
+            *,
+            appointment_id: str,
+            profile_id: int,
+            booked_by_account_id: int,
+    ) -> dict[str, Any]:
+        try:
+            appointment = self.get_appointment(appointment_id)
+        except HapiFhirError as exc:
+            if exc.status_code == 404:
+                # PostgreSQL can outlive a non-persistent/recreated HAPI
+                # instance. Nothing remains to release remotely, so allow the
+                # owned local booking to be marked as cancelled.
+                return {
+                    "resourceType": "Appointment",
+                    "id": appointment_id,
+                    "status": "cancelled",
+                }
+            raise
+
+        booked_by_account = _extension_value(
+            appointment,
+            BOOKED_BY_ACCOUNT_EXTENSION_URL,
+        )
+        if (
+            appointment.get("status") == "proposed"
+            and booked_by_account is None
+        ):
+            # A previous cancellation may have released the FHIR slot before
+            # the local database row could be marked as cancelled. Treat that
+            # retry as successful so the local record can still be removed.
+            return appointment
+        if str(booked_by_account) != str(booked_by_account_id):
+            raise HapiFhirError("Der HAPI-Termin wurde von einem anderen Account gebucht.")
+
+        if appointment.get("status") != "booked":
+            raise HapiFhirError("Nur ein gebuchter HAPI-Termin kann storniert werden.")
+
+        # A cancellation removes the user's booking but releases the simulated
+        # 116117 slot immediately so another search can book it again.
+        appointment["status"] = "proposed"
+        appointment["comment"] = (
+            "Stornierter Termin wurde im simulierten 116117-Terminservice "
+            "wieder freigegeben."
+        )
+        appointment["extension"] = [
+            extension
+            for extension in appointment.get("extension", []) or []
+            if extension.get("url") != BOOKED_BY_ACCOUNT_EXTENSION_URL
+        ]
+        for index, participant in enumerate(appointment.get("participant", []) or []):
+            participant["status"] = "needs-action" if index == 0 else "accepted"
+
+        updated_resource = self._request(
+            "PUT",
+            f"/Appointment/{appointment['id']}",
+            json=appointment,
+            headers=_versioned_update_headers(appointment),
+        )
+        if updated_resource.get("resourceType") == "Appointment":
+            return updated_resource
         return self.get_appointment(str(appointment["id"]))
 
     def _put_appointment(self, resource: dict[str, Any]) -> dict[str, Any]:
@@ -262,6 +348,92 @@ class HapiFhirClient:
 
         return resource
 
+    def _put_appointments_transaction(
+            self,
+            resources: list[dict[str, Any]],
+    ) -> None:
+        """Write simulator slots with one atomic FHIR transaction request."""
+        self._request(
+            "POST",
+            "",
+            json={
+                "resourceType": "Bundle",
+                "type": "transaction",
+                "entry": [
+                    {
+                        "resource": resource,
+                        "request": {
+                            "method": "PUT",
+                            "url": f"Appointment/{resource['id']}",
+                        },
+                    }
+                    for resource in resources
+                ],
+            },
+        )
+
+    def list_all_appointments(self) -> list[dict[str, Any]]:
+        bundle = self._request(
+            "GET",
+            "/Appointment",
+            params={"_count": "500"},
+        )
+        return [
+            entry.get("resource", {})
+            for entry in bundle.get("entry", []) or []
+            if entry.get("resource", {}).get("resourceType") == "Appointment"
+        ]
+
+    def ensure_simulator_catalog(self, postal_code: str = "68159") -> None:
+        """Seed one shared set of slots for every supported medical specialty."""
+        existing_by_id = {
+            str(resource.get("id")): resource
+            for resource in self.list_all_appointments()
+        }
+        resources_to_write: list[dict[str, Any]] = []
+
+        for specialty in SPECIALTY_LABELS:
+            if specialty in {"unknown", "emergency_medicine"}:
+                continue
+
+            recommendation = type(
+                "SimulatorRecommendation",
+                (),
+                {
+                    "urgency_level": "medium",
+                    "care_level": (
+                        "general_practice"
+                        if specialty == "general_practice"
+                        else "specialist"
+                    ),
+                    "specialty": specialty,
+                    "next_step": "Termin im simulierten 116117-Terminservice",
+                    "summary": None,
+                },
+            )()
+
+            for resource in build_recommendation_appointment_resources(
+                session_id="simulator-catalog",
+                profile_id=0,
+                postal_code=postal_code,
+                recommendation_result=recommendation,
+                bundle_id=None,
+            ):
+                existing = existing_by_id.get(str(resource["id"]))
+                if existing is not None:
+                    if existing.get("status") == "booked":
+                        continue
+                    if (
+                        existing.get("status") in {"proposed", "pending"}
+                        and _provider_display(existing)
+                        == _provider_display(resource)
+                    ):
+                        continue
+                resources_to_write.append(resource)
+
+        if resources_to_write:
+            self._put_appointments_transaction(resources_to_write)
+
     def _read_appointments_by_id(
             self,
             appointment_ids: list[str],
@@ -269,6 +441,7 @@ class HapiFhirClient:
             session_id: str,
             profile_id: int,
             postal_code: str,
+            specialty: str | None = None,
     ) -> list[dict[str, Any]]:
         appointments: list[dict[str, Any]] = []
 
@@ -283,6 +456,7 @@ class HapiFhirClient:
                 session_id=session_id,
                 profile_id=profile_id,
                 postal_code=postal_code,
+                specialty=specialty,
                 allowed_statuses={"proposed"},
             ):
                 appointments.append(resource)
@@ -314,6 +488,11 @@ class HapiFhirClient:
 
             response.raise_for_status()
             data = response.json()
+        except httpx.HTTPStatusError as exc:
+            raise HapiFhirError(
+                "Der lokale HAPI-FHIR-Server hat die FHIR-Anfrage abgelehnt.",
+                status_code=exc.response.status_code,
+            ) from exc
         except httpx.HTTPError as exc:
             raise HapiFhirError(
                 "Der lokale HAPI-FHIR-Server ist nicht erreichbar oder hat die "
@@ -341,42 +520,31 @@ def build_recommendation_appointment_resources(
         bundle_id: str | None,
 ) -> list[dict[str, Any]]:
     urgency = getattr(recommendation_result, "urgency_level", "unclear")
-    care_level = getattr(recommendation_result, "care_level", "unknown")
     specialty = getattr(recommendation_result, "specialty", "unknown")
     next_step = getattr(recommendation_result, "next_step", None)
     summary = getattr(recommendation_result, "summary", None)
 
     specialty_label = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
-    provider_type = _provider_type_for_care_level(care_level)
-    location = _location_for_postal_code(postal_code)
+    provider_type = _provider_type_for_specialty(specialty)
+    location = simulated_location(postal_code)
     offsets = _appointment_offsets_for_urgency(urgency)
+    providers = providers_for(postal_code, specialty)
+    slot_times = (time(8, 30), time(10, 15), time(14, 0), time(16, 30))
 
-    appointment_templates = [
-        (
-            "Dr. Schneider",
-            "Musterstrasse 12",
-            2.4,
-            offsets[0],
-            time(9, 30),
-            "Vor-Ort-Termin",
-        ),
-        (
-            "Care Praxiszentrum",
-            "Bahnhofstrasse 8",
-            4.1,
-            offsets[1],
-            time(14, 0),
-            "Vor-Ort-Termin",
-        ),
-        (
-            "Videosprechstunde CareConnect",
-            "Online",
-            0.0,
-            offsets[2],
-            time(16, 30),
-            "Videosprechstunde",
-        ),
-    ]
+    appointment_templates: list[tuple[str, str, float, int, time, str]] = []
+    for provider_index, provider in enumerate(providers):
+        for slot_index in range(3):
+            is_video = provider.supports_video and slot_index == 2
+            appointment_templates.append(
+                (
+                    provider.name,
+                    "Online" if is_video else provider.street,
+                    0.0 if is_video else provider.base_distance_km + slot_index * 0.4,
+                    offsets[(provider_index + slot_index) % len(offsets)] + provider_index,
+                    slot_times[(provider_index + slot_index) % len(slot_times)],
+                    "Videosprechstunde" if is_video else "Vor-Ort-Termin",
+                )
+            )
 
     resources: list[dict[str, Any]] = []
 
@@ -396,7 +564,7 @@ def build_recommendation_appointment_resources(
         end = start + timedelta(minutes=30)
         appointment_id = _stable_id(
             "Appointment",
-            f"{session_id}:{profile_id}:{postal_code}:{index}",
+            f"{postal_code}:{provider_name}:{start.isoformat()}:{care_type}",
         )
         provider_display = f"{provider_type} {provider_name}"
         address = (
@@ -447,8 +615,6 @@ def build_recommendation_appointment_resources(
                     },
                 ],
                 "extension": [
-                    {"url": SESSION_EXTENSION_URL, "valueString": session_id},
-                    {"url": PROFILE_EXTENSION_URL, "valueInteger": profile_id},
                     {"url": POSTAL_CODE_EXTENSION_URL, "valueString": postal_code},
                     {"url": ADDRESS_EXTENSION_URL, "valueString": address},
                     {"url": DISTANCE_EXTENSION_URL, "valueDecimal": distance_km},
@@ -508,6 +674,7 @@ def _appointment_matches_search(
         session_id: str,
         profile_id: int,
         postal_code: str,
+        specialty: str | None,
         allowed_statuses: set[str],
 ) -> bool:
     if resource.get("resourceType") != "Appointment":
@@ -516,16 +683,34 @@ def _appointment_matches_search(
     if str(resource.get("status") or "") not in allowed_statuses:
         return False
 
-    return (
-        str(_extension_value(resource, SESSION_EXTENSION_URL)) == str(session_id)
-        and str(_extension_value(resource, PROFILE_EXTENSION_URL)) == str(profile_id)
-        and str(_extension_value(resource, POSTAL_CODE_EXTENSION_URL))
-        == str(postal_code)
-    )
+    resource_session = _extension_value(resource, SESSION_EXTENSION_URL)
+    resource_profile = _extension_value(resource, PROFILE_EXTENSION_URL)
+    if resource_session is not None and str(resource_session) != str(session_id):
+        return False
+    if resource_profile is not None and str(resource_profile) != str(profile_id):
+        return False
+    if str(_extension_value(resource, POSTAL_CODE_EXTENSION_URL)) != str(postal_code):
+        return False
+
+    if specialty is not None:
+        expected_specialty = SPECIALTY_LABELS.get(specialty, "Allgemeinmedizin")
+        if (_first_text(resource.get("specialty")) or "") != expected_specialty:
+            return False
+
+    start = _parse_datetime(resource.get("start"))
+    return start is not None and start >= datetime.now(timezone.utc)
 
 
 def _sort_appointments(appointments: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(appointments, key=lambda item: item.get("start") or "")
+
+
+def _versioned_update_headers(resource: dict[str, Any]) -> dict[str, str]:
+    headers = {"Prefer": "return=representation"}
+    version_id = resource.get("meta", {}).get("versionId")
+    if version_id:
+        headers["If-Match"] = f'W/"{version_id}"'
+    return headers
 
 
 def _extension_value(resource: dict[str, Any], url: str) -> Any:
@@ -584,7 +769,12 @@ def _parse_datetime(value: Any) -> datetime | None:
         return None
 
     try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return (
+            parsed
+            if parsed.tzinfo is not None
+            else parsed.replace(tzinfo=timezone.utc)
+        )
     except ValueError:
         return None
 
@@ -602,33 +792,15 @@ def _appointment_offsets_for_urgency(urgency: str) -> list[int]:
     return [5, 10, 15]
 
 
-def _provider_type_for_care_level(care_level: str) -> str:
-    if care_level == "general_practice":
-        return "Hausarztpraxis"
-
-    if care_level == "specialist":
-        return "Facharztpraxis"
-
-    if care_level == "116117":
-        return "Terminservicestelle"
-
-    return "Praxis"
-
-
-def _location_for_postal_code(postal_code: str) -> str:
-    if postal_code.startswith("68"):
-        return "Mannheim"
-
-    if postal_code.startswith("69"):
-        return "Heidelberg"
-
-    if postal_code.startswith("70"):
-        return "Stuttgart"
-
-    if postal_code.startswith("10"):
-        return "Berlin"
-
-    return "Ihre Umgebung"
+def _provider_type_for_specialty(specialty: str) -> str:
+    return {
+        "general_practice": "Hausarztpraxis",
+        "dentistry": "Zahnarztpraxis",
+        "ophthalmology": "Augenarztpraxis",
+        "gynecology": "Frauenarztpraxis",
+        "pediatrics": "Kinderarztpraxis",
+        "ent": "HNO-Praxis",
+    }.get(specialty, "Facharztpraxis")
 
 
 def _stable_id(prefix: str, value: str) -> str:

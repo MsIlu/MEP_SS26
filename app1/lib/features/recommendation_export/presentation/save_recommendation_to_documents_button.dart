@@ -14,6 +14,7 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
   final List<String> symptoms;
   final List<String> userMessages;
   final bool alreadySaved;
+  final DateTime? recommendationCreatedAt;
   final Future<void> Function()? onSaved;
 
   /// Profile the recommendation belongs to (resolved by the backend session).
@@ -30,6 +31,7 @@ class SaveRecommendationToDocumentsButton extends StatefulWidget {
     required this.symptoms,
     required this.userMessages,
     this.alreadySaved = false,
+    this.recommendationCreatedAt,
     this.onSaved,
     this.profileId,
   });
@@ -43,14 +45,17 @@ class _SaveRecommendationToDocumentsButtonState
     extends State<SaveRecommendationToDocumentsButton> {
   final DocumentRepository _repository = DocumentRepository.instance;
   bool _isSaving = false;
+  bool _savedLocally = false;
 
-  bool _isSavedForCurrentProfile(BuildContext context) {
-    final normalizedName = _documentName.toLowerCase();
+  bool _isSavedForCurrentRecommendation() {
+    final recommendationCreatedAt = widget.recommendationCreatedAt;
+    if (recommendationCreatedAt == null) return false;
+    final key = recommendationCreatedAt.toUtc().millisecondsSinceEpoch;
     return _repository.documents.value.any(
       (document) =>
           document.profileId == widget.profileId &&
           document.source == DocumentSource.careena &&
-          document.name.toLowerCase() == normalizedName,
+          document.createdAt.toUtc().millisecondsSinceEpoch == key,
     );
   }
 
@@ -77,14 +82,15 @@ class _SaveRecommendationToDocumentsButtonState
   }
 
   void _repositoryChanged() {
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final isSaved = widget.alreadySaved || _isSavedForCurrentProfile(context);
+    final isSaved =
+        widget.alreadySaved ||
+        _savedLocally ||
+        _isSavedForCurrentRecommendation();
 
     return Tooltip(
       message: isSaved ? 'In Dokumenten gespeichert' : 'In Dokumente speichern',
@@ -151,7 +157,7 @@ class _SaveRecommendationToDocumentsButtonState
           profileId: resolvedProfileId,
           name: _documentName,
           category: DocumentCategory.recommendations,
-          createdAt: DateTime.now(),
+          createdAt: widget.recommendationCreatedAt ?? DateTime.now(),
           sizeInBytes: pdfBytes.lengthInBytes,
           source: DocumentSource.careena,
           fileBytes: pdfBytes,
@@ -159,6 +165,10 @@ class _SaveRecommendationToDocumentsButtonState
         ),
       );
       documentStored = true;
+
+      if (mounted) {
+        setState(() => _savedLocally = true);
+      }
 
       await widget.onSaved?.call();
 

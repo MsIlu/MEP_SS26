@@ -39,9 +39,6 @@ List<Appointment> _filterAppointments(
         final date = appointment.appointmentDate;
         return date != null && date.isBefore(now);
       }).toList(),
-    'Erledigt' => appointments
-        .where((appointment) => appointment.isCompleted)
-        .toList(),
     _ => List<Appointment>.from(appointments),
   };
 }

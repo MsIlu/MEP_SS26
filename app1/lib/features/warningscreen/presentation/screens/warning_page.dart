@@ -50,6 +50,7 @@ class WarningPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final showEmergencyActions = _showEmergencyActions(response);
+    final isAuthenticated = authSession?.isAuthenticated == true;
 
     final backgroundColor = isDarkMode
         ? colorScheme.surface
@@ -79,12 +80,14 @@ class WarningPage extends StatelessWidget {
               ExportRecommendationPdfButton(
                 title: WarningCopy.pageTitle,
                 patientSummary:
-                    (response.recommendationResult?.summary?.trim().isNotEmpty ??
-                            false)
-                        ? _normalizeGermanText(
-                            response.recommendationResult!.summary!.trim(),
-                          )
-                        : 'Aus dem Chatverlauf generierte Handlungsempfehlung.',
+                    (response.recommendationResult?.summary
+                            ?.trim()
+                            .isNotEmpty ??
+                        false)
+                    ? _normalizeGermanText(
+                        response.recommendationResult!.summary!.trim(),
+                      )
+                    : 'Aus dem Chatverlauf generierte Handlungsempfehlung.',
                 recommendation: _recommendationTextFor(response),
                 nextSteps:
                     response.recommendationResult?.nextStep ??
@@ -96,7 +99,7 @@ class WarningPage extends StatelessWidget {
                 profileId: response.profileId,
               ),
 
-              if (!showEmergencyActions) ...[
+              if (isAuthenticated) ...[
                 const SizedBox(height: 8),
                 SaveRecommendationToDocumentsButton(
                   title: WarningCopy.pageTitle,
@@ -110,6 +113,7 @@ class WarningPage extends StatelessWidget {
                   symptoms: symptoms,
                   userMessages: userMessages,
                   alreadySaved: recommendationMessage?.documentSaved ?? false,
+                  recommendationCreatedAt: recommendationMessage?.timestamp,
                   onSaved: () async {
                     await _markAction(RecommendationAction.document);
                   },
@@ -117,7 +121,8 @@ class WarningPage extends StatelessWidget {
                 ),
               ],
 
-              if ((symptoms.isNotEmpty ||
+              if (isAuthenticated &&
+                  (symptoms.isNotEmpty ||
                       response.caseObservations.isNotEmpty) &&
                   themeController != null &&
                   response.profileId != null) ...[
@@ -171,11 +176,15 @@ class WarningPage extends StatelessWidget {
           // Expand onset range: one entry per day from startDate through today.
           var d = startDate;
           while (!d.isAfter(today)) {
-            result.add(SymptomImport(name: o.label, severity: o.severity, date: d));
+            result.add(
+              SymptomImport(name: o.label, severity: o.severity, date: d),
+            );
             d = d.add(const Duration(days: 1));
           }
         } else {
-          result.add(SymptomImport(name: o.label, severity: o.severity, date: o.date));
+          result.add(
+            SymptomImport(name: o.label, severity: o.severity, date: o.date),
+          );
         }
       }
       return result;
@@ -296,7 +305,8 @@ bool _showEmergencyActions(ChatResponse response) {
   // urgency is the primary signal; care_level is the fallback so that
   // '112' and 'emergency_department' are never shown as normal recommendations.
   if (result.urgency == 'emergency') return true;
-  return result.careLevel == '112' || result.careLevel == 'emergency_department';
+  return result.careLevel == '112' ||
+      result.careLevel == 'emergency_department';
 }
 
 String _recommendationTextFor(ChatResponse response) {
@@ -374,9 +384,9 @@ class _RecommendationCard extends StatelessWidget {
                     Text(
                       care.headline,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: care.color,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: care.color,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Text(
@@ -624,8 +634,10 @@ class _DataSourcesSection extends StatelessWidget {
           children: [
             for (final source in sources)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
@@ -651,10 +663,11 @@ List<String> _recommendationReasonsFor(
   // Prefer the backend's structured reasons — they are now concrete and
   // clinically phrased. Mixing in raw user messages here leaked noise like the
   // profile name or "Ich möchte eine Empfehlung" into the reasons list.
-  final backendReasons = (response.recommendationResult?.reasons ?? const <String>[])
-      .where((reason) => !_isGenericReason(reason))
-      .map(_normalizeGermanText)
-      .toList();
+  final backendReasons =
+      (response.recommendationResult?.reasons ?? const <String>[])
+          .where((reason) => !_isGenericReason(reason))
+          .map(_normalizeGermanText)
+          .toList();
   if (backendReasons.isNotEmpty) {
     return _summarizeReasons(backendReasons);
   }

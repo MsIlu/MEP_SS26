@@ -64,7 +64,7 @@ _JSON_SCHEMA = """
   "urgency": "<unknown|self_observation|routine|soon|today|emergency>",
   "urgency_level": "<low|medium|high|emergency|unclear>",
   "care_level": "<self_care|pharmacy|general_practice|specialist|116117|emergency_department|112|unknown>",
-  "specialty": "<unknown|general_practice|pediatrics|gynecology|orthopedics|dermatology|neurology|ent|ophthalmology|urology|cardiology|gastroenterology|psychiatry|emergency_medicine>",
+  "specialty": "<unknown|general_practice|pediatrics|gynecology|orthopedics|dermatology|neurology|ent|dentistry|ophthalmology|urology|cardiology|gastroenterology|psychiatry|emergency_medicine>",
   "summary": "<1-2 Sätze Zusammenfassung der klinischen Situation>",
   "next_step": "<konkrete Handlungsempfehlung für den Patienten, 1-2 Sätze>",
   "reasons": ["<konkreter Grund 1>", "<konkreter Grund 2>"]
@@ -93,9 +93,21 @@ _VALID_URGENCY = {"unknown", "self_observation", "routine", "soon", "today", "em
 _VALID_LEVEL = {"low", "medium", "high", "emergency", "unclear"}
 _VALID_CARE = {"self_care", "pharmacy", "general_practice", "specialist", "116117", "emergency_department", "112", "unknown"}
 _VALID_SPECIALTY = {
-    "unknown", "general_practice", "pediatrics", "gynecology", "orthopedics",
-    "dermatology", "neurology", "ent", "ophthalmology", "urology", "cardiology",
-    "gastroenterology", "psychiatry", "emergency_medicine",
+    "unknown",
+    "general_practice",
+    "pediatrics",
+    "gynecology",
+    "orthopedics",
+    "dermatology",
+    "neurology",
+    "ent",
+    "dentistry",
+    "ophthalmology",
+    "urology",
+    "cardiology",
+    "gastroenterology",
+    "psychiatry",
+    "emergency_medicine",
 }
 
 

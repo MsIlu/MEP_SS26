@@ -126,8 +126,7 @@ class ApiClient {
                 'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
             break;
           case 401:
-            message =
-                'Du bist nicht angemeldet. Bitte melde dich erneut an.';
+            message = 'Du bist nicht angemeldet. Bitte melde dich erneut an.';
             break;
           case 403:
             message = 'Du hast keine Berechtigung für diese Aktion.';
@@ -265,12 +264,10 @@ class ApiClient {
 
       switch (response.statusCode) {
         case 400:
-          message =
-              'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
+          message = 'Die Anfrage ist ungültig. Bitte überprüfe deine Eingaben.';
           break;
         case 401:
-          message =
-              'Du bist nicht angemeldet. Bitte melde dich erneut an.';
+          message = 'Du bist nicht angemeldet. Bitte melde dich erneut an.';
           break;
         case 403:
           message = 'Du hast keine Berechtigung für diese Aktion.';
@@ -287,6 +284,17 @@ class ApiClient {
           message =
               _mappedErrorDetailFromResponse(response) ??
               'Die Datei darf maximal 10 MB groß sein.';
+          break;
+        case 422:
+          message =
+              'Die Eingaben konnten nicht verarbeitet werden. Bitte überprüfe insbesondere die Postleitzahl.';
+          break;
+        case 502:
+        case 503:
+        case 504:
+          message =
+              _mappedErrorDetailFromResponse(response) ??
+              'Ein benötigter Dienst ist gerade nicht erreichbar.';
           break;
         default:
           message =
@@ -334,7 +342,22 @@ class ApiClient {
       case 'Email is already registered.':
         return 'Diese E-Mail-Adresse wurde schon registriert.';
       default:
-        return detail;
+        const allowedConflictDetails = [
+          'Chat session belongs to a different profile.',
+          'Last user message is empty',
+          'Only active chat history entries',
+          'Only waiting chat history entries',
+          'does not wait for an assistant response',
+          'Chat session is not linked to a profile.',
+          'Requested profile does not match chat session profile.',
+          'No Careena recommendation available for this session.',
+          'Der HAPI-Termin ist bereits gebucht.',
+        ];
+        return allowedConflictDetails.any(
+              (allowed) => detail?.contains(allowed) ?? false,
+            )
+            ? detail
+            : null;
     }
   }
 

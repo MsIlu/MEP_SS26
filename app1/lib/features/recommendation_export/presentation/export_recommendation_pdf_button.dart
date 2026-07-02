@@ -1,5 +1,4 @@
 import 'package:app1/app/app_dependencies_scope.dart';
-import 'package:app1/features/profiles/domain/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:app1/core/themes/app_colors.dart';
@@ -12,15 +11,16 @@ import '../data/recommendation_pdf_service.dart';
 /// User-facing label for a backend `care_level` value, used in the PDF.
 String careLevelLabelForPdf(String? careLevel) {
   return switch (careLevel) {
-    'self_care' => 'Selbstbehandlung – Maßnahmen für zu Hause',
-    'pharmacy' => 'Apotheke – Beratung und rezeptfreie Mittel',
-    'general_practice' => 'Hausarztpraxis – zeitnahe Abklärung',
-    'specialist' => 'Facharztpraxis – gezielte Abklärung',
-    '116117' => 'Ärztlicher Bereitschaftsdienst (116117)',
-    'emergency_department' => 'Notaufnahme aufsuchen',
-    '112' => 'Notruf 112 wählen',
-    _ => null,
-  } ?? '';
+        'self_care' => 'Selbstbehandlung – Maßnahmen für zu Hause',
+        'pharmacy' => 'Apotheke – Beratung und rezeptfreie Mittel',
+        'general_practice' => 'Hausarztpraxis – zeitnahe Abklärung',
+        'specialist' => 'Facharztpraxis – gezielte Abklärung',
+        '116117' => 'Ärztlicher Bereitschaftsdienst (116117)',
+        'emergency_department' => 'Notaufnahme aufsuchen',
+        '112' => 'Notruf 112 wählen',
+        _ => null,
+      } ??
+      '';
 }
 
 /// Button that exports a generated care recommendation as a PDF.
@@ -66,7 +66,6 @@ class ExportRecommendationPdfButton extends StatelessWidget {
       label: const Text('PDF exportieren'),
       onPressed: () async {
         final dependencies = AppDependenciesScope.maybeOf(context);
-        final profileApiService = dependencies?.profileApiService;
         final symptomApiService = dependencies?.symptomApiService;
         final apiClient = dependencies?.apiClient;
         // Use only the session-resolved profile. If the session has no profile
@@ -74,24 +73,22 @@ class ExportRecommendationPdfButton extends StatelessWidget {
         // could expose data of a different person.
         final activeProfileId = profileId;
 
-        Profile? profile;
         var diaryLines = const <String>[];
         var medicationLines = const <String>[];
 
         if (activeProfileId != null) {
-          if (profileApiService != null) {
-            try {
-              profile = await profileApiService.getProfile(activeProfileId);
-            } catch (_) {
-              profile = null;
-            }
-          }
           if (symptomApiService != null) {
             try {
               final entries = await symptomApiService.getSymptoms(
                 profileId: activeProfileId,
               );
-              diaryLines = entries.map(_formatDiaryEntry).toList();
+              final recentThreshold = DateTime.now().subtract(
+                const Duration(days: 14),
+              );
+              diaryLines = entries
+                  .where((entry) => !entry.date.isBefore(recentThreshold))
+                  .map(_formatDiaryEntry)
+                  .toList();
             } catch (_) {
               diaryLines = const [];
             }
@@ -101,7 +98,9 @@ class ExportRecommendationPdfButton extends StatelessWidget {
               final medications = await MedicationApiService(
                 apiClient,
               ).getMedications(activeProfileId);
-              medicationLines = medications.map(_formatMedicationEntry).toList();
+              medicationLines = medications
+                  .map(_formatMedicationEntry)
+                  .toList();
             } catch (_) {
               medicationLines = const [];
             }
@@ -116,10 +115,11 @@ class ExportRecommendationPdfButton extends StatelessWidget {
           recommendation: recommendation,
           nextSteps: nextSteps,
           symptoms: symptoms,
-          profile: profile,
           userMessages: userMessages,
+          careLevelCode: recommendationResult?.careLevel,
           careLevelLabel: careLevelLabelForPdf(recommendationResult?.careLevel),
           reasons: recommendationResult?.reasons ?? const [],
+          warnings: recommendationResult?.limitations ?? const [],
           dataSources: recommendationResult?.dataSources ?? const [],
           diaryLines: diaryLines,
           medicationLines: medicationLines,

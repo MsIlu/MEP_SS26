@@ -28,19 +28,25 @@ class SettingsInfoSection extends StatelessWidget {
             SettingsLinkTile(
               icon: Icons.privacy_tip_outlined,
               title: 'Datenschutz',
-              description: 'Wie deine Daten geschützt werden',
+              description: 'Welche Daten Careena verarbeitet',
               page: SettingsTextPage.privacy(),
+            ),
+            SettingsLinkTile(
+              icon: Icons.assignment_outlined,
+              title: 'Nutzungsbedingungen',
+              description: 'Regeln für die Nutzung',
+              page: SettingsTextPage.terms(),
             ),
             SettingsLinkTile(
               icon: Icons.accessible_forward,
               title: 'Barrierefreiheit',
-              description: 'Bedienung und Rückmeldung',
+              description: 'Lesbarkeit und größere Ansicht',
               page: SettingsTextPage.accessibility(),
             ),
             SettingsLinkTile(
               icon: Icons.info_outline,
               title: 'Impressum',
-              description: 'Angaben zum Anbieter',
+              description: 'MedBitAid und Kontakt',
               page: SettingsTextPage.imprint(),
             ),
             SettingsLinkTile(

@@ -1,5 +1,6 @@
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/widgets/active_profile_header_action.dart';
+import 'package:app1/core/widgets/simple_view.dart';
 import 'package:flutter/material.dart';
 
 class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -25,6 +26,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final simpleView = SimpleViewScope.isEnabled(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark
         ? AppColors.headerBackgroundDark
@@ -50,7 +52,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       backgroundColor: backgroundColor,
       surfaceTintColor: backgroundColor,
-      toolbarHeight: preferredSize.height,
+      toolbarHeight: simpleView ? 72 : preferredSize.height,
       titleSpacing: 12,
       title: Stack(
         alignment: Alignment.center,
@@ -65,7 +67,7 @@ class CareenaPageHeader extends StatelessWidget implements PreferredSizeWidget {
                         icon: Icons.arrow_back,
                         onPressed: onBack ?? () => Navigator.maybePop(context),
                       )
-                    : const SizedBox.square(dimension: 48)),
+                    : SizedBox.square(dimension: simpleView ? 56 : 48)),
           ),
           Padding(
             padding: titlePadding,

@@ -53,7 +53,7 @@ class _SimpleViewCard extends StatelessWidget {
     return Semantics(
       button: true,
       toggled: enabled,
-      label: 'Einfache Ansicht',
+      label: 'Größere Ansicht',
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
         onTap: () => themeController.setSimpleView(!enabled),
@@ -89,7 +89,7 @@ class _SimpleViewCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Einfache Ansicht',
+                            'Größere Ansicht',
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
@@ -102,7 +102,7 @@ class _SimpleViewCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Größere Schrift, große Schaltflächen und weniger Ablenkung.',
+                      'Größere Schrift, größere Schaltflächen und eine ruhigere Darstellung.',
                     ),
                     const SizedBox(height: 12),
                     Text(

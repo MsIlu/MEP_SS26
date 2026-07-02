@@ -53,4 +53,64 @@ void main() {
       expect(decoration?.focusedErrorBorder, InputBorder.none);
     }
   });
+
+  testWidgets('pads single-digit day and month when focus changes', (
+    tester,
+  ) async {
+    final dayController = TextEditingController();
+    final monthController = TextEditingController();
+    final yearController = TextEditingController();
+    final birthDateController = TextEditingController();
+    final dayFocusNode = FocusNode();
+    final monthFocusNode = FocusNode();
+    final yearFocusNode = FocusNode();
+
+    void syncBirthDate() {
+      birthDateController.text =
+          '${dayController.text}.${monthController.text}.${yearController.text}';
+    }
+
+    addTearDown(dayController.dispose);
+    addTearDown(monthController.dispose);
+    addTearDown(yearController.dispose);
+    addTearDown(birthDateController.dispose);
+    addTearDown(dayFocusNode.dispose);
+    addTearDown(monthFocusNode.dispose);
+    addTearDown(yearFocusNode.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BirthDateSegmentFields(
+            dayController: dayController,
+            monthController: monthController,
+            yearController: yearController,
+            dayFocusNode: dayFocusNode,
+            monthFocusNode: monthFocusNode,
+            yearFocusNode: yearFocusNode,
+            birthDateController: birthDateController,
+            showValidation: false,
+            onChanged: syncBirthDate,
+          ),
+        ),
+      ),
+    );
+
+    final fields = find.byType(TextField);
+
+    await tester.enterText(fields.at(0), '2');
+    await tester.tap(fields.at(1));
+    await tester.pump();
+    expect(dayController.text, '02');
+
+    await tester.enterText(fields.at(1), '2');
+    await tester.tap(fields.at(2));
+    await tester.pump();
+    expect(monthController.text, '02');
+
+    await tester.enterText(fields.at(2), '2002');
+    await tester.pump();
+
+    expect(birthDateController.text, '02.02.2002');
+  });
 }

@@ -91,7 +91,7 @@ flutter:
     - assets/images/careena/
     - assets/images/body_silhouette/
     - assets/images/logo_medbitaid.png
-    - assets/documents/Careena_Benutzerhandbuch.pdf
+    - assets/documents/Benutzerhandbuch.pdf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

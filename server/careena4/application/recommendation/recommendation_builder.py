@@ -41,7 +41,7 @@ _JSON_SCHEMA = """
   "urgency": "<unknown|self_observation|routine|soon|today|emergency>",
   "urgency_level": "<low|medium|high|emergency|unclear>",
   "care_level": "<self_care|pharmacy|general_practice|specialist|116117|emergency_department|112|unknown>",
-  "specialty": "<unknown|general_practice|orthopedics|dermatology|neurology|ent|emergency_medicine>",
+  "specialty": "<unknown|general_practice|orthopedics|dermatology|neurology|ent|dentistry|ophthalmology|gynecology|pediatrics|urology|emergency_medicine>",
   "summary": "<1-2 Sätze Zusammenfassung der klinischen Situation>",
   "next_step": "<konkrete Handlungsempfehlung für den Patienten, 1-2 Sätze>",
   "reasons": ["<konkreter Grund 1>", "<konkreter Grund 2>"]
@@ -69,7 +69,11 @@ _FALLBACK_RESULT = RecommendationResult(
 _VALID_URGENCY = {"unknown", "self_observation", "routine", "soon", "today", "emergency"}
 _VALID_LEVEL = {"low", "medium", "high", "emergency", "unclear"}
 _VALID_CARE = {"self_care", "pharmacy", "general_practice", "specialist", "116117", "emergency_department", "112", "unknown"}
-_VALID_SPECIALTY = {"unknown", "general_practice", "orthopedics", "dermatology", "neurology", "ent", "emergency_medicine"}
+_VALID_SPECIALTY = {
+    "unknown", "general_practice", "orthopedics", "dermatology", "neurology",
+    "ent", "dentistry", "ophthalmology", "gynecology", "pediatrics",
+    "urology", "emergency_medicine",
+}
 
 
 def _serialize_case(medical_case: MedicalCase, case_manager: CaseManager) -> str:

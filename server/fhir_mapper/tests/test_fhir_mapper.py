@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import httpx
+
 from fhir_mapper.mapper import map_to_fhir_bundle
 from fhir_mapper.validator import validate_fhir_bundle
 from careena4.models.domain import MedicalCase
@@ -13,7 +15,16 @@ from fhir_mapper.hapi_client import (
     POSTAL_CODE_EXTENSION_URL,
     PROFILE_EXTENSION_URL,
     SESSION_EXTENSION_URL,
+    _parse_datetime,
+    build_recommendation_appointment_resources,
 )
+
+
+def test_parse_datetime_treats_missing_offset_as_utc():
+    parsed = _parse_datetime("2026-07-10T08:30:00")
+
+    assert parsed is not None
+    assert parsed.utcoffset().total_seconds() == 0
 
 
 def _sample_internal_data():
@@ -122,14 +133,14 @@ class DummyCareena4Session:
             observations=[
                 Observation(
                     type="symptom",
-                    label="Kopfschmerzen",
+                    normalized_label_de="Kopfschmerzen",
                     status="active",
                     person_ref="self",
                     onset="seit gestern",
                 ),
                 Observation(
                     type="symptom",
-                    label="Kein Fieber",
+                    normalized_label_de="Kein Fieber",
                     status="negated",
                     person_ref="self",
                 ),
@@ -213,6 +224,7 @@ class FakeHapiHttpClient:
             "resourceType": "Appointment",
             "id": "appointment-1",
             "status": "proposed",
+            "meta": {"versionId": "7"},
             "participant": [
                 {
                     "actor": {"display": "Hausarztpraxis Dr. Schneider"},
@@ -225,6 +237,7 @@ class FakeHapiHttpClient:
             ],
         }
         self.put_payload = None
+        self.put_headers = None
 
     def request(self, method, url, **kwargs):
         if method == "GET":
@@ -232,6 +245,7 @@ class FakeHapiHttpClient:
 
         if method == "PUT":
             self.put_payload = kwargs["json"]
+            self.put_headers = kwargs.get("headers")
             self.appointment = self.put_payload
             return FakeHapiResponse({"resourceType": "OperationOutcome"})
 
@@ -265,6 +279,14 @@ class SearchLagHapiHttpClient:
             self.resources[resource["id"]] = resource
             return FakeHapiResponse({"resourceType": "OperationOutcome"})
 
+        if method == "POST" and path == "":
+            for entry in kwargs["json"].get("entry", []):
+                resource = entry["resource"]
+                self.resources[resource["id"]] = resource
+            return FakeHapiResponse(
+                {"resourceType": "Bundle", "type": "transaction-response"}
+            )
+
         raise AssertionError(f"Unexpected HAPI call {method} {url}")
 
 
@@ -288,17 +310,13 @@ def test_hapi_client_returns_written_appointments_when_search_index_lags():
         bundle_id="bundle-1",
     )
 
-    assert len(appointments) == 3
-    assert http_client.collection_searches == 2
+    assert len(appointments) == 12
+    assert http_client.collection_searches == 3
     assert all(appointment["status"] == "proposed" for appointment in appointments)
-    assert {
-        "url": SESSION_EXTENSION_URL,
-        "valueString": "session-1",
-    } in appointments[0]["extension"]
-    assert {
-        "url": PROFILE_EXTENSION_URL,
-        "valueInteger": 10,
-    } in appointments[0]["extension"]
+    assert not any(
+        extension["url"] in {SESSION_EXTENSION_URL, PROFILE_EXTENSION_URL}
+        for extension in appointments[0]["extension"]
+    )
     assert {
         "url": POSTAL_CODE_EXTENSION_URL,
         "valueString": "68159",
@@ -314,8 +332,6 @@ def test_hapi_client_books_appointment_with_account_extension():
 
     booked = client.book_appointment(
         appointment_id="appointment-1",
-        session_id="session-1",
-        profile_id=10,
         booked_by_account_id=3,
     )
 
@@ -325,3 +341,137 @@ def test_hapi_client_books_appointment_with_account_extension():
         "url": BOOKED_BY_ACCOUNT_EXTENSION_URL,
         "valueInteger": 3,
     } in booked["extension"]
+    assert http_client.put_headers["If-Match"] == 'W/"7"'
+
+
+def test_hapi_client_releases_cancelled_appointment_for_rebooking():
+    http_client = FakeHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+    client.book_appointment(
+        appointment_id="appointment-1",
+        booked_by_account_id=3,
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="appointment-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "proposed"
+    assert released["participant"][0]["status"] == "needs-action"
+    assert not any(
+        extension["url"] == BOOKED_BY_ACCOUNT_EXTENSION_URL
+        for extension in released["extension"]
+    )
+
+
+def test_hapi_client_cancel_is_idempotent_after_slot_was_released():
+    http_client = FakeHapiHttpClient()
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=http_client,
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="appointment-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "proposed"
+
+
+def test_hapi_client_cancel_succeeds_when_resource_was_lost():
+    class MissingAppointmentHttpClient:
+        def request(self, method, url, **kwargs):
+            return httpx.Response(
+                404,
+                request=httpx.Request(method, url),
+                json={"resourceType": "OperationOutcome"},
+            )
+
+    client = HapiFhirClient(
+        base_url="http://hapi.test/fhir",
+        client=MissingAppointmentHttpClient(),
+    )
+
+    released = client.cancel_appointment(
+        appointment_id="lost-appointment",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert released["status"] == "cancelled"
+
+
+def test_simulated_slots_are_shared_between_sessions():
+    recommendation = SimpleNamespace(
+        urgency_level="medium",
+        care_level="general_practice",
+        specialty="general_practice",
+    )
+    first = build_recommendation_appointment_resources(
+        session_id="session-1",
+        profile_id=10,
+        postal_code="68159",
+        recommendation_result=recommendation,
+        bundle_id=None,
+    )
+    second = build_recommendation_appointment_resources(
+        session_id="session-2",
+        profile_id=20,
+        postal_code="68159",
+        recommendation_result=recommendation,
+        bundle_id=None,
+    )
+
+    assert [item["id"] for item in first] == [item["id"] for item in second]
+
+
+def test_simulator_catalog_contains_all_supported_specialties():
+    class CatalogClient(HapiFhirClient):
+        def __init__(self):
+            self.written = []
+
+        def list_all_appointments(self):
+            return []
+
+        def _put_appointments_transaction(self, resources):
+            self.written.extend(resources)
+
+    client = CatalogClient()
+    client.ensure_simulator_catalog()
+
+    specialties = {
+        appointment["specialty"][0]["text"] for appointment in client.written
+    }
+    assert len(client.written) == 96
+    assert {
+        "Allgemeinmedizin",
+        "HNO",
+        "Zahnmedizin",
+        "Augenheilkunde",
+        "Orthopädie",
+    }.issubset(specialties)
+
+
+def test_specialist_provider_prefix_is_not_hausarztpraxis():
+    resources = build_recommendation_appointment_resources(
+        session_id="session-1",
+        profile_id=10,
+        postal_code="68159",
+        recommendation_result=SimpleNamespace(
+            urgency_level="medium",
+            care_level="general_practice",
+            specialty="orthopedics",
+        ),
+        bundle_id=None,
+    )
+
+    assert resources[0]["participant"][0]["actor"]["display"].startswith(
+        "Facharztpraxis"
+    )

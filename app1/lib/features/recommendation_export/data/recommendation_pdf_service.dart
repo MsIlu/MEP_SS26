@@ -20,14 +20,14 @@ class RecommendationPdfService {
   static const double _noticeBodySize = 10;
   static const double _noticeLineSpacing = 2.5;
 
-  static final PdfColor _primaryColor = PdfColor.fromInt(0xFF00897B);
-  static final PdfColor _primaryLight = PdfColor.fromInt(0xFFE0F2F1);
-  static final PdfColor _warningColor = PdfColor.fromInt(0xFFE65100);
-  static final PdfColor _warningLight = PdfColor.fromInt(0xFFFFF3E0);
+  static final PdfColor _primaryColor = PdfColor.fromInt(0xFF315B9D);
+  static final PdfColor _primaryLight = PdfColor.fromInt(0xFFF7F9FC);
+  static final PdfColor _warningColor = PdfColor.fromInt(0xFFC43F3A);
+  static final PdfColor _warningLight = PdfColor.fromInt(0xFFFFF8F7);
   static final PdfColor _textColor = PdfColor.fromInt(0xFF263238);
   static final PdfColor _mutedTextColor = PdfColor.fromInt(0xFF607D8B);
   static final PdfColor _borderColor = PdfColor.fromInt(0xFFE0E0E0);
-  static final PdfColor _pageBackground = PdfColor.fromInt(0xFFFAFAFA);
+  static final PdfColor _pageBackground = PdfColor.fromInt(0xFFFFFFFF);
   static final PdfColor _cardBackground = PdfColor.fromInt(0xFFFFFFFF);
 
   Future<Uint8List> buildRecommendationPdf({
@@ -38,14 +38,18 @@ class RecommendationPdfService {
     required List<String> symptoms,
     required List<String> userMessages,
     Profile? profile,
+    String? careLevelCode,
     String? careLevelLabel,
     List<String> reasons = const [],
+    List<String> warnings = const [],
     List<String> dataSources = const [],
     List<String> diaryLines = const [],
     List<String> medicationLines = const [],
   }) async {
     final pdf = pw.Document();
     final logo = await _loadOptionalLogo();
+    final careColor = _careLevelColor(careLevelCode);
+    final careBackground = _careLevelBackground(careLevelCode);
     final regularFont = pw.Font.ttf(
       await rootBundle.load('assets/fonts/Nunito-Regular.ttf'),
     );
@@ -67,94 +71,80 @@ class RecommendationPdfService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
-                  if (profile != null) ...[
-                    _buildSectionCard(
-                      title: 'Profilangaben',
-                      text: _formatProfile(profile),
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  if (careLevelLabel != null &&
-                      careLevelLabel.trim().isNotEmpty) ...[
-                    _buildSectionCard(
-                      title: 'Empfohlene Versorgung',
-                      text: careLevelLabel.trim(),
-                      highlighted: true,
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  if (patientSummary.trim().isNotEmpty &&
-                      patientSummary.trim() !=
-                          'Zusammenfassung des Chatverlaufes') ...[
-                    _buildSectionCard(
-                      title: 'Zusammenfassung der Situation',
-                      text: patientSummary,
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
                   _buildSectionCard(
-                    title: 'Handlungsempfehlung',
-                    text: _extractRecommendationText(recommendation),
-                    highlighted: true,
+                    title: 'Einschätzung',
+                    text: _effectiveAssessment(
+                      recommendation: recommendation,
+                      patientSummary: patientSummary,
+                      userMessages: userMessages,
+                      symptoms: symptoms,
+                    ),
                   ),
                   pw.SizedBox(height: 14),
 
                   _buildSectionCard(
                     title: 'Nächster Schritt',
-                    text: _formatNextSteps(nextSteps),
-                  ),
-                  pw.SizedBox(height: 14),
-
-                  if (_cleanLines(reasons).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Begründung der Einschätzung',
-                      items: _cleanLines(reasons),
+                    text: _formatNextStepWithDestination(
+                      nextSteps: nextSteps,
+                      careLevelLabel: careLevelLabel,
                     ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  _buildSectionCard(
-                    title: 'Im Chat angegebene bzw. erkannte Beschwerden',
-                    text: _formatSymptoms(symptoms),
+                    highlighted: true,
+                    accentColor: careColor,
+                    accentBackground: careBackground,
                   ),
                   pw.SizedBox(height: 14),
 
-                  _buildSectionCard(
-                    title: 'Vom Nutzer im Chat angegebene Informationen',
-                    text: _formatUserMessages(userMessages),
+                  _buildBulletSectionCard(
+                    title: 'Gründe',
+                    items: _cleanLines(reasons).isEmpty
+                        ? const [
+                            'Die Einordnung basiert auf den im Chat erfassten Angaben.',
+                          ]
+                        : _cleanLines(reasons),
                   ),
                   pw.SizedBox(height: 14),
 
-                  if (_cleanLines(diaryLines).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Aus dem Symptom-Tagebuch',
-                      items: _cleanLines(diaryLines),
-                    ),
-                    pw.SizedBox(height: 14),
-                  ],
-
-                  if (_cleanLines(medicationLines).isNotEmpty) ...[
-                    _buildBulletSectionCard(
-                      title: 'Aus dem Medikamentenplan',
-                      items: _cleanLines(medicationLines),
+                  if (_cleanLines(diaryLines).isNotEmpty ||
+                      _cleanLines(medicationLines).isNotEmpty) ...[
+                    pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Expanded(
+                          child: _buildBulletSectionCard(
+                            title: 'Symptome der letzten 14 Tage',
+                            items: _cleanLines(diaryLines).isEmpty
+                                ? const ['Keine Einträge vorhanden.']
+                                : _cleanLines(diaryLines),
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: _buildBulletSectionCard(
+                            title: 'Aktuelle Medikamente',
+                            items: _cleanLines(medicationLines).isEmpty
+                                ? const ['Keine Einträge vorhanden.']
+                                : _cleanLines(medicationLines),
+                          ),
+                        ),
+                      ],
                     ),
                     pw.SizedBox(height: 14),
                   ],
 
                   if (_cleanLines(dataSources).isNotEmpty) ...[
                     _buildSectionCard(
-                      title: 'Berücksichtigte Datenquellen',
-                      text: _cleanLines(dataSources)
-                          .map((source) => '- $source')
-                          .join('\n'),
+                      title: 'Berücksichtigte Daten',
+                      text: _cleanLines(
+                        dataSources,
+                      ).map((source) => '- $source').join('\n'),
                     ),
                     pw.SizedBox(height: 18),
                   ],
 
-                  _buildEmergencyNotice(),
+                  _buildSafetyNotice(
+                    careLevelCode: careLevelCode,
+                    warnings: warnings,
+                  ),
                   pw.SizedBox(height: 20),
 
                   _buildDisclaimer(),
@@ -279,14 +269,19 @@ class RecommendationPdfService {
     required String title,
     required String text,
     bool highlighted = false,
+    PdfColor? accentColor,
+    PdfColor? accentBackground,
   }) {
+    final effectiveAccent = accentColor ?? _primaryColor;
     return pw.Container(
       padding: const pw.EdgeInsets.all(18),
       decoration: pw.BoxDecoration(
-        color: highlighted ? _primaryLight : _cardBackground,
+        color: highlighted
+            ? accentBackground ?? _primaryLight
+            : _cardBackground,
         borderRadius: pw.BorderRadius.circular(14),
         border: pw.Border.all(
-          color: highlighted ? _primaryColor : _borderColor,
+          color: highlighted ? effectiveAccent : _borderColor,
           width: highlighted ? 1.2 : 1,
         ),
       ),
@@ -296,7 +291,7 @@ class RecommendationPdfService {
           pw.Text(
             title,
             style: pw.TextStyle(
-              color: highlighted ? _primaryColor : _textColor,
+              color: highlighted ? effectiveAccent : _textColor,
               fontSize: 15,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -373,7 +368,38 @@ class RecommendationPdfService {
         .toList();
   }
 
-  pw.Widget _buildEmergencyNotice() {
+  PdfColor _careLevelColor(String? careLevelCode) {
+    return switch (careLevelCode) {
+      'self_care' => PdfColor.fromInt(0xFF2E7D32),
+      'pharmacy' => PdfColor.fromInt(0xFF4A978B),
+      'general_practice' => PdfColor.fromInt(0xFF3F6FCB),
+      'specialist' => PdfColor.fromInt(0xFF6558A8),
+      '116117' => PdfColor.fromInt(0xFFD66A22),
+      'emergency_department' || '112' => _warningColor,
+      _ => _primaryColor,
+    };
+  }
+
+  PdfColor _careLevelBackground(String? careLevelCode) {
+    return switch (careLevelCode) {
+      'self_care' => PdfColor.fromInt(0xFFF5FAF5),
+      'pharmacy' => PdfColor.fromInt(0xFFF4FAF8),
+      'general_practice' => PdfColor.fromInt(0xFFF5F7FC),
+      'specialist' => PdfColor.fromInt(0xFFF7F5FC),
+      '116117' => PdfColor.fromInt(0xFFFFF8F2),
+      'emergency_department' || '112' => _warningLight,
+      _ => _primaryLight,
+    };
+  }
+
+  pw.Widget _buildSafetyNotice({
+    required String? careLevelCode,
+    required List<String> warnings,
+  }) {
+    final isAcuteEmergency =
+        careLevelCode == '112' || careLevelCode == 'emergency_department';
+    final warningText = _cleanLines(warnings).join(' ');
+
     return pw.Container(
       padding: const pw.EdgeInsets.all(14),
       decoration: pw.BoxDecoration(
@@ -385,7 +411,9 @@ class RecommendationPdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            'Wichtiger Hinweis',
+            isAcuteEmergency
+                ? 'Akuter medizinischer Hinweis'
+                : 'Wichtiger Hinweis',
             style: pw.TextStyle(
               color: _warningColor,
               fontSize: _noticeTitleSize,
@@ -394,22 +422,20 @@ class RecommendationPdfService {
           ),
           pw.SizedBox(height: 8),
           pw.Text(
-            'Bei akuter Gefahr, Selbstgefährdung oder einem medizinischen Notfall '
-            'sollte sofort der Notruf 112 kontaktiert oder eine Notaufnahme '
-            'aufgesucht werden.',
+            isAcuteEmergency
+                ? careLevelCode == '112'
+                      ? 'Die Angaben weisen auf einen möglichen akuten Notfall hin. '
+                            'Bitte sofort den Notruf 112 kontaktieren.'
+                      : 'Die Angaben weisen auf eine mögliche akute Situation hin. '
+                            'Bitte unverzüglich eine Notaufnahme aufsuchen.'
+                : warningText.isNotEmpty
+                ? warningText
+                : 'Wenn sich die Beschwerden deutlich verschlechtern oder neue '
+                      'Warnzeichen auftreten, bitte umgehend medizinische Hilfe suchen.',
             style: pw.TextStyle(
               color: _textColor,
               fontSize: _noticeBodySize,
               lineSpacing: _noticeLineSpacing,
-            ),
-          ),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'Diese Einschätzung ersetzt keine ärztliche Untersuchung und stellt keine Diagnose dar.',
-            style: pw.TextStyle(
-              color: _textColor,
-              fontSize: 10.5,
-              lineSpacing: 3,
             ),
           ),
         ],
@@ -517,78 +543,52 @@ class RecommendationPdfService {
     }
   }
 
-  String _formatSymptoms(List<String> symptoms) {
-    final cleanedSymptoms = symptoms
-        .map((symptom) => symptom.trim())
-        .where((symptom) => symptom.isNotEmpty)
-        .toList();
-
-    if (cleanedSymptoms.isEmpty) {
-      return 'Keine Beschwerden angegeben oder erkannt.';
+  String _formatNextStepWithDestination({
+    required String nextSteps,
+    required String? careLevelLabel,
+  }) {
+    final parts = <String>[];
+    if (careLevelLabel != null && careLevelLabel.trim().isNotEmpty) {
+      parts.add('Empfohlene Anlaufstelle: ${careLevelLabel.trim()}');
     }
-
-    return cleanedSymptoms.map((symptom) => '- $symptom').join('\n');
+    final formattedStep = _formatNextSteps(nextSteps);
+    if (formattedStep != 'Keine Angabe') {
+      parts.add(formattedStep);
+    }
+    return parts.isEmpty
+        ? 'Keine konkrete Anlaufstelle angegeben.'
+        : parts.join('\n\n');
   }
 
-  String _formatUserMessages(List<String> userMessages) {
-    final cleanedMessages = userMessages
-        .map((message) => message.trim())
-        .where((message) => message.isNotEmpty)
-        .toList();
-
-    if (cleanedMessages.isEmpty) {
-      return 'Keine zusätzlichen Angaben verfügbar.';
+  String _effectiveAssessment({
+    required String recommendation,
+    required String patientSummary,
+    required List<String> userMessages,
+    required List<String> symptoms,
+  }) {
+    if (recommendation.trim().isNotEmpty) {
+      return _extractRecommendationText(recommendation);
     }
 
-    return cleanedMessages.map((message) => '- $message').join('\n');
-  }
-
-  String _formatProfile(Profile profile) {
-    final rows = <String>[
-      'Name / Profil: ${profile.displayName}',
-      if (profile.dateOfBirth != null && profile.dateOfBirth!.isNotEmpty)
-        'Geburtsdatum: ${_formatProfileDate(profile.dateOfBirth)}',
-      if (profile.biologicalSex != null && profile.biologicalSex!.isNotEmpty)
-        'Biologisches Geschlecht: ${biologicalSexLabelForPdf(profile.biologicalSex)}',
-      if (profile.heightCm != null) 'Größe: ${profile.heightCm} cm',
-      if (profile.weightKg != null) 'Gewicht: ${profile.weightKg} kg',
-    ];
-
-    if (profile.relevantPreconditionsSummary != null &&
-        profile.relevantPreconditionsSummary!.trim().isNotEmpty) {
-      rows.add('');
-      rows.add('Vom Nutzer gespeicherte Vorerkrankungen:');
-      rows.add(profile.relevantPreconditionsSummary!.trim());
+    final summary = patientSummary.trim();
+    if (summary.isNotEmpty &&
+        summary != 'Zusammenfassung des Chatverlaufes' &&
+        summary != 'Aus dem Chatverlauf generierte Handlungsempfehlung.') {
+      return summary;
     }
 
-    if (profile.relevantMedicationsSummary != null &&
-        profile.relevantMedicationsSummary!.trim().isNotEmpty) {
-      rows.add('');
-      rows.add('Vom Nutzer gespeicherte Medikamente:');
-      rows.add(profile.relevantMedicationsSummary!.trim());
+    final chatDetails = _cleanLines(userMessages);
+    if (chatDetails.isNotEmpty) {
+      return chatDetails.take(5).join(' ');
     }
 
-    if (profile.symptomDiarySummary != null &&
-        profile.symptomDiarySummary!.trim().isNotEmpty) {
-      rows.add('');
-      rows.add('Vom Nutzer gespeicherte Gesundheitsnotizen:');
-      rows.add(profile.symptomDiarySummary!.trim());
+    final recognizedSymptoms = _cleanLines(symptoms);
+    if (recognizedSymptoms.isNotEmpty) {
+      return 'Im Chat wurden folgende Beschwerden beschrieben: '
+          '${recognizedSymptoms.join(', ')}.';
     }
 
-    return rows.join('\n');
-  }
-
-  String _formatProfileDate(String? rawDate) {
-    if (rawDate == null || rawDate.trim().isEmpty) {
-      return 'Keine Angabe';
-    }
-
-    final parsed = DateTime.tryParse(rawDate);
-    if (parsed == null) {
-      return rawDate;
-    }
-
-    return _formatDate(parsed);
+    return 'Im Chat wurden keine weiteren Angaben zur Situation erfasst.';
   }
 
   String _formatDate(DateTime date) {

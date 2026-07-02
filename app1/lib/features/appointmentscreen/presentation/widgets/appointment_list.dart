@@ -17,7 +17,6 @@ class AppointmentList extends StatelessWidget {
   final List<AuthProfile> profiles;
   final bool showAllProfiles;
   final bool shrinkWrap;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
@@ -29,7 +28,6 @@ class AppointmentList extends StatelessWidget {
     this.profiles = const [],
     this.showAllProfiles = true,
     required this.shrinkWrap,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -39,13 +37,14 @@ class AppointmentList extends StatelessWidget {
     return ValueListenableBuilder<List<Appointment>>(
       valueListenable: appointmentsListenable,
       builder: (context, appointments, child) {
-        final visibleAppointments = showAllProfiles
+        final scopedAppointments = showAllProfiles
             ? appointments
             : appointments
                   .where(
                     (appointment) => appointment.profileId == selectedProfileId,
                   )
                   .toList();
+        final visibleAppointments = scopedAppointments;
 
         if (visibleAppointments.isEmpty) {
           return shrinkWrap
@@ -59,7 +58,6 @@ class AppointmentList extends StatelessWidget {
             appointments: visibleAppointments,
             selectedFilter: selectedFilter,
             shrinkWrap: shrinkWrap,
-            onToggleCompleted: onToggleCompleted,
             onDelete: onDelete,
             onEdit: onEdit,
           );
@@ -78,7 +76,6 @@ class AppointmentList extends StatelessWidget {
           physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
           children: _AppointmentSectionContent(
             sections: sections,
-            onToggleCompleted: onToggleCompleted,
             onDelete: onDelete,
             onEdit: onEdit,
           ).children,
@@ -93,7 +90,6 @@ class _GroupedAppointmentList extends StatelessWidget {
   final List<Appointment> appointments;
   final String selectedFilter;
   final bool shrinkWrap;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
@@ -102,7 +98,6 @@ class _GroupedAppointmentList extends StatelessWidget {
     required this.appointments,
     required this.selectedFilter,
     required this.shrinkWrap,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -145,7 +140,6 @@ class _GroupedAppointmentList extends StatelessWidget {
         for (var index = 0; index < sections.length; index++) ...[
           _ProfileAppointmentSection(
             section: sections[index],
-            onToggleCompleted: onToggleCompleted,
             onDelete: onDelete,
             onEdit: onEdit,
           ),
@@ -170,13 +164,11 @@ class _ProfileAppointmentSectionData {
 
 class _ProfileAppointmentSection extends StatelessWidget {
   final _ProfileAppointmentSectionData section;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
   const _ProfileAppointmentSection({
     required this.section,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -214,7 +206,6 @@ class _ProfileAppointmentSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: _AppointmentSectionContent(
                 sections: section.appointmentSections,
-                onToggleCompleted: onToggleCompleted,
                 onDelete: onDelete,
                 onEdit: onEdit,
               ).children,
@@ -232,13 +223,11 @@ class _ProfileAppointmentSection extends StatelessWidget {
 
 class _AppointmentSectionContent {
   final AppointmentSections sections;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
   const _AppointmentSectionContent({
     required this.sections,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -256,7 +245,6 @@ class _AppointmentSectionContent {
         for (final appointment in sections.recommendedAppointments)
           _AppointmentListTile(
             appointment: appointment,
-            onToggleCompleted: onToggleCompleted,
             onDelete: onDelete,
             onEdit: onEdit,
           ),
@@ -273,7 +261,6 @@ class _AppointmentSectionContent {
         for (final appointment in sections.plannedAppointments)
           _AppointmentListTile(
             appointment: appointment,
-            onToggleCompleted: onToggleCompleted,
             onDelete: onDelete,
             onEdit: onEdit,
           ),
@@ -284,13 +271,11 @@ class _AppointmentSectionContent {
 
 class _AppointmentListTile extends StatelessWidget {
   final Appointment appointment;
-  final ValueChanged<Appointment> onToggleCompleted;
   final ValueChanged<Appointment> onDelete;
   final ValueChanged<Appointment> onEdit;
 
   const _AppointmentListTile({
     required this.appointment,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -299,7 +284,6 @@ class _AppointmentListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppointmentTile(
       appointment: appointment,
-      onToggleCompleted: () => onToggleCompleted(appointment),
       onDelete: () => onDelete(appointment),
       onEdit: () => onEdit(appointment),
     );

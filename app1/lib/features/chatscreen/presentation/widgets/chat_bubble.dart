@@ -21,6 +21,7 @@ class ChatBubble extends StatelessWidget {
   final bool showLongProcessingHint;
   final AuthSession? authSession;
   final String? recommendationSessionId;
+  final int? recommendationProfileId;
   final Future<void> Function(Message, RecommendationAction)?
   onRecommendationAction;
   final Future<void> Function()? onSaveSymptoms;
@@ -33,6 +34,7 @@ class ChatBubble extends StatelessWidget {
     this.showLongProcessingHint = false,
     this.authSession,
     this.recommendationSessionId,
+    this.recommendationProfileId,
     this.onRecommendationAction,
     this.onSaveSymptoms,
   });
@@ -143,24 +145,31 @@ class ChatBubble extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            SaveRecommendationToDocumentsButton(
-                              title:
-                                  message.exportTitle ?? 'Handlungsempfehlung',
-                              patientSummary:
-                                  'Zusammenfassung des Chatverlaufes',
-                              recommendation:
-                                  message.exportRecommendation ?? message.text,
-                              nextSteps: message.exportNextSteps ?? '',
-                              symptoms: recommendationSymptoms,
-                              userMessages: userMessages,
-                              alreadySaved: message.documentSaved,
-                              onSaved: () async {
-                                await onRecommendationAction?.call(
-                                  message,
-                                  RecommendationAction.document,
-                                );
-                              },
-                            ),
+                            if (authSession?.isAuthenticated == true)
+                              SaveRecommendationToDocumentsButton(
+                                title:
+                                    message.exportTitle ??
+                                    'Handlungsempfehlung',
+                                patientSummary:
+                                    'Zusammenfassung des Chatverlaufes',
+                                recommendation:
+                                    message.exportRecommendation ??
+                                    message.text,
+                                nextSteps: message.exportNextSteps ?? '',
+                                symptoms: recommendationSymptoms,
+                                userMessages: userMessages,
+                                alreadySaved: message.documentSaved,
+                                recommendationCreatedAt: message.timestamp,
+                                profileId:
+                                    recommendationProfileId ??
+                                    authSession?.activeProfileId,
+                                onSaved: () async {
+                                  await onRecommendationAction?.call(
+                                    message,
+                                    RecommendationAction.document,
+                                  );
+                                },
+                              ),
                             ExportRecommendationPdfButton(
                               title:
                                   message.exportTitle ?? 'Handlungsempfehlung',
@@ -179,6 +188,9 @@ class ChatBubble extends StatelessWidget {
                                     'Arzttermin vereinbaren',
                                 authSession: authSession,
                                 sessionId: recommendationSessionId,
+                                profileId:
+                                    recommendationProfileId ??
+                                    authSession?.activeProfileId,
                                 alreadySearched: message.appointmentSearched,
                                 onSearched: () async {
                                   await onRecommendationAction?.call(
@@ -187,7 +199,8 @@ class ChatBubble extends StatelessWidget {
                                   );
                                 },
                               ),
-                            if (recommendationSymptoms.isNotEmpty)
+                            if (authSession?.isAuthenticated == true &&
+                                recommendationSymptoms.isNotEmpty)
                               _AsyncSymptomButton(
                                 isCompleted: message.symptomsSaved,
                                 onPressed: onSaveSymptoms,

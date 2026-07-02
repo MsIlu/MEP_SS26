@@ -24,22 +24,48 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Separate persistent database for the local HAPI FHIR simulator.
+  hapi-postgres:
+    image: postgres:16
+    container_name: careena_fhir_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hapi
+      POSTGRES_PASSWORD: hapi
+      POSTGRES_DB: hapi
+    volumes:
+      - hapi_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hapi -d hapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # Local HAPI FHIR server for development and adapter testing
   fhir-server:
     image: hapiproject/hapi:v8.10.0-1
     container_name: careena_fhir_server
     restart: unless-stopped
 
+    depends_on:
+      hapi-postgres:
+        condition: service_healthy
+
+    # The image default is an in-memory H2 database. Use a dedicated
+    # PostgreSQL service so FHIR slots and bookings survive restarts.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://hapi-postgres:5432/hapi
+      SPRING_DATASOURCE_USERNAME: hapi
+      SPRING_DATASOURCE_PASSWORD: hapi
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+      SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_ENABLED: "false"
+
     # FHIR server web UI and REST API
     ports:
       - "8080:8080"
     
-    # Persistent storage for local FHIR server data
-    volumes:
-      - fhir_data:/data/hapi
-
-
 # Named Docker volume for PostgreSQL persistence
 volumes:
   postgres_data:
-  fhir_data:
+  hapi_postgres_data:

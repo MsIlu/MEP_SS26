@@ -58,14 +58,15 @@ class DocumentRepository {
     return remoteDocument;
   }
 
-  /// Adds a Careena recommendation unless the same profile already owns one
-  /// with the same normalized document name.
+  /// Adds a Careena recommendation unless the same profile already owns the
+  /// recommendation created at the same persisted chat-message timestamp.
   Future<bool> addRecommendationIfMissing(DocumentEntry document) async {
+    final recommendationKey = document.createdAt.toUtc().millisecondsSinceEpoch;
     final alreadyExists = documents.value.any(
       (entry) =>
           entry.profileId == document.profileId &&
           entry.source == DocumentSource.careena &&
-          entry.name.trim().toLowerCase() == document.name.trim().toLowerCase(),
+          entry.createdAt.toUtc().millisecondsSinceEpoch == recommendationKey,
     );
 
     if (alreadyExists) {

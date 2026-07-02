@@ -22,7 +22,7 @@ void main() {
   });
 
   testWidgets(
-    'Dokument existiert in Repository für profileId=42 — Button zeigt Gespeichert',
+    'Gleichnamiges Dokument im Repository markiert neue Empfehlung nicht als gespeichert',
     (tester) async {
       DocumentRepository.instance.addRecommendationIfMissing(
         DocumentEntry(
@@ -48,6 +48,44 @@ void main() {
             symptoms: const [],
             userMessages: const [],
             profileId: 42,
+            recommendationCreatedAt: DateTime(2026, 7, 1, 1),
+          ),
+        ),
+      );
+
+      expect(find.text('Dokument speichern'), findsOneWidget);
+      expect(find.text('Gespeichert'), findsNothing);
+      expect(DocumentRepository.instance.documents.value, hasLength(1));
+    },
+  );
+
+  testWidgets(
+    'Passender Empfehlungszeitstempel zeigt Gespeichert',
+    (tester) async {
+      final recommendationCreatedAt = DateTime(2026, 7, 1, 10, 30);
+      await DocumentRepository.instance.addRecommendationIfMissing(
+        DocumentEntry(
+          id: 'matching',
+          profileId: 42,
+          name: 'handlungsempfehlung.pdf',
+          category: DocumentCategory.recommendations,
+          createdAt: recommendationCreatedAt,
+          sizeInBytes: 100,
+          source: DocumentSource.careena,
+        ),
+      );
+
+      await tester.pumpWidget(
+        wrap(
+          SaveRecommendationToDocumentsButton(
+            title: 'Handlungsempfehlung',
+            patientSummary: '',
+            recommendation: '',
+            nextSteps: '',
+            symptoms: const [],
+            userMessages: const [],
+            profileId: 42,
+            recommendationCreatedAt: recommendationCreatedAt,
           ),
         ),
       );
@@ -118,7 +156,7 @@ void main() {
   );
 
   testWidgets(
-    'Nicht-profilgebundene Session zeigt Gespeichert wenn profilloses Dokument vorhanden',
+    'Gleichnamiges profilloses Dokument markiert neue Empfehlung nicht als gespeichert',
     (tester) async {
       DocumentRepository.instance.addRecommendationIfMissing(
         DocumentEntry(
@@ -147,7 +185,30 @@ void main() {
         ),
       );
 
-      expect(find.text('Gespeichert'), findsOneWidget);
+      expect(find.text('Dokument speichern'), findsOneWidget);
+      expect(find.text('Gespeichert'), findsNothing);
     },
   );
+
+  testWidgets('Gespeichert wird nur durch den Aktionsstatus angezeigt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        const SaveRecommendationToDocumentsButton(
+          title: 'Handlungsempfehlung',
+          patientSummary: '',
+          recommendation: '',
+          nextSteps: '',
+          symptoms: [],
+          userMessages: [],
+          profileId: 42,
+          alreadySaved: true,
+        ),
+      ),
+    );
+
+    expect(find.text('Gespeichert'), findsOneWidget);
+    expect(find.text('Dokument speichern'), findsNothing);
+  });
 }

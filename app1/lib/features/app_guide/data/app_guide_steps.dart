@@ -23,13 +23,6 @@ const appGuideSteps = [
         'Tippe auf diesen Knopf, wenn du Beschwerden beschreiben oder eine gesundheitliche Frage stellen möchtest.',
   ),
   AppGuideStep(
-    target: AppGuideTarget.search,
-    spotlightRadius: 30,
-    title: 'Schnell finden',
-    description:
-        'Nutze die Funktionsübersicht, um direkt zum passenden Bereich zu wechseln.',
-  ),
-  AppGuideStep(
     target: AppGuideTarget.profile,
     spotlightRadius: 24,
     title: 'Aktives Profil',

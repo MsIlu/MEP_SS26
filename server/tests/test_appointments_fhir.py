@@ -5,6 +5,7 @@ from sqlmodel import select
 from appointments.router import get_hapi_fhir_client
 from appointments.service import (
     AppointmentProviderUnavailable,
+    _cancel_fhir_appointment,
     search_fhir_appointments,
 )
 from database.models import RecommendedAppointment
@@ -104,6 +105,29 @@ class FailingHapiClient:
         raise HapiFhirError("HAPI down")
 
 
+def test_fhir_cancellation_retries_a_transient_failure():
+    class FlakyCancellationClient:
+        calls = 0
+
+        def cancel_appointment(self, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise HapiFhirError("temporary conflict")
+            return {"resourceType": "Appointment", "status": "proposed"}
+
+    client = FlakyCancellationClient()
+
+    result = _cancel_fhir_appointment(
+        client=client,
+        appointment_id="appointment-1",
+        profile_id=10,
+        booked_by_account_id=3,
+    )
+
+    assert result["status"] == "proposed"
+    assert client.calls == 2
+
+
 def test_search_fhir_appointments_submits_bundle_and_reads_hapi_resources():
     hapi_client = FakeHapiClient()
 
@@ -123,7 +147,7 @@ def test_search_fhir_appointments_submits_bundle_and_reads_hapi_resources():
 
     assert hapi_client.submitted_bundle["resourceType"] == "Bundle"
     assert hapi_client.ensure_calls[0]["bundle_id"] == "bundle-1"
-    assert response.message.startswith("HAPI-FHIR")
+    assert response.message.startswith("Der simulierte 116117-Terminservice")
     assert response.appointments[0].id == "hapi-appointment-1"
     assert response.appointments[0].provider_name == "Hausarztpraxis Dr. Schneider"
     assert response.appointments[0].source == "hapi-fhir"
@@ -179,8 +203,6 @@ def test_save_recommended_appointment_persists_profile_scoped_entry(client, db_s
     assert hapi_client.book_calls == [
         {
             "appointment_id": "hapi-appointment-1",
-            "session_id": "session-1",
-            "profile_id": auth["profile_id"],
             "booked_by_account_id": auth["account_id"],
         }
     ]

@@ -11,6 +11,7 @@ from appointments.schemas import (
     AppointmentSearchResponse,
     FhirAppointment,
     RecommendedAppointmentCreateRequest,
+    RecommendedAppointmentRescheduleRequest,
     RecommendedAppointmentResponse,
 )
 from database.models import RecommendedAppointment, User
@@ -60,8 +61,8 @@ def search_fhir_appointments(
             profile_id=profile_id,
             postal_code=postal_code,
             message=(
-                "Die Careena-Empfehlung wurde als FHIR-Bundle an HAPI uebertragen. "
-                "Fuer Notfall-Empfehlungen werden keine regulaeren Termine bereitgestellt."
+                "Für Notfall-Empfehlungen werden keine regulären Termine "
+                "bereitgestellt. Bitte folge den angezeigten Notfallhinweisen."
             ),
             recommendation_summary=summary,
             appointments=[],
@@ -84,9 +85,9 @@ def search_fhir_appointments(
     ]
 
     message = (
-        "HAPI-FHIR hat passende Termine zur Careena-Empfehlung bereitgestellt."
+        "Der simulierte 116117-Terminservice hat passende Termine bereitgestellt."
         if appointments
-        else "HAPI-FHIR hat aktuell keine passenden Termine bereitgestellt."
+        else "Der simulierte 116117-Terminservice hat aktuell keine passenden Termine."
     )
 
     return AppointmentSearchResponse(
@@ -115,10 +116,11 @@ def list_recommended_appointments(
         select(RecommendedAppointment)
         .where(RecommendedAppointment.profile_id == profile_id)
         .where(RecommendedAppointment.deleted_at.is_(None))
+        .where(RecommendedAppointment.status == "booked")
         .order_by(RecommendedAppointment.starts_at, RecommendedAppointment.id)
     ).all()
 
-    return [_to_recommended_response(entry) for entry in entries]
+    return [_to_recommended_response(entry) for entry in _deduplicate_entries(entries)]
 
 
 def save_recommended_appointment(
@@ -154,8 +156,6 @@ def save_recommended_appointment(
     try:
         booked_resource = client.book_appointment(
             appointment_id=request.fhir_appointment_id.strip(),
-            session_id=request.session_id.strip(),
-            profile_id=profile_id,
             booked_by_account_id=current_user.id,
         )
     except HapiFhirError as exc:
@@ -188,6 +188,252 @@ def save_recommended_appointment(
     session.refresh(entry)
 
     return _to_recommended_response(entry)
+
+
+def cancel_recommended_appointment(
+        *,
+        profile_id: int,
+        appointment_id: int,
+        current_user: User,
+        session: Session,
+        fhir_client: HapiFhirClient | None = None,
+) -> None:
+    require_profile_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        allowed_roles=EDIT_ROLES,
+        session=session,
+    )
+    entry = _active_recommended_appointment(
+        profile_id=profile_id,
+        appointment_id=appointment_id,
+        session=session,
+    )
+    client = fhir_client or HapiFhirClient()
+    try:
+        _cancel_fhir_appointment(
+            client=client,
+            appointment_id=entry.fhir_appointment_id,
+            profile_id=profile_id,
+            booked_by_account_id=entry.booked_by_account_id,
+        )
+    except HapiFhirError as exc:
+        raise _hapi_booking_exception(exc) from exc
+
+    now = datetime.utcnow()
+    entry.status = "cancelled"
+    entry.deleted_at = now
+    entry.updated_at = now
+    session.add(entry)
+    session.commit()
+
+
+def reschedule_recommended_appointment(
+        *,
+        profile_id: int,
+        appointment_id: int,
+        request: RecommendedAppointmentRescheduleRequest,
+        current_user: User,
+        session: Session,
+        fhir_client: HapiFhirClient | None = None,
+) -> RecommendedAppointmentResponse:
+    require_profile_role(
+        account_id=current_user.id,
+        profile_id=profile_id,
+        allowed_roles=EDIT_ROLES,
+        session=session,
+    )
+    entry = _active_recommended_appointment(
+        profile_id=profile_id,
+        appointment_id=appointment_id,
+        session=session,
+    )
+    replacement_id = request.replacement_fhir_appointment_id.strip()
+    if replacement_id == entry.fhir_appointment_id:
+        return _to_recommended_response(entry)
+
+    client = fhir_client or HapiFhirClient()
+    try:
+        replacement = client.book_appointment(
+            appointment_id=replacement_id,
+            booked_by_account_id=current_user.id,
+        )
+        try:
+            _cancel_fhir_appointment(
+                client=client,
+                appointment_id=entry.fhir_appointment_id,
+                profile_id=profile_id,
+                booked_by_account_id=entry.booked_by_account_id,
+            )
+        except HapiFhirError as original_cancellation_error:
+            # Best-effort compensation: keep the original booking when its
+            # cancellation failed and release the newly selected slot.
+            try:
+                _cancel_fhir_appointment(
+                    client=client,
+                    appointment_id=replacement_id,
+                    profile_id=profile_id,
+                    booked_by_account_id=current_user.id,
+                )
+            except HapiFhirError as compensation_error:
+                # Never leave a successfully booked replacement invisible.
+                # If both remote cancellations fail, persist it as a second
+                # manageable appointment so the user can cancel either slot.
+                _persist_replacement_booking(
+                    profile_id=profile_id,
+                    session_id=request.session_id.strip(),
+                    current_user=current_user,
+                    replacement=replacement,
+                    note=request.note,
+                    session=session,
+                )
+                raise HapiFhirError(
+                    "Alter und neuer Termin sind weiterhin gebucht und werden "
+                    "beide in der Terminplanung angezeigt. Bitte storniere "
+                    "den nicht gewünschten Termin erneut."
+                ) from compensation_error
+            raise original_cancellation_error
+    except HapiFhirError as exc:
+        raise _hapi_booking_exception(exc) from exc
+
+    data = appointment_resource_to_result(replacement)
+    entry.session_id = request.session_id.strip()
+    entry.booked_by_account_id = current_user.id
+    entry.fhir_appointment_id = data["id"]
+    entry.provider_name = data["provider_name"].strip()
+    entry.specialty = data["specialty"].strip()
+    entry.address = data["address"].strip()
+    entry.distance_km = data["distance_km"]
+    entry.starts_at = _parse_hapi_appointment_start(
+        replacement,
+        date_value=data["date"],
+        time_value=data["time"],
+    )
+    entry.care_type = data["care_type"].strip()
+    if request.note is not None:
+        entry.note = request.note.strip() or None
+    entry.status = "booked"
+    entry.updated_at = datetime.utcnow()
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return _to_recommended_response(entry)
+
+
+def _cancel_fhir_appointment(
+        *,
+        client: HapiFhirClient,
+        appointment_id: str,
+        profile_id: int,
+        booked_by_account_id: int,
+        attempts: int = 2,
+) -> dict[str, Any]:
+    """Retry a cancellation once to absorb short-lived HAPI conflicts."""
+    last_error: HapiFhirError | None = None
+    for _ in range(attempts):
+        try:
+            return client.cancel_appointment(
+                appointment_id=appointment_id,
+                profile_id=profile_id,
+                booked_by_account_id=booked_by_account_id,
+            )
+        except HapiFhirError as exc:
+            last_error = exc
+
+    assert last_error is not None
+    raise last_error
+
+
+def _persist_replacement_booking(
+        *,
+        profile_id: int,
+        session_id: str,
+        current_user: User,
+        replacement: dict[str, Any],
+        note: str | None,
+        session: Session,
+) -> None:
+    data = appointment_resource_to_result(replacement)
+    existing = session.exec(
+        select(RecommendedAppointment)
+        .where(RecommendedAppointment.profile_id == profile_id)
+        .where(RecommendedAppointment.fhir_appointment_id == data["id"])
+        .where(RecommendedAppointment.deleted_at.is_(None))
+    ).first()
+    if existing is not None:
+        return
+
+    session.add(
+        RecommendedAppointment(
+            profile_id=profile_id,
+            booked_by_account_id=current_user.id,
+            session_id=session_id,
+            fhir_appointment_id=data["id"],
+            provider_name=data["provider_name"].strip(),
+            specialty=data["specialty"].strip(),
+            address=data["address"].strip(),
+            distance_km=data["distance_km"],
+            starts_at=_parse_hapi_appointment_start(
+                replacement,
+                date_value=data["date"],
+                time_value=data["time"],
+            ),
+            care_type=data["care_type"].strip(),
+            note=(note or "").strip() or None,
+            status="booked",
+        )
+    )
+    session.commit()
+
+
+def _active_recommended_appointment(
+        *,
+        profile_id: int,
+        appointment_id: int,
+        session: Session,
+) -> RecommendedAppointment:
+    entry = session.exec(
+        select(RecommendedAppointment)
+        .where(RecommendedAppointment.id == appointment_id)
+        .where(RecommendedAppointment.profile_id == profile_id)
+        .where(RecommendedAppointment.deleted_at.is_(None))
+        .where(RecommendedAppointment.status == "booked")
+    ).first()
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Der gebuchte Termin wurde nicht gefunden.",
+        )
+    return entry
+
+
+def _deduplicate_entries(
+        entries: list[RecommendedAppointment],
+) -> list[RecommendedAppointment]:
+    """Return each booked appointment once, even if stale duplicate rows exist."""
+
+    result: list[RecommendedAppointment] = []
+    seen_keys: set[tuple[Any, ...]] = set()
+
+    for entry in entries:
+        key = (
+            entry.profile_id,
+            (entry.fhir_appointment_id or "").strip().lower(),
+        )
+        fallback_key = (
+            entry.profile_id,
+            entry.provider_name.strip().lower(),
+            entry.starts_at,
+        )
+
+        if key in seen_keys or fallback_key in seen_keys:
+            continue
+
+        seen_keys.add(key)
+        seen_keys.add(fallback_key)
+        result.append(entry)
+
+    return result
 
 
 def _parse_hapi_appointment_start(

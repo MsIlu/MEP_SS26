@@ -25,6 +25,7 @@ void main() {
     required int profileId,
     String name = 'Befund.pdf',
     DocumentSource source = DocumentSource.uploaded,
+    DateTime? createdAt,
   }) {
     return DocumentEntry(
       id: id,
@@ -33,7 +34,7 @@ void main() {
       category: source == DocumentSource.careena
           ? DocumentCategory.recommendations
           : DocumentCategory.findings,
-      createdAt: DateTime(2026, 6, 23),
+      createdAt: createdAt ?? DateTime(2026, 6, 23),
       sizeInBytes: 1000,
       source: source,
     );
@@ -58,7 +59,7 @@ void main() {
     expect(repository.documents.value, isEmpty);
   });
 
-  test('prevents duplicate recommendation for the same profile', () async {
+  test('prevents duplicate recommendation key for the same profile', () async {
     final first = createDocument(
       id: '1',
       profileId: 10,
@@ -76,6 +77,27 @@ void main() {
     expect(await repository.addRecommendationIfMissing(first), isTrue);
     expect(await repository.addRecommendationIfMissing(duplicate), isFalse);
     expect(repository.documents.value, hasLength(1));
+  });
+
+  test('allows different recommendations with the same visible name', () async {
+    final first = createDocument(
+      id: '1',
+      profileId: 10,
+      name: 'Handlungsempfehlung.pdf',
+      source: DocumentSource.careena,
+      createdAt: DateTime(2026, 7, 1, 10),
+    );
+    final second = createDocument(
+      id: '2',
+      profileId: 10,
+      name: 'Handlungsempfehlung.pdf',
+      source: DocumentSource.careena,
+      createdAt: DateTime(2026, 7, 1, 11),
+    );
+
+    expect(await repository.addRecommendationIfMissing(first), isTrue);
+    expect(await repository.addRecommendationIfMissing(second), isTrue);
+    expect(repository.documents.value, hasLength(2));
   });
 
   test('allows the same recommendation for different profiles', () async {

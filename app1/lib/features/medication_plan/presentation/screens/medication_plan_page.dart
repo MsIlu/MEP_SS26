@@ -41,7 +41,8 @@ class MedicationPlanPage extends StatefulWidget {
 }
 
 class _MedicationPlanPageState extends State<MedicationPlanPage> {
-  late final MedicationPlanController _controller;
+  late MedicationPlanController _controller;
+  int? _loadedProfileId;
 
   late final DateTime _today;
   late DateTime _selectedDate;
@@ -56,15 +57,35 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
     _selectedDate = initialDate == null
         ? _today
         : DateTime(initialDate.year, initialDate.month, initialDate.day);
-    _controller = MedicationPlanController(
+    _loadedProfileId = widget.authSession?.activeProfileId;
+    _controller = _createController(_loadedProfileId);
+    widget.authSession?.addListener(_handleProfileChanged);
+    _controller.loadEntries().then((_) => _openInitialMedication());
+  }
+
+  MedicationPlanController _createController(int? profileId) {
+    return MedicationPlanController(
       repository: MedicationRepository(
         apiService: widget.apiClient == null
             ? null
             : MedicationApiService(widget.apiClient!),
-        profileId: widget.authSession?.activeProfileId,
+        profileId: profileId,
       ),
     );
-    _controller.loadEntries().then((_) => _openInitialMedication());
+  }
+
+  Future<void> _handleProfileChanged() async {
+    final nextProfileId = widget.authSession?.activeProfileId;
+    if (nextProfileId == _loadedProfileId || !mounted) return;
+
+    final previousController = _controller;
+    final nextController = _createController(nextProfileId);
+    setState(() {
+      _loadedProfileId = nextProfileId;
+      _controller = nextController;
+    });
+    await nextController.loadEntries();
+    previousController.dispose();
   }
 
   void _openInitialMedication() {
@@ -81,6 +102,7 @@ class _MedicationPlanPageState extends State<MedicationPlanPage> {
 
   @override
   void dispose() {
+    widget.authSession?.removeListener(_handleProfileChanged);
     _controller.dispose();
     super.dispose();
   }

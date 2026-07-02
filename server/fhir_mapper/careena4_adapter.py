@@ -104,7 +104,7 @@ def _map_observation(observation: Any) -> dict[str, Any]:
 
     return {
         "id": getattr(observation, "observation_id", None),
-        "label": getattr(observation, "label", "Unbekannte Angabe"),
+        "label": _observation_label(observation),
         "type": getattr(observation, "type", "unknown"),
         "source_span": _build_source_span(observation),
         "context": {
@@ -116,6 +116,16 @@ def _map_observation(observation: Any) -> dict[str, Any]:
             "attributes": attributes,
         },
     }
+
+
+def _observation_label(observation: Any) -> str:
+    for field_name in ("label", "normalized_label_de", "clinical_term_de"):
+        value = getattr(observation, field_name, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+
+    return "Unbekannte Angabe"
+
 
 def _map_recommendation_result(recommendation_result: Any) -> dict[str, Any]:
     if recommendation_result is None:

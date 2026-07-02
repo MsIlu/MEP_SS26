@@ -1,4 +1,5 @@
 import 'package:app1/app/app_navigation_fallbacks.dart';
+import 'package:app1/app/app_dependencies_scope.dart';
 import 'package:app1/app/app_page_store.dart';
 import 'package:app1/core/themes/app_colors.dart';
 import 'package:app1/core/themes/theme_controller.dart';
@@ -54,7 +55,8 @@ class SymptomDiaryPage extends StatefulWidget {
 }
 
 class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
-  late final SymptomDiaryController _controller;
+  late SymptomDiaryController _controller;
+  int? _loadedProfileId;
 
   late final DateTime _today;
   late DateTime _selectedDate;
@@ -72,10 +74,11 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
         ? _today
         : DateTime(initialDate.year, initialDate.month, initialDate.day);
 
-    _controller = SymptomDiaryController(
-      apiService: widget.symptomApiService,
-      profileId: widget.profileId ?? widget.authSession?.activeProfileId,
-    );
+    _loadedProfileId = widget.profileId ?? widget.authSession?.activeProfileId;
+    _controller = _createController(_loadedProfileId);
+    if (widget.profileId == null) {
+      widget.authSession?.addListener(_handleProfileChanged);
+    }
 
     _controller.loadEntries();
 
@@ -87,8 +90,40 @@ class _SymptomDiaryPageState extends State<SymptomDiaryPage> {
     }
   }
 
+  SymptomDiaryController _createController(int? profileId) {
+    return SymptomDiaryController(
+      apiService: widget.symptomApiService,
+      profileId: profileId,
+    );
+  }
+
+  Future<void> _handleProfileChanged() async {
+    final nextProfileId = widget.authSession?.activeProfileId;
+    if (nextProfileId == _loadedProfileId || !mounted) return;
+
+    final dependencies = AppDependenciesScope.maybeOf(context);
+    if (nextProfileId != null && dependencies != null) {
+      await dependencies.symptomSyncService.syncActiveProfile(nextProfileId);
+      if (!mounted || widget.authSession?.activeProfileId != nextProfileId) {
+        return;
+      }
+    }
+
+    final previousController = _controller;
+    final nextController = _createController(nextProfileId);
+    setState(() {
+      _loadedProfileId = nextProfileId;
+      _controller = nextController;
+    });
+    await nextController.loadEntries();
+    previousController.dispose();
+  }
+
   @override
   void dispose() {
+    if (widget.profileId == null) {
+      widget.authSession?.removeListener(_handleProfileChanged);
+    }
     _controller.dispose();
     super.dispose();
   }

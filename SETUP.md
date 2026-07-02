@@ -71,6 +71,9 @@ LITELLM_MODEL=medgemma:27b
 DATABASE_URL=postgresql+psycopg://mep_user:mep_password@127.0.0.1:5433/mep_server
 SECRET_KEY=REPLACE_WITH_A_LONG_RANDOM_VALUE
 SQL_ECHO=false
+
+FHIR_BASE_URL=http://localhost:8080/fhir
+FHIR_TIMEOUT_SECONDS=5
 ```
 
 ### ⚠️ Warning

@@ -21,7 +21,6 @@ void main() {
               appointmentDate: DateTime(2026, 6, 30, 10),
               note: '',
             ),
-            onToggleCompleted: () {},
             onDelete: () {},
             onEdit: () {
               wasEdited = true;

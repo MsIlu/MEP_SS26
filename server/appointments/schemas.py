@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class AppointmentSearchRequest(BaseModel):
     session_id: str
-    profile_id: int
+    profile_id: int | None = None
     postal_code: str = Field(min_length=5, max_length=5)
 
 
@@ -41,6 +41,12 @@ class AppointmentSearchResponse(BaseModel):
 class RecommendedAppointmentCreateRequest(BaseModel):
     session_id: str = Field(min_length=1, max_length=100)
     fhir_appointment_id: str = Field(min_length=1, max_length=120)
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class RecommendedAppointmentRescheduleRequest(BaseModel):
+    session_id: str = Field(min_length=1, max_length=100)
+    replacement_fhir_appointment_id: str = Field(min_length=1, max_length=120)
     note: str | None = Field(default=None, max_length=1000)
 
 

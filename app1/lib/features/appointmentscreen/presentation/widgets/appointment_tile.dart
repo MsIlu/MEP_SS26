@@ -4,14 +4,12 @@ import '../../data/models/appointment.dart';
 
 class AppointmentTile extends StatefulWidget {
   final Appointment appointment;
-  final VoidCallback onToggleCompleted;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
 
   const AppointmentTile({
     super.key,
     required this.appointment,
-    required this.onToggleCompleted,
     required this.onDelete,
     required this.onEdit,
   });
@@ -49,9 +47,7 @@ class _AppointmentTileState extends State<AppointmentTile> {
             ? const BorderSide(color: AppColors.careenaTeal, width: 1.4)
             : BorderSide.none,
       ),
-      color: appointment.isCompleted
-          ? Theme.of(context).colorScheme.surfaceContainerHighest
-          : isPendingRecommendation
+      color: isPendingRecommendation
           ? AppColors.careenaTeal.withValues(alpha: 0.08)
           : null,
       margin: const EdgeInsets.only(bottom: 12),
@@ -87,37 +83,31 @@ class _AppointmentTileState extends State<AppointmentTile> {
               ],
               Row(
                 children: [
-                  if (!isPendingRecommendation) ...[
-                    Semantics(
-                      label: appointment.isCompleted
-                          ? 'Termin ${appointment.doctorName} als offen markieren'
-                          : 'Termin ${appointment.doctorName} als erledigt markieren',
-                      checked: appointment.isCompleted,
-                      onTap: widget.onToggleCompleted,
-                      child: ExcludeSemantics(
-                        child: Checkbox(
-                          value: appointment.isCompleted,
-                          activeColor: AppColors.careenaTeal,
-                          onChanged: (_) => widget.onToggleCompleted(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-
                   Expanded(
-                    child: Text(
-                      appointment.doctorName,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-
-                        color: appointment.isCompleted ? AppColors.grey : null,
-
-                        decoration: appointment.isCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            appointment.doctorName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (appointment.isRecommendation)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Tooltip(
+                              message: 'Von Careena empfohlen',
+                              child: Icon(
+                                Icons.auto_awesome_outlined,
+                                size: 18,
+                                color: AppColors.careenaTeal,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   Semantics(
@@ -266,9 +256,6 @@ class _AppointmentTileState extends State<AppointmentTile> {
           ? 'Terminempfehlung: ${appointment.doctorName}'
           : 'Termin: ${appointment.doctorName}',
     );
-    if (appointment.isCompleted) {
-      parts.add('Erledigt');
-    }
     if (appointmentDate == null) {
       parts.add(
         isPendingRecommendation

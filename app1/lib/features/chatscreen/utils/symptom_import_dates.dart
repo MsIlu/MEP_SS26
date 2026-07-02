@@ -21,7 +21,7 @@ List<SymptomImport> buildDatedSymptomImportsFromMessages({
       imports.add(
         SymptomImport(
           name: symptom,
-          date: today.subtract(Duration(days: daysAgo)),
+          date: DateTime(today.year, today.month, today.day - daysAgo),
         ),
       );
     }

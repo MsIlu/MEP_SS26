@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import httpx
 
+from appointments.simulator_catalog import SPECIALTY_LABELS, providers_for
 from fhir_mapper.mapper import map_to_fhir_bundle
 from fhir_mapper.validator import validate_fhir_bundle
 from careena4.models.domain import MedicalCase
@@ -449,10 +450,18 @@ def test_simulator_catalog_contains_all_supported_specialties():
     specialties = {
         appointment["specialty"][0]["text"] for appointment in client.written
     }
-    assert len(client.written) == 96
+    expected_count = sum(
+        len(providers_for("68159", specialty)) * 3
+        for specialty in SPECIALTY_LABELS
+        if specialty not in {"unknown", "emergency_medicine"}
+    )
+    assert len(client.written) == expected_count
     assert {
         "Allgemeinmedizin",
+        "Kardiologie",
+        "Gastroenterologie",
         "HNO",
+        "Psychiatrie",
         "Zahnmedizin",
         "Augenheilkunde",
         "Orthopädie",
@@ -475,3 +484,28 @@ def test_specialist_provider_prefix_is_not_hausarztpraxis():
     assert resources[0]["participant"][0]["actor"]["display"].startswith(
         "Facharztpraxis"
     )
+
+
+def test_new_specialties_keep_specific_labels_and_provider_prefixes():
+    expected = {
+        "cardiology": ("Kardiologie", "Kardiologische Praxis"),
+        "gastroenterology": ("Gastroenterologie", "Gastroenterologische Praxis"),
+        "psychiatry": ("Psychiatrie", "Psychiatrische Praxis"),
+    }
+
+    for specialty, (label, prefix) in expected.items():
+        resources = build_recommendation_appointment_resources(
+            session_id="session-1",
+            profile_id=10,
+            postal_code="68159",
+            recommendation_result=SimpleNamespace(
+                urgency_level="medium",
+                care_level="specialist",
+                specialty=specialty,
+            ),
+            bundle_id=None,
+        )
+
+        assert resources
+        assert resources[0]["specialty"][0]["text"] == label
+        assert resources[0]["participant"][0]["actor"]["display"].startswith(prefix)

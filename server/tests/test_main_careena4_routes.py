@@ -455,10 +455,13 @@ def test_appointment_search_uses_fhir_bundle_and_hapi_layer(
 @pytest.mark.parametrize(
     "marker, expected_specialty",
     [
+        ("Kardiologie", "cardiology"),
         ("Zahnarzt", "dentistry"),
+        ("Gastroenterologie", "gastroenterology"),
         ("Augenarzt", "ophthalmology"),
         ("Frauenarzt", "gynecology"),
         ("Kinderarzt", "pediatrics"),
+        ("Psychiatrie", "psychiatry"),
         ("Urologie", "urology"),
     ],
 )

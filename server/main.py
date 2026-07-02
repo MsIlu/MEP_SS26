@@ -560,11 +560,15 @@ def _recommendation_from_history(
     text = f"{recommendation} {next_steps}".casefold()
     specialty = "general_practice"
     care_level = "general_practice"
+    # Fallback for older/persisted free-text recommendations without structured specialty metadata.
     for marker, mapped_specialty in (
         (("orthop", "bewegungsapparat"), "orthopedics"),
+        (("kardiolog", "herzarzt", "herzpraxis"), "cardiology"),
         (("haut", "dermat"), "dermatology"),
+        (("gastro", "magen-darm", "verdauung"), "gastroenterology"),
         (("neurolog",), "neurology"),
         (("hno", "hals-nasen-ohren"), "ent"),
+        (("psychiatr", "psychische", "psychisch"), "psychiatry"),
         (("zahn", "kiefer"), "dentistry"),
         (("auge", "augenarzt", "ophthalm"), "ophthalmology"),
         (("gyn", "frauenarzt"), "gynecology"),

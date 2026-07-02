@@ -42,6 +42,7 @@ BOOKED_BY_ACCOUNT_EXTENSION_URL = (
     "https://careena.local/fhir/StructureDefinition/careena-booked-by-account-id"
 )
 
+
 class HapiFhirError(RuntimeError):
     """Raised when the local HAPI FHIR adapter cannot be reached or parsed."""
 
@@ -793,11 +794,14 @@ def _appointment_offsets_for_urgency(urgency: str) -> list[int]:
 
 def _provider_type_for_specialty(specialty: str) -> str:
     return {
+        "cardiology": "Kardiologische Praxis",
         "general_practice": "Hausarztpraxis",
+        "gastroenterology": "Gastroenterologische Praxis",
         "dentistry": "Zahnarztpraxis",
         "ophthalmology": "Augenarztpraxis",
         "gynecology": "Frauenarztpraxis",
         "pediatrics": "Kinderarztpraxis",
+        "psychiatry": "Psychiatrische Praxis",
         "ent": "HNO-Praxis",
     }.get(specialty, "Facharztpraxis")
 

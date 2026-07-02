@@ -317,6 +317,24 @@ def _load_medication_history(profile_id, current_user, session) -> list[Medicati
     return history
 
 
+def _load_profile_snapshots(current_user, session) -> list[ProfileSnapshot]:
+    from profiles.service import list_profiles
+
+    return [
+        _snapshot_from_profile(profile)
+        for profile in list_profiles(current_user=current_user, session=session)
+    ]
+
+
+def _find_profile_snapshot(
+    profiles: list[ProfileSnapshot],
+    profile_id: int | None,
+) -> ProfileSnapshot | None:
+    if profile_id is None:
+        return None
+    return next((profile for profile in profiles if profile.id == profile_id), None)
+
+
 #Helper: convert Careena4 TurnResult into the Flutter chat response JSON.
 def build_careena4_chat_response(result: TurnResult) -> dict:
     active_question = result.conversation_state.active_question
@@ -610,6 +628,36 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
         careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
 
+def _replay_persisted_message(
+    *,
+    message: str,
+    session_id: str,
+    session_profile_id: int | None,
+    diary_history: list[DiaryEntry],
+    careena4_session,
+) -> TurnResult:
+    replay_result = careena4_turn_engine.run_turn(
+        TurnInput.from_persisted_state(
+            message=message,
+            session_id=session_id,
+            turn_id=str(uuid4()),
+            profile_id=session_profile_id,
+            diary_history=diary_history,
+            conversation_messages=careena4_session.messages,
+            persisted_medical_case=careena4_session.medical_case,
+            persisted_conversation_state=careena4_session.conversation_state,
+            persisted_recommendation_state=careena4_session.recommendation_state,
+            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+        )
+    )
+    persist_careena4_turn_result(
+        careena4_session=careena4_session,
+        turn_result=replay_result,
+    )
+    careena4_session.messages.append({"role": "user", "content": message})
+    return replay_result
+
+
 #1. checks if Careena4-Session exist
 #2. validate empty input
 #3. save profile_id
@@ -677,8 +725,7 @@ def chat(
         return response
 
     turn_id = str(uuid4())
-
-    needs_profile_pre_turn = (
+    fresh_profile_resolution_turn = (
         careena4_session.medical_case is None
         and current_user is not None
         and (
@@ -686,80 +733,33 @@ def chat(
             or careena4_session.conversation_state.active_question is None
         )
     )
-    if needs_profile_pre_turn:
-        # Safety-critical messages (catalog match) bypass profile selection so the
-        # safety question fires immediately without making the user pick a person first.
-        raw_safety_precheck = careena4_turn_engine.raw_red_flag_detector.detect(req.message)
-        if raw_safety_precheck.requires_safety_clarification or raw_safety_precheck.requires_emergency_response:
-            needs_profile_pre_turn = False
-            # For a single profile, still fill in person data so the safety question
-            # runs with demographics and pre_turn is not needed on subsequent turns.
-            try:
-                from profiles.service import list_profiles as _list_profiles_bypass
-                _bypass_snapshots = [
-                    _snapshot_from_profile(p)
-                    for p in _list_profiles_bypass(current_user=current_user, session=session)
-                ]
-                if len(_bypass_snapshots) == 1:
-                    careena4_person_initialiser.pre_turn(
-                        session_id=req.session_id,
-                        careena4_session=careena4_session,
-                        profiles=_bypass_snapshots,
-                        pending_message=None,
-                    )
-                elif raw_safety_precheck.requires_safety_clarification:
-                    careena4_person_initialiser.remember_pending_message(
-                        session_id=req.session_id,
-                        pending_message=req.message,
-                    )
-            except Exception:
-                pass
-    if needs_profile_pre_turn:
+    fresh_profile_snapshots: list[ProfileSnapshot] = []
+    unresolved_multi_profile_first_turn = False
+    if fresh_profile_resolution_turn:
         try:
-            from profiles.service import list_profiles
-            snapshots = [_snapshot_from_profile(p) for p in list_profiles(current_user=current_user, session=session)]
-            skip_turn = careena4_person_initialiser.pre_turn(
+            fresh_profile_snapshots = _load_profile_snapshots(current_user, session)
+        except Exception:
+            fresh_profile_snapshots = []
+        if len(fresh_profile_snapshots) == 1:
+            careena4_person_initialiser.pre_turn(
                 session_id=req.session_id,
                 careena4_session=careena4_session,
-                profiles=snapshots,
-                pending_message=req.message,
+                profiles=fresh_profile_snapshots,
+                pending_message=None,
             )
-        except Exception:
-            skip_turn = False
-
-        if skip_turn:
-            question = careena4_session.conversation_state.active_question
-            reply_options = (
-                [opt.label for opt in question.guided_input.options]
-                if question.guided_input is not None and question.guided_input.options
-                else []
-            )
-            careena4_session.messages.append({"role": "user", "content": req.message})
-            careena4_session.messages.append({"role": "assistant", "content": question.prompt_text})
-            return {
-                "response": question.prompt_text,
-                "response_mode": "ask_followup",
-                "red_flag": False,
-                "trace_notes": [],
-                "pending_followup": {
-                    "question_id": question.question_id,
-                    "kind": question.kind,
-                    "question_intent": question.question_intent,
-                    "target_observation_id": question.target_observation_id,
-                    "target_followup_id": question.target_followup_id,
-                    "prompt_text": question.prompt_text,
-                    "blocking": question.blocking,
-                },
-                "recommendation_ready": False,
-                "reply_options": reply_options,
-                "reply_suggestions": [],
-                "recommendation_result": None,
-                "action": None,
-                "severity": None,
-                "case_observations": [],
-            }
+        else:
+            unresolved_multi_profile_first_turn = len(fresh_profile_snapshots) > 1
 
     subject_profile_id = _resolve_subject_profile_id(req.session_id, session_profile_id)
+    if (
+        unresolved_multi_profile_first_turn
+        or (
+            careena4_person_initialiser.pending_message(session_id=req.session_id)
+            and req.session_id not in careena4_session_case_profiles
+            and req.session_id not in careena4_session_unbound_cases
+        )
+    ):
+        subject_profile_id = None
     diary_history = _load_diary_history(subject_profile_id, current_user, session)
 
     prev_active_question_kind = (
@@ -829,6 +829,83 @@ def chat(
         careena4_session_case_profiles.pop(req.session_id, None)
         subject_profile_id = None
         diary_history = []
+
+    active_question = (
+        careena4_session.conversation_state.active_question
+        if careena4_session.conversation_state is not None
+        else None
+    )
+    active_question_kind = active_question.kind if active_question is not None else None
+
+    if (
+        unresolved_multi_profile_first_turn
+        and response.get("response_mode") != "emergency"
+        and not profile_warning
+        and not pending_message
+        and req.session_id not in careena4_session_case_profiles
+        and req.session_id not in careena4_session_unbound_cases
+    ):
+        if active_question_kind == "safety_clarification":
+            careena4_person_initialiser.remember_pending_message(
+                session_id=req.session_id,
+                pending_message=req.message,
+            )
+        else:
+            active_profile_snapshot = _find_profile_snapshot(
+                fresh_profile_snapshots,
+                session_profile_id,
+            )
+            if (
+                active_profile_snapshot is not None
+                and careena4_session.medical_case is not None
+                and careena4_session.medical_case.person.relation == "self"
+            ):
+                careena4_session_case_profiles[req.session_id] = session_profile_id
+                careena4_session_unbound_cases.discard(req.session_id)
+                subject_profile_id = session_profile_id
+                careena4_person_initialiser.apply_profile_snapshot(
+                    careena4_session=careena4_session,
+                    profile=active_profile_snapshot,
+                )
+                if careena4_session.conversation_state is not None:
+                    careena4_session.conversation_state.active_question = None
+                diary_history = _load_diary_history(subject_profile_id, current_user, session)
+                replay_result = _replay_persisted_message(
+                    message=req.message,
+                    session_id=req.session_id,
+                    session_profile_id=session_profile_id,
+                    diary_history=diary_history,
+                    careena4_session=careena4_session,
+                )
+                response = build_careena4_chat_response(replay_result)
+            else:
+                deferred_question = careena4_person_initialiser.inject_deferred_clarification(
+                    session_id=req.session_id,
+                    careena4_session=careena4_session,
+                    profiles=fresh_profile_snapshots,
+                    pending_message=req.message,
+                )
+                if deferred_question is not None:
+                    deferred_reply_options = (
+                        [opt.label for opt in deferred_question.guided_input.options]
+                        if deferred_question.guided_input is not None and deferred_question.guided_input.options
+                        else []
+                    )
+                    response = {
+                        **response,
+                        "response": deferred_question.prompt_text,
+                        "response_mode": "ask_followup",
+                        "reply_options": deferred_reply_options,
+                        "pending_followup": {
+                            "question_id": deferred_question.question_id,
+                            "kind": deferred_question.kind,
+                            "question_intent": deferred_question.question_intent,
+                            "target_observation_id": deferred_question.target_observation_id,
+                            "target_followup_id": deferred_question.target_followup_id,
+                            "prompt_text": deferred_question.prompt_text,
+                            "blocking": deferred_question.blocking,
+                        },
+                    }
     if profile_warning:
         response["response"] = profile_warning
         response["reply_options"] = profile_reply_options
@@ -840,25 +917,13 @@ def chat(
         # post_turn() has filled in relation/age/sex from the profile.
         if careena4_session.conversation_state is not None:
             careena4_session.conversation_state.active_question = None
-        second_turn_result = careena4_turn_engine.run_turn(
-            TurnInput.from_persisted_state(
-                message=pending_message,
-                session_id=req.session_id,
-                turn_id=str(uuid4()),
-                profile_id=session_profile_id,
-                diary_history=diary_history,
-                conversation_messages=careena4_session.messages,
-                persisted_medical_case=careena4_session.medical_case,
-                persisted_conversation_state=careena4_session.conversation_state,
-                persisted_recommendation_state=careena4_session.recommendation_state,
-                persisted_symptom_input_draft=careena4_session.symptom_input_draft,
-            )
-        )
-        persist_careena4_turn_result(
+        second_turn_result = _replay_persisted_message(
+            message=pending_message,
+            session_id=req.session_id,
+            session_profile_id=session_profile_id,
+            diary_history=diary_history,
             careena4_session=careena4_session,
-            turn_result=second_turn_result,
         )
-        careena4_session.messages.append({"role": "user", "content": pending_message})
         response = build_careena4_chat_response(second_turn_result)
 
     # Safety-just-resolved: if the previous turn held a safety_clarification and
@@ -881,37 +946,73 @@ def chat(
         )
         if _new_active_kind != "safety_clarification":
             try:
-                from profiles.service import list_profiles as _list_profiles_deferred
-                _deferred_snapshots = [
-                    _snapshot_from_profile(p)
-                    for p in _list_profiles_deferred(current_user=current_user, session=session)
-                ]
-                _deferred_question = careena4_person_initialiser.inject_deferred_clarification(
+                _deferred_snapshots = _load_profile_snapshots(current_user, session)
+                _pending_initial_message = careena4_person_initialiser.pending_message(
                     session_id=req.session_id,
-                    careena4_session=careena4_session,
-                    profiles=_deferred_snapshots,
                 )
-                if _deferred_question is not None:
-                    _deferred_reply_options = (
-                        [opt.label for opt in _deferred_question.guided_input.options]
-                        if _deferred_question.guided_input is not None and _deferred_question.guided_input.options
-                        else []
+                _active_profile_snapshot = _find_profile_snapshot(
+                    _deferred_snapshots,
+                    session_profile_id,
+                )
+                if (
+                    _pending_initial_message
+                    and _active_profile_snapshot is not None
+                    and careena4_session.medical_case is not None
+                    and careena4_session.medical_case.person.relation == "self"
+                ):
+                    careena4_person_initialiser.pop_pending_message(
+                        session_id=req.session_id,
                     )
-                    response = {
-                        **response,
-                        "response": _deferred_question.prompt_text,
-                        "response_mode": "ask_followup",
-                        "reply_options": _deferred_reply_options,
-                        "pending_followup": {
-                            "question_id": _deferred_question.question_id,
-                            "kind": _deferred_question.kind,
-                            "question_intent": _deferred_question.question_intent,
-                            "target_observation_id": _deferred_question.target_observation_id,
-                            "target_followup_id": _deferred_question.target_followup_id,
-                            "prompt_text": _deferred_question.prompt_text,
-                            "blocking": _deferred_question.blocking,
-                        },
-                    }
+                    careena4_session_case_profiles[req.session_id] = session_profile_id
+                    careena4_session_unbound_cases.discard(req.session_id)
+                    subject_profile_id = session_profile_id
+                    careena4_person_initialiser.apply_profile_snapshot(
+                        careena4_session=careena4_session,
+                        profile=_active_profile_snapshot,
+                    )
+                    if careena4_session.conversation_state is not None:
+                        careena4_session.conversation_state.active_question = None
+                    diary_history = _load_diary_history(
+                        subject_profile_id,
+                        current_user,
+                        session,
+                    )
+                    replay_result = _replay_persisted_message(
+                        message=_pending_initial_message,
+                        session_id=req.session_id,
+                        session_profile_id=session_profile_id,
+                        diary_history=diary_history,
+                        careena4_session=careena4_session,
+                    )
+                    response = build_careena4_chat_response(replay_result)
+                else:
+                    _deferred_question = careena4_person_initialiser.inject_deferred_clarification(
+                        session_id=req.session_id,
+                        careena4_session=careena4_session,
+                        profiles=_deferred_snapshots,
+                        pending_message=_pending_initial_message,
+                    )
+                    if _deferred_question is not None:
+                        _deferred_reply_options = (
+                            [opt.label for opt in _deferred_question.guided_input.options]
+                            if _deferred_question.guided_input is not None and _deferred_question.guided_input.options
+                            else []
+                        )
+                        response = {
+                            **response,
+                            "response": _deferred_question.prompt_text,
+                            "response_mode": "ask_followup",
+                            "reply_options": _deferred_reply_options,
+                            "pending_followup": {
+                                "question_id": _deferred_question.question_id,
+                                "kind": _deferred_question.kind,
+                                "question_intent": _deferred_question.question_intent,
+                                "target_observation_id": _deferred_question.target_observation_id,
+                                "target_followup_id": _deferred_question.target_followup_id,
+                                "prompt_text": _deferred_question.prompt_text,
+                                "blocking": _deferred_question.blocking,
+                            },
+                        }
             except Exception:
                 pass
 

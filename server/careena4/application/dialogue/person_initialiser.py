@@ -99,6 +99,29 @@ class PersonInitialiser:
             return
         self._pending_message[session_id] = pending_message
 
+    def pending_message(self, *, session_id: str) -> str | None:
+        return self._pending_message.get(session_id)
+
+    def pop_pending_message(self, *, session_id: str) -> str | None:
+        return self._pending_message.pop(session_id, None)
+
+    def apply_profile_snapshot(
+        self,
+        *,
+        careena4_session,
+        profile: ProfileSnapshot,
+    ) -> None:
+        medical_case = careena4_session.medical_case
+        if medical_case is None:
+            medical_case = MedicalCase()
+            careena4_session.medical_case = medical_case
+
+        medical_case.person.relation = _map_relation(profile.profile_type)
+        if profile.age is not None:
+            medical_case.person.age = profile.age
+        if profile.sex is not None:
+            medical_case.person.sex = profile.sex
+
     def pre_turn(
         self,
         *,
@@ -129,12 +152,10 @@ class PersonInitialiser:
         self._person_map[session_id] = person_map
 
         if len(profiles) == 1:
-            p = profiles[0]
-            mc = MedicalCase()
-            mc.person.relation = _map_relation(p.profile_type)
-            mc.person.age = p.age
-            mc.person.sex = p.sex
-            careena4_session.medical_case = mc
+            self.apply_profile_snapshot(
+                careena4_session=careena4_session,
+                profile=profiles[0],
+            )
             return False
         else:
             known_names = [p.display_name for p in profiles]
@@ -241,6 +262,7 @@ class PersonInitialiser:
         session_id: str,
         careena4_session,
         profiles: list[ProfileSnapshot],
+        pending_message: str | None = None,
     ) -> ActiveQuestion | None:
         """Injects profile clarification when the safety bypass skipped pre_turn.
 
@@ -251,14 +273,10 @@ class PersonInitialiser:
         if not profiles:
             return None
         if len(profiles) == 1:
-            p = profiles[0]
-            mc = careena4_session.medical_case
-            if mc is not None:
-                mc.person.relation = _map_relation(p.profile_type)
-                if p.age is not None:
-                    mc.person.age = p.age
-                if p.sex is not None:
-                    mc.person.sex = p.sex
+            self.apply_profile_snapshot(
+                careena4_session=careena4_session,
+                profile=profiles[0],
+            )
             return None
         person_map: dict[str, _PersonData] = {
             p.display_name: (p.id, _map_relation(p.profile_type), p.age, p.sex)
@@ -266,6 +284,10 @@ class PersonInitialiser:
         }
         person_map["Jemand anderes"] = (None, "other", None, None)
         self._person_map[session_id] = person_map
+        self.remember_pending_message(
+            session_id=session_id,
+            pending_message=pending_message,
+        )
         known_names = [p.display_name for p in profiles]
         if careena4_session.conversation_state is None:
             careena4_session.conversation_state = ConversationState()

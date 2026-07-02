@@ -86,6 +86,19 @@ class PersonInitialiser:
         # Holds the first medical message while profile selection is pending
         self._pending_message: dict[str, str] = {}
 
+    def remember_pending_message(
+        self,
+        *,
+        session_id: str,
+        pending_message: str | None,
+    ) -> None:
+        if pending_message is None:
+            return
+        message = pending_message.strip()
+        if not message:
+            return
+        self._pending_message[session_id] = pending_message
+
     def pre_turn(
         self,
         *,

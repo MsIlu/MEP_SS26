@@ -1,8 +1,11 @@
+from datetime import date
 from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 from appointments.schemas import AppointmentSearchResponse, FhirAppointment
+from careena4.models.domain.case import MedicalCase
+from careena4.models.domain.dialogue import ActiveQuestion, ConversationState
 import main
 from main import (
     app,
@@ -203,6 +206,154 @@ def test_guest_chat_uses_careena4_turn_engine(client: TestClient, monkeypatch: p
     assert response.json()["response"] == "Careena4 Antwort."
     assert response.json()["red_flag"] is False
     assert len(calls) == 1
+
+
+def test_safety_bypass_profile_selection_replays_deferred_medical_message(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    session_response = client.post("/session", json={})
+    session_id = session_response.json()["session_id"]
+
+    app.dependency_overrides[main.get_optional_current_account] = (
+        lambda: SimpleNamespace(id=7)
+    )
+
+    def fake_list_profiles(*, current_user, session):
+        assert current_user.id == 7
+        return [
+            SimpleNamespace(
+                id=1,
+                display_name="Anna",
+                profile_type="self",
+                date_of_birth=date(2000, 4, 12),
+                biological_sex="female",
+            ),
+            SimpleNamespace(
+                id=2,
+                display_name="Ben",
+                profile_type="child",
+                date_of_birth=date(2015, 8, 20),
+                biological_sex="male",
+            ),
+        ]
+
+    monkeypatch.setattr("profiles.service.list_profiles", fake_list_profiles)
+
+    def fake_detect(message):
+        return SimpleNamespace(
+            requires_safety_clarification=message == "Ich habe Brustschmerzen.",
+            requires_emergency_response=False,
+            trace_notes=[],
+        )
+
+    monkeypatch.setattr(careena4_turn_engine.raw_red_flag_detector, "detect", fake_detect)
+
+    replay_inputs: list[tuple[str, int | None, str | None]] = []
+
+    def _turn_result(
+        *,
+        response_text: str,
+        response_mode: str,
+        medical_case: MedicalCase,
+        active_question: ActiveQuestion | None = None,
+    ):
+        return SimpleNamespace(
+            response_text=response_text,
+            response_mode=response_mode,
+            trace_notes=[],
+            recommendation_result=None,
+            current_turn_understanding=None,
+            symptom_input_draft=None,
+            medical_case=medical_case,
+            conversation_state=ConversationState(active_question=active_question),
+            recommendation_state=SimpleNamespace(recommendation_allowed=False),
+            turn_interpretation=None,
+        )
+
+    def fake_run_turn(turn_input):
+        medical_case = turn_input.persisted_medical_case or MedicalCase()
+        replay_inputs.append(
+            (
+                turn_input.message,
+                medical_case.person.age,
+                medical_case.person.sex,
+            )
+        )
+        if turn_input.message == "Ich habe Brustschmerzen." and len(replay_inputs) == 1:
+            return _turn_result(
+                response_text="Notfall?",
+                response_mode="ask_safety_question",
+                medical_case=medical_case,
+                active_question=ActiveQuestion(
+                    kind="safety_clarification",
+                    question_intent="free_description",
+                    prompt_text="Ist das ein Notfall?",
+                    blocking=True,
+                ),
+            )
+        if turn_input.message == "Nein":
+            return _turn_result(
+                response_text="Okay.",
+                response_mode="ask_followup",
+                medical_case=medical_case,
+            )
+        if turn_input.message == "Anna":
+            return _turn_result(
+                response_text="Profil ausgewaehlt.",
+                response_mode="ask_followup",
+                medical_case=medical_case,
+            )
+        if turn_input.message == "Ich habe Brustschmerzen." and len(replay_inputs) == 4:
+            assert medical_case.person.relation == "self"
+            assert medical_case.person.age == 26
+            assert medical_case.person.sex == "female"
+            return _turn_result(
+                response_text="Weiter mit Symptomen.",
+                response_mode="ask_followup",
+                medical_case=medical_case,
+            )
+        raise AssertionError(f"unexpected turn input: {turn_input.message}")
+
+    monkeypatch.setattr(careena4_turn_engine, "run_turn", fake_run_turn)
+
+    first = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "Ich habe Brustschmerzen.",
+        },
+    )
+    assert first.status_code == 200
+    assert first.json()["response"] == "Notfall?"
+
+    second = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "Nein",
+        },
+    )
+    assert second.status_code == 200
+    assert second.json()["pending_followup"]["question_intent"] == "person_profile_selection"
+    assert "Anfrage" in second.json()["response"]
+
+    third = client.post(
+        "/chatscreen",
+        json={
+            "session_id": session_id,
+            "message": "Anna",
+        },
+    )
+    assert third.status_code == 200
+    assert third.json()["response"] == "Weiter mit Symptomen."
+    assert third.json()["pending_followup"] is None
+    assert replay_inputs == [
+        ("Ich habe Brustschmerzen.", None, None),
+        ("Nein", None, None),
+        ("Anna", None, None),
+        ("Ich habe Brustschmerzen.", 26, "female"),
+    ]
 
 
 def test_chat_simrun_uses_simulation_runner_shortcut(client, monkeypatch):

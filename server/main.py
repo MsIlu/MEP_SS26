@@ -707,6 +707,11 @@ def chat(
                         profiles=_bypass_snapshots,
                         pending_message=None,
                     )
+                elif raw_safety_precheck.requires_safety_clarification:
+                    careena4_person_initialiser.remember_pending_message(
+                        session_id=req.session_id,
+                        pending_message=req.message,
+                    )
             except Exception:
                 pass
     if needs_profile_pre_turn:

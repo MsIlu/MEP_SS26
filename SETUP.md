@@ -149,6 +149,7 @@ Useful URLs:
 * Swagger UI: `http://localhost:8000/docs`
 * Server health: `http://localhost:8000/health/server`
 * LLM health: `http://localhost:8000/health/llm`
+* Simulierter FHIR Server: http://localhost:8000/fhir-simulator
 
 ---
 

@@ -4,8 +4,7 @@ class AppAssets {
   static const careenaDoctor = 'assets/images/careena/careena_doctor.png';
   static const careenaHi = 'assets/images/careena/careena_hi.png';
   static const String careenaProfil = 'assets/images/careena/careena_profil.png';
-  static const userManualPdf =
-      'assets/documents/Careena_Benutzerhandbuch.pdf';
+  static const userManualPdf = 'assets/documents/Benutzerhandbuch.pdf';
 
   static const bodyFemaleFront =
       'assets/images/body_silhouette/body_silhouette_female_front_transparent.png';

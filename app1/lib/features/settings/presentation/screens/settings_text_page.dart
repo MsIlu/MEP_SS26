@@ -1,3 +1,4 @@
+import 'package:app1/core/content/legal_texts.dart';
 import 'package:flutter/material.dart';
 import '../settings_icons.dart';
 import '../widgets/settings_detail_scaffold.dart';
@@ -21,24 +22,31 @@ class SettingsTextPage extends StatelessWidget {
       subtitle = 'Unterstützung bei Fragen zur App.',
       icon = SettingsIcons.help,
       paragraphs = const [
-        'Bei Fragen zur Bedienung hilft dir unser Support weiter.',
-        'In medizinischen Notfällen wende dich bitte direkt an den Rettungsdienst.',
+        'Bei Fragen zur Bedienung, zu gespeicherten Daten oder zu technischen Problemen erreichst du das Team MedBitAid per E-Mail unter support@medbitaid.de.',
+        'Bitte sende keine akuten medizinischen Notfälle per E-Mail. In lebensbedrohlichen Situationen oder bei starken Warnzeichen wähle sofort den Notruf 112.',
+        'Careena ist ein Studienprojekt und unterstützt bei der strukturierten Erfassung von Beschwerden. Die App ersetzt keine ärztliche Untersuchung, Diagnose oder Behandlung.',
       ];
 
   const SettingsTextPage.privacy({super.key})
-    : title = 'Datenschutz',
-      subtitle = 'Wie deine Daten geschützt werden.',
+    : title = LegalTexts.privacyTitle,
+      subtitle = LegalTexts.privacySubtitle,
       icon = SettingsIcons.privacy,
-      paragraphs = const [
-        'Gesundheitsdaten werden vertraulich behandelt und nur für die vorgesehenen Funktionen verwendet.',
-      ];
+      paragraphs = LegalTexts.privacyParagraphs;
+
+  const SettingsTextPage.terms({super.key})
+    : title = LegalTexts.termsTitle,
+      subtitle = LegalTexts.termsSubtitle,
+      icon = Icons.assignment_outlined,
+      paragraphs = LegalTexts.termsParagraphs;
 
   const SettingsTextPage.accessibility({super.key})
     : title = 'Barrierefreiheit',
-      subtitle = 'Bedienung und Rückmeldung.',
+      subtitle = 'Bedienung und Lesbarkeit.',
       icon = Icons.accessible_forward,
       paragraphs = const [
-        'Die einfache Ansicht vergrößert Bedienelemente und reduziert Ablenkungen.',
+        'Careena soll auch dann gut nutzbar sein, wenn Texte schwer lesbar sind oder kleine Bedienelemente die Bedienung erschweren.',
+        'Die größere Ansicht vergrößert Schrift, Schaltflächen und wichtige Bedienelemente. Außerdem werden einige Ansichten ruhiger dargestellt, damit Inhalte leichter erkennbar bleiben.',
+        'Die App unterstützt Tastaturfokus und gut sichtbare Hauptnavigation. Des Weiteren besteht im Chat die Möglichkeit einer Spracheingabe und die App ist Screenreader-kompatibel. Wenn dir Barrieren auffallen, melde sie bitte an support@medbitaid.de.',
       ];
 
   const SettingsTextPage.imprint({super.key})
@@ -46,8 +54,12 @@ class SettingsTextPage extends StatelessWidget {
       subtitle = 'Angaben zum Anbieter.',
       icon = Icons.info_outline,
       paragraphs = const [
-        'MedBitAid',
-        'Weitere Anbieterangaben werden vor der Veröffentlichung ergänzt.',
+        'Careena ist ein Studienprojekt des Teams MedBitAid.',
+        'Teamname: MedBitAid',
+        'Kontakt: support@medbitaid.de',
+        'Verantwortlich für Konzept, Umsetzung und Inhalte im Rahmen der Projektabgabe ist das Projektteam MedBitAid.',
+        'Diese App ist ein Prototyp für Ausbildungs- und Demonstrationszwecke. Sie ist nicht als Medizinprodukt zertifiziert und nicht für den produktiven medizinischen Einsatz bestimmt.',
+        'Medizinischer Hinweis: Careena stellt keine Diagnose, ersetzt keine ärztliche Beratung und übernimmt keine Notfallversorgung. Bei akuten Beschwerden oder Unsicherheit wende dich an medizinisches Fachpersonal. In Notfällen gilt der Notruf 112.',
       ];
 
   const SettingsTextPage.about({super.key})
@@ -55,8 +67,11 @@ class SettingsTextPage extends StatelessWidget {
       subtitle = 'Informationen und App-Version.',
       icon = Icons.phone_android,
       paragraphs = const [
-        'Careena unterstützt bei der strukturierten Erfassung gesundheitlicher Informationen.',
-        'Version 1.0',
+        'Careena ist eine App des Teams MedBitAid. Sie unterstützt dabei, Beschwerden strukturiert zu beschreiben, Symptome über die Zeit zu dokumentieren und mögliche nächste Schritte besser vorzubereiten.',
+        'Die App richtet sich an Nutzerinnen und Nutzer, die ihre gesundheitlichen Informationen übersichtlich erfassen möchten. Careena kann Hinweise geben, ersetzt aber keine medizinische Diagnose oder Behandlung.',
+        'Projektstatus: Studienprojekt / Prototyp',
+        'Version: 1.0',
+        'Kontakt: support@medbitaid.de',
       ];
 
   @override

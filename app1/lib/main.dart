@@ -18,6 +18,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_dependencies.dart';
 import 'core/themes/app_theme.dart';
 import 'core/themes/theme_controller.dart';
+import 'core/widgets/simple_view.dart';
 import 'features/chatscreen/controllers/chat_controller.dart';
 import 'features/onboardingscreen/presentation/screens/onboarding_screen.dart';
 import 'features/authscreen/state/auth_session.dart';
@@ -130,6 +131,10 @@ class _AppBootState extends State<_AppBoot> {
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 themeMode: _themeController.themeMode,
+                builder: (context, child) => SimpleViewAppDefaults(
+                  enabled: _themeController.isSimpleView,
+                  child: child ?? const SizedBox.shrink(),
+                ),
                 home: FutureBuilder<_InitialAppState>(
                   future: _initialState,
                   builder: (context, snapshot) {

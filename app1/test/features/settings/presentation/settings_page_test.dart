@@ -31,7 +31,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Einfache Ansicht'), findsOneWidget);
+    expect(find.text('Größere Ansicht'), findsOneWidget);
     expect(find.text('Einstellung suchen...'), findsOneWidget);
     expect(find.text('Benutzerhandbuch'), findsOneWidget);
     expect(find.text('Datenschutz und Sicherheit'), findsOneWidget);
@@ -53,13 +53,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Einfache Ansicht'));
-    await tester.tap(find.text('Einfache Ansicht'));
+    await tester.ensureVisible(find.text('Größere Ansicht'));
+    await tester.tap(find.text('Größere Ansicht'));
     await tester.pumpAndSettle();
 
     expect(themeController.isSimpleView, isTrue);
     expect(
-      find.text('Große Elemente und reduzierte Navigation'),
+      find.text('Größere Elemente und ruhigere Darstellung'),
       findsOneWidget,
     );
   });

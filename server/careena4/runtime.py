@@ -1,3 +1,10 @@
+"""Wiring of the Careena4 object graph (used via bootstrap.py).
+
+Builds the LLM client from config/.env (or a local Ollama fallback) and
+constructs every application service with its dependencies. Nothing here
+performs I/O at import time except reading environment variables.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -50,16 +57,10 @@ DEFAULT_LLM_TIMEOUT_SECONDS = 60.0
 DEFAULT_LLM_MAX_RETRIES = 1
 
 
-def _env_flag(name: str, *, default: bool = False) -> bool:
-    """Read a boolean feature flag from the environment."""
-    raw_value = os.getenv(name)
-    if raw_value is None:
-        return default
-    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
-
-
 @dataclass
 class Careena4RuntimeServices:
+    """Complete wired service graph; bootstrap.py exposes a subset of it."""
+
     llm_client: LLMClient
     extraction_engine: ExtractionEngine
     call_model_config: CallModelConfig
@@ -77,6 +78,9 @@ def build_llm_client(
     llm_mode: Literal["env", "local"] = "env",
     model_override: str | None = None,
 ) -> LLMClient:
+    """Create an LLM client for the given mode ("env" = LiteLLM endpoint from
+    config/.env, "local" = local Ollama). Constructing the client performs no
+    network call; connectivity is checked lazily via /warmup."""
     if llm_mode == "local":
         return LLMClient(
             base_url=LOCAL_LLM_BASE_URL,
@@ -99,6 +103,12 @@ def build_runtime(
     llm_mode: Literal["env", "local"] = "env",
     call_models: dict[str, str] | None = None,
 ) -> Careena4RuntimeServices:
+    """Construct and wire all Careena4 services into a TurnEngine.
+
+    call_models optionally overrides the model per LLM call type (see
+    careena4.llm.call_control). A single CaseManager instance is shared by all
+    services that read or write the MedicalCase.
+    """
     configure_debug_logging()
     llm_client = build_llm_client(llm_mode=llm_mode)
     call_model_config = build_call_model_config(

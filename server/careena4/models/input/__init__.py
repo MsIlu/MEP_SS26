@@ -1,7 +1,3 @@
-from careena4.models.input.medgemma_symptom_mapping import (
-    MedGemmaSymptomMappingCandidate,
-    MedGemmaSymptomMappingOutput,
-)
 from careena4.models.input.symptom_input_draft import (
     CancelDraftResponse,
     SymptomChip,
@@ -18,6 +14,4 @@ __all__ = [
     "SymptomDraftUpdateRequest",
     "SymptomInputDraft",
     "SymptomMappingCandidate",
-    "MedGemmaSymptomMappingCandidate",
-    "MedGemmaSymptomMappingOutput",
 ]

@@ -1,3 +1,5 @@
+"""Business logic and authorization checks for profile-scoped symptom diary entries."""
+
 from datetime import datetime
 
 from fastapi import HTTPException

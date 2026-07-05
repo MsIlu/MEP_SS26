@@ -1,18 +1,15 @@
-# Backend server using FastAPI and Uvicorn.
-#
-# Notes:
-# - Chat handling is currently session-based.
-# - Authentication and account data are persisted in PostgreSQL.
-# - Medical profiles are stored separately from login accounts.
-# - Chat history is still managed through the session manager unless explicitly persisted elsewhere.
-#
-# Requirements:
-# <bash> pip install -r requirements.txt
-#
-# Run:
-# <bash> uvicorn main:app --reload
-# or
-# <bash> python -m uvicorn main:app --reload
+"""Backend server using FastAPI and Uvicorn.
+
+Notes:
+- Chat handling is session-based; Careena4 sessions live in process memory.
+- Authentication and account data are persisted in PostgreSQL.
+- Medical profiles are stored separately from login accounts.
+- Chat history is only persisted when explicitly saved via chat_history.
+
+Run:
+    pip install -r requirements.txt
+    uvicorn main:app --reload
+"""
 
 import re
 from datetime import datetime, timedelta, timezone
@@ -151,6 +148,7 @@ class SessionRequest(BaseModel):
 
 
 def _refresh_llm_health_status() -> bool:
+    """Query the LLM endpoint once and cache the result for /health/llm."""
     checked_model = careena4_services.call_model_config.default_model
     available = careena4_services.llm_client.is_model_available(checked_model)
     careena4_llm_health_status.update(
@@ -173,6 +171,7 @@ class SetObservationSeveritiesRequest(BaseModel):
 
 
 def require_careena4_session(session_id: str):
+    """Return the in-memory Careena4 session or raise 404."""
     careena4_session = careena4_session_store.get(session_id)
 
     if careena4_session is None:
@@ -189,6 +188,12 @@ def require_careena4_session_access(
         current_user: User | None,
         db_session: Session,
 ):
+    """Return the session after an access check.
+
+    Anonymous sessions (no bound profile) are returned as-is; profile-bound
+    sessions additionally require an authenticated account with access to that
+    profile.
+    """
     careena4_session = require_careena4_session(session_id)
     profile_id = careena4_session_profiles.get(session_id)
 
@@ -317,8 +322,8 @@ def _load_medication_history(profile_id, current_user, session) -> list[Medicati
     return history
 
 
-#Helper: convert Careena4 TurnResult into the Flutter chat response JSON.
 def build_careena4_chat_response(result: TurnResult) -> dict:
+    """Convert a Careena4 TurnResult into the Flutter chat response JSON."""
     active_question = result.conversation_state.active_question
     pending_followup = None
 
@@ -395,6 +400,7 @@ def export_fhir_bundle(
         current_user: User | None = Depends(get_optional_current_account),
         db_session: Session = Depends(get_session),
 ):
+    """Export the session's medical case as a FHIR bundle."""
     careena4_session = require_careena4_session_access(
         session_id=session_id,
         current_user=current_user,
@@ -411,6 +417,7 @@ def export_fhir_bundle(
 
 
 def build_careena4_simrun_response(*, message: str) -> dict:
+    """Handle the /simrun chat command (runs a scripted LLM simulation)."""
     selector = message.strip()[len("/simrun"):].strip()
     response_text = run_simulation_command(
         selector=selector,
@@ -427,6 +434,11 @@ def search_appointments(
         current_user: User | None = Depends(get_optional_current_account),
         db_session: Session = Depends(get_session),
 ):
+    """Search FHIR appointments matching the session's recommendation.
+
+    Falls back to the persisted chat history when the in-memory session no
+    longer exists (e.g. after a backend restart).
+    """
     try:
         careena4_session = require_careena4_session_access(
             session_id=request.session_id,
@@ -493,6 +505,8 @@ def _search_appointments_from_persisted_history(
         current_user: User | None,
         db_session: Session,
 ) -> AppointmentSearchResponse:
+    """Appointment search based on a persisted chat history entry (requires
+    authentication because history rows are always profile-bound)."""
     if current_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -557,6 +571,11 @@ def _recommendation_from_history(
         recommendation: str,
         next_steps: str,
 ) -> RecommendationResult:
+    """Reconstruct a RecommendationResult from persisted free-text history.
+
+    Keyword-based fallback for old history rows that carry no structured
+    specialty/urgency metadata.
+    """
     text = f"{recommendation} {next_steps}".casefold()
     specialty = "general_practice"
     care_level = "general_practice"
@@ -600,6 +619,7 @@ app.state.careena4_turn_engine = careena4_turn_engine
 app.state.careena4_response_builder = build_careena4_chat_response
 
 def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -> None:
+    """Write the TurnResult state back onto the in-memory session."""
     careena4_session.medical_case = turn_result.medical_case
     careena4_session.conversation_state = turn_result.conversation_state
     careena4_session.recommendation_state = turn_result.recommendation_state
@@ -610,20 +630,25 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
         careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
 
-#1. checks if Careena4-Session exist
-#2. validate empty input
-#3. save profile_id
-#4. build TurnInput
-#5. Careena4 processes TurnInput
-#6. write new state in session
-#7. build API-Response for Flutter
-
 @app.post("/chatscreen")
 def chat(
         req: ChatRequest,
         current_user: User | None = Depends(get_optional_current_account),
         session: Session = Depends(get_session),
 ):
+    """Process one chat message and return the Flutter chat response.
+
+    Flow:
+      1. Validate the session and bind/verify its owning profile.
+      2. Person pre-turn: on the first medical message ask "Für wen?" first —
+         unless the message matches the safety catalog, in which case the
+         safety question takes priority and the profile question is deferred.
+      3. Run the TurnEngine and persist the resulting state on the session.
+      4. Person post-turn: record the chosen case subject; if a medical message
+         was deferred during profile selection, replay it as a second turn.
+      5. If a safety clarification was just resolved, inject the deferred
+         profile question before returning.
+    """
     careena4_session = require_careena4_session(req.session_id)
 
     if not req.message.strip():
@@ -968,6 +993,7 @@ def request_recommendation(
         current_user: User | None = Depends(get_optional_current_account),
         session: Session = Depends(get_session),
 ):
+    """Build and return the care recommendation for a session on user request."""
     careena4_session = require_careena4_session_access(
         session_id=req.session_id,
         current_user=current_user,
@@ -1016,6 +1042,7 @@ def request_recommendation(
 
 @app.post("/simulation/run")
 def run_simulation(req: SimulationRequest):
+    """Run a scripted LLM-vs-LLM simulation (QA/demo tooling, no auth)."""
     result = careena4_simulation_runner.run(normalized_simulation_request(req))
     return result.model_dump()
 
@@ -1038,11 +1065,13 @@ def warmup():
 
 @app.get("/health/server")
 def health_server():
+    """Liveness probe for the API process itself."""
     return {"status": "ok", "server": True}
 
 
 @app.get("/health/llm")
 def health_llm():
+    """Report the cached LLM availability (refreshed by /warmup, not here)."""
     checked_model = careena4_llm_health_status["model"]
 
     if not careena4_llm_health_status["available"]:
@@ -1152,6 +1181,8 @@ def _removed_symptom_labels(
     previous_labels: list[str],
     updated_labels: list[str],
 ) -> list[str]:
+    """Return labels the user removed from the draft (normalized comparison),
+    so the matching case observations can be negated."""
     updated_identities = {
         normalized
         for label in updated_labels

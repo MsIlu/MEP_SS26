@@ -1,7 +1,9 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module contains authentication-related business logic.
-# It keeps registration, login, and account deactivation logic separate from HTTP routing.
+"""Authentication business logic (registration, login, account deactivation),
+kept separate from HTTP routing.
+
+Created as part of the authentication and profile management implementation.
+"""
 
 from datetime import datetime
 

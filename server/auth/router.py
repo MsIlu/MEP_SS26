@@ -1,6 +1,8 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module defines authentication HTTP routes and delegates business logic to auth.service.
+"""Authentication HTTP routes; business logic is delegated to auth.service.
+
+Created as part of the authentication and profile management implementation.
+"""
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm

@@ -12,6 +12,15 @@ from careena4.server_log import log_event
 
 
 class EntryClassifier:
+    """Classifies an incoming message (scope, medical relevance, message kind).
+
+    Fallback path only: the TurnInterpreter normally delivers the entry
+    assessment as part of its combined LLM call, and the TurnEngine calls this
+    classifier when no interpretation is available. Classification itself is
+    LLM-based with a deterministic keyword heuristic as last resort.
+    """
+
+    # German keyword stems for the non-LLM fallback heuristic.
     _MEDICAL_HINTS = (
         "schmerz",
         "fieber",
@@ -55,6 +64,8 @@ class EntryClassifier:
         medical_case: MedicalCase | None = None,
         history_messages: list[dict[str, str]] | None = None,
     ) -> EntryAssessment:
+        """Classify the message, preferring the LLM and falling back to the
+        keyword heuristic when the LLM call fails or is unavailable."""
         llm_result = self._classify_with_llm(
             message=message,
             active_question=active_question,

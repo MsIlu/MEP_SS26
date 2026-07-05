@@ -1,4 +1,4 @@
-# Business logic and authorization checks for profile-scoped medications.
+"""Business logic and authorization checks for profile-scoped medications."""
 
 from datetime import datetime
 

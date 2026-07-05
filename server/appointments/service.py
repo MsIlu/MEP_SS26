@@ -1,3 +1,5 @@
+"""Business logic for FHIR-based appointment search and booking."""
+
 from __future__ import annotations
 
 from datetime import datetime

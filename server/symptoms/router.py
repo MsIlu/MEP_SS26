@@ -1,3 +1,5 @@
+"""HTTP routes for profile-scoped symptom diary entries."""
+
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 

@@ -12,6 +12,18 @@ from careena4.server_log import log_event
 
 
 class QuestionResolver:
+    """Decides whether a user message answers the currently active question.
+
+    Resolution strategy depends on the question kind:
+      - safety_clarification: always deterministic via SafetyClarificationResolver
+        (never the LLM, so an emergency confirmation cannot be misclassified).
+      - person_clarification: deterministic keyword/pattern matching.
+      - everything else: LLM resolution first, deterministic fallback second.
+
+    Results are normalized and validated so downstream code only sees canonical
+    status/answer_kind combinations.
+    """
+
     def __init__(
         self,
         *,
@@ -30,6 +42,11 @@ class QuestionResolver:
         message: str,
         history_messages: list[dict[str, str]] | None = None,
     ) -> QuestionResolution:
+        """Resolve the active question against the user's message.
+
+        Returns a QuestionResolution whose status tells the TurnEngine whether
+        to clear the question, repeat it, or escalate (confirmed red flag).
+        """
         stripped = message.strip()
         normalized = self._normalize(stripped)
 
@@ -72,6 +89,8 @@ class QuestionResolver:
         question: ActiveQuestion,
         resolution: QuestionResolution,
     ) -> QuestionResolution:
+        """Canonicalize and validate a resolution (also used for resolutions
+        produced by the TurnInterpreter instead of this resolver)."""
         return self._validate_resolution(
             question=question,
             resolution=self._canonicalize_resolution(

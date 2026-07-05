@@ -1,6 +1,8 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module defines profile HTTP routes and delegates business logic to profiles.service.
+"""Profile HTTP routes; business logic is delegated to profiles.service.
+
+Created as part of the authentication and profile management implementation.
+"""
 
 from fastapi import APIRouter, Depends
 from sqlmodel import Session

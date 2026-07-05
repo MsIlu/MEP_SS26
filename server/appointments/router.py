@@ -1,3 +1,5 @@
+"""HTTP routes for recommended appointments (booking, rescheduling, cancelling)."""
+
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 

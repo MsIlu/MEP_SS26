@@ -1,6 +1,8 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module contains business logic and authorization checks for medical profiles.
+"""Business logic and authorization checks for medical profiles.
+
+Created as part of the authentication and profile management implementation.
+"""
 
 from datetime import datetime
 

@@ -1,11 +1,11 @@
-from datetime import datetime, timezone
+from datetime import timezone
 from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from careena4.models.turn import TurnInput
-from database.models import ChatHistory, User
+from database.models import ChatHistory, User, utc_now
 from profiles.service import get_profile_access_role
 from chat_history.schemas import (
     ChatHistoryContinueResponse,
@@ -89,7 +89,7 @@ def update_chat_history(
     entry.recommendation = request.recommendation
     entry.next_steps = request.next_steps
     entry.messages = [message.model_dump(mode="json") for message in request.messages]
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()
@@ -158,7 +158,7 @@ def resume_chat_history(
 
     session_profiles[session_id] = entry.profile_id
     entry.session_id = session_id
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()
@@ -247,7 +247,7 @@ def continue_chat_history(
         )
     except Exception as exc:
         entry.status = "failed"
-        entry.updated_at = datetime.utcnow()
+        entry.updated_at = utc_now()
         session.add(entry)
         session.commit()
         raise HTTPException(
@@ -309,7 +309,7 @@ def continue_chat_history(
     else:
         entry.status = "active"
 
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()

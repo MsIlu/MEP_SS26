@@ -1,11 +1,10 @@
 """Business logic and authorization checks for profile-scoped medications."""
 
-from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from database.models import MedicationEntry, User
+from database.models import MedicationEntry, User, utc_now
 from medications.schemas import (
     MedicationCatalogItemRequest,
     MedicationCatalogItemResponse,
@@ -87,7 +86,7 @@ def create_medication(
         frequency=request.frequency,
         reminders_enabled=request.reminders_enabled,
         taken_date_keys=request.taken_date_keys,
-        created_at=request.created_at or datetime.utcnow(),
+        created_at=request.created_at or utc_now(),
     )
     _apply_catalog_item(entry, request.catalog_item)
 
@@ -170,7 +169,7 @@ def update_medication(
         excluded_medication_id=entry.id,
     )
 
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()
@@ -200,8 +199,8 @@ def delete_medication(
         session=session,
     )
 
-    entry.deleted_at = datetime.utcnow()
-    entry.updated_at = datetime.utcnow()
+    entry.deleted_at = utc_now()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()

@@ -1,13 +1,25 @@
-# Author: Ilu
+﻿# Author: Ilu
 # Created and modified as part of the authentication and profile management implementation.
 # This module defines database models for accounts, medical profiles, and account-profile access rights.
 # SQLModel uses these classes to create the corresponding tables in PostgreSQL.
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional
 
 from sqlalchemy import Column, JSON, Text
 from sqlmodel import SQLModel, Field
+
+
+def utc_now() -> datetime:
+    """Return the current UTC time as a naive datetime.
+
+    Drop-in replacement for the deprecated datetime.utcnow(). Stays naive on
+    purpose: all timestamp columns are TIMESTAMP WITHOUT TIME ZONE and every
+    stored row is naive UTC, so an aware datetime would break comparisons
+    against loaded values.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 
 class User(SQLModel, table=True):
     """
@@ -25,8 +37,8 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     active_profile_id: Optional[int] = Field(default=None, foreign_key="profiles.id")
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     deleted_at: Optional[datetime] = Field(default=None)
 
 class Profile(SQLModel, table=True):
@@ -54,8 +66,8 @@ class Profile(SQLModel, table=True):
 
     ai_disclaimer_accepted_at: Optional[datetime] = Field(default=None)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     deleted_at: Optional[datetime] = Field(default=None)
 
 
@@ -79,8 +91,8 @@ class SymptomDiaryEntry(SQLModel, table=True):
     note: str = Field(default="")
     source: str = Field(default="manual", max_length=30)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class AccountProfileAccess(SQLModel, table=True):
@@ -99,8 +111,8 @@ class AccountProfileAccess(SQLModel, table=True):
 
     role: str = Field(default="owner", max_length=30)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class MedicationEntry(SQLModel, table=True):
@@ -136,8 +148,8 @@ class MedicationEntry(SQLModel, table=True):
     catalog_strength: Optional[str] = Field(default=None, max_length=100)
     catalog_dosage_form: Optional[str] = Field(default=None, max_length=100)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     deleted_at: Optional[datetime] = Field(default=None)
 
 
@@ -166,8 +178,8 @@ class RecommendedAppointment(SQLModel, table=True):
     note: Optional[str] = Field(default=None, max_length=1000)
     status: str = Field(default="planned", max_length=40, index=True)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     deleted_at: Optional[datetime] = Field(default=None)
 
 
@@ -191,8 +203,8 @@ class ChatHistory(SQLModel, table=True):
     next_steps: Optional[str] = Field(default=None)
     messages: list[dict] = Field(default_factory=list, sa_column=Column(JSON))
 
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
-    updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=utc_now, index=True)
+    updated_at: datetime = Field(default_factory=utc_now, index=True)
 
 
 class DocumentEntry(SQLModel, table=True):
@@ -214,6 +226,6 @@ class DocumentEntry(SQLModel, table=True):
     mime_type: str = Field(default="application/pdf", max_length=120)
     file_data_base64: str = Field(default="", sa_column=Column(Text, nullable=False))
 
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now, index=True)
+    updated_at: datetime = Field(default_factory=utc_now)
     deleted_at: Optional[datetime] = Field(default=None)

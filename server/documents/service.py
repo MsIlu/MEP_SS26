@@ -2,12 +2,11 @@
 
 import base64
 import binascii
-from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from database.models import DocumentEntry, User
+from database.models import DocumentEntry, User, utc_now
 from documents.schemas import (
     DocumentCreateRequest,
     DocumentDeleteResponse,
@@ -67,7 +66,7 @@ def create_document(
         size_in_bytes=decoded_size,
         mime_type=request.mime_type.strip(),
         file_data_base64=file_data_base64,
-        created_at=request.created_at or datetime.utcnow(),
+        created_at=request.created_at or utc_now(),
     )
 
     session.add(entry)
@@ -125,7 +124,7 @@ def update_document(
             value = value.strip()
         setattr(entry, field_name, value)
 
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()
@@ -153,8 +152,8 @@ def delete_document(
         session=session,
     )
 
-    entry.deleted_at = datetime.utcnow()
-    entry.updated_at = datetime.utcnow()
+    entry.deleted_at = utc_now()
+    entry.updated_at = utc_now()
 
     session.add(entry)
     session.commit()

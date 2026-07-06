@@ -5,14 +5,13 @@ kept separate from HTTP routing.
 Created as part of the authentication and profile management implementation.
 """
 
-from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
 from auth.schemas import AccountResponse, AuthResponse, LoginRequest, ProfileResponse, RegisterRequest
 from auth.security import create_access_token, hash_password, verify_password
-from database.models import AccountProfileAccess, Profile, User
+from database.models import AccountProfileAccess, Profile, User, utc_now
 
 
 def register_account(request: RegisterRequest, session: Session) -> AuthResponse:
@@ -71,7 +70,7 @@ def register_account(request: RegisterRequest, session: Session) -> AuthResponse
     session.add(access)
 
     user.active_profile_id = profile.id
-    user.updated_at = datetime.utcnow()
+    user.updated_at = utc_now()
 
     session.add(user)
     session.commit()
@@ -160,7 +159,7 @@ def deactivate_account(current_user: User, session: Session) -> dict:
     Shared profiles remain available to their other accounts. Health records
     stay in the database and become inaccessible through soft-deleted profiles.
     """
-    deleted_at = datetime.utcnow()
+    deleted_at = utc_now()
     accesses = session.exec(
         select(AccountProfileAccess).where(
             AccountProfileAccess.account_id == current_user.id

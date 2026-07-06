@@ -240,7 +240,7 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
         ]
 
     monkeypatch.setattr("profiles.service.list_profiles", fake_list_profiles)
-    monkeypatch.setattr(main, "_load_diary_history", lambda profile_id, current_user, session: [])
+    monkeypatch.setattr("chat.service._load_diary_history", lambda profile_id, current_user, session: [])
 
     def fake_detect(message):
         return SimpleNamespace(
@@ -374,7 +374,7 @@ def test_chat_simrun_uses_simulation_runner_shortcut(client, monkeypatch):
         raise AssertionError("turn engine must not receive /simrun commands")
 
     monkeypatch.setattr(careena4_simulation_runner, "run", fake_run)
-    monkeypatch.setattr(main, "run_simulation_command", fake_run_simulation_command)
+    monkeypatch.setattr("chat.service.run_simulation_command", fake_run_simulation_command)
     monkeypatch.setattr(careena4_turn_engine, "run_turn", fake_run_turn)
 
     response = client.post(
@@ -570,13 +570,11 @@ def test_appointment_search_uses_fhir_bundle_and_hapi_layer(
         )
 
     monkeypatch.setattr(
-        main,
-        "get_profile_access_role",
+        "profiles.service.get_profile_access_role",
         fake_get_profile_access_role,
     )
     monkeypatch.setattr(
-        main,
-        "search_fhir_appointments",
+        "appointments.service.search_fhir_appointments",
         fake_search_fhir_appointments,
     )
 

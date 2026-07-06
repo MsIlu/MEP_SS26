@@ -44,6 +44,8 @@ from uuid import uuid4 #for turn_id
 
 from careena4.bootstrap import build_default_services, build_simulation_runner #for Careena4 runtime: LLM, TurnEngine, SessionStore
 from careena4.domain.case import CaseManager
+from careena4.infrastructure import PendingReplayContext
+from careena4.models.domain import ConversationState, MedicalCase, RecommendationState
 from careena4.models.turn import RecommendationRequestInput, TurnInput, TurnResult #for User message in Careena4 and Response-Helpfunction
 from careena4.models.turn.input import DiaryEntry, MedicationEntry, ProfileSnapshot
 from careena4.models.workflow.recommendation_result import RecommendationResult
@@ -628,6 +630,67 @@ def persist_careena4_turn_result(*, careena4_session, turn_result: TurnResult) -
         careena4_session.symptom_input_draft = turn_result.symptom_input_draft
 
 
+def _model_copy(value):
+    return value.model_copy(deep=True) if value is not None else None
+
+
+def _copy_messages(messages: list[dict[str, str]] | None) -> list[dict[str, str]]:
+    return [dict(item) for item in (messages or [])]
+
+
+def _capture_pending_replay_context(*, careena4_session, message: str) -> None:
+    if getattr(careena4_session, "pending_replay_context", None) is not None:
+        return
+
+    careena4_session.pending_replay_context = PendingReplayContext(
+        medical_case=_model_copy(careena4_session.medical_case),
+        conversation_state=_model_copy(careena4_session.conversation_state) or ConversationState(),
+        recommendation_state=_model_copy(careena4_session.recommendation_state) or RecommendationState(),
+        symptom_input_draft=_model_copy(careena4_session.symptom_input_draft),
+        messages=_copy_messages(careena4_session.messages),
+    )
+
+
+def _clear_pending_replay_context(*, careena4_session) -> None:
+    careena4_session.pending_replay_context = None
+
+
+def _build_replay_state(*, careena4_session) -> tuple[list[dict[str, str]], MedicalCase, ConversationState, RecommendationState, object]:
+    replay_context = getattr(careena4_session, "pending_replay_context", None)
+    if replay_context is None:
+        replay_messages = _copy_messages(careena4_session.messages)
+        replay_medical_case = _model_copy(careena4_session.medical_case) or MedicalCase()
+        replay_conversation_state = _model_copy(careena4_session.conversation_state) or ConversationState()
+        replay_recommendation_state = _model_copy(careena4_session.recommendation_state) or RecommendationState()
+        replay_symptom_input_draft = _model_copy(careena4_session.symptom_input_draft)
+    else:
+        replay_messages = _copy_messages(replay_context.messages)
+        replay_medical_case = _model_copy(replay_context.medical_case) or MedicalCase()
+        replay_conversation_state = _model_copy(replay_context.conversation_state) or ConversationState()
+        replay_recommendation_state = _model_copy(replay_context.recommendation_state) or RecommendationState()
+        replay_symptom_input_draft = _model_copy(replay_context.symptom_input_draft)
+
+    current_medical_case = getattr(careena4_session, "medical_case", None)
+    if current_medical_case is not None:
+        replay_medical_case.person = current_medical_case.person.model_copy(deep=True)
+
+    current_conversation_state = getattr(careena4_session, "conversation_state", None)
+    if current_conversation_state is not None:
+        replay_conversation_state.active_question = None
+        replay_conversation_state.cleared_safety_clarifications = [
+            entry.model_copy(deep=True)
+            for entry in getattr(current_conversation_state, "cleared_safety_clarifications", [])
+        ]
+
+    return (
+        replay_messages,
+        replay_medical_case,
+        replay_conversation_state,
+        replay_recommendation_state,
+        replay_symptom_input_draft,
+    )
+
+
 def _replay_persisted_message(
     *,
     message: str,
@@ -636,6 +699,13 @@ def _replay_persisted_message(
     diary_history: list[DiaryEntry],
     careena4_session,
 ) -> TurnResult:
+    (
+        replay_messages,
+        replay_medical_case,
+        replay_conversation_state,
+        replay_recommendation_state,
+        replay_symptom_input_draft,
+    ) = _build_replay_state(careena4_session=careena4_session)
     replay_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
             message=message,
@@ -643,18 +713,18 @@ def _replay_persisted_message(
             turn_id=str(uuid4()),
             profile_id=session_profile_id,
             diary_history=diary_history,
-            conversation_messages=careena4_session.messages,
-            persisted_medical_case=careena4_session.medical_case,
-            persisted_conversation_state=careena4_session.conversation_state,
-            persisted_recommendation_state=careena4_session.recommendation_state,
-            persisted_symptom_input_draft=careena4_session.symptom_input_draft,
+            conversation_messages=replay_messages,
+            persisted_medical_case=replay_medical_case,
+            persisted_conversation_state=replay_conversation_state,
+            persisted_recommendation_state=replay_recommendation_state,
+            persisted_symptom_input_draft=replay_symptom_input_draft,
         )
     )
     persist_careena4_turn_result(
         careena4_session=careena4_session,
         turn_result=replay_result,
     )
-    careena4_session.messages.append({"role": "user", "content": message})
+    _clear_pending_replay_context(careena4_session=careena4_session)
     return replay_result
 
 
@@ -767,6 +837,11 @@ def chat(
         if careena4_session.conversation_state and careena4_session.conversation_state.active_question
         else None
     )
+    if unresolved_multi_profile_first_turn:
+        _capture_pending_replay_context(
+            careena4_session=careena4_session,
+            message=req.message,
+        )
 
     turn_result = careena4_turn_engine.run_turn(
         TurnInput.from_persisted_state(
@@ -1015,6 +1090,12 @@ def chat(
                         }
             except Exception:
                 pass
+
+    if (
+        getattr(careena4_session, "pending_replay_context", None) is not None
+        and careena4_person_initialiser.pending_message(session_id=req.session_id) is None
+    ):
+        _clear_pending_replay_context(careena4_session=careena4_session)
 
     careena4_session.messages.append(
         {"role": "assistant", "content": response["response"]}

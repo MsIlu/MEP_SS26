@@ -1,7 +1,17 @@
+from dataclasses import dataclass
 from uuid import uuid4
 
 from careena4.models.domain import ConversationState, MedicalCase, RecommendationState
 from careena4.models.input import SymptomInputDraft
+
+
+@dataclass
+class PendingReplayContext:
+    medical_case: MedicalCase | None
+    conversation_state: ConversationState
+    recommendation_state: RecommendationState
+    symptom_input_draft: SymptomInputDraft | None
+    messages: list[dict[str, str]]
 
 
 class Careena4Session:
@@ -15,6 +25,7 @@ class Careena4Session:
         self.messages: list[dict[str, str]] = []
         self.last_turn_interpretation = None
         self.last_turn_understanding = None
+        self.pending_replay_context: PendingReplayContext | None = None
 
 
 class Careena4SessionStore:

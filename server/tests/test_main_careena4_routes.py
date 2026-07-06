@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from appointments.schemas import AppointmentSearchResponse, FhirAppointment
 from careena4.models.domain.case import MedicalCase
 from careena4.models.domain.dialogue import ActiveQuestion, ConversationState
+from careena4.models.domain.observation import Observation
 from careena4.models.domain.recommendation import RecommendationState
 from careena4.models.turn.input import DiaryEntry
 import main
@@ -213,6 +214,15 @@ def test_guest_chat_uses_careena4_turn_engine(client: TestClient, monkeypatch: p
     assert response.json()["red_flag"] is False
     assert len(calls) == 1
 
+def _fake_diary_entry() -> DiaryEntry:
+    return DiaryEntry(
+        date="2026-07-01",
+        symptom="Kopfschmerzen",
+        body_area="Kopf",
+        intensity=4,
+        note="seit gestern",
+    )
+
 
 def test_self_message_replays_with_active_profile_without_profile_question(
     client: TestClient,
@@ -226,15 +236,6 @@ def test_self_message_replays_with_active_profile_without_profile_question(
         lambda: SimpleNamespace(id=7)
     )
 
-
-def _fake_diary_entry() -> DiaryEntry:
-    return DiaryEntry(
-        date="2026-07-01",
-        symptom="Kopfschmerzen",
-        body_area="Kopf",
-        intensity=4,
-        note="seit gestern",
-    )
     monkeypatch.setattr(main, "get_profile_access_role", lambda **kwargs: "owner")
 
     def fake_list_profiles(*, current_user, session):
@@ -282,7 +283,7 @@ def _fake_diary_entry() -> DiaryEntry:
             turn_interpretation=None,
         )
 
-    replay_inputs: list[tuple[str, int, str, int | None, str | None]] = []
+    replay_inputs: list[tuple[str, int, str, int | None, str | None, list[str]]] = []
 
     def fake_run_turn(turn_input):
         medical_case = turn_input.persisted_medical_case or MedicalCase()
@@ -293,10 +294,14 @@ def _fake_diary_entry() -> DiaryEntry:
                 medical_case.person.relation,
                 medical_case.person.age,
                 medical_case.person.sex,
+                [obs.normalized_label_de for obs in medical_case.observations],
             )
         )
         if len(replay_inputs) == 1:
             medical_case.person.relation = "self"
+            medical_case.observations.append(
+                Observation(type="symptom", normalized_label_de="Kopfschmerzen")
+            )
             return _turn_result(
                 response_text="Wie alt bist du?",
                 medical_case=medical_case,
@@ -330,9 +335,15 @@ def _fake_diary_entry() -> DiaryEntry:
     assert response.json()["response"] == "Weiter mit Symptomen."
     assert response.json()["pending_followup"] is None
     assert replay_inputs == [
-        ("Ich habe seit gestern Kopfschmerzen.", 0, "unclear", None, None),
-        ("Ich habe seit gestern Kopfschmerzen.", 1, "self", 26, "female"),
+        ("Ich habe seit gestern Kopfschmerzen.", 0, "unclear", None, None, []),
+        ("Ich habe seit gestern Kopfschmerzen.", 1, "self", 26, "female", []),
     ]
+    assert [
+        item["content"]
+        for item in careena4_session_store.get(session_id).messages
+        if item["role"] == "user"
+    ] == ["Ich habe seit gestern Kopfschmerzen."]
+    assert careena4_session_store.get(session_id).pending_replay_context is None
 
 
 def test_safety_bypass_profile_selection_replays_deferred_medical_message(
@@ -377,7 +388,7 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
 
     monkeypatch.setattr(careena4_turn_engine.raw_red_flag_detector, "detect", fake_detect)
 
-    replay_inputs: list[tuple[str, int | None, str | None]] = []
+    replay_inputs: list[tuple[str, int | None, str | None, list[str]]] = []
 
     def _turn_result(
         *,
@@ -406,9 +417,13 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
                 turn_input.message,
                 medical_case.person.age,
                 medical_case.person.sex,
+                [obs.normalized_label_de for obs in medical_case.observations],
             )
         )
         if turn_input.message == "Ich habe Brustschmerzen." and len(replay_inputs) == 1:
+            medical_case.observations.append(
+                Observation(type="symptom", normalized_label_de="Brustschmerzen")
+            )
             return _turn_result(
                 response_text="Notfall?",
                 response_mode="ask_safety_question",
@@ -477,11 +492,17 @@ def test_safety_bypass_profile_selection_replays_deferred_medical_message(
     assert third.json()["response"] == "Weiter mit Symptomen."
     assert third.json()["pending_followup"] is None
     assert replay_inputs == [
-        ("Ich habe Brustschmerzen.", None, None),
-        ("Nein", None, None),
-        ("Anna", None, None),
-        ("Ich habe Brustschmerzen.", 26, "female"),
+        ("Ich habe Brustschmerzen.", None, None, []),
+        ("Nein", None, None, ["Brustschmerzen"]),
+        ("Anna", None, None, ["Brustschmerzen"]),
+        ("Ich habe Brustschmerzen.", 26, "female", []),
     ]
+    assert [
+        item["content"]
+        for item in careena4_session_store.get(session_id).messages
+        if item["role"] == "user"
+    ] == ["Ich habe Brustschmerzen.", "Nein", "Anna"]
+    assert careena4_session_store.get(session_id).pending_replay_context is None
 
 
 def test_safety_bypass_self_message_replays_without_profile_question(
@@ -523,7 +544,7 @@ def test_safety_bypass_self_message_replays_without_profile_question(
         lambda profile_id, current_user, session: [_fake_diary_entry()] if profile_id == 1 else [],
     )
 
-    replay_inputs: list[tuple[str, int, str, int | None, str | None]] = []
+    replay_inputs: list[tuple[str, int, str, int | None, str | None, list[str]]] = []
 
     def _turn_result(
         *,
@@ -554,10 +575,14 @@ def test_safety_bypass_self_message_replays_without_profile_question(
                 medical_case.person.relation,
                 medical_case.person.age,
                 medical_case.person.sex,
+                [obs.normalized_label_de for obs in medical_case.observations],
             )
         )
         if len(replay_inputs) == 1:
             medical_case.person.relation = "self"
+            medical_case.observations.append(
+                Observation(type="symptom", normalized_label_de="Brustschmerzen")
+            )
             return _turn_result(
                 response_text="Ist das ein Notfall?",
                 response_mode="ask_safety_question",
@@ -611,10 +636,16 @@ def test_safety_bypass_self_message_replays_without_profile_question(
     assert second.json()["response"] == "Weiter mit Symptomen."
     assert second.json()["pending_followup"] is None
     assert replay_inputs == [
-        ("Ich habe Brustschmerzen.", 0, "unclear", None, None),
-        ("Nein", 0, "self", None, None),
-        ("Ich habe Brustschmerzen.", 1, "self", 26, "female"),
+        ("Ich habe Brustschmerzen.", 0, "unclear", None, None, []),
+        ("Nein", 0, "self", None, None, ["Brustschmerzen"]),
+        ("Ich habe Brustschmerzen.", 1, "self", 26, "female", []),
     ]
+    assert [
+        item["content"]
+        for item in careena4_session_store.get(session_id).messages
+        if item["role"] == "user"
+    ] == ["Ich habe Brustschmerzen.", "Nein"]
+    assert careena4_session_store.get(session_id).pending_replay_context is None
 
 
 def test_chat_simrun_uses_simulation_runner_shortcut(client, monkeypatch):

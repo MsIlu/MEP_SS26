@@ -2,6 +2,7 @@
 # Created as part of the authentication and profile management test setup.
 # Provides an isolated FastAPI test app with an in-memory SQLite database.
 
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +10,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session, create_engine
+
+from careena4.core.client import LLMClient
+from careena4.core.exceptions import LLMRequestError
 
 from auth.router import router as auth_router
 from auth.security import get_session
@@ -77,6 +81,53 @@ def _fake_response_builder(result):
         "action": None,
         "severity": None,
     }
+
+
+@pytest.fixture(autouse=True)
+def no_real_llm_network(monkeypatch):
+    """Keep the suite offline: LLMClient must never open real connections.
+
+    The configured LiteLLM endpoint (.env) is only reachable inside the
+    university network. Without this guard every TestClient startup (health
+    check) and every unmocked LLM path waits for a TCP connect timeout, which
+    inflates the suite from ~2 to 18+ minutes — or silently performs real
+    model inferences when the endpoint IS reachable.
+
+    All LLM consumers degrade deterministically on LLMRequestError, and tests
+    that need specific LLM behavior patch the client instance or inject fakes,
+    which still overrides these class-level stubs.
+    """
+    def _no_model_check(self, model):
+        return False
+
+    def _no_complete(self, **kwargs):
+        raise LLMRequestError("Real LLM calls are disabled in the test suite")
+
+    monkeypatch.setattr(LLMClient, "is_model_available", _no_model_check)
+    monkeypatch.setattr(LLMClient, "complete", _no_complete)
+
+
+@pytest.fixture(autouse=True)
+def no_real_database_startup(monkeypatch):
+    """Keep the suite offline, part 2: booting main.app must not touch Postgres.
+
+    main's startup event runs create_db_and_tables(), _seed_catalog() and
+    safety_catalog_cache.load() against the real engine (127.0.0.1:5433).
+    When the local Docker Postgres is not running, every psycopg connect
+    blocks until its timeout, so each of the ~8 test modules that start the
+    real app via TestClient waits minutes per test.
+
+    Tests exercise DB behavior through the isolated SQLite test app or their
+    own fixtures; none of them rely on the startup-seeded real database.
+    """
+    main = sys.modules.get("main")
+    if main is None:
+        # No collected test imports main, so nothing can boot the real app.
+        return
+
+    monkeypatch.setattr(main, "create_db_and_tables", lambda: None)
+    monkeypatch.setattr(main, "_seed_catalog", lambda: None)
+    monkeypatch.setattr(main.careena4_services.safety_catalog_cache, "load", lambda: 0)
 
 
 @pytest.fixture()

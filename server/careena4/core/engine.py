@@ -13,7 +13,13 @@ from careena4.server_log import log_event, log_json
 T = TypeVar("T", bound=BaseModel)
 logger = logging.getLogger(__name__)
 
-
+"""
+Purpose: Generic extraction engine that runs structured LLM extraction, parses JSON responses, and validates them against any provided Pydantic schema.
+Input: `text`, `system_prompt`, `output_schema`
+Output: validated schema object, core errors
+Responsible: JSON parsing, schema validation, extraction logging
+Not responsible: API transport, domain decisions, persistence
+"""
 class ExtractionEngine:
     def __init__(self, llm_client: LLMClient):
         self.llm_client = llm_client

@@ -8,7 +8,13 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - optional runtime dependency
     OpenAI = None  # type: ignore[assignment]
 
-
+"""
+Purpose: Wraps direct LLM access, checks model availability, and executes completion requests with logging and optional JSON mode.
+Input: `messages`, model name, request parameters
+Output: response text, availability status
+Responsible: LLM requests, model healthcheck, request logging
+Not responsible: schema validation, domain logic, prompt contents
+"""
 class LLMClient:
     def __init__(
         self,

@@ -1,3 +1,5 @@
+"""HTTP routes for persisted chat history entries."""
+
 from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
 

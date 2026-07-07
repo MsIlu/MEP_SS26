@@ -1,3 +1,5 @@
+"""Business logic for FHIR-based appointment search and booking."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -14,7 +16,7 @@ from appointments.schemas import (
     RecommendedAppointmentRescheduleRequest,
     RecommendedAppointmentResponse,
 )
-from database.models import RecommendedAppointment, User
+from database.models import RecommendedAppointment, User, utc_now
 from fhir_mapper.hapi_client import (
     HapiFhirClient,
     HapiFhirError,
@@ -220,7 +222,7 @@ def cancel_recommended_appointment(
     except HapiFhirError as exc:
         raise _hapi_booking_exception(exc) from exc
 
-    now = datetime.utcnow()
+    now = utc_now()
     entry.status = "cancelled"
     entry.deleted_at = now
     entry.updated_at = now
@@ -313,7 +315,7 @@ def reschedule_recommended_appointment(
     if request.note is not None:
         entry.note = request.note.strip() or None
     entry.status = "booked"
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
     session.add(entry)
     session.commit()
     session.refresh(entry)

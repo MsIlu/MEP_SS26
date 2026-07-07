@@ -59,8 +59,7 @@ def test_input_draft_response_exposes_legacy_symptoms_and_rich_chips(
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(
-        main,
-        "careena4_turn_engine",
+        "chat.runtime.careena4_turn_engine",
         TurnEngine(medical_extractor=_StubMedicalExtractor()),
     )
 

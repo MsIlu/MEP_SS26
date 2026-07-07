@@ -69,8 +69,7 @@ def test_careena4_chat_updates_symptom_input_draft_from_extraction_claims(
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(
-        main,
-        "careena4_turn_engine",
+        "chat.runtime.careena4_turn_engine",
         TurnEngine(medical_extractor=_StubMedicalExtractor()),
     )
 
@@ -97,8 +96,7 @@ def test_careena4_chat_merges_extracted_symptoms_with_user_edited_draft(
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(
-        main,
-        "careena4_turn_engine",
+        "chat.runtime.careena4_turn_engine",
         TurnEngine(medical_extractor=_StubMedicalExtractor()),
     )
 
@@ -131,8 +129,7 @@ def test_input_draft_deletion_negates_case_observation_and_stays_deleted_on_next
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(
-        main,
-        "careena4_turn_engine",
+        "chat.runtime.careena4_turn_engine",
         TurnEngine(
             medical_extractor=_SequenceMedicalExtractor(
                 ExtractedCaseInput(

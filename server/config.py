@@ -1,13 +1,15 @@
-# server/config.py
+"""Central server configuration: .env loading, LLM/FHIR endpoints and the
+master prompt. The prompt texts themselves are German by design (user-facing
+language of the app)."""
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Projekt-Hauptordner bestimmen:
-# config.py liegt in /server, deshalb gehen wir eine Ebene hoch zu MEP_SS26a
+# config.py lives in /server, so the project root (MEP_SS26) is one level up.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# .env aus dem Projekt-Hauptordner laden
+# Load .env from the project root.
 load_dotenv(BASE_DIR / ".env")
 
 LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://localhost:4000").rstrip("/")
@@ -17,8 +19,7 @@ SELECTED_MODEL = os.getenv("LITELLM_MODEL", "medgemma:27b")
 FHIR_BASE_URL = os.getenv("FHIR_BASE_URL", "http://localhost:8080/fhir").rstrip("/")
 FHIR_TIMEOUT_SECONDS = float(os.getenv("FHIR_TIMEOUT_SECONDS", "5"))
 
-# LLM-Konfiguration
-
+# LLM call defaults
 MAX_HISTORY_MESSAGES = 6
 LLM_MAX_TOKENS = 220
 LLM_TEMPERATURE = 0.1

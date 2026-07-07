@@ -1,6 +1,8 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module contains password hashing, JWT handling, and authentication dependencies.
+"""Password hashing, JWT handling, and authentication dependencies.
+
+Created as part of the authentication and profile management implementation.
+"""
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional

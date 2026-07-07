@@ -1,6 +1,9 @@
 ﻿# Author: Ilu
-# This file handles the database connection.
-# It connects FastAPI to PostgreSQL, creates tables, and provides database sessions.
+"""Database connection handling.
+
+Connects FastAPI to PostgreSQL, creates tables (including lightweight
+column/index migrations on startup), and provides database sessions.
+"""
 
 from pathlib import Path
 import os
@@ -12,30 +15,27 @@ from .catalog import models as catalog_models
 
 _REGISTERED_MODEL_MODULES = (models, catalog_models)
 
-#determines the projects main folder
+# Project root (MEP_SS26) is two levels above this file.
 BASE_DIR = Path(__file__).resolve().parents[2]
 
-#path to .env-file in main folder
+# Load environment variables from the .env file in the project root.
 ENV_PATH = BASE_DIR / ".env"
-
-#loads enviromentvariable from .env-File
 load_dotenv(dotenv_path=ENV_PATH)
 
-#loads databse-URL from .env-File
+# The database URL is required; fail fast instead of starting without a DB.
 DATABASE_URL = os.getenv("DATABASE_URL")
-
-#prints error-message if there is no database-URL
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is missing. Please check .env-File in MEP_SS26.")
 
 def _env_flag(name: str, *, default: bool = False) -> bool:
+    """Read a boolean flag from the environment (1/true/yes/on)."""
     raw_value = os.getenv(name)
     if raw_value is None:
         return default
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-#connects to postgresSQL-Database
+# SQL_ECHO=1 logs every SQL statement (development only).
 engine_options = {"echo": _env_flag("SQL_ECHO")}
 
 if DATABASE_URL.startswith(("postgresql://", "postgresql+")):

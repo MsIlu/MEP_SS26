@@ -1,13 +1,14 @@
 # Author: Ilu
-# Created as part of the authentication and profile management implementation.
-# This module contains business logic and authorization checks for medical profiles.
+"""Business logic and authorization checks for medical profiles.
 
-from datetime import datetime
+Created as part of the authentication and profile management implementation.
+"""
+
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from database.models import AccountProfileAccess, Profile, User
+from database.models import AccountProfileAccess, Profile, User, utc_now
 from profiles.schemas import (
     ProfileCreateRequest,
     ProfileDeleteResponse,
@@ -227,7 +228,7 @@ def update_profile(
     for field_name, value in update_data.items():
         setattr(profile, field_name, value)
 
-    profile.updated_at = datetime.utcnow()
+    profile.updated_at = utc_now()
 
     session.add(profile)
     session.commit()
@@ -278,12 +279,12 @@ def delete_profile(
             detail="The main profile can only be deleted with its account.",
         )
 
-    profile.deleted_at = datetime.utcnow()
-    profile.updated_at = datetime.utcnow()
+    profile.deleted_at = utc_now()
+    profile.updated_at = utc_now()
 
     if current_user.active_profile_id == profile.id:
         current_user.active_profile_id = None
-        current_user.updated_at = datetime.utcnow()
+        current_user.updated_at = utc_now()
         session.add(current_user)
 
     session.add(profile)

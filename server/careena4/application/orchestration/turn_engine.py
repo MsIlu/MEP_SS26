@@ -1,3 +1,10 @@
+"""Turn orchestration for the Careena4 chat pipeline.
+
+The TurnEngine is the single entry point for processing one user turn. It owns
+no HTTP or persistence concerns: main.py loads the session state, passes it in
+as a TurnInput, and persists the returned TurnResult.
+"""
+
 from careena4.application.dialogue.question_builder import QuestionBuilder
 from careena4.application.dialogue.question_resolver import QuestionResolver
 from careena4.application.dialogue.raw_red_flag_detector import RawRedFlagDetector
@@ -30,6 +37,14 @@ from careena4.server_log import log_event
 
 
 class TurnEngine:
+    """Stateless orchestrator that decides how Careena responds to one turn.
+
+    All collaborators are injected (runtime.py wires the production graph);
+    every constructor argument has a deterministic default so unit tests can
+    instantiate the engine with only the pieces they exercise. State lives
+    entirely in the TurnInput/TurnResult models, never on the engine itself.
+    """
+
     def __init__(
         self,
         *,
@@ -71,6 +86,24 @@ class TurnEngine:
         self.case_safety_evaluator = case_safety_evaluator or CaseSafetyEvaluator()
 
     def run_turn(self, turn_input: TurnInput) -> TurnResult:
+        """Process one user message and decide the next conversational step.
+
+        The turn walks through fixed phases, each of which may end the turn:
+          1. Raw red-flag scan of the message (emergency shortcut).
+          2. Turn interpretation (one combined LLM call) or, on the guided-input
+             fast path / interpreter failure, the fallback entry classifier.
+          3. Resolution of the active question, if any. Safety clarifications
+             are always resolved deterministically, never by the LLM.
+          4. Applying extracted medical claims and user-edited symptom chips
+             to the MedicalCase.
+          5. Case-level and raw safety checks (may open a safety clarification,
+             unless the same finding was already cleared earlier).
+          6. Follow-up selection or readiness evaluation; if nothing is left to
+             ask and a recommendation is allowed, guide the user to request it.
+
+        Returns a TurnResult carrying the response text, the updated state
+        objects and trace notes for observability.
+        """
         medical_case = turn_input.persisted_medical_case or MedicalCase()
         conversation_state = turn_input.persisted_conversation_state or ConversationState()
         recommendation_state = turn_input.persisted_recommendation_state or RecommendationState()
@@ -558,6 +591,8 @@ class TurnEngine:
 
     @staticmethod
     def _is_guided_input_answer(message: str, active_question: ActiveQuestion | None) -> bool:
+        """Return True when the message exactly matches a guided-input option,
+        allowing the turn to skip the LLM interpretation (fast path)."""
         if active_question is None or active_question.guided_input is None:
             return False
         normalized = message.strip().lower()
@@ -571,7 +606,7 @@ class TurnEngine:
     ) -> tuple[MedicalCase, list[str]]:
         """Write user-confirmed/edited chips into MedicalCase observations.
 
-        Only chips with a normalized_label_de (set by MedGemma) are accepted â€”
+        Only chips with a normalized_label_de (set by MedGemma) are accepted —
         that normalization step serves as the plausibility gate.
         """
         if symptom_input_draft is None:
@@ -622,6 +657,10 @@ class TurnEngine:
             medical_case=medical_case,
         )
 
+    # A cleared safety clarification is remembered under a composite key
+    # (source stage | question code | evidence terms | active case signature),
+    # so the same finding is not asked again — but any change to the active
+    # symptoms produces a new key and re-triggers the check.
     def _remember_cleared_safety_clarification(
         self,
         *,
@@ -780,6 +819,13 @@ class TurnEngine:
         return sorted(signature)
 
     def request_recommendation(self, request_input: RecommendationRequestInput) -> TurnResult:
+        """Handle an explicit "give me the recommendation" request.
+
+        Unlike run_turn there is no new user message to interpret. The engine
+        re-checks readiness: an open question or missing case information still
+        blocks the recommendation and is asked instead; otherwise the
+        recommendation is built (or reused from state) and delivered.
+        """
         medical_case = request_input.persisted_medical_case or MedicalCase()
         conversation_state = request_input.persisted_conversation_state or ConversationState()
         recommendation_state = request_input.persisted_recommendation_state or RecommendationState()
@@ -1005,6 +1051,7 @@ class TurnEngine:
         recommendation_result=None,
         resolved_question: ActiveQuestion | None = None,
     ) -> TurnResult:
+        """Render the response text and pack the TurnResult (single exit point)."""
         response_text = self.response_builder.build(
             decision=decision,
             recommendation_result=recommendation_result,

@@ -1,4 +1,4 @@
-# HTTP routes for profile-scoped medication entries.
+"""HTTP routes for profile-scoped medication entries."""
 
 from fastapi import APIRouter, Depends
 from sqlmodel import Session

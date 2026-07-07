@@ -1,9 +1,10 @@
-from datetime import datetime
+"""Business logic and authorization checks for profile-scoped symptom diary entries."""
+
 
 from fastapi import HTTPException
 from sqlmodel import Session, select
 
-from database.models import SymptomDiaryEntry, User
+from database.models import SymptomDiaryEntry, User, utc_now
 from profiles.service import EDIT_ROLES, get_profile_access_role, require_profile_role
 from symptoms.schemas import (
     SymptomCreateRequest,
@@ -38,7 +39,7 @@ def create_symptom_entry(
         temperature_c=request.temperature_c,
         note=request.note.strip(),
         source=request.source,
-        created_at=request.created_at or datetime.utcnow(),
+        created_at=request.created_at or utc_now(),
     )
 
     session.add(entry)
@@ -73,7 +74,7 @@ def update_symptom_entry(
             value = value.strip()
         setattr(entry, field_name, value)
 
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = utc_now()
     session.add(entry)
     session.commit()
     session.refresh(entry)
